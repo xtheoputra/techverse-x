@@ -1,0 +1,77 @@
+# ---- Node / Next.js ----
+node_modules/
+.next/
+out/
+build/
+dist/
+.turbo/
+*.tsbuildinfo
+.pnp
+.pnp.js
+.yarn/cache
+.yarn/install-state.gz
+
+# ---- .NET ----
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+artifacts/
+TestResults/
+*.nupkg
+*.snupkg
+
+# ---- Rahasia & konfigurasi lokal ----
+.env
+.env.*
+!.env.example
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+*.pfx
+*.key
+*.pem
+
+# ---- Basis data lokal ----
+*.db
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+
+# ---- Log & cache ----
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.cache/
+coverage/
+.nyc_output/
+
+# ---- Python (kalau layanan agen jadi dipakai) ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# ---- Editor & OS ----
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# ---- Berkas kerja sementara ----
+scratch/
+tmp/
+temp/

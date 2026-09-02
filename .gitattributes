@@ -1,0 +1,18 @@
+# Normalkan akhir baris supaya tidak ribut antar-mesin
+* text=auto eol=lf
+
+# Berkas Windows yang memang harus CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Biner
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
