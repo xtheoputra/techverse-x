@@ -1,14 +1,22 @@
 # Audit Kelayakan — Sumber Berita & Tumpukan Teknologi
 
 **Tanggal audit:** 2026-09-02
-**Cara:** 10 agen paralel dengan pencarian web langsung — 6 memeriksa sumber berita, 4 memverifikasi pilihan arsitektur. Nol agen gagal.
-**Yang diaudit:** `KERANGKA.md` bagian 2.5 (AI News Curator) dan 2.6 (Arsitektur Teknologi).
+**Yang diaudit:** `KERANGKA.md` 2.5 (AI News Curator) dan 2.6 (Arsitektur Teknologi).
+
+Berkas ini memuat **dua audit** dari satu gelombang. 10 agen paralel dengan pencarian web langsung, nol gagal.
+
+| Bagian | Sasaran | Agen | Keyakinan |
+|---|---|---|---|
+| [A](#bagian-a--enam-sumber-berita) | Enam sumber berita di `KERANGKA.md` 2.5 | 6 | tinggi |
+| [B](#bagian-b--empat-vonis-arsitektur) | Empat pilihan tumpukan di `KERANGKA.md` 2.6 | 4 | B1-B3 tinggi, B4 sedang |
+
+> ⚠️ **Baca [Peringatan](#peringatan) di bagian paling bawah lebih dulu.** Satu temuan penting belum bisa diverifikasi siapa pun — ketentuan layanan OpenAI memblokir bot.
 
 ---
 
-# Bagian A — Enam Sumber Berita
+## Bagian A — Enam Sumber Berita
 
-## Vonis: otomatisasinya LAYAK, tapi tidak dengan cara yang biasa dibayangkan
+### Vonis: otomatisasinya LAYAK, tapi tidak dengan cara yang biasa dibayangkan
 
 **Keenam sumber punya jalur resmi.** Tujuan nomor 4 Anda — *"isinya bisa terus diperbarui otomatis"* — tidak menabrak tembok teknis. Tapi ada tiga syarat yang mengubah rancangannya:
 
@@ -16,7 +24,7 @@
 2. **Hanya arXiv yang benar-benar boleh dipublikasi ulang.** Lima sumber lain berstatus *bersyarat*.
 3. **GitHub Trending tidak punya API sama sekali** — harus dibangun sendiri.
 
-## Tabel Ringkas
+### Tabel Ringkas
 
 | Sumber | Jalur resmi | Kunci | Publikasi ulang | Catatan terpenting |
 |---|---|---|---|---|
@@ -27,28 +35,28 @@
 | **OpenAI** | RSS | tidak | ⚠️ bersyarat | Halaman artikel **memblokir bot (403)**. Feed hanya ringkasan pendek. |
 | **GitHub Trending** | ❌ tidak ada | **ya** | ⚠️ bersyarat | Bukan produk API. Harus dibangun ulang dari REST API. |
 
-## Temuan Per Sumber
+### Temuan Per Sumber
 
-### arXiv — satu-satunya yang bersih
+#### arXiv — satu-satunya yang bersih
 - **API:** `https://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending` — persis pola "paper terbaru per kategori" yang Anda butuhkan.
 - **RSS harian per kategori:** `https://rss.arxiv.org/rss/{kategori}` — kelima kategori (cs.AI, cs.LG, cs.CR, quant-ph, q-bio) diverifikasi hidup 2026-09-02. Sudah memuat judul, **abstrak penuh**, penulis, dan kategori.
 - **Lisensi:** *"You are free to use descriptive metadata about arXiv e-prints under the terms of the Creative Commons Universal (CC0 1.0) Public Domain Declaration."* Ini izin tertulis, bukan tafsiran.
 - **⚠️ Batas keras:** maksimum **satu permintaan tiap 3 detik**, satu koneksi. Berlaku untuk API, RSS, dan OAI-PMH sekaligus. Jadwalkan setelah 04:00 UTC; Sabtu-Minggu normal tanpa terbitan.
 
-### NVIDIA — paling ramah, tapi ketentuannya bertentangan sendiri
+#### NVIDIA — paling ramah, tapi ketentuannya bertentangan sendiri
 - Feed Atom memuat **konten penuh**, bukan cuplikan: `https://developer.nvidia.com/blog/feed/`
 - Ada feed per-tag yang langsung berguna: `.../tag/jetson/feed/`, `.../tag/omniverse/feed/`, `.../tag/jetson-orin/feed/`
 - Rilis pers: `https://nvidianews.nvidia.com/releases.xml`; per kategori: `.../cats/robotics.xml`, `.../cats/simulation_modeling_design.xml`
 - robots.txt-nya memuat `Content-Signal: ai-train=yes, search=yes, ai-input=yes` dan menyebut perayap AI secara eksplisit.
 - **⚠️ Tapi agen menemukan pertentangan langsung** antara robots.txt yang permisif itu dan Ketentuan Situs NVIDIA. Perlu keputusan sadar, bukan asumsi.
 
-### Google DeepMind
+#### Google DeepMind
 - `https://deepmind.google/blog/rss.xml` — RSS 2.0 valid, 150 item.
 - **Jebakan:** `description` di feed **kosong**, jadi halaman artikel tetap harus diambil satu per satu (untungnya server-rendered, cukup HTTP biasa).
 - Jalur lama `deepmind.google/discover/blog/rss.xml` sudah **mati (404)** — jangan dipakai.
 - Google ToS (efektif 30 Juli 2026) melarang akses otomatis *yang melanggar robots.txt*. robots.txt-nya permisif, jadi mengambil boleh — menerbitkan ulang tetap soal lain.
 
-### Microsoft — ketentuan paling menghambat
+#### Microsoft — ketentuan paling menghambat
 Tiga feed terverifikasi hidup 2026-09-02:
 - `https://azure.microsoft.com/en-us/blog/feed/` (memuat `content:encoded`)
 - `https://www.microsoft.com/en-us/research/feed/`
@@ -58,13 +66,13 @@ Tiga feed terverifikasi hidup 2026-09-02:
 
 **Ketentuannya yang jadi masalah:** isi layanan Microsoft dinyatakan *"for informational and non-commercial or personal use only and will not be copied or posted"*. Kalau TechVerse X Labs nanti komersial, klausul ini menyentuh Anda langsung. Kunci pengamanannya ada pada beda antara apa yang Anda **simpan** dan apa yang Anda **tampilkan**.
 
-### OpenAI — dua jebakan yang mematikan rancangan naif
+#### OpenAI — dua jebakan yang mematikan rancangan naif
 - Jalur satu-satunya: `https://openai.com/news/rss.xml` (RSS 2.0 valid, `lastBuildDate` terpantau bergerak).
 - **⚠️ Halaman artikel membalas HTTP 403 ke pengambil otomatis.** Diuji langsung hari ini pada `openai.com/index/gpt-5-6`. Arsitektur berbasis pengikisan akan rusak sebelum sempat tayang.
 - **⚠️ Feed hanya memuat ringkasan pendek (umumnya di bawah 150 karakter), tanpa `content:encoded`.** Artinya kalau Anda menyuruh LLM *"rangkum artikel ini"*, ia akan merangkum sebuah ringkasan — **risiko tinggi berhalusinasi detail yang tidak pernah ada di artikel aslinya.** Ini bukan risiko teoretis; ini konsekuensi langsung dari bentuk datanya.
 - Halaman ketentuan layanannya sendiri juga 403, jadi statusnya **tidak terverifikasi**. Perlu dibuka manusia lewat peramban sungguhan sebelum tayang.
 
-### GitHub Trending — tidak ada dan tidak akan ada
+#### GitHub Trending — tidak ada dan tidak akan ada
 Halaman `github.com/trending` adalah HTML biasa, bukan produk API. Tidak ada RSS.
 
 **Yang disarankan:** bangun "trending versi sendiri" di atas API resmi —
@@ -72,7 +80,7 @@ Halaman `github.com/trending` adalah HTML biasa, bukan produk API. Tidak ada RSS
 
 **Batas laju:** 60 permintaan/jam tanpa token, **5.000/jam dengan personal access token**. Jadi ini satu-satunya sumber yang butuh kunci.
 
-## Konsekuensi untuk Rancangan Anda
+### Konsekuensi untuk Rancangan Anda
 
 1. **Bulan 4 ("News Automation + GitHub Trending") lebih berat dari kelihatannya** — GitHub Trending bukan integrasi, melainkan fitur yang harus dibangun dari nol berikut penyimpanan riwayat bintang harian.
 2. **Pola pengambilan harus seragam:** RSS/API saja, sekali sehari, conditional GET (ETag / If-Modified-Since), User-Agent jujur yang memuat nama platform dan alamat kontak, backoff eksponensial pada 403/429, dan deduplikasi lewat `guid`.
@@ -82,9 +90,9 @@ Halaman `github.com/trending` adalah HTML biasa, bukan produk API. Tidak ada RSS
 
 ---
 
-# Bagian B — Empat Vonis Arsitektur
+## Bagian B — Empat Vonis Arsitektur
 
-## B1. `.NET 9` sudah kedaluwarsa — pakai `.NET 10`
+### B1. `.NET 9` sudah kedaluwarsa — pakai `.NET 10`
 **Keyakinan: tinggi.**
 
 | Versi | Tipe | Akhir dukungan |
@@ -100,7 +108,7 @@ Kalau proyek baru dimulai di .NET 9 hari ini, kodenya masuk produksi kira-kira b
 
 **Angka "9" akan tersebar di banyak tempat:** `TargetFramework` di tiap csproj, dua baris di Dockerfile (sdk + aspnet), `global.json`, workflow CI, dan konfigurasi Azure. `global.json` yang mem-pin SDK 9.0.x adalah bom waktu senyap — begitu runner CI baru hanya membawa SDK 10, build gagal dengan pesan menyesatkan.
 
-## B2. LangGraph tidak punya SDK .NET — ini keputusan besar yang belum Anda ambil
+### B2. LangGraph tidak punya SDK .NET — ini keputusan besar yang belum Anda ambil
 **Keyakinan: tinggi.**
 
 Tidak ada SDK .NET/C# resmi untuk LangGraph per September 2026. LangChain hanya menerbitkan SDK LangGraph untuk **Python dan JavaScript/TypeScript**. Pencarian NuGet hanya memunculkan paket komunitas dengan ratusan sampai ribuan unduhan.
@@ -119,7 +127,7 @@ Artinya rancangan Anda sekarang — .NET Web API + LangGraph — **diam-diam ber
 
 **Empat opsi**, ringkas: (a) buang LangGraph, pakai Agent Framework asli .NET; (b) layanan Python FastAPI terpisah; (c) Agent Server resmi LangGraph + klien HTTP .NET (**⚠️ terikat lisensi LangSmith/Plus/Enterprise — biaya yang mudah terlewat saat prototipe**); (d) hibrida — Agent Framework untuk jalur interaktif, Python untuk tugas latar.
 
-## B3. Auth.js bukan penerbit token untuk backend .NET
+### B3. Auth.js bukan penerbit token untuk backend .NET
 **Keyakinan: tinggi.**
 
 Cookie sesi Auth.js adalah **JWE terenkripsi** (A256CBC-HS512) dengan kunci turunan `AUTH_SECRET` — bukan JWT bertanda tangan biasa. Dokumentasi Auth.js sendiri menyatakan:
@@ -139,7 +147,7 @@ Backend .NET Anda adalah "pihak lain" dalam arti teknis itu. Jadi `Auth.js / Cle
 - **Harga Clerk berbasis pengguna aktif:** gratis sampai 50.000, lalu $0,02/pengguna/bulan. Platform belajar musiman — pendaftaran kelas massal — bisa melipatgandakan tagihan dalam satu bulan.
 - **Kalau memilih Entra:** yang relevan untuk siswa/publik adalah **Entra External ID**, bukan tenant karyawan. Azure AD B2C sudah tidak dijual ke pelanggan baru sejak 1 Mei 2025. Salah pilih di awal bukan perkara ganti pengaturan.
 
-## B4. Qdrant belum perlu — pgvector sudah memadai
+### B4. Qdrant belum perlu — pgvector sudah memadai
 **Keyakinan: sedang.**
 
 Ukuran pembanding paling jujur datang dari Qdrant sendiri: **tier GRATIS Qdrant Cloud disebut sanggup menampung sekitar 1 juta vektor 768 dimensi.** Beban TechVerse — 41 halaman plus arus artikel dan paper harian — ada di kisaran ratusan ribu potongan. Artinya **satu tingkat di bawah kelas terkecil yang Qdrant jual.**
@@ -161,8 +169,9 @@ pgvector matang: rilis stabil 0.8.6 (29 Juli 2026), iterative index scan sejak 0
 
 ---
 
-## ⚠️ Peringatan
+## Peringatan
 
 1. **Keyakinan tidak merata.** B1, B2, B3 berkeyakinan **tinggi** dengan rujukan ke NuGet, dokumentasi resmi, dan registri npm. B4 berkeyakinan **sedang** — tidak ada angka pembanding resmi pgvector vs Qdrant pada skala ratusan ribu; halaman benchmark Qdrant terakhir diperbarui 2024 dan tidak menyertakan pgvector sama sekali.
-2. **Status ketentuan layanan OpenAI belum diperiksa siapa pun** — halamannya memblokir bot. Itu pekerjaan manusia, dan harus dilakukan **sebelum** tayang, bukan sesudah.
-3. **Berkas ini temuan, bukan keputusan.** Tabel arsitektur di `KERANGKA.md` 2.6 dibiarkan persis seperti yang Anda tulis.
+2. **Status ketentuan layanan OpenAI belum diperiksa siapa pun** — halamannya memblokir bot. Itu pekerjaan manusia, dan harus dilakukan **sebelum** tayang, bukan sesudah (Issue [#17](../../issues/17)).
+3. **Tanggal GA Microsoft Agent Framework berbeda antar-berkas.** B2 menulis **2 April 2026** untuk `Microsoft.Agents.AI` 1.0.0; `AUDIT-KESEGARAN.md` Bagian A menulis **3 April 2026**. Keduanya keluaran agen berbeda dan belum dicocokkan ke satu sumber primer.
+4. **Berkas ini temuan, bukan keputusan — tetapi tabel 2.6 sudah tidak sama lagi dengan yang diaudit.** Saat audit ini dijalankan, `KERANGKA.md` 2.6 masih memuat `.NET 9`, LangGraph, Auth.js, dan Qdrant. Tabel itu kemudian ditulis ulang mengikuti Bagian 4 (Engineering Blueprint v1) milik pemilik, dan hasilnya sejalan dengan B1-B3. Yang **belum** diputuskan tetap B4 (pgvector saja atau Qdrant terpisah, Issue [#15](../../issues/15)); rekonsiliasi lengkapnya ada di `KERANGKA.md` 4.20.
