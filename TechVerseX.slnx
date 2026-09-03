@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/apps/" />
+  <Folder Name="/apps/api/">
+    <Project Path="apps/api/TechVerseX.Api.csproj" />
+  </Folder>
+  <Folder Name="/packages/" />
+  <Folder Name="/packages/contracts/">
+    <Project Path="packages/contracts/TechVerseX.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/services/" />
+  <Folder Name="/services/technology/">
+    <Project Path="services/technology/TechVerseX.TechnologyService.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/unit/">
+    <Project Path="tests/unit/TechVerseX.TechnologyService.Tests.csproj" />
+  </Folder>
+</Solution>

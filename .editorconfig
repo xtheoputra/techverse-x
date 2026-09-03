@@ -1,0 +1,61 @@
+# Standar penulisan kode TechVerse X — KERANGKA.md T003.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.{cs,csx}]
+indent_size = 4
+
+[*.{md,markdown}]
+# Dua spasi di akhir baris bermakna <br> di Markdown — jangan dipangkas.
+trim_trailing_whitespace = false
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+
+# ---- Aturan C# ----
+[*.cs]
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = false
+csharp_using_directive_placement = outside_namespace:warning
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_prefer_braces = true:warning
+csharp_style_var_for_built_in_types = false:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+dotnet_style_readonly_field = true:warning
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+
+# Nama antarmuka diawali I
+dotnet_naming_rule.interfaces_start_with_i.severity = warning
+dotnet_naming_rule.interfaces_start_with_i.symbols = interface_symbol
+dotnet_naming_rule.interfaces_start_with_i.style = prefix_i_style
+dotnet_naming_symbols.interface_symbol.applicable_kinds = interface
+dotnet_naming_style.prefix_i_style.required_prefix = I
+dotnet_naming_style.prefix_i_style.capitalization = pascal_case
+
+# ---- Kode yang ditulis mesin ----
+# Migrasi EF Core dihasilkan `dotnet ef`, bukan ditulis tangan. Menilainya
+# dengan aturan gaya tulisan tangan berarti setiap migrasi baru mematahkan
+# build sampai seseorang menyuntingnya — dan menyunting migrasi yang sudah
+# dijalankan justru hal yang tidak boleh dilakukan.
+[**/Migrations/*.cs]
+generated_code = true
+dotnet_diagnostic.IDE0161.severity = none
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.CA1062.severity = none
+
+# ---- Proyek uji ----
+# Nama uji memakai pola Metode_Skenario_Harapan. Garis bawah di situ memang
+# disengaja: ia yang membuat laporan uji yang gagal bisa dibaca tanpa membuka
+# kodenya. CA1707 dimatikan HANYA di pohon tests/, bukan di kode produksi.
+[tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none

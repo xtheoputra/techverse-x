@@ -1,0 +1,119 @@
+# CI — KERANGKA.md 4.12.
+#
+# Blueprint mendaftar sembilan gerbang: Lint · Unit Test · Integration Test ·
+# Contract Test · SAST · Dependency Scan · Secret Scan · Container Scan · Build.
+# Yang MENYALA di sini baru lima. Sisanya sengaja belum dipasang karena
+# belum ada yang bisa diperiksa — tidak ada uji integrasi, tidak ada kontrak
+# antar-layanan, dan belum ada container yang di-build. Gerbang yang selalu
+# hijau karena tidak memeriksa apa pun lebih berbahaya daripada tidak ada.
+
+name: CI
+
+on:
+  push:
+    branches: [main, "fase-*/**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  CI: true
+
+jobs:
+  backend:
+    name: Backend (.NET)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: techversex
+          POSTGRES_USER: techversex
+          POSTGRES_PASSWORD: techversex_dev
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U techversex"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+      redis:
+        image: redis:8-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Pasang .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore TechVerseX.slnx
+
+      # Build sudah memuat tiga gerbang sekaligus:
+      #   - Lint/style  → EnforceCodeStyleInBuild + TreatWarningsAsErrors
+      #   - SAST ringan → analyzer .NET (AnalysisLevel latest-recommended)
+      #   - Dependency  → NuGetAudit menggagalkan build pada paket rentan
+      - name: Build (peringatan = galat)
+        run: dotnet build TechVerseX.slnx --no-restore --configuration Release
+
+      - name: Uji unit
+        run: dotnet test TechVerseX.slnx --no-build --configuration Release --verbosity normal
+
+      - name: Migrasi bisa dijalankan dari nol
+        run: |
+          dotnet tool restore
+          dotnet ef database update \
+            --project services/technology/TechVerseX.TechnologyService.csproj \
+            --startup-project apps/api/TechVerseX.Api.csproj
+        env:
+          ConnectionStrings__Postgres: "Host=localhost;Port=5432;Database=techversex;Username=techversex;Password=techversex_dev"
+          ConnectionStrings__Redis: "localhost:6379"
+
+  frontend:
+    name: Frontend (Next.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Pasang Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint:web
+
+      - name: Build
+        run: npm run build:web
+
+  secret-scan:
+    name: Pindai rahasia
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

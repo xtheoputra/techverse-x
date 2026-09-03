@@ -1,0 +1,35 @@
+<Project>
+
+  <!--
+    Setelan bersama untuk SELURUH proyek .NET di monorepo ini.
+    Rujukan: KERANGKA.md 4.7 (Project Architecture) dan AUDIT-KELAYAKAN.md B1.
+
+    TargetFramework sengaja ditaruh di sini, satu tempat saja. Audit B1
+    memperingatkan angka versi yang tersebar di banyak berkas adalah bom waktu:
+    saat .NET 9 mati 10 November 2026, yang perlu diubah cuma baris ini.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Peringatan diperlakukan sebagai galat: lebih murah ditangkap di CI
+         daripada di produksi. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Build yang bisa direproduksi; ikut menopang janji IaC di 4.12. -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+</Project>

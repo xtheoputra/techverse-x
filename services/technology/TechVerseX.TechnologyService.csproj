@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\packages\contracts\TechVerseX.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Layanan mendaftarkan endpoint minimal-API-nya sendiri (KERANGKA.md 4.7),
+         jadi ia butuh permukaan ASP.NET Core tanpa harus jadi host tersendiri. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+</Project>

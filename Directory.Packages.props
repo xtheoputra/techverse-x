@@ -1,0 +1,45 @@
+<Project>
+
+  <!--
+    Manajemen versi paket terpusat untuk seluruh monorepo.
+    Rujukan: AUDIT-KELAYAKAN.md B1 — "angka versi yang tersebar di banyak tempat"
+    adalah bom waktu senyap. Di sini versi hanya ditulis SATU kali.
+    Proyek cukup menyebut <PackageReference Include="..." /> tanpa Version.
+  -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label="Persistence">
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.4" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.4" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="StackExchange.Redis" Version="2.9.25" />
+    <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.4" />
+  </ItemGroup>
+
+  <ItemGroup Label="API">
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.4" />
+    <!--
+      Disematkan naik dari transitif. Microsoft.AspNetCore.OpenApi 10.0.4 menarik
+      Microsoft.OpenApi 2.0.0, yang punya kerentanan tingkat tinggi yang diketahui
+      (GHSA-v5pm-xwqc-g5wc). Build gagal karena NuGetAudit sudah menyala sejak
+      commit pertama. Jangan turunkan tanpa memeriksa advisory-nya lagi.
+    -->
+    <PackageVersion Include="Microsoft.OpenApi" Version="2.12.2" />
+  </ItemGroup>
+
+  <ItemGroup Label="Validation">
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+  </ItemGroup>
+
+  <ItemGroup Label="Testing">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+  </ItemGroup>
+
+</Project>
