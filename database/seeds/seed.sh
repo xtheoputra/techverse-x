@@ -23,10 +23,10 @@ seed() {
   esac
 }
 
-seed '{"name":"AI Agents","summary":"Pergeseran dari AI yang menjawab ke AI yang mengerjakan.","category":"AI & Machine Learning"}' "AI Agents"
-seed '{"name":"Edge AI","summary":"AI berjalan langsung di perangkat, bukan di awan.","category":"Belum diputuskan"}' "Edge AI"
-seed '{"name":"Quantum Computing","summary":"Era qubit logis; keunggulan komersial belum ada.","category":"Quantum Computing"}' "Quantum Computing"
-seed '{"name":"Digital Twin","summary":"Kembaran digital dari objek atau sistem nyata.","category":"IoT"}' "Digital Twin"
-seed '{"name":"Cybersecurity Berbasis AI","summary":"Ancaman otomatis, maka pertahanannya ikut otomatis.","category":"Cybersecurity"}' "Cybersecurity Berbasis AI"
+seed '{"name":"AI Agents","summary":"Pergeseran dari AI yang menjawab ke AI yang mengerjakan.","fieldSlug":"ai-agents"}' "AI Agents"
+seed '{"name":"Edge AI","summary":"AI berjalan langsung di perangkat, bukan di awan.","fieldSlug":"edge-ai"}' "Edge AI"
+seed '{"name":"Quantum Computing","summary":"Era qubit logis; keunggulan komersial belum ada.","fieldSlug":"quantum-computing"}' "Quantum Computing"
+seed '{"name":"Digital Twin","summary":"Kembaran digital dari objek atau sistem nyata.","fieldSlug":"iot"}' "Digital Twin"
+seed '{"name":"Cybersecurity Berbasis AI","summary":"Ancaman otomatis, maka pertahanannya ikut otomatis.","fieldSlug":"cybersecurity"}' "Cybersecurity Berbasis AI"
 
 echo "Selesai."

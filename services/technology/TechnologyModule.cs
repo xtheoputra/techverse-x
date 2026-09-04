@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TechVerseX.TechnologyService.Features.CreateTechnology;
 using TechVerseX.TechnologyService.Features.GetTechnology;
+using TechVerseX.TechnologyService.Features.ListFields;
 using TechVerseX.TechnologyService.Features.SearchTechnology;
 using TechVerseX.TechnologyService.Infrastructure.Persistence;
 
@@ -32,6 +33,7 @@ public static class TechnologyModule
                 npgsql.MigrationsHistoryTable("__ef_migrations_history", TechnologyDbContext.Schema)));
 
         services.AddScoped<CreateTechnologyHandler>();
+        services.AddScoped<ListFieldsHandler>();
         services.AddScoped<GetTechnologyHandler>();
         services.AddScoped<SearchTechnologyHandler>();
 
@@ -45,11 +47,17 @@ public static class TechnologyModule
         ArgumentNullException.ThrowIfNull(routes);
 
         // Rute publik persis seperti KERANGKA.md 4.9.
-        var group = routes.MapGroup("/api/v1/technologies").WithTags("Technology");
+        var technologies = routes.MapGroup("/api/v1/technologies").WithTags("Technology");
 
-        group.MapSearchTechnology();
-        group.MapGetTechnology();
-        group.MapCreateTechnology();
+        technologies.MapSearchTechnology();
+        technologies.MapGetTechnology();
+        technologies.MapCreateTechnology();
+
+        // Bidang punya grupnya sendiri, bukan sub-rute teknologi: menurut ADR-009
+        // ia entitas ber-URL kanonik, bukan atribut sebuah teknologi.
+        var fields = routes.MapGroup("/api/v1/fields").WithTags("Field");
+
+        fields.MapListFields();
 
         return routes;
     }

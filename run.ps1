@@ -108,12 +108,15 @@ switch ($Command) {
         $api = if ($env:API_BASE_URL) { $env:API_BASE_URL } else { 'http://localhost:5080' }
         Write-Host "Mengisi contoh ke $api ..." -ForegroundColor Cyan
 
+        # fieldSlug harus salah satu dari 14 bidang ADR-010 - lihat GET /api/v1/fields.
+        # 'Edge AI' dulu memakai kategori 'Belum diputuskan'; sekarang ia bidang
+        # sendiri, karena Issue #5 sudah ditutup.
         $samples = @(
-            @{ name = 'AI Agents'; summary = 'Pergeseran dari AI yang menjawab ke AI yang mengerjakan.'; category = 'AI & Machine Learning' }
-            @{ name = 'Edge AI'; summary = 'AI berjalan langsung di perangkat, bukan di awan.'; category = 'Belum diputuskan' }
-            @{ name = 'Quantum Computing'; summary = 'Era qubit logis; keunggulan komersial belum ada.'; category = 'Quantum Computing' }
-            @{ name = 'Digital Twin'; summary = 'Kembaran digital dari objek atau sistem nyata.'; category = 'IoT' }
-            @{ name = 'Cybersecurity Berbasis AI'; summary = 'Ancaman otomatis, maka pertahanannya ikut otomatis.'; category = 'Cybersecurity' }
+            @{ name = 'AI Agents'; summary = 'Pergeseran dari AI yang menjawab ke AI yang mengerjakan.'; fieldSlug = 'ai-agents' }
+            @{ name = 'Edge AI'; summary = 'AI berjalan langsung di perangkat, bukan di awan.'; fieldSlug = 'edge-ai' }
+            @{ name = 'Quantum Computing'; summary = 'Era qubit logis; keunggulan komersial belum ada.'; fieldSlug = 'quantum-computing' }
+            @{ name = 'Digital Twin'; summary = 'Kembaran digital dari objek atau sistem nyata.'; fieldSlug = 'iot' }
+            @{ name = 'Cybersecurity Berbasis AI'; summary = 'Ancaman otomatis, maka pertahanannya ikut otomatis.'; fieldSlug = 'cybersecurity' }
         )
 
         foreach ($sample in $samples) {

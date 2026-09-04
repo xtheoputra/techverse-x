@@ -1,3 +1,3 @@
 namespace TechVerseX.TechnologyService.Features.CreateTechnology;
 
-public sealed record CreateTechnologyCommand(string Name, string Summary, string Category, string? Slug);
+public sealed record CreateTechnologyCommand(string Name, string Summary, string FieldSlug, string? Slug);

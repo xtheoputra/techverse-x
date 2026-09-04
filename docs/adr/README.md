@@ -19,7 +19,7 @@ Satu berkas per keputusan. Nama berkasnya mengikuti daftar yang sudah ditetapkan
 | [012](ADR-012-template-halaman.md) | Template 5 bagian + tiga tingkat kematangan konten | Diterima - Issue [#10](../../../../issues/10), [#11](../../../../issues/11), [#18](../../../../issues/18), [#19](../../../../issues/19) |
 | [013](ADR-013-autentikasi.md) | **V1 tanpa login**; nanti Clerk sebagai IdP | Diterima sebagai pola - Issue [#14](../../../../issues/14) |
 | [014](ADR-014-mcp-dan-penyedia-ai.md) | MCP ke dalam dulu; penyedia AI tidak dikunci | Diterima - Issue [#16](../../../../issues/16) |
-| [015](ADR-015-skema-data-v1.md) | Skema data V1: 9 entitas, **dua sumbu status** | Diterima sebagai rancangan - Issue [#20](../../../../issues/20) |
+| [015](ADR-015-skema-data-v1.md) | Skema data V1: 9 entitas, **dua sumbu status** | Diterima - Issue [#20](../../../../issues/20); `Field` + `ContentMaturity` sudah mendarat |
 | [016](ADR-016-pagu-biaya.md) | Pagu **USD 60/bulan** + aturan penerbitan ulang | Diterima - Issue [#22](../../../../issues/22) |
 
 Ringkasan seluruh 22 keputusan dalam satu halaman:

@@ -13,8 +13,8 @@ public sealed class CreateTechnologyValidator : AbstractValidator<CreateTechnolo
         RuleFor(x => x.Summary)
             .MaximumLength(2000).WithMessage("Ringkasan maksimal 2.000 karakter.");
 
-        RuleFor(x => x.Category)
-            .NotEmpty().WithMessage("Kategori wajib diisi.")
+        RuleFor(x => x.FieldSlug)
+            .NotEmpty().WithMessage("Bidang wajib diisi - lihat GET /api/v1/fields untuk daftarnya.")
             .MaximumLength(120);
 
         RuleFor(x => x.Slug)
