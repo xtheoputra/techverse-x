@@ -8,7 +8,7 @@ Sasaran pemakai: pemilik sendiri, mahasiswa, engineer, sampai perusahaan yang bu
 
 ---
 
-## Status: Fase 1 — kerangka kode berjalan, Fase 0 belum terkunci
+## Status: Fase 1 — kerangka kode berjalan, Fase 0 **sudah terkunci**
 
 Repositori ini sekarang punya **kode yang jalan**, tapi baru kerangkanya: fondasi yang dipakai semua fitur, belum fiturnya.
 
@@ -23,7 +23,9 @@ Yang sudah terbukti hidup (diverifikasi 2026-09-03): Next.js → API .NET → Po
 | Halaman web yang membaca API sungguhan | Pengambilan berita |
 | CI: build ketat, uji, migrasi dari nol, pindai rahasia | Dockerfile, Terraform, Kubernetes |
 
-> ⚠️ **Keempat blocker Fase 0 masih terbuka, dan tidak satu pun ikut terputuskan oleh kode ini.** Apa yang sengaja tidak dibangun, dan mengapa, dicatat lengkap di [ADR-008](docs/adr/ADR-008-batas-fase-1.md). Baca itu sebelum menambah fitur.
+> ✅ **Ke-22 keputusan Fase 0 dan Fase 1 sudah diambil pada 2026-09-04** dan tercatat di **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** — baca itu lebih dulu. Kolom "Belum ada" di tabel atas sekarang berarti *belum dibangun*, bukan lagi *belum diputuskan*.
+>
+> ⚠️ Satu-satunya yang masih menunggu tangan pemilik: Issue [#17](../../issues/17) — ketentuan layanan OpenAI dan Microsoft. V1 karenanya hanya menerbitkan ulang **arXiv**.
 
 ---
 
@@ -63,7 +65,9 @@ Gerbang yang sama dengan CI, sebelum push:
 | **[KERANGKA.md](KERANGKA.md)** | Dokumen utama. Empat bagian dikte pemilik — peta teknologi, produk, identitas & struktur aplikasi, dan Engineering Blueprint v1 — ditutup daftar 30 butir yang menunggu keputusan. |
 | **[AUDIT-KESEGARAN.md](AUDIT-KESEGARAN.md)** | Dua audit isi. Bagian A memeriksa peta dua belas teknologi — seluruhnya berstatus sebagian usang. Bagian B memeriksa empat bidang baru/berubah. |
 | **[AUDIT-KELAYAKAN.md](AUDIT-KELAYAKAN.md)** | Dua audit kelayakan. Bagian A memeriksa enam sumber berita, Bagian B memeriksa empat pilihan arsitektur. |
-| **[docs/adr/](docs/adr/)** | Delapan Architecture Decision Record — termasuk keputusan untuk **belum** memutuskan. |
+| **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** | **Ke-22 keputusan dalam satu halaman**, berikut cara membatalkan tiap keputusan. Berlaku di atas `KERANGKA.md` kalau keduanya berbeda. |
+| **[docs/RENCANA-V1.md](docs/RENCANA-V1.md)** | Rencana enam bulan yang menggantikan `KERANGKA.md` 2.9. Deployment naik dari Bulan 6 ke Bulan 1. |
+| **[docs/adr/](docs/adr/)** | Enam belas Architecture Decision Record. |
 | **[docs/SESSION-LOG.md](docs/SESSION-LOG.md)** | Catatan sesi kerja, urutan terbaru di atas. |
 
 ### Kode
@@ -106,7 +110,7 @@ TechVerse X
 └── 🚀 Future           Emerging technologies
 ```
 
-> ⚠️ Daftar bidang dan daftar bagian aplikasi di atas **belum bisa hidup berdua sebagai navigasi utama**. Itu keputusan struktural terbesar yang masih terbuka — Issue [#1](../../issues/1). Karena itu web-nya belum punya navigasi sama sekali.
+> ✅ Keduanya **sudah bisa hidup berdua**: nav utama berisi fungsi, dan tiap bidang punya URL kanonik `/teknologi/<slug>` — Issue [#1](../../issues/1) ditutup, lihat [ADR-009](docs/adr/ADR-009-tulang-punggung-navigasi.md). Bidangnya kini **empat belas**, bukan dua belas ([ADR-010](docs/adr/ADR-010-taksonomi-bidang.md)). Navigasinya sendiri belum ditulis.
 
 ---
 
@@ -115,8 +119,8 @@ TechVerse X
 Tiga audit dijalankan pada 2026-09-02 (total 29 agen, nol gagal). Yang paling perlu diketahui sebelum menambah kode:
 
 1. **⏰ `.NET 9` berhenti didukung 10 November 2026.** Yang benar `.NET 10` (LTS sampai 14 November 2028). Turun ke `.NET 8` tidak menolong — berakhir di tanggal yang sama persis. → [B1](AUDIT-KELAYAKAN.md#b1-net-9-sudah-kedaluwarsa--pakai-net-10) · **sudah diterapkan**, [ADR-002](docs/adr/ADR-002-dotnet.md)
-2. **LangGraph tidak punya SDK .NET.** Memakainya diam-diam berarti dua runtime. → [B2](AUDIT-KELAYAKAN.md#b2-langgraph-tidak-punya-sdk-net--ini-keputusan-besar-yang-belum-anda-ambil) · masih terbuka, [ADR-007](docs/adr/ADR-007-agent-platform.md)
-3. **Auth.js secara desain bukan penerbit token untuk API di luar aplikasi Next.js-nya.** → [B3](AUDIT-KELAYAKAN.md#b3-authjs-bukan-penerbit-token-untuk-backend-net) · masih terbuka
+2. **LangGraph tidak punya SDK .NET.** Memakainya diam-diam berarti dua runtime. → [B2](AUDIT-KELAYAKAN.md#b2-langgraph-tidak-punya-sdk-net--ini-keputusan-besar-yang-belum-anda-ambil) · **sudah diputuskan: LangGraph dibuang, pakai Microsoft Agent Framework**, [ADR-007](docs/adr/ADR-007-agent-platform.md)
+3. **Auth.js secara desain bukan penerbit token untuk API di luar aplikasi Next.js-nya.** → [B3](AUDIT-KELAYAKAN.md#b3-authjs-bukan-penerbit-token-untuk-backend-net) · **sudah diputuskan: V1 tanpa login; kalau nanti dipasang, Clerk sebagai IdP**, [ADR-013](docs/adr/ADR-013-autentikasi.md)
 4. **Kurikulumnya akan lahir usang kalau dipakai apa adanya** — AutoGen maintenance mode, Sora ditutup, GPT-5 dipensiunkan. → [Enam Kesalahan Paling Berbahaya](AUDIT-KESEGARAN.md#enam-kesalahan-paling-berbahaya)
 5. **Otomatisasi berita layak, tapi GitHub Trending tidak punya API** dan hanya arXiv yang jelas boleh dipublikasi ulang. → [Bagian A](AUDIT-KELAYAKAN.md#bagian-a--enam-sumber-berita)
 
@@ -126,10 +130,10 @@ Kedua berkas audit membawa peringatan metodenya masing-masing. **Baca bagian per
 
 ## Cara Membaca Repositori Ini
 
-1. Buka **[ADR-008](docs/adr/ADR-008-batas-fase-1.md)** — batas apa yang sudah dan belum dibangun, berikut alasannya.
-2. Buka **[KERANGKA.md](KERANGKA.md)** — bagian *[Yang Perlu Anda Putuskan atau Lengkapi](KERANGKA.md#yang-perlu-anda-putuskan-atau-lengkapi)*.
-3. Buka **[Issues](../../issues)** — 29 dari 30 butir sudah jadi issue berlabel dan bermilestone. Satu butir (E10) belum.
-4. Tutup milestone **Fase 0 — Kunci Kerangka** sebelum menambah fitur di atas kerangka ini.
+1. Buka **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** — ke-22 keputusan dalam satu halaman. **Ini yang berlaku.**
+2. Buka **[docs/RENCANA-V1.md](docs/RENCANA-V1.md)** — apa yang dikerjakan bulan ini, dan satu angka untuk mengukur kemajuannya.
+3. Buka **[ADR-008](docs/adr/ADR-008-batas-fase-1.md)** — batas apa yang sudah dan belum dibangun; bagian *Pembaruan* mencatat gerbang mana yang sudah terangkat.
+4. **[KERANGKA.md](KERANGKA.md)** dibaca sebagai rekaman kata pemilik, bukan sebagai rencana yang berlaku.
 
 ---
 

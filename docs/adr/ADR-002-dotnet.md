@@ -1,6 +1,6 @@
 # ADR-002 — Menargetkan `.NET 10`
 
-**Status:** Diterima sementara. Issue [#12](../../../../issues/12) masih terbuka.
+**Status:** Diterima. Issue [#12](../../../../issues/12) ditutup 2026-09-04.
 **Tanggal:** 2026-09-03
 
 ## Konteks
@@ -51,5 +51,18 @@ hanya terlihat di runner bersih; lihat Issue [#24](../../../../issues/24).
   dibayar**: keputusan di atas sudah menolak pin ketat karena bom waktu senyapnya
   dinilai lebih mahal. Dicatat supaya sesi berikutnya tidak "memperbaikinya"
   tanpa membuka ulang keputusan ini.
-- Kalau pemilik menutup Issue #12 dengan pilihan lain, yang berubah satu baris.
+- Kalau keputusan ini nanti dibalik, yang berubah satu baris (`Directory.Build.props`) plus lantai di `global.json`.
 - Dockerfile belum ada, jadi belum ada baris versi ketiga yang perlu dijaga.
+
+---
+
+## Pembaruan 2026-09-04 - keputusan disahkan
+
+Issue #12 ditutup. `.NET 10` bukan lagi "diterima sementara": seluruh solusi sudah
+menargetkan `net10.0`, CI hijau di atasnya, dan `KERANGKA.md` 2.6 yang masih
+menulis ".NET 9" dinyatakan tergantikan oleh ADR ini - lihat
+[KEPUTUSAN.md](../KEPUTUSAN.md).
+
+Yang membuat butir ini paling mudah disahkan di antara 22 keputusan lain: ia
+satu-satunya yang tenggatnya bukan pendapat. `.NET 9` dan `.NET 8` sama-sama
+berhenti didukung **10 November 2026**.

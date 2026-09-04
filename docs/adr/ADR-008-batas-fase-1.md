@@ -44,3 +44,34 @@ Karena itu Phase 1 tidak berjudi atas keputusan yang belum diambil — ia menyia
 - Aturan "jangan menulis kode sebelum Fase 0 selesai" **sudah dilanggar sebagian**, dan ini catatannya. Yang dilanggar batas waktunya, bukan substansinya: tidak ada keputusan Fase 0 yang jadi terkunci karena kode ini ada.
 - Satu-satunya keputusan Fase 0 yang praktis sudah diambil di kode adalah **`.NET 10`** (Issue [#12](../../../../issues/12)) — lihat [ADR-002](ADR-002-dotnet.md). Itu butir yang punya tenggat dunia nyata kurang dari sepuluh minggu dan vonis auditnya berkeyakinan tinggi, jadi menundanya lebih mahal daripada mengambilnya.
 - Begitu Issue #1 ditutup, yang perlu ditulis adalah layar dan taksonomi — bukan membongkar fondasinya.
+
+---
+
+## Pembaruan 2026-09-04 - gerbangnya sebagian besar sudah terangkat
+
+Pemilik mendelegasikan ke-22 keputusan yang tersisa, dan semuanya sudah diambil -
+lihat [`KEPUTUSAN.md`](../KEPUTUSAN.md). **Tabel "Yang sengaja TIDAK dibangun" di
+atas karenanya tidak lagi berlaku seluruhnya.** Yang berlaku sekarang:
+
+| Dulu ditahan karena | Sekarang |
+|---|---|
+| Navigasi & taksonomi (#1, #3) | **Terbuka** - [ADR-009](ADR-009-tulang-punggung-navigasi.md), [ADR-010](ADR-010-taksonomi-bidang.md) |
+| Skema penuh (#20) | **Terbuka** - [ADR-015](ADR-015-skema-data-v1.md), tapi **menunggu PR #23 di-merge dulu** |
+| Kode AI (#13, #16) | **Terbuka** - Microsoft Agent Framework, [ADR-007](ADR-007-agent-platform.md) |
+| Vektor / RAG (#15) | **Terbuka** - pgvector, [ADR-005](ADR-005-qdrant.md) |
+| Neo4j | **Ditutup untuk V1** - graf tetap di PostgreSQL, [ADR-006](ADR-006-neo4j.md) |
+| Autentikasi (#14) | **Tetap TIDAK dibangun di V1** - itu keputusannya sendiri, [ADR-013](ADR-013-autentikasi.md) |
+| Isi kurikulum (#10, #18) | **Terbuka** - [ADR-012](ADR-012-template-halaman.md) |
+| Dockerfile / deployment | **Naik ke Bulan 1**, bukan Bulan 6 - [RENCANA-V1](../RENCANA-V1.md) |
+| Pengambilan berita (#17) | **Sebagian saja: arXiv boleh, sisanya tetap ditahan** |
+
+**Satu gerbang yang masih berdiri, dan sengaja dibiarkan berdiri: Issue
+[#17](../../../../issues/17).** Ketentuan layanan OpenAI dan Microsoft tetap belum
+dibaca siapa pun - halaman OpenAI membalas 403 ke pengambil otomatis. Yang
+berubah cuma cakupannya: V1 hanya menerbitkan ulang **arXiv** (metadata CC0),
+jadi #17 tidak lagi menghalangi V1 tapi tetap menghalangi sumber lain. Aturan
+lengkapnya di [ADR-016](ADR-016-pagu-biaya.md).
+
+Kalimat penutup ADR ini - *"begitu Issue #1 ditutup, yang perlu ditulis adalah
+layar dan taksonomi, bukan membongkar fondasinya"* - kini bisa diuji. Issue #1
+sudah ditutup.
