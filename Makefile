@@ -60,8 +60,23 @@ build: ## Build seluruh solusi .NET
 test: ## Menjalankan uji .NET
 	dotnet test TechVerseX.slnx
 
+# `setup-dotnet` menolak `sdk.version` yang bukan versi SDK utuh begitu
+# `rollForward` disebut, sedangkan `dotnet` di mesin yang SDK-nya sudah terpasang
+# menerimanya diam-diam. Selisih itu memerahkan CI sementara verifikasi lokal
+# hijau (issue #24), jadi sekarang ia diperiksa sebelum gerbang yang lain.
+.PHONY: check-global-json
+check-global-json: ## Memastikan sdk.version di global.json versi SDK utuh
+	@sdk_version=$$(grep -o '"version"[^,}]*' global.json | tr -d '" ' | cut -d: -f2); \
+	case "$$sdk_version" in \
+		*.*.[0-9][0-9][0-9]|*.*.[0-9][0-9][0-9]-*) \
+			echo "  global.json sdk.version = $$sdk_version" ;; \
+		*) \
+			echo "global.json: sdk.version '$$sdk_version' bukan versi SDK utuh. Dengan rollForward, .NET menuntut pita fitur seperti 10.0.100 - bukan versi runtime seperti 10.0.0."; \
+			exit 1 ;; \
+	esac
+
 .PHONY: verify
-verify: ## Gerbang yang sama dengan CI: build ketat + uji + build web
+verify: check-global-json ## Gerbang yang sama dengan CI: build ketat + uji + build web
 	dotnet build TechVerseX.slnx --configuration Release
 	dotnet test TechVerseX.slnx --no-build --configuration Release
 	npm run lint:web

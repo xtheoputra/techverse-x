@@ -30,11 +30,25 @@ $ApiProject = 'apps/api/TechVerseX.Api.csproj'
 function Invoke-Step {
     param([string]$Description, [scriptblock]$Action)
 
-    Write-Host "→ $Description" -ForegroundColor Cyan
+    Write-Host "-> $Description" -ForegroundColor Cyan
     & $Action
     if ($LASTEXITCODE -ne 0) {
         throw "Gagal: $Description (exit $LASTEXITCODE)"
     }
+}
+
+function Test-GlobalJson {
+    # `setup-dotnet` menolak `sdk.version` yang bukan versi SDK utuh begitu
+    # `rollForward` disebut, tetapi `dotnet` di mesin yang SDK-nya sudah terpasang
+    # menerimanya diam-diam. Lubang itu karena itu cuma kelihatan di runner bersih
+    # dan pernah memerahkan CI sementara verifikasi lokal hijau (issue #24).
+    $sdk = (Get-Content -Raw -Path 'global.json' | ConvertFrom-Json).sdk
+
+    if ($sdk.rollForward -and $sdk.version -notmatch '^\d+\.\d+\.\d{3}(-[0-9A-Za-z.\-]+)?$') {
+        throw "global.json: sdk.version '$($sdk.version)' bukan versi SDK utuh. Dengan rollForward '$($sdk.rollForward)' .NET menuntut pita fitur, misalnya 10.0.100 - bukan versi runtime seperti 10.0.0."
+    }
+
+    Write-Host "  global.json sdk.version = $($sdk.version)" -ForegroundColor DarkGray
 }
 
 switch ($Command) {
@@ -121,6 +135,11 @@ switch ($Command) {
     'test'  { Invoke-Step 'Uji' { dotnet test TechVerseX.slnx } }
 
     'verify' {
+        # BUKAN lewat Invoke-Step: pemeriksa ini fungsi PowerShell murni yang tidak
+        # menyentuh $LASTEXITCODE, dan $LASTEXITCODE masih kosong di langkah pertama.
+        Write-Host 'Periksa global.json' -ForegroundColor Cyan
+        Test-GlobalJson
+
         Invoke-Step 'Build ketat (Release)' { dotnet build TechVerseX.slnx --configuration Release }
         Invoke-Step 'Uji .NET' { dotnet test TechVerseX.slnx --no-build --configuration Release }
         Invoke-Step 'Lint web' { npm run lint:web }
