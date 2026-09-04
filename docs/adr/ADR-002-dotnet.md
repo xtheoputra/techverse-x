@@ -27,9 +27,29 @@ menyebut `global.json` yang mem-pin SDK terlalu sempit sebagai "bom waktu
 senyap" — runner CI dengan SDK lebih baru akan gagal build dengan pesan yang
 menyesatkan.
 
+Angka yang ditulis di situ harus versi **SDK** utuh berikut pita fiturnya
+(`10.0.100`), bukan versi **runtime** (`10.0.0`). Begitu `rollForward` disebut,
+`setup-dotnet` menolak bentuk runtime — sementara `dotnet` di mesin yang SDK-nya
+sudah terpasang menerimanya diam-diam. Kekeliruan ini pernah memerahkan CI dan
+hanya terlihat di runner bersih; lihat Issue [#24](../../../../issues/24).
+
 ## Konsekuensi
 
 - Butuh SDK .NET 10 di mesin pengembang dan runner CI. CI memakai
-  `global-json-file: global.json` supaya keduanya tidak bisa berbeda.
+  `global-json-file: global.json`, jadi keduanya memakai **lantai** versi yang
+  sama.
+- **Koreksi 2026-09-04 (bukti, bukan dugaan):** kalimat sebelumnya di baris ini
+  berbunyi "supaya keduanya tidak bisa berbeda". Itu tidak benar, dan justru
+  `rollForward: latestFeature` sendiri sebabnya — ia diselesaikan sendiri-sendiri
+  di tiap mesin. Log
+  [33845921352](https://github.com/xtheoputra/techverse-x/actions/runs/33845921352)
+  menunjukkan runner memakai SDK **10.0.400** sementara mesin pemilik memakai
+  **10.0.302**. `global.json` menyamakan lantainya, bukan versinya.
+- Konsekuensi lanjutan dari koreksi itu: dengan `TreatWarningsAsErrors` menyala,
+  SDK runner yang lebih baru bisa membawa analyzer baru — jadi CI tetap bisa
+  merah pada perubahan yang hijau di mesin pemilik. Ini harga yang **sengaja
+  dibayar**: keputusan di atas sudah menolak pin ketat karena bom waktu senyapnya
+  dinilai lebih mahal. Dicatat supaya sesi berikutnya tidak "memperbaikinya"
+  tanpa membuka ulang keputusan ini.
 - Kalau pemilik menutup Issue #12 dengan pilihan lain, yang berubah satu baris.
 - Dockerfile belum ada, jadi belum ada baris versi ketiga yang perlu dijaga.
