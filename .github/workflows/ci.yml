@@ -2,12 +2,14 @@
 #
 # Blueprint mendaftar sembilan gerbang: Lint · Unit Test · Integration Test ·
 # Contract Test · SAST · Dependency Scan · Secret Scan · Container Scan · Build.
-# Yang MENYALA di sini baru ENAM — Integration Test menyusul pada 2026-09-07,
-# begitu ada yang benar-benar bisa diperiksa: kesiapan API tanpa Redis, yang
-# menentukan apakah penyebaran bisa selesai sama sekali (ADR-016).
-# Sisanya sengaja belum dipasang karena belum ada kontrak antar-layanan dan
-# belum ada container yang di-build. Gerbang yang selalu hijau karena tidak
-# memeriksa apa pun lebih berbahaya daripada tidak ada.
+# Yang MENYALA di sini baru TUJUH. Dua menyusul pada 2026-09-07:
+#   - Integration Test, begitu ada yang benar-benar bisa diperiksa: kesiapan API
+#     tanpa Redis, yang menentukan apakah penyebaran bisa selesai sama sekali.
+#   - Build citra peti kemas, begitu Dockerfile-nya ada.
+# Yang BELUM: Contract Test (belum ada kontrak antar-layanan) dan Container Scan
+# (citranya sudah dibangun, tapi isinya belum dipindai).
+# Gerbang yang selalu hijau karena tidak memeriksa apa pun lebih berbahaya
+# daripada tidak ada.
 
 name: CI
 
@@ -139,3 +141,25 @@ jobs:
           # summary (aturan, commit, berkas, baris, penulis) dan kebocoran tetap
           # menggagalkan gerbang ini lewat exit code.
           GITLEAKS_ENABLE_COMMENTS: "false"
+
+  citra:
+    name: Citra peti kemas
+    runs-on: ubuntu-latest
+
+    # Dockerfile yang tidak pernah dibangun CI akan membusuk diam-diam, dan
+    # ketahuannya justru saat menyebarkan - saat paling mahal untuk tahu.
+    # Yang diperiksa di sini baru BISA DIBANGUN. Memindai isinya (Container Scan
+    # di daftar KERANGKA.md 4.12) belum dipasang.
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Citra API
+        run: docker build -f apps/api/Dockerfile --target final -t techversex-api:ci .
+
+      # Tahap terpisah dengan restore ber-RID sendiri; gampang rusak tanpa
+      # disadari kalau tidak ikut dibangun.
+      - name: Bundel migrasi
+        run: docker build -f apps/api/Dockerfile --target migrator -t techversex-migrate:ci .
+
+      - name: Citra web
+        run: docker build -f apps/web/Dockerfile -t techversex-web:ci .

@@ -1,0 +1,38 @@
+# Konteks build kedua citra adalah AKAR repo, bukan folder aplikasinya.
+# Sebabnya monorepo: API butuh Directory.Packages.props + global.json, dan web
+# butuh package-lock.json akar. Konteks seluas itu harus disaring keras, kalau
+# tidak setiap build mengirim ratusan MB ke daemon.
+
+.git
+.github
+.vs
+.vscode
+
+# Keluaran build. Menyalinnya masuk citra bukan cuma boros - ia bisa MENIMPA
+# hasil build di dalam citra dengan biner mesin lokal yang salah platform.
+**/bin
+**/obj
+**/node_modules
+**/.next
+**/out
+**/dist
+**/TestResults
+
+# Rahasia dan setelan mesin lokal. appsettings.Development.json sudah ditelan
+# .gitignore, tapi ia TETAP ADA di disk pengembang - dan konteks Docker membaca
+# disk, bukan git. Tanpa baris ini, sandi pengembangan ikut masuk citra produksi.
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/.env
+**/.env.*
+!.env.example
+**/*.user
+
+# Dokumen dan perkakas yang tidak dibutuhkan saat membangun.
+docs
+*.md
+!README.md
+Makefile
+run.ps1
+database
+tests
