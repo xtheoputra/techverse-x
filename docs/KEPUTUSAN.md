@@ -64,7 +64,7 @@ Bulan 1, dan **satu bidang tuntas (AI Agents, 7 topik `tinjau`) di Bulan 2**.
 | [14](../../issues/14) | Pola autentikasi | **V1 tidak punya login sama sekali.** Kalau nanti dipasang: **Clerk sebagai IdP, .NET verifikasi RS256 via JWKS sendiri**, `[Authorize]` wajib di tiap endpoint. Syarat pindah sudah ditetapkan: MAU 40.000 | [ADR-013](adr/ADR-013-autentikasi.md) |
 | [15](../../issues/15) | pgvector atau Qdrant | **pgvector saja.** Pencarian hibrida dijawab dengan `tsvector` PostgreSQL, bukan dengan basis data kedua | [ADR-005](adr/ADR-005-qdrant.md) · [ADR-015](adr/ADR-015-skema-data-v1.md) |
 | [16](../../issues/16) | Peran MCP & penguncian penyedia | **MCP ke dalam untuk V1**; MCP ke luar dicatat sebagai peluang, syaratnya minimal satu bidang `tinjau`. **Penyedia tidak dikunci** — abstraksinya gratis dari keputusan #13 | [ADR-014](adr/ADR-014-mcp-dan-penyedia-ai.md) |
-| [20](../../issues/20) | Skema basis data | **Dirancang** — 9 entitas, **dua sumbu status yang tidak boleh digabung**, graf tetap di PostgreSQL, vektor 1536 dimensi. Implementasi menunggu PR #23 masuk | [ADR-015](adr/ADR-015-skema-data-v1.md) |
+| [20](../../issues/20) | Skema basis data | **Dirancang** — 9 entitas, **dua sumbu status yang tidak boleh digabung**, graf tetap di PostgreSQL, vektor 1536 dimensi. ✅ **Implementasinya sudah mendarat di `main`** lewat [#25](../../issues/25) — `Field`, `ContentMaturity`, dan penegaknya bisa diperiksa langsung, bukan lewat cabang | [ADR-015](adr/ADR-015-skema-data-v1.md) |
 
 ## Rencana & biaya
 
