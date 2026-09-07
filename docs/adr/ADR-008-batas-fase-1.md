@@ -56,7 +56,7 @@ atas karenanya tidak lagi berlaku seluruhnya.** Yang berlaku sekarang:
 | Dulu ditahan karena | Sekarang |
 |---|---|
 | Navigasi & taksonomi (#1, #3) | **Terbuka** - [ADR-009](ADR-009-tulang-punggung-navigasi.md), [ADR-010](ADR-010-taksonomi-bidang.md) |
-| Skema penuh (#20) | **Terbuka** - [ADR-015](ADR-015-skema-data-v1.md), tapi **menunggu PR #23 di-merge dulu** |
+| Skema penuh (#20) | **Terbuka** - [ADR-015](ADR-015-skema-data-v1.md). ~~menunggu PR #23~~ - ✅ #23 mendarat 7 Sep 2026; lihat Pembaruan di kaki berkas |
 | Kode AI (#13, #16) | **Terbuka** - Microsoft Agent Framework, [ADR-007](ADR-007-agent-platform.md) |
 | Vektor / RAG (#15) | **Terbuka** - pgvector, [ADR-005](ADR-005-qdrant.md) |
 | Neo4j | **Ditutup untuk V1** - graf tetap di PostgreSQL, [ADR-006](ADR-006-neo4j.md) |
@@ -75,3 +75,18 @@ lengkapnya di [ADR-016](ADR-016-pagu-biaya.md).
 Kalimat penutup ADR ini - *"begitu Issue #1 ditutup, yang perlu ditulis adalah
 layar dan taksonomi, bukan membongkar fondasinya"* - kini bisa diuji. Issue #1
 sudah ditutup.
+
+
+---
+
+## Pembaruan 2026-09-07 - ketiga PR yang ditunggu sudah mendarat
+
+Tabel di atas menyisakan satu baris yang menunggu: skema penuh **"menunggu PR
+#23 di-merge dulu"**. Penantian itu selesai - **#23, #25, dan #27 semuanya
+sudah mendarat di `main`**, dan `main` tidak lagi murni dokumen.
+
+Yang tersisa dari tabel itu sekarang cuma satu baris yang benar-benar belum
+bergerak: **Dockerfile / deployment**. Citranya sendiri sudah ada dan terbukti
+melayani situsnya dari basis data kosong; yang belum ada adalah **keputusan
+platform hosting**, dan itu bukan pekerjaan teknis. Lihat
+[`RENCANA-V1.md`](../RENCANA-V1.md#keadaan-bulan-1-per-7-september-2026).

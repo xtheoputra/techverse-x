@@ -182,3 +182,26 @@ Penjaganya diuji dengan **sengaja merusak data lebih dulu**: satu baris berkateg
 yang menyebut kategori pelakunya berikut jalan keluarnya. Diperiksa juga bahwa
 transaksinya benar-benar berguling balik - tabel `fields` nol, kolom `Category`
 utuh. Gerbang yang belum pernah terlihat merah belum terbukti menjaga apa pun.
+
+
+---
+
+## Pembaruan 2026-09-07 - pertanyaan rebase itu sudah gugur
+
+Bagian *"Penyimpangan dari rencana"* di atas menutup dengan satu tawaran:
+*"Kalau pemilik lebih suka #23 di-merge dulu, cabang ini tinggal di-rebase."*
+
+Tawaran itu **tidak lagi berlaku, dan tidak perlu dijawab.** Pemilik memilih
+jalan yang sama: **#23 di-merge lebih dulu, baru #25** - berurutan, dengan
+*merge commit* dan bukan squash, justru supaya commit yang jadi tumpuan #25
+tidak ditulis ulang. Rebase tidak pernah dibutuhkan.
+
+Sesudahnya **#27** ikut mendarat, memperbaiki satu cacat yang **lolos dari #23
+maupun #25**: `POST /api/v1/technologies` membalas 500, bukan 400, untuk
+`name`/`slug` yang tidak menyisakan satu huruf pun. Akarnya dua tempat yang
+menyimpan angka 160 tanpa saling tahu; keduanya kini satu konstanta
+`Technology.MaxSlugLength`.
+
+Skema di ADR ini karena itu **sepenuhnya mendarat di `main`** - `Field`,
+`ContentMaturity`, dan penegaknya - dan bisa diperiksa langsung, bukan lewat
+cabang.
