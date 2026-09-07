@@ -57,6 +57,32 @@ sudah dikeluarkan.
 | **5** | **AI Mentor.** Agent Framework + MCP ke dalam + pgvector di atas konten sendiri, dengan pagu harian keras | Mentor menjawab dan **menunjukkan sumbernya** |
 | **6** | **Labs + Project Generator** · cadangan untuk yang meleset | Satu proyek bisa dikerjakan orang dari awal sampai selesai |
 
+### Keadaan Bulan 1 per 7 September 2026
+
+Rencana di atas tidak punya penanda kemajuan, jadi pertanyaan *"Bulan 1 sudah
+selesai belum?"* tidak punya jawaban di dokumen ini. Ini jawabannya, dan tiap
+baris diperiksa ke kode atau ke GitHub — bukan ke dokumen lain.
+
+| Butir Bulan 1 | Keadaan |
+|---|---|
+| Merge PR [#23](../../issues/23) | ✅ **selesai** — ter-merge, bersama [#25](../../issues/25) dan [#27](../../issues/27) |
+| Skema data [ADR-015](adr/ADR-015-skema-data-v1.md) | ✅ **selesai** — mendarat lewat #25 |
+| 14 bidang tayang berstatus `kurasi` | ✅ **terbukti** — `FieldCatalog` disemai migrasi, `FieldCatalogTests` menuntut 14, dan halaman menampilkannya berikut label `MaturityBadge` |
+| **Deploy `main` ke produksi** | 🛑 **belum** — lihat di bawah |
+
+**Yang menahan hanya butir terakhir, dan penahannya bukan teknis.** Citra
+produksi sudah ada dan terbukti melayani situsnya dari basis data kosong (PR
+[#31](../../issues/31)), berikut bundel migrasi dan gerbang pemindaian citra.
+Yang belum ada adalah **keputusan platform hosting** — ADR-016 menyebut Azure
+hanya di tabel perkiraan biaya, bukan sebagai keputusan — plus **domain** dan
+**sertifikat**. Ketiganya menyangkut akun dan uang.
+
+⚠️ Ukuran keberhasilan Bulan 1 di tabel di atas adalah **URL publik yang bisa
+dibuka orang lain**. Tiga dari empat butir selesai tidak membuat ukuran itu
+tercapai — ia hanya tercapai kalau butir keempat tercapai.
+
+---
+
 ### Empat perubahan yang paling menentukan
 
 1. **Deployment naik dari Bulan 6 ke Bulan 1.** Ini perubahan terpenting di
