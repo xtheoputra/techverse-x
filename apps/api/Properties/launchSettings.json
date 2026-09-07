@@ -7,7 +7,10 @@
       "launchBrowser": false,
       "applicationUrl": "http://localhost:5080",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+
+        "//": "Redis hidup DI SINI, bukan di appsettings.json, supaya hanya `dotnet run` yang mendapatkannya. Produksi menjalankan DLL-nya langsung tanpa profil peluncuran, jadi ia tidak pernah melihat baris ini - dan itulah yang membuat Redis benar-benar opsional (ADR-016). appsettings.Development.json TIDAK dipakai untuk ini karena .gitignore menelannya, jadi ia tidak akan pernah sampai ke CI maupun klona baru.",
+        "ConnectionStrings__Redis": "localhost:6379"
       }
     }
   }

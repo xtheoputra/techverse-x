@@ -40,6 +40,11 @@
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <!--
+      Uji integrasi menyalakan host sungguhan lewat WebApplicationFactory.
+      Versinya mengikuti ASP.NET Core, bukan mengikuti xunit.
+    -->
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.4" />
   </ItemGroup>
 
 </Project>

@@ -2,10 +2,12 @@
 #
 # Blueprint mendaftar sembilan gerbang: Lint · Unit Test · Integration Test ·
 # Contract Test · SAST · Dependency Scan · Secret Scan · Container Scan · Build.
-# Yang MENYALA di sini baru lima. Sisanya sengaja belum dipasang karena
-# belum ada yang bisa diperiksa — tidak ada uji integrasi, tidak ada kontrak
-# antar-layanan, dan belum ada container yang di-build. Gerbang yang selalu
-# hijau karena tidak memeriksa apa pun lebih berbahaya daripada tidak ada.
+# Yang MENYALA di sini baru ENAM — Integration Test menyusul pada 2026-09-07,
+# begitu ada yang benar-benar bisa diperiksa: kesiapan API tanpa Redis, yang
+# menentukan apakah penyebaran bisa selesai sama sekali (ADR-016).
+# Sisanya sengaja belum dipasang karena belum ada kontrak antar-layanan dan
+# belum ada container yang di-build. Gerbang yang selalu hijau karena tidak
+# memeriksa apa pun lebih berbahaya daripada tidak ada.
 
 name: CI
 
@@ -72,7 +74,10 @@ jobs:
       - name: Build (peringatan = galat)
         run: dotnet build TechVerseX.slnx --no-restore --configuration Release
 
-      - name: Uji unit
+      # Uji unit DAN uji integrasi. Yang kedua menyalakan host sungguhan lewat
+      # WebApplicationFactory dan menyentuh service container `postgres` di atas,
+      # jadi langkah ini tidak lagi bebas-infrastruktur.
+      - name: Uji unit + integrasi
         run: dotnet test TechVerseX.slnx --no-build --configuration Release --verbosity normal
 
       - name: Migrasi bisa dijalankan dari nol
