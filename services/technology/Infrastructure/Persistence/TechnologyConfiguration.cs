@@ -13,7 +13,9 @@ internal sealed class TechnologyConfiguration : IEntityTypeConfiguration<Technol
         builder.ToTable("technologies");
         builder.HasKey(t => t.Id);
 
-        builder.Property(t => t.Slug).HasMaxLength(160).IsRequired();
+        // Angka yang sama dipakai penjaga masukan (CreateTechnologyValidator).
+        // Menaikkannya di sini saja tidak cukup - ia butuh migrasi.
+        builder.Property(t => t.Slug).HasMaxLength(Technology.MaxSlugLength).IsRequired();
         builder.Property(t => t.Name).HasMaxLength(200).IsRequired();
         builder.Property(t => t.Summary).HasMaxLength(2000);
 

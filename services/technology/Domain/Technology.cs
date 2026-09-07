@@ -11,6 +11,18 @@ namespace TechVerseX.TechnologyService.Domain;
 /// </remarks>
 public sealed class Technology
 {
+    /// <summary>
+    /// Panjang maksimum <see cref="Slug"/>, sama dengan lebar kolom
+    /// <c>technologies.slug</c>.
+    /// </summary>
+    /// <remarks>
+    /// Angkanya hidup di sini supaya penjaga di lapisan masukan dan lebar kolom
+    /// tidak bisa berjalan sendiri-sendiri. Sebelum ada konstanta ini, validator
+    /// membatasi slug yang DIKIRIM tapi tidak slug yang DITURUNKAN dari nama —
+    /// nama 200 karakter lolos, lalu ditolak basis data sebagai galat server.
+    /// </remarks>
+    public const int MaxSlugLength = 160;
+
     private readonly List<DomainEvent> _events = [];
     private readonly List<TechnologyRelationship> _relationships = [];
 
