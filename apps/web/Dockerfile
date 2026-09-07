@@ -31,14 +31,27 @@ RUN npm run build --workspace web
 # ---------------------------------------------------------------------------
 # Tahap 3: citra akhir.
 #
-# Tidak ada npm, tidak ada node_modules yang disalin utuh, tidak ada kode sumber.
-# Yang masuk hanya keluaran `output: "standalone"` - Next sudah menelusuri sendiri
-# modul mana yang benar-benar dipakai saat berjalan.
+# Tidak ada node_modules yang disalin utuh dan tidak ada kode sumber. Yang masuk
+# hanya keluaran `output: "standalone"` - Next sudah menelusuri sendiri modul
+# mana yang benar-benar dipakai saat berjalan.
 # ---------------------------------------------------------------------------
 FROM node:22-alpine AS final
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# npm IKUT TERBAWA citra dasar, dan ia membawa seluruh pohon dependensinya
+# sendiri. Gerbang Trivy mengukurnya: 11 dari 13 temuan CRITICAL/HIGH di citra
+# ini berasal dari npm - termasuk satu-satunya CRITICAL - padahal `node
+# server.js` tidak pernah memanggilnya. Membuangnya bukan penghematan 17 MB,
+# melainkan membuang 11 kerentanan yang tidak pernah kita butuhkan.
+#
+# `apk upgrade` menambal openssl citra dasar (dua temuan sisanya) sampai
+# node:22-alpine sendiri diperbarui di hulu.
+RUN rm -rf /usr/local/lib/node_modules/npm \
+           /usr/local/bin/npm \
+           /usr/local/bin/npx \
+ && apk --no-cache upgrade libssl3 libcrypto3
 
 # `standalone` mempertahankan bentuk monorepo-nya, jadi server.js duduk di
 # apps/web/ - bukan di akar.

@@ -111,6 +111,35 @@ benar-benar menampilkan datanya.
 
 ---
 
+## Pemindaian citra
+
+CI memindai ketiga citra dengan **Trivy**, ambang **CRITICAL + HIGH**, dan
+pemindaian itu **menggagalkan build** (`--exit-code 1`). Di `main` ia berjalan
+**sebelum** citranya didorong — yang sudah terbit di registry bisa ditarik orang,
+jadi memeriksanya sesudah terbit terlambat.
+
+Trivy dijalankan sebagai peti kemas, bukan lewat action pihak ketiga: gerbang ini
+karena itu tidak menuntut satu pun izin tambahan.
+
+**Gerbangnya langsung berbuah saat dipasang.** Citra web ternyata membawa `npm`
+dari citra dasarnya — 17 MB yang tidak pernah dipanggil `node server.js`, tetapi
+menyumbang **11 dari 13 temuan CRITICAL/HIGH**, termasuk satu-satunya CRITICAL.
+Membuangnya, plus menambal openssl citra dasar, membawa hitungannya **13 → 0**.
+
+Menjalankan pemindaian yang sama di mesin sendiri:
+
+```
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+  aquasec/trivy:latest image --scanners vuln \
+  --severity CRITICAL,HIGH --exit-code 1 <nama-citra>
+```
+
+⚠️ Kalau suatu hari gerbang ini merah karena kerentanan baru di citra dasar,
+**perbaiki akarnya** — perbarui citra dasar atau tambal paketnya. Menurunkan
+ambang adalah cara paling cepat membuat gerbang ini berhenti menjaga apa pun.
+
+---
+
 ## Yang belum ada
 
 - **Pilihan platform.** Azure disebut di ADR-016 hanya di tabel perkiraan biaya.
@@ -118,5 +147,3 @@ benar-benar menampilkan datanya.
   **USD 60/bulan** — pagu yang belum pernah diuji tagihan sungguhan.
 - **Domain.** Belum dibeli.
 - **HTTPS/sertifikat.** Umumnya urusan platform, tapi tetap harus dibuktikan.
-- **Pemindaian isi citra** (Container Scan di daftar KERANGKA.md 4.12).
-  Citranya sudah dibangun CI; isinya belum dipindai.

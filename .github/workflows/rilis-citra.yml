@@ -55,26 +55,43 @@ jobs:
       #   :main   - penunjuk yang bergerak. Untuk melihat-lihat, bukan untuk
       #             dipasang; men-deploy tag bergerak berarti melepas kendali
       #             atas apa yang sebenarnya berjalan.
-      - name: Citra API
+      - name: Bangun ketiga citra
         run: |
           docker build -f apps/api/Dockerfile --target final \
             -t "${{ steps.nama.outputs.dasar }}/api:${GITHUB_SHA}" \
             -t "${{ steps.nama.outputs.dasar }}/api:main" .
-          docker push --all-tags "${{ steps.nama.outputs.dasar }}/api"
-
-      - name: Bundel migrasi
-        run: |
           docker build -f apps/api/Dockerfile --target migrator \
             -t "${{ steps.nama.outputs.dasar }}/migrate:${GITHUB_SHA}" \
             -t "${{ steps.nama.outputs.dasar }}/migrate:main" .
-          docker push --all-tags "${{ steps.nama.outputs.dasar }}/migrate"
-
-      - name: Citra web
-        run: |
           docker build -f apps/web/Dockerfile \
             -t "${{ steps.nama.outputs.dasar }}/web:${GITHUB_SHA}" \
             -t "${{ steps.nama.outputs.dasar }}/web:main" .
-          docker push --all-tags "${{ steps.nama.outputs.dasar }}/web"
+
+      # Dipindai SEBELUM didorong, dan membangun ketiganya lebih dulu itulah
+      # sebabnya: kalau pemindaian berjalan di sela build-dan-push, citra
+      # pertama sudah terbit di registry sebelum citra ketiga diperiksa. Yang
+      # sudah terbit bisa ditarik orang.
+      - name: Pindai sebelum diterbitkan
+        run: |
+          for c in api migrate web; do
+            echo "::group::$c"
+            docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy:latest image \
+                --scanners vuln --severity CRITICAL,HIGH \
+                --exit-code 1 --no-progress \
+                "${{ steps.nama.outputs.dasar }}/$c:${GITHUB_SHA}"
+            echo "::endgroup::"
+          done
+
+      - name: Terbitkan API
+        run: docker push --all-tags "${{ steps.nama.outputs.dasar }}/api"
+
+      - name: Terbitkan bundel migrasi
+        run: docker push --all-tags "${{ steps.nama.outputs.dasar }}/migrate"
+
+      - name: Terbitkan web
+        run: docker push --all-tags "${{ steps.nama.outputs.dasar }}/web"
 
       - name: Ringkasan
         run: |

@@ -2,12 +2,15 @@
 #
 # Blueprint mendaftar sembilan gerbang: Lint · Unit Test · Integration Test ·
 # Contract Test · SAST · Dependency Scan · Secret Scan · Container Scan · Build.
-# Yang MENYALA di sini baru TUJUH. Dua menyusul pada 2026-09-07:
+# Yang MENYALA di sini sudah DELAPAN. Tiga menyusul pada 2026-09-07:
 #   - Integration Test, begitu ada yang benar-benar bisa diperiksa: kesiapan API
 #     tanpa Redis, yang menentukan apakah penyebaran bisa selesai sama sekali.
 #   - Build citra peti kemas, begitu Dockerfile-nya ada.
-# Yang BELUM: Contract Test (belum ada kontrak antar-layanan) dan Container Scan
-# (citranya sudah dibangun, tapi isinya belum dipindai).
+#   - Container Scan, begitu ada citra yang bisa dipindai. Gerbang ini langsung
+#     berbuah: ia menemukan npm ikut terbawa citra web dan membawa 11 dari 13
+#     temuan CRITICAL/HIGH - termasuk satu-satunya CRITICAL - padahal
+#     `node server.js` tidak pernah memanggilnya. Sesudah npm dibuang: 0.
+# Yang BELUM: Contract Test - belum ada kontrak antar-layanan.
 # Gerbang yang selalu hijau karena tidak memeriksa apa pun lebih berbahaya
 # daripada tidak ada.
 
@@ -153,8 +156,12 @@ jobs:
 
     # Dockerfile yang tidak pernah dibangun CI akan membusuk diam-diam, dan
     # ketahuannya justru saat menyebarkan - saat paling mahal untuk tahu.
-    # Yang diperiksa di sini baru BISA DIBANGUN. Memindai isinya (Container Scan
-    # di daftar KERANGKA.md 4.12) belum dipasang.
+    #
+    # Isinya juga DIPINDAI di sini (Container Scan, gerbang ke-8 dari daftar
+    # KERANGKA.md 4.12). Ambangnya CRITICAL+HIGH dan ia MENGGAGALKAN build -
+    # jujur karena ketiga citra terukur NOL pada ambang itu saat gerbangnya
+    # dipasang. Gerbang yang dipasang di atas temuan yang sudah ada akan
+    # dilonggarkan orang di hari pertama; yang ini tidak punya utang.
     steps:
       - uses: actions/checkout@v5
 
@@ -168,3 +175,22 @@ jobs:
 
       - name: Citra web
         run: docker build -f apps/web/Dockerfile -t techversex-web:ci .
+
+      # Trivy dijalankan sebagai peti kemas, bukan lewat action pihak ketiga:
+      # gerbang ini tidak butuh satu pun izin tambahan, dan tidak menambah
+      # aksi yang harus dipercaya. `--exit-code 1` yang membuatnya menggigit -
+      # tanpa itu ia cuma mencetak laporan dan selalu hijau.
+      - name: Pindai ketiga citra
+        run: |
+          for citra in techversex-api:ci techversex-migrate:ci techversex-web:ci; do
+            echo "::group::$citra"
+            docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy:latest image \
+                --scanners vuln \
+                --severity CRITICAL,HIGH \
+                --exit-code 1 \
+                --no-progress \
+                "$citra"
+            echo "::endgroup::"
+          done
