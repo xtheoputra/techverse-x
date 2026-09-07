@@ -1,0 +1,54 @@
+# Infrastruktur pengembangan lokal — KERANGKA.md 4.12:
+# "Development pakai Docker Compose. Jangan membuat production architecture
+#  dan local architecture identik."
+#
+# Yang SENGAJA belum ada di sini, karena keputusannya belum diambil:
+#   - Qdrant / pgvector   → Issue #15 masih terbuka
+#   - Neo4j               → EPIC 10, belum waktunya
+#   - NATS / Kafka        → ADR-0005, bus belum dipasang
+#   - OpenSearch          → Search masih V1
+
+name: techversex
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: techversex-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-techversex}
+      POSTGRES_USER: ${POSTGRES_USER:-techversex}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-techversex_dev}
+      # Setelan hanya untuk mesin lokal. Jangan disalin ke produksi.
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-techversex} -d ${POSTGRES_DB:-techversex}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:8-alpine
+    container_name: techversex-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--save", ""]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres-data:
+  redis-data:

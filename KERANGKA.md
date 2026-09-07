@@ -1,7 +1,7 @@
 # TechVerse X Labs — Kerangka
 
-**Status:** draf, dibangun bertahap dari dikte pemilik. Belum ada kode.
-**Diperbarui:** 2026-09-03
+**Status:** draf, dibangun bertahap dari dikte pemilik.
+**Diperbarui:** 2026-09-04
 
 **Apa ini:** platform pembelajaran teknologi terdepan. Satu tempat berisi peta teknologi, roadmap belajar, tutorial, proyek praktik, tools, berita, dan AI mentor — yang isinya diperbarui secara otomatis. Sasaran pemakai: pemilik sendiri, mahasiswa, engineer, sampai perusahaan yang butuh onboarding teknologi baru.
 
@@ -10,6 +10,24 @@
 > - [`AUDIT-KELAYAKAN.md`](AUDIT-KELAYAKAN.md) — Bagian A mengaudit enam sumber berita (2.5); Bagian B mengaudit tumpukan teknologi (2.6).
 >
 > **Satu pengecualian, dan ini disengaja:** 4.20 *Rekonsiliasi Blueprint vs Hasil Audit* ditulis oleh asisten, bukan didikte pemilik. Ia ditaruh di sini karena tugasnya memang mencocokkan Bagian 4 dengan kedua berkas audit.
+
+> ---
+>
+> **Sejak 2026-09-04, sebagian isi berkas ini sudah digantikan keputusan.** Dua
+> puluh dua butir yang tadinya menggantung sudah diputuskan dan dicatat di
+> [`docs/KEPUTUSAN.md`](docs/KEPUTUSAN.md). **Kalau berkas ini dan berkas itu
+> berbeda, yang berlaku `KEPUTUSAN.md`.**
+>
+> Tidak ada satu kalimat pun di sini yang diubah karenanya - itu memang aturannya.
+> Yang paling sering ditanyakan, supaya tidak salah baca:
+>
+> | Di sini tertulis | Yang berlaku sekarang |
+> |---|---|
+> | 2.3 - 8 bidang, 41 submenu | 14 bidang, 82 topik ([ADR-010](docs/adr/ADR-010-taksonomi-bidang.md)) |
+> | 2.4 dan contoh AI Agents - dua template | satu template 5 bagian ([ADR-012](docs/adr/ADR-012-template-halaman.md)) |
+> | 2.6 - .NET 9, Qdrant, LangGraph, "Auth.js / Clerk" | .NET 10 - pgvector - Microsoft Agent Framework - Clerk (dan V1 tanpa login) |
+> | 2.9 - rencana 6 bulan | [`docs/RENCANA-V1.md`](docs/RENCANA-V1.md) |
+> | 3.2 - dua belas bidang | empat belas, dan "teknologi baru yang belum muncul" jadi bagian `/future` |
 
 ## Daftar Isi
 
