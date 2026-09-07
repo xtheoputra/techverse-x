@@ -25,7 +25,7 @@ Yang sudah terbukti hidup (diverifikasi 2026-09-03): Next.js → API .NET → Po
 
 > ✅ **Ke-22 keputusan Fase 0 dan Fase 1 sudah diambil pada 2026-09-04** dan tercatat di **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** — baca itu lebih dulu. Kolom "Belum ada" di tabel atas sekarang berarti *belum dibangun*, bukan lagi *belum diputuskan*.
 >
-> ⚠️ Satu-satunya yang masih menunggu tangan pemilik: Issue [#17](../../issues/17) — ketentuan layanan OpenAI dan Microsoft. V1 karenanya hanya menerbitkan ulang **arXiv**.
+> ⚠️ Yang masih menunggu tangan pemilik: Issue [#17](../../issues/17) — ketentuan layanan OpenAI dan Microsoft. **Langkah 1 sudah selesai (7 Sep 2026): keduanya sudah dibaca**; sisa langkah 2–3 (batas kutipan wajar, tinjauan hukum bila komersial). V1 karenanya hanya menerbitkan ulang **arXiv**.
 
 ---
 

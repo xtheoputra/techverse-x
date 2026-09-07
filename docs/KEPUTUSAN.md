@@ -77,7 +77,7 @@ Bulan 1, dan **satu bidang tuntas (AI Agents, 7 topik `tinjau`) di Bulan 2**.
 
 | # | Pertanyaan | Kenapa tetap milik Anda |
 |---|---|---|
-| [17](../../issues/17) | ToS OpenAI & Microsoft | **Tetap terbuka.** Halaman ToS OpenAI membalas 403 ke pengambil otomatis — **belum pernah dibaca siapa pun**, termasuk saya. Ini pekerjaan yang menuntut peramban sungguhan dan penilaian risiko pemilik, bukan agen. |
+| [17](../../issues/17) | ToS OpenAI & Microsoft | **Tetap terbuka, tapi separuhnya sudah gugur.** ✅ **Langkah 1 selesai 7 Sep 2026: kedua ToS SUDAH DIBACA** di peramban sungguhan — blokir 403 hanya menyasar pengambil otomatis. 🔴 Dan pembacaannya membalik satu asumsi: **ToS OpenAI tidak menjawab pertanyaan penerbitan ulang berita** — ia mengatur *Services* (ChatGPT/DALL·E), bukan isi editorial situs; untuk API berlaku **Business Terms terpisah** yang belum dibaca. Microsoft ternyata **tiga lapis**, dan klausul terkenalnya adalah **syarat dari sebuah izin** (efek praktis sama: judul + tautan aman, ringkasan tidak). Rekaman lengkap di [`AUDIT-KELAYAKAN.md`](../AUDIT-KELAYAKAN.md#pembaruan-7-september-2026--ketentuan-layanan-sudah-dibaca). **Yang tetap milik Anda: langkah 2 (batas kutipan wajar) dan langkah 3 (tinjauan hukum bila komersial).** |
 
 Yang saya kerjakan sebatas **memundurkan blocker-nya**: V1 hanya menerbitkan
 ulang **arXiv** (satu-satunya sumber yang jelas boleh, metadatanya CC0), dan untuk
