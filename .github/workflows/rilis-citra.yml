@@ -1,0 +1,89 @@
+# Menerbitkan citra peti kemas ke GitHub Container Registry.
+#
+# Kenapa GHCR dan bukan langsung ke platform hosting: platformnya BELUM
+# diputuskan. Azure muncul di ADR-016 hanya sebagai tabel perkiraan biaya, bukan
+# keputusan. Mendorong ke registry lebih dulu memisahkan dua hal yang memang
+# terpisah - MEMBANGUN artefak, dan MEMILIH tempat ia berjalan. Nanti Container
+# Apps, Fly.io, Render, atau Railway tinggal menariknya dari sini.
+#
+# Citranya privat mengikuti repo ini, dan tidak ada akun baru yang perlu dibuat.
+
+name: Rilis citra
+
+on:
+  push:
+    branches: [main]
+  # Supaya bisa dijalankan sendiri tanpa menunggu commit berikutnya.
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  rilis:
+    name: Bangun dan dorong ke GHCR
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      # Satu-satunya izin tulis yang diminta, dan hanya untuk paket.
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Masuk ke GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Nama repo GitHub memuat huruf besar pada sebagian akun; nama citra Docker
+      # TIDAK BOLEH. Diturunkan sekali di sini supaya tidak ditebak di tiga tempat.
+      - name: Siapkan nama citra
+        id: nama
+        # `,,` = huruf kecil semua (ekspansi bash). REGISTRY datang dari `env:`
+        # tingkat workflow, yang memang sudah jadi variabel lingkungan di setiap
+        # langkah `run`.
+        run: echo "dasar=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      # Dua tag untuk tiap citra, dan perbedaannya penting:
+      #
+      #   :<sha>  - tidak pernah berubah. INI yang dipasang di produksi, supaya
+      #             "versi berapa yang sedang jalan" selalu punya jawaban.
+      #   :main   - penunjuk yang bergerak. Untuk melihat-lihat, bukan untuk
+      #             dipasang; men-deploy tag bergerak berarti melepas kendali
+      #             atas apa yang sebenarnya berjalan.
+      - name: Citra API
+        run: |
+          docker build -f apps/api/Dockerfile --target final \
+            -t "${{ steps.nama.outputs.dasar }}/api:${GITHUB_SHA}" \
+            -t "${{ steps.nama.outputs.dasar }}/api:main" .
+          docker push --all-tags "${{ steps.nama.outputs.dasar }}/api"
+
+      - name: Bundel migrasi
+        run: |
+          docker build -f apps/api/Dockerfile --target migrator \
+            -t "${{ steps.nama.outputs.dasar }}/migrate:${GITHUB_SHA}" \
+            -t "${{ steps.nama.outputs.dasar }}/migrate:main" .
+          docker push --all-tags "${{ steps.nama.outputs.dasar }}/migrate"
+
+      - name: Citra web
+        run: |
+          docker build -f apps/web/Dockerfile \
+            -t "${{ steps.nama.outputs.dasar }}/web:${GITHUB_SHA}" \
+            -t "${{ steps.nama.outputs.dasar }}/web:main" .
+          docker push --all-tags "${{ steps.nama.outputs.dasar }}/web"
+
+      - name: Ringkasan
+        run: |
+          {
+            echo "### Citra terbit"
+            echo
+            echo "Pasang dengan tag SHA, bukan \`:main\`."
+            echo
+            for c in api migrate web; do
+              echo "- \`${{ steps.nama.outputs.dasar }}/$c:${GITHUB_SHA}\`"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"

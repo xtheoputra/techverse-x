@@ -146,6 +146,11 @@ jobs:
     name: Citra peti kemas
     runs-on: ubuntu-latest
 
+    # Hanya pada PR. Di `main`, workflow `rilis-citra.yml` sudah membangun
+    # ketiganya sebelum mendorongnya - membangunnya dua kali cuma menghabiskan
+    # menit runner tanpa menambah satu pun jaminan.
+    if: github.event_name == 'pull_request'
+
     # Dockerfile yang tidak pernah dibangun CI akan membusuk diam-diam, dan
     # ketahuannya justru saat menyebarkan - saat paling mahal untuk tahu.
     # Yang diperiksa di sini baru BISA DIBANGUN. Memindai isinya (Container Scan
