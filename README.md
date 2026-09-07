@@ -77,7 +77,8 @@ apps/api/            Host ASP.NET Core — health check, correlation id, OpenAPI
 apps/web/            Next.js 16 App Router
 services/technology/ Bounded context pertama — vertical slice + DDD ringan
 packages/contracts/  Kontrak API yang dipakai bersama
-tests/unit/          15 uji domain
+tests/unit/          53 uji domain
+tests/integration/   (menyusul di PR #31)
 database/            SQL migrasi hasil generate + skrip isi contoh
 infrastructure/      Init Docker
 ```
@@ -90,9 +91,24 @@ Struktur yang dituju ada di [KERANGKA.md 4.7](KERANGKA.md#47-project-architectur
 
 ---
 
-## Dua Belas Bidang Teknologi
+## Empat Belas Bidang Teknologi
 
-AI & Machine Learning · AI Agents · Cybersecurity · Robotics · Quantum Computing · Biotechnology · Cloud · Blockchain · Renewable Energy · Space Technology · IoT · AR/VR
+> ⚠️ Bagian ini dulu memuat **dua belas** bidang. Angka itu **dibatalkan
+> [ADR-010](docs/adr/ADR-010-taksonomi-bidang.md)**; yang mengikat sekarang
+> **empat belas**, dan daftarnya ditegakkan kode — `FieldCatalog` disemai
+> migrasi, dan `FieldCatalogTests` menuntut `Assert.Equal(14, ...)`.
+> Dua bidang yang sebelumnya tidak tercantum di sini sama sekali:
+> **Data Engineering** dan **Edge AI**.
+
+| Prioritas | Bidang |
+|---|---|
+| **Core** (6) | AI & Machine Learning · AI Agents · Cybersecurity · Cloud & Infrastructure · **Data Engineering** · IoT |
+| **Supporting** (6) | **Edge AI** · Robotics · Quantum Computing · Biotechnology · Blockchain · Renewable Energy |
+| **Peripheral** (2) | Space Technology · XR (AR/VR/MR) |
+
+Tiga nama sengaja berbeda dari daftar lama: **Cloud & Infrastructure** (bukan
+"Cloud" saja), **XR (AR/VR/MR)** (bukan "AR/VR"), dan **Edge AI** yang berdiri
+sendiri — bukan anak IoT.
 
 Ditambah satu kategori terbuka: **teknologi baru yang belum muncul**.
 
