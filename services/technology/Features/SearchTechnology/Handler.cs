@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using TechVerseX.Contracts.Common;
 using TechVerseX.Contracts.Technology;
+using TechVerseX.TechnologyService.Domain;
 using TechVerseX.TechnologyService.Infrastructure.Persistence;
 
 namespace TechVerseX.TechnologyService.Features.SearchTechnology;
 
-public sealed record SearchTechnologyQuery(string? Term, string? Category, int Page = 1, int PageSize = 20)
+public sealed record SearchTechnologyQuery(string? Term, string? Field, int Page = 1, int PageSize = 20)
 {
     public const int MaxPageSize = 100;
 
@@ -25,8 +26,9 @@ public sealed record SearchTechnologyQuery(string? Term, string? Category, int P
 /// <remarks>
 /// KERANGKA.md 4.6 (Search Architecture) menetapkan tangga V1 PostgreSQL FTS →
 /// V2 OpenSearch → V3 hybrid. Ini bahkan belum V1 penuh: FTS memerlukan kolom
-/// tsvector, dan itu bagian dari skema yang masih Issue #20. Sengaja dibiarkan
-/// sederhana supaya tidak menebak skema yang belum diputuskan.
+/// tsvector, dan itu dijadwalkan Bulan 3 di docs/RENCANA-V1.md — bersama
+/// keputusan ADR-015 bahwa pencarian hibrida dijawab `tsvector` PostgreSQL,
+/// bukan basis data kedua.
 /// </remarks>
 public sealed class SearchTechnologyHandler(TechnologyDbContext db)
 {
@@ -36,27 +38,43 @@ public sealed class SearchTechnologyHandler(TechnologyDbContext db)
     {
         ArgumentNullException.ThrowIfNull(query);
 
-        var source = db.Technologies.AsNoTracking();
+        var source = db.Technologies
+            .AsNoTracking()
+            .Join(
+                db.Fields.AsNoTracking(),
+                t => t.FieldId,
+                f => f.Id,
+                (t, f) => new { Technology = t, Field = f });
 
         if (!string.IsNullOrWhiteSpace(query.Term))
         {
             var term = $"%{query.Term.Trim()}%";
-            source = source.Where(t => EF.Functions.ILike(t.Name, term) || EF.Functions.ILike(t.Summary, term));
+            source = source.Where(x =>
+                EF.Functions.ILike(x.Technology.Name, term) || EF.Functions.ILike(x.Technology.Summary, term));
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Category))
+        if (Slugs.TryFrom(query.Field, out var fieldSlug))
         {
-            var category = query.Category.Trim();
-            source = source.Where(t => t.Category == category);
+            source = source.Where(x => x.Field.Slug == fieldSlug);
         }
 
         var total = await source.CountAsync(cancellationToken).ConfigureAwait(false);
 
         var items = await source
-            .OrderBy(t => t.Name)
+            // Urutan tampil bidang dulu, baru nama: daftar yang dikelompokkan
+            // menurut taksonomi lebih berguna daripada daftar abjad murni.
+            .OrderBy(x => x.Field.DisplayOrder)
+            .ThenBy(x => x.Technology.Name)
             .Skip((query.NormalizedPage - 1) * query.NormalizedPageSize)
             .Take(query.NormalizedPageSize)
-            .Select(t => new TechnologySummaryResponse(t.Id, t.Slug, t.Name, t.Summary, t.Category))
+            .Select(x => new TechnologySummaryResponse(
+                x.Technology.Id,
+                x.Technology.Slug,
+                x.Technology.Name,
+                x.Technology.Summary,
+                x.Field.Slug,
+                x.Field.Name,
+                x.Technology.Maturity.ToString()))
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 

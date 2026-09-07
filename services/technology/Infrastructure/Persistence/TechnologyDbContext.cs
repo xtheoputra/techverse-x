@@ -16,6 +16,8 @@ public sealed class TechnologyDbContext(DbContextOptions<TechnologyDbContext> op
 {
     public const string Schema = "technology";
 
+    public DbSet<Field> Fields => Set<Field>();
+
     public DbSet<Technology> Technologies => Set<Technology>();
 
     public DbSet<TechnologyRelationship> Relationships => Set<TechnologyRelationship>();

@@ -15,19 +15,19 @@ public static class SearchTechnologyEndpoint
 
         routes.MapGet("/", HandleAsync)
             .WithName("SearchTechnology")
-            .WithSummary("Mencari dan menyaring daftar teknologi.");
+            .WithSummary("Mencari dan menyaring daftar teknologi. Saring per bidang dengan ?field=<slug>.");
     }
 
     private static async Task<Ok<PagedResponse<TechnologySummaryResponse>>> HandleAsync(
         SearchTechnologyHandler handler,
         CancellationToken cancellationToken,
         string? q = null,
-        string? category = null,
+        string? field = null,
         int page = 1,
         int pageSize = 20)
     {
         var result = await handler
-            .HandleAsync(new SearchTechnologyQuery(q, category, page, pageSize), cancellationToken)
+            .HandleAsync(new SearchTechnologyQuery(q, field, page, pageSize), cancellationToken)
             .ConfigureAwait(false);
 
         return TypedResults.Ok(result);

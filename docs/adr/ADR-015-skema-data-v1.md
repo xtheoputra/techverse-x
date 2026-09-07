@@ -1,6 +1,6 @@
 # ADR-015 — Skema data V1: entitas, dua sumbu status, dan penyimpanan vektor
 
-**Status:** Diterima sebagai rancangan. **Implementasi menunggu PR [#23](../../../../pull/23) di-merge.**
+**Status:** Diterima. **Sebagian sudah mendarat** - lihat bagian Pembaruan di kaki berkas ini.
 Menutup Issue [#20](../../../../issues/20).
 **Tanggal:** 2026-09-04
 
@@ -125,3 +125,60 @@ yang mengklaim dirinya sumber belajar.
   isinya baru lima baris contoh dari `run.ps1 seed`.
 - Kalau `ContentMaturity` nanti ditemukan menyatu dengan `TechnologyStatus` di
   kode, itu regresi — bukan penyederhanaan. Alasannya ada di bagian 1 di atas.
+
+---
+
+## Pembaruan 2026-09-04 - dua entitas pertama mendarat
+
+Cabang `fase-1/skema-konten`, ditumpuk di atas `fase-1/skeleton`.
+
+**Yang sudah ada di kode:** `Field` (14 baris disemai migrasi), `Technology.FieldId`
+menggantikan `Category` teks bebas, dan `ContentMaturity` sebagai kolom tersendiri.
+**Yang belum:** `RoadmapStep`, `Tool`, `Project`, `Resource`, `Article`, `Chunk`.
+`Chunk` sengaja paling belakang - ia menuntut ekstensi pgvector dipasang di image
+Postgres, dan itu perubahan infrastruktur yang berdiri sendiri.
+
+### Nama enum di kode, supaya dokumen dan kode tidak hanyut
+
+| ADR ini | Kode |
+|---|---|
+| `kurasi` | `ContentMaturity.Curated` |
+| `draf` | `ContentMaturity.MachineDrafted` |
+| `tinjau` | `ContentMaturity.HumanReviewed` |
+
+Kata `Draft` sengaja **tidak** dipakai untuk tingkat kedua. `TechnologyStatus`
+sudah punya anggota bernama `Draft`, dan dua sumbu yang bagian 1 di atas
+susah-payah pisahkan tidak boleh memakai kata yang sama - itu jalan tercepat
+menuju penggabungan yang justru dilarang.
+
+### Satu aturan tambahan yang lahir saat menulis kodenya
+
+**`Update()` menurunkan kembali halaman yang sudah `HumanReviewed`.** Pemeriksaan
+manusia berlaku atas teks yang diperiksa, bukan atas nama halamannya; kalau
+teksnya berubah, labelnya tidak boleh ikut bertahan. Naik lagi hanya lewat
+`MarkReviewed(reviewer)`, yang menuntut nama pemeriksanya - jadi tidak ada cara
+menandai sesuatu "sudah diperiksa manusia" tanpa menyebut manusianya.
+
+### Penyimpangan dari rencana, dicatat apa adanya
+
+Bagian Konsekuensi di atas menulis implementasinya **menunggu PR #23 di-merge**.
+Yang dikerjakan bukan itu: kodenya mendarat di cabang terpisah yang ditumpuk di
+atas #23, dan diajukan sebagai PR sendiri.
+
+Alasannya sama dengan alasan aslinya - review #23 tetap satu unit yang utuh - tapi
+tanpa mengunci pekerjaan di belakang review yang belum tentu segera datang.
+Kalau pemilik lebih suka #23 di-merge dulu, cabang ini tinggal di-rebase.
+
+### Migrasi ditulis tangan, dan penjaganya sudah dibuktikan merah
+
+Hasil scaffold membuang kolom `Category` LEBIH DULU lalu mengisi `FieldId` dengan
+Guid kosong - setiap baris lama kehilangan kategorinya dan langsung melanggar
+kunci asing. Urutannya dibalik jadi: semai bidang -> tambah kolom yang boleh
+kosong -> isi dari kategori lama -> **berhenti dengan pesan yang bisa
+ditindaklanjuti** -> baru wajibkan dan buang kolom lama.
+
+Penjaganya diuji dengan **sengaja merusak data lebih dulu**: satu baris berkategori
+"Belum diputuskan" disisipkan, migrasi dijalankan, dan ia berhenti dengan pesan
+yang menyebut kategori pelakunya berikut jalan keluarnya. Diperiksa juga bahwa
+transaksinya benar-benar berguling balik - tabel `fields` nol, kolom `Category`
+utuh. Gerbang yang belum pernah terlihat merah belum terbukti menjaga apa pun.

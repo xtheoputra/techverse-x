@@ -15,15 +15,22 @@ public sealed class GetTechnologyHandler(TechnologyDbContext db)
         return await db.Technologies
             .AsNoTracking()
             .Where(t => t.Slug == query.Slug)
-            .Select(t => new TechnologyResponse(
-                t.Id,
-                t.Slug,
-                t.Name,
-                t.Summary,
-                t.Category,
-                t.Status.ToString(),
-                t.CreatedAt,
-                t.UpdatedAt))
+            .Join(
+                db.Fields.AsNoTracking(),
+                t => t.FieldId,
+                f => f.Id,
+                (t, f) => new TechnologyResponse(
+                    t.Id,
+                    t.Slug,
+                    t.Name,
+                    t.Summary,
+                    f.Slug,
+                    f.Name,
+                    t.Status.ToString(),
+                    t.Maturity.ToString(),
+                    t.ReviewedAt,
+                    t.CreatedAt,
+                    t.UpdatedAt))
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
     }

@@ -31,3 +31,20 @@ public sealed record TechnologyPublished(Guid TechnologyId, string Slug) : Domai
 {
     public override string EventType => nameof(TechnologyPublished);
 }
+
+/// <summary>Isi halaman naik ke tingkat "sudah diperiksa manusia" (ADR-012).</summary>
+public sealed record TechnologyReviewed(Guid TechnologyId, string Slug, string Reviewer) : DomainEvent
+{
+    public override string EventType => nameof(TechnologyReviewed);
+}
+
+/// <summary>
+/// Isi halaman berubah setelah diperiksa, jadi pemeriksaannya gugur.
+/// Event tersendiri, bukan sekadar bagian dari TechnologyUpdated: yang satu
+/// berarti "ada yang berubah", yang ini berarti "yang tadinya tepercaya sudah
+/// tidak lagi" - dan pembaca hilirnya berbeda.
+/// </summary>
+public sealed record TechnologyReviewExpired(Guid TechnologyId, string Slug) : DomainEvent
+{
+    public override string EventType => nameof(TechnologyReviewExpired);
+}

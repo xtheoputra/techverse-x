@@ -12,8 +12,11 @@ name: CI
 on:
   push:
     branches: [main, "fase-*/**"]
+  # PR yang menyasar cabang fase-* ikut diperiksa, bukan cuma yang menyasar main.
+  # Tanpa baris kedua, PR bertumpuk (mis. #25 -> fase-1/skeleton) hanya kebagian
+  # jalan `push`, yang menguji ujung cabangnya - BUKAN hasil penggabungannya.
   pull_request:
-    branches: [main]
+    branches: [main, "fase-*/**"]
 
 permissions:
   contents: read

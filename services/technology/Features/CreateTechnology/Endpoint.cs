@@ -25,7 +25,7 @@ public static class CreateTechnologyEndpoint
         IValidator<CreateTechnologyCommand> validator,
         CancellationToken cancellationToken)
     {
-        var command = new CreateTechnologyCommand(request.Name, request.Summary, request.Category, request.Slug);
+        var command = new CreateTechnologyCommand(request.Name, request.Summary, request.FieldSlug, request.Slug);
 
         var validation = await validator.ValidateAsync(command, cancellationToken).ConfigureAwait(false);
         if (!validation.IsValid)
@@ -34,6 +34,16 @@ public static class CreateTechnologyEndpoint
         }
 
         var result = await handler.HandleAsync(command, cancellationToken).ConfigureAwait(false);
+
+        if (result.IsUnknownField)
+        {
+            // 400, bukan 404: daftar bidang tertutup (ADR-010), jadi slug di luar
+            // daftar berarti muatannya yang keliru - bukan alamatnya.
+            return TypedResults.ValidationProblem(new Dictionary<string, string[]>(StringComparer.Ordinal)
+            {
+                ["fieldSlug"] = [$"Bidang '{result.UnknownFieldSlug}' tidak ada. Lihat GET /api/v1/fields untuk keempat belas bidang yang sah."],
+            });
+        }
 
         return result.IsConflict
             ? TypedResults.Conflict($"Slug '{result.ConflictingSlug}' sudah dipakai teknologi lain.")
