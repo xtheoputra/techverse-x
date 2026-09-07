@@ -10,7 +10,9 @@ Berkas ini memuat **dua audit** dari satu gelombang. 10 agen paralel dengan penc
 | [A](#bagian-a--enam-sumber-berita) | Enam sumber berita di `KERANGKA.md` 2.5 | 6 | tinggi |
 | [B](#bagian-b--empat-vonis-arsitektur) | Empat pilihan tumpukan di `KERANGKA.md` 2.6 | 4 | B1-B3 tinggi, B4 sedang |
 
-> ⚠️ **Baca [Peringatan](#peringatan) di bagian paling bawah lebih dulu.** Satu temuan penting belum bisa diverifikasi siapa pun — ketentuan layanan OpenAI memblokir bot.
+> ⚠️ **Baca [Peringatan](#peringatan) di bagian paling bawah lebih dulu.**
+>
+> ✅ **Pembaruan 7 September 2026 — ketentuan layanan OpenAI dan Microsoft SUDAH DIBACA** di peramban sungguhan; blokir 403 hanya berlaku bagi pengambil otomatis. Hasilnya di [Pembaruan pembacaan ToS](#pembaruan-7-september-2026--ketentuan-layanan-sudah-dibaca) di kaki berkas.
 
 ---
 
@@ -172,6 +174,75 @@ pgvector matang: rilis stabil 0.8.6 (29 Juli 2026), iterative index scan sejak 0
 ## Peringatan
 
 1. **Keyakinan tidak merata.** B1, B2, B3 berkeyakinan **tinggi** dengan rujukan ke NuGet, dokumentasi resmi, dan registri npm. B4 berkeyakinan **sedang** — tidak ada angka pembanding resmi pgvector vs Qdrant pada skala ratusan ribu; halaman benchmark Qdrant terakhir diperbarui 2024 dan tidak menyertakan pgvector sama sekali.
-2. **Status ketentuan layanan OpenAI belum diperiksa siapa pun** — halamannya memblokir bot. Itu pekerjaan manusia, dan harus dilakukan **sebelum** tayang, bukan sesudah (Issue [#17](../../issues/17)).
+2. ~~**Status ketentuan layanan OpenAI belum diperiksa siapa pun**~~ — ✅ **sudah dibaca 7 September 2026.** Lihat [pembaruan di bawah](#pembaruan-7-september-2026--ketentuan-layanan-sudah-dibaca). Yang tersisa dari Issue [#17](../../issues/17) tinggal keputusan pemilik: batas kutipan wajar, dan tinjauan hukum bila TechVerse komersial.
 3. **Tanggal GA Microsoft Agent Framework berbeda antar-berkas.** B2 menulis **2 April 2026** untuk `Microsoft.Agents.AI` 1.0.0; `AUDIT-KESEGARAN.md` Bagian A menulis **3 April 2026**. Keduanya keluaran agen berbeda dan belum dicocokkan ke satu sumber primer.
 4. **Berkas ini temuan, bukan keputusan — tetapi tabel 2.6 sudah tidak sama lagi dengan yang diaudit.** Saat audit ini dijalankan, `KERANGKA.md` 2.6 masih memuat `.NET 9`, LangGraph, Auth.js, dan Qdrant. Tabel itu kemudian ditulis ulang mengikuti Bagian 4 (Engineering Blueprint v1) milik pemilik, dan hasilnya sejalan dengan B1-B3. Yang **belum** diputuskan tetap B4 (pgvector saja atau Qdrant terpisah, Issue [#15](../../issues/15)); rekonsiliasi lengkapnya ada di `KERANGKA.md` 4.20.
+
+
+---
+
+## Pembaruan 7 September 2026 — ketentuan layanan sudah dibaca
+
+Halangan yang tercatat di berkas ini sejak awal — *"belum diperiksa siapa pun,
+halamannya memblokir bot"* — **sudah tidak berlaku.** Kedua halaman dibuka di
+peramban sungguhan dan terbaca utuh. Blokir 403 hanya menyasar pengambil
+otomatis.
+
+⚖️ Yang di bawah ini **pembacaan, bukan nasihat hukum.**
+
+### Microsoft — Terms of Use, diperbarui 7 Februari 2022
+
+Ternyata **tiga lapis**, bukan satu klausul seperti yang tercatat sebelumnya:
+
+1. **Batasan umum non-komersial** (*Personal and Non-Commercial Use Limitation*)
+   — Services untuk pemakaian pribadi & non-komersial; dilarang menyalin,
+   mendistribusikan, menampilkan, mereproduksi, menerbitkan, membuat karya
+   turunan, atau menjual informasi yang diperoleh darinya. **Lebih luas**
+   daripada kutipan yang selama ini dipakai berkas ini.
+2. **Bagian *Documents*** — untuk white paper, siaran pers, datasheet, dan FAQ,
+   izin **justru diberikan**, tetapi bersyarat: pemberitahuan hak cipta ikut;
+   pemakaian informasional & non-komersial saja **serta tidak diposting ke
+   komputer jaringan mana pun**; dan **tanpa modifikasi**.
+   Jadi kalimat yang selama ini dikutip adalah **syarat dari sebuah izin**,
+   bukan larangan telanjang — meski efek praktisnya untuk TechVerse sama.
+3. **Bagian *AI Services*** (lebih baru) — melarang eksplisit scraping /
+   harvesting / ekstraksi data dari layanan AI, dan melarang memakai datanya
+   untuk melatih layanan AI lain.
+
+**Konsekuensi operasional:** syarat "tanpa modifikasi" berarti **judul + tautan
+aman, ringkasan tidak**.
+
+### OpenAI — Terms of Use, berlaku 1 Januari 2026
+
+🔴 **Dokumen ini tidak menjawab pertanyaan yang diajukan kepadanya.** Ia
+mengatur **penggunaan Services** (ChatGPT, DALL·E, layanan untuk individu),
+bukan penerbitan ulang isi editorial situs `openai.com`. Untuk pemakaian API,
+yang berlaku adalah **Business Terms yang terpisah**.
+
+Asumsi lama — bahwa membaca ToS OpenAI akan menyelesaikan pertanyaan penerbitan
+ulang berita — **tidak terbukti.**
+
+Yang relevan dan memang ada di dalamnya:
+
+| Klausul | Menyentuh |
+|---|---|
+| Larangan ekstraksi data/Output secara otomatis atau programatik | jalur pengambilan otomatis dari Services |
+| **Larangan menyatakan Output sebagai buatan manusia padahal bukan** | ⭐ **ADR-012** |
+| Kepemilikan Output ada di pengguna (haknya dialihkan OpenAI) | ringkasan AI menjadi milik TechVerse |
+
+⭐ Dua di antaranya kabar baik. Aturan *"jangan sebut buatan manusia padahal
+bukan"* **sudah dipenuhi lebih dulu** oleh ADR-012 — `MaturityBadge` sengaja
+tidak punya varian tanpa label, jadi kepatuhan di sini bukan pekerjaan baru.
+Dan kepemilikan Output berarti ringkasan AI, bila suatu saat dinyalakan, milik
+TechVerse sendiri.
+
+### Yang perlu dibaca berikutnya
+
+**OpenAI Business Terms** (untuk pemakaian API) dan **Sharing & Publication
+Policy** — keduanya belum dibaca.
+
+### Ini tidak menghambat V1
+
+ADR-016 sudah memutuskan V1 hanya arXiv (CC0) tanpa ringkasan AI, dan aturan
+sementara untuk sumber lain — simpan boleh, tampilkan hanya judul, tautan, dan
+sumber — tetap konsisten dengan seluruh pembacaan di atas.
