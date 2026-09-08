@@ -1,8 +1,13 @@
 # ADR-017 — Platform hosting V1, dan kenapa bentuk citra `migrate` ikut diputuskan di sini
 
-**Status:** 🟡 **DIUSULKAN — menunggu keputusan pemilik.** Belum menutup issue apa pun.
-Pemilihan platform menyangkut akun dan uang, jadi ADR ini menyiapkan keputusannya, bukan mengambilnya.
+**Status:** ✅ **Diterima — Render, tier berbayar.** Menutup Issue [#33](../../../../issues/33).
+Pemilik mendelegasikan pilihannya pada 2026-09-08: *"gunakan apapun, yang tidak memberatkan
+dan paling mudah dan kuat, dapat dengan mudah dibuka walaupun dalam tahap pengembangan."*
 **Tanggal:** 2026-09-08
+
+> **Yang tersisa untuk pemilik hanyalah langkah berakun:** membuat akun Render,
+> memilih plan berbayar, dan menempel token GHCR. Kode, blueprint, dan runbook-nya
+> sudah selesai dan terbukti — lihat *Keputusan final* di bawah.
 
 ## Konteks
 
@@ -154,20 +159,76 @@ Ambil ini kalau pemilik lebih menghargai "jalankan persis yang sudah terbukti"
 daripada "jangan jadi DBA". Yang dibayar: cadangan, pemulihan, penambalan OS, dan
 TLS jadi pekerjaan pemilik, di satu mesin tanpa cadangan.
 
-## Kalau usul ini disetujui, pekerjaan yang mengikuti
+## Keputusan final (2026-09-08) — dan kenapa **BUKAN** tier gratis
 
-1. Tambah tahap bundel *framework-dependent* ke citra `api`; **buktikan MERAH
-   dulu** — jalankan `api` terhadap basis data yang belum dimigrasi dan pastikan
-   ia gagal dengan cara yang bisa dibaca.
-2. Buat layanan `api` dan `web` di Render dari tag SHA, isi kredensial GHCR
-   (`read:packages`), set pre-deploy `api` ke bundelnya.
-3. Sediakan Render Postgres, isi `ConnectionStrings__Postgres`.
-   **`ConnectionStrings__Redis` dikosongkan** — ADR-016.
-4. Beli domain, arahkan, biarkan platform menerbitkan sertifikat.
-5. Tambahkan bagian **Render** ke `PENYEBARAN.md` sebagai contoh konkret; bagian
-   netral platform tetap jadi bagian utamanya.
-6. Ukur tagihan bulan pertama terhadap pagu, lalu perbarui tabel ADR-016 dengan
-   **angka sungguhan** — pagu $60 baru berarti setelah sekali diuji.
+Kriteria pemilik: *tidak memberatkan · paling mudah · kuat · **dapat dengan mudah
+dibuka walaupun dalam tahap pengembangan***. Kriteria terakhir itu yang
+menggugurkan pilihan yang tampaknya paling "tidak memberatkan".
+
+🔴 **Tier gratis Render melanggar kriteria itu, bukan memenuhinya:**
+
+| Batas tier gratis | Akibatnya untuk "mudah dibuka" |
+|---|---|
+| Web service **tidur setelah 15 menit** menganggur | Pengunjung pertama sesudah jeda menunggu **30–60 detik** |
+| Postgres gratis **kedaluwarsa 30 hari** sejak dibuat, lalu dihapus setelah masa tenggang 14 hari | Bukan basis data, melainkan hitungan mundur |
+
+Situs yang butuh satu menit untuk terbuka bukan situs yang "mudah dibuka", dan
+basis data yang menghapus dirinya sendiri bukan "kuat". **Gratis di sini justru
+paling memberatkan** — ia memindahkan bebannya dari uang ke pengalaman pembaca
+dan ke risiko kehilangan data.
+
+Karena itu: **Render, tier berbayar**, ≈$20/bln melawan jatah ≈$38/bln. Di pagu
+yang belum pernah diuji tagihan sungguhan, harga **tetap** lebih berharga
+daripada harga terendah.
+
+## Dua hal yang dikerjakan sebelum akun dibuat — dan dibuktikan
+
+**1. Bundel migrasi masuk ke citra `api` (opsi C), dan terbukti jalan.**
+Tahap `migrations-fdd` di `apps/api/Dockerfile` membangun bundel
+*framework-dependent* — **35,8 MB**, bukan varian self-contained — dan
+menyalinnya ke `/app/efbundle`. Citra API 354 MB → **402 MB**.
+
+Dibuktikan, bukan diasumsikan: bundel itu dijalankan **dari dalam citra `api`**
+terhadap basis data yang benar-benar **kosong**, dan hasilnya **9 tabel + 14
+bidang tersemai**. Citra `migrate` yang berdiri sendiri tetap diterbitkan untuk
+compose, VPS, dan `initContainers`.
+
+**2. 🔴 Kejutan penyebaran yang ditemukan SEBELUM menyebarkan: bentuk string koneksi.**
+
+Render — dan Railway, Heroku, Neon, Supabase — menyerahkan kredensial basis data
+sebagai **URI** (`postgresql://user:sandi@host:5432/nama`). **Npgsql menuntut
+bentuk kunci-nilai dan MELEMPAR untuk URI.** Menempel nilai yang diberikan
+platform apa adanya akan gagal saat *start*, bukan saat konfigurasi — jauh lebih
+mahal untuk didiagnosis.
+
+`PostgresConnectionString.Normalize()` menerjemahkan keduanya, dan **uji
+pertamanya bukan menguji kode kita melainkan membuktikan penerjemahnya memang
+dibutuhkan** (`Npgsql_MEMANG_menolak_bentuk_URI`). Kalau suatu hari Npgsql
+menerima URI, uji itu yang pertama memerah dan penerjemahnya boleh dibuang.
+
+⭐ Efek sampingnya menguatkan janji ADR ini: bentuk URI adalah bentuk yang paling
+banyak dipakai platform, jadi mendukungnya membuat **pindah platform tidak
+menuntut perubahan kode**.
+
+## Pekerjaan yang mengikuti — dan siapa yang memegangnya
+
+| # | Pekerjaan | Keadaan |
+|---|---|---|
+| 1 | Bundel *framework-dependent* masuk citra `api` | ✅ **selesai & terbukti** — memigrasi DB kosong jadi 9 tabel + 14 bidang |
+| 2 | Aplikasi menerima string koneksi bentuk URI | ✅ **selesai** — `PostgresConnectionString`, 10 uji |
+| 3 | Blueprint `render.yaml` | ✅ **selesai** — 4 nilai bertanda `GANTI` menunggu akun |
+| 4 | Bagian **Menyebarkan ke Render** di `PENYEBARAN.md` | ✅ **selesai** |
+| 5 | **Buat akun Render + pilih plan berbayar** | 🔑 **pemilik** — butuh akun & kartu |
+| 6 | **Token GHCR `read:packages` → Render** | 🔑 **pemilik** |
+| 7 | **Beli domain**, arahkan, sertifikat diurus platform | 🔑 **pemilik** |
+| 8 | Ukur tagihan bulan pertama, perbarui tabel biaya ADR-016 dengan **angka sungguhan** | ⏳ setelah tayang |
+
+Butir 5–7 tidak bisa diwakilkan: ketiganya menuntut akun dan pembayaran atas
+nama pemilik. Sisanya sudah tidak menunggu siapa pun.
+
+⚠️ **Butir 8 bukan formalitas.** Pagu $60/bln di ADR-016 **belum pernah diuji
+tagihan sungguhan**, dan seluruh angka dolar di ADR ini perkiraan pihak ketiga.
+Tagihan pertama adalah pengukuran pertamanya.
 
 ## Konsekuensi
 

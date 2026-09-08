@@ -179,6 +179,64 @@ ambang adalah cara paling cepat membuat gerbang ini berhenti menjaga apa pun.
 
 ---
 
+## Menyebarkan ke Render
+
+Platformnya sudah diputuskan di [ADR-017](adr/ADR-017-platform-hosting.md):
+**Render, tier berbayar.** Bagian ini contoh konkretnya. Segala yang di atas
+tetap berlaku untuk platform mana pun — bagian ini tidak menggantikannya.
+
+Infrastrukturnya ditulis sebagai berkas: [`render.yaml`](../render.yaml) di akar
+repo. Empat nilai di dalamnya bertanda `GANTI` dan hanya bisa diisi pemilik.
+
+### Enam langkah
+
+1. **Buat akun Render** dan sebuah Workspace.
+2. **Tambahkan kredensial registry** (Workspace Settings → Registry Credentials):
+   registry `ghcr.io`, pengguna = nama akun GitHub, sandi = token bercakupan
+   **`read:packages`**. Catat **id kredensialnya** → itu nilai `<CRED-ID>`.
+   ⚠️ Lihat bagian *Kredensial untuk MENARIK citra* di atas: `docker login` yang
+   berhasil **tidak** membuktikan token itu boleh menarik.
+3. **Isi `<SHA>`** di `render.yaml` dengan tag citra yang mau dipasang — ambil
+   dari ringkasan workflow *Rilis citra* di Actions. Tag SHA, bukan `:main`.
+4. **Blueprint → New Blueprint Instance**, arahkan ke repo ini. Render membaca
+   `render.yaml` dan membuat ketiga sumber daya sekaligus.
+5. **Tunggu penyebaran pertama.** Urutannya ditegakkan `preDeployCommand`:
+   bundel migrasi berjalan sampai selesai sebelum API menyala. Kalau ia gagal,
+   penyebarannya berhenti dan **versi lama tetap melayani**.
+6. **Periksa `/health/ready` di host API.** Ia harus **200** dan badannya hanya
+   menyebut `postgres` — kalau `redis` muncul di sana, berarti
+   `ConnectionStrings__Redis` terisi dan itu salah (lihat *Redis: jangan
+   dipasang*).
+
+### Tiga hal yang khas Render dan sudah diketahui
+
+**1. Postgres-nya diserahkan sebagai URI, bukan sebagai `Host=...;Port=...`.**
+Aplikasi menerjemahkannya sendiri (`PostgresConnectionString`) karena Npgsql
+melempar untuk bentuk URI. Jadi `fromDatabase` di `render.yaml` bisa dipakai apa
+adanya — tidak perlu merakit string koneksi dengan tangan.
+
+**2. Pre-deploy berjalan di citra layanan itu SENDIRI.** Karena itu bundel
+migrasi ikut dimasukkan ke citra `api` (`/app/efbundle`). Citra `migrate` yang
+berdiri sendiri tetap terbit dan tetap dipakai compose, VPS, dan
+`initContainers` — dua jalan, satu migrasi EF yang sama.
+
+**3. ⚠️ Render TIDAK punya urutan antar-layanan.** `web` bisa menyala sebelum
+`api` siap, jadi di penyebaran pertama halaman ber-data bisa gagal beberapa saat.
+`docker-compose.prod.yml` menegakkan urutan itu; Render tidak.
+
+### 🔴 Jangan pakai tier gratisnya
+
+| Batas | Akibatnya |
+|---|---|
+| Web service **tidur setelah 15 menit** menganggur | Pengunjung pertama menunggu **30–60 detik** |
+| Postgres gratis **kedaluwarsa 30 hari**, dihapus setelah tenggang 14 hari | Bukan basis data, melainkan hitungan mundur |
+
+Gratis di sini memindahkan bebannya dari uang ke pengalaman pembaca dan ke risiko
+kehilangan data. ADR-017 menolaknya justru atas dasar kriteria *"mudah dibuka dan
+kuat"*, bukan atas dasar biaya.
+
+---
+
 ## Yang belum ada
 
 - **Pilihan platform.** ✅ **ADR hosting sekarang ADA** —
