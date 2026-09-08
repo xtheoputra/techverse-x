@@ -12,16 +12,19 @@ Sasaran pemakai: pemilik sendiri, mahasiswa, engineer, sampai perusahaan yang bu
 
 Repositori ini sekarang punya **kode yang jalan**, tapi baru kerangkanya: fondasi yang dipakai semua fitur, belum fiturnya.
 
-Yang sudah terbukti hidup (diverifikasi 2026-09-03): Next.js → API .NET → PostgreSQL, dengan Redis dan health check yang benar-benar menyentuh keduanya.
+Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan health check yang benar-benar menyentuh dependensinya. Diverifikasi dua kali — di mesin pengembang (2026-09-03) dan **dari dalam peti kemas produksi, tiga kontainer, basis data kosong** (2026-09-07).
 
 | Sudah jalan | Belum ada |
 |---|---|
-| API .NET 10 + PostgreSQL 17 + Redis 8 | Navigasi & taksonomi bidang |
+| API .NET 10 + PostgreSQL 17 | Navigasi & taksonomi bidang |
 | Irisan vertikal Technology (buat · ambil · cari) | Autentikasi |
 | Migrasi EF Core, schema per bounded context | Kode AI apa pun |
 | Health check `live`/`ready` yang menguji dependensi | Vector DB, Neo4j, event bus |
 | Halaman web yang membaca API sungguhan | Pengambilan berita |
-| CI: build ketat, uji, migrasi dari nol, pindai rahasia | Dockerfile, Terraform, Kubernetes |
+| CI: 8 gerbang — build ketat, uji unit + integrasi, migrasi dari nol, pindai rahasia, build citra, pindai citra | **Platform hosting, domain, sertifikat** |
+| **Citra produksi terbit ke GHCR** tiap `main` bergerak — API, web, dan bundel migrasi EF | Terraform, Kubernetes |
+
+> 🐳 **Redis dipakai di pengembangan saja.** [ADR-016](docs/adr/ADR-016-pagu-biaya.md) memutuskan ia **tidak di-provision di V1** — ia harus membuktikan dirinya dulu dengan beban yang benar-benar ada. Kesiapan API sudah tahu cara hidup tanpanya, dan itu diuji ([`tests/integration`](tests/integration)).
 
 > ✅ **Ke-22 keputusan Fase 0 dan Fase 1 sudah diambil pada 2026-09-04** dan tercatat di **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** — baca itu lebih dulu. Kolom "Belum ada" di tabel atas sekarang berarti *belum dibangun*, bukan lagi *belum diputuskan*.
 >
@@ -50,6 +53,8 @@ Gerbang yang sama dengan CI, sebelum push:
 .\run.ps1 verify               make verify
 ```
 
+⚠️ **`verify` dan `test` menuntut `up` lebih dulu.** Uji integrasi menyentuh PostgreSQL sungguhan — kesiapan yang diuji tanpa dependensi sungguhan tidak mengukur apa pun.
+
 ### Isi contoh itu bukan kurikulum
 
 `seed` memasukkan lima entri sekadar supaya layar dan endpoint ada isinya. Isi sungguhan menunggu Issue [#10](../../issues/10) (siapa yang menulis) dan [#18](../../issues/18) — peta teknologinya sendiri masih perlu dikoreksi lebih dulu.
@@ -67,6 +72,7 @@ Gerbang yang sama dengan CI, sebelum push:
 | **[AUDIT-KELAYAKAN.md](AUDIT-KELAYAKAN.md)** | Dua audit kelayakan. Bagian A memeriksa enam sumber berita, Bagian B memeriksa empat pilihan arsitektur. |
 | **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** | **Ke-22 keputusan dalam satu halaman**, berikut cara membatalkan tiap keputusan. Berlaku di atas `KERANGKA.md` kalau keduanya berbeda. |
 | **[docs/RENCANA-V1.md](docs/RENCANA-V1.md)** | Rencana enam bulan yang menggantikan `KERANGKA.md` 2.9. Deployment naik dari Bulan 6 ke Bulan 1. |
+| **[docs/PENYEBARAN.md](docs/PENYEBARAN.md)** | Runbook penyebaran, **netral platform**. Kredensial menarik citra, urutan `postgres → migrate → api → web`, variabel lingkungan, dan health check mana yang dipakai untuk apa. |
 | **[docs/adr/](docs/adr/)** | Enam belas Architecture Decision Record. |
 | **[docs/SESSION-LOG.md](docs/SESSION-LOG.md)** | Catatan sesi kerja, urutan terbaru di atas. |
 
@@ -78,7 +84,7 @@ apps/web/            Next.js 16 App Router
 services/technology/ Bounded context pertama — vertical slice + DDD ringan
 packages/contracts/  Kontrak API yang dipakai bersama
 tests/unit/          53 uji domain
-tests/integration/   (menyusul di PR #31)
+tests/integration/   4 uji kesiapan API (host sungguhan + PostgreSQL sungguhan)
 database/            SQL migrasi hasil generate + skrip isi contoh
 infrastructure/      Init Docker
 ```

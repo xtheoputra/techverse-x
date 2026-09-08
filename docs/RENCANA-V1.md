@@ -57,7 +57,7 @@ sudah dikeluarkan.
 | **5** | **AI Mentor.** Agent Framework + MCP ke dalam + pgvector di atas konten sendiri, dengan pagu harian keras | Mentor menjawab dan **menunjukkan sumbernya** |
 | **6** | **Labs + Project Generator** · cadangan untuk yang meleset | Satu proyek bisa dikerjakan orang dari awal sampai selesai |
 
-### Keadaan Bulan 1 per 7 September 2026
+### Keadaan Bulan 1 per 8 September 2026
 
 Rencana di atas tidak punya penanda kemajuan, jadi pertanyaan *"Bulan 1 sudah
 selesai belum?"* tidak punya jawaban di dokumen ini. Ini jawabannya, dan tiap
@@ -73,6 +73,15 @@ baris diperiksa ke kode atau ke GitHub — bukan ke dokumen lain.
 **Yang menahan hanya butir terakhir, dan penahannya bukan teknis.** Citra
 produksi sudah ada dan terbukti melayani situsnya dari basis data kosong (PR
 [#31](../../issues/31)), berikut bundel migrasi dan gerbang pemindaian citra.
+
+📦 **Sejak 8 September 2026 ketiganya bukan cuma "bisa dibangun" — ia sudah
+TERBIT.** `rilis-citra.yml` berjalan untuk pertama kalinya di `main` `4bfbfff`
+dan hijau: dibangun, dipindai (nol CRITICAL/HIGH), lalu didorong ke
+`ghcr.io/<pemilik>/techverse-x/{api,migrate,web}` dengan tag SHA maupun `:main`.
+Artinya langkah "cari artefaknya" sudah hilang dari daftar pekerjaan penyebaran —
+platform apa pun tinggal menariknya, dan syarat menariknya kini tertulis di
+[`PENYEBARAN.md`](PENYEBARAN.md#kredensial-untuk-menarik-citra).
+
 Yang belum ada adalah **keputusan platform hosting** — ADR-016 menyebut Azure
 hanya di tabel perkiraan biaya, bukan sebagai keputusan — plus **domain** dan
 **sertifikat**. Ketiganya menyangkut akun dan uang.

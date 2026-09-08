@@ -1,7 +1,9 @@
 # ADR-016 — Pagu biaya bulanan, dan aturan penerbitan ulang sumber luar
 
 **Status:** Diterima. Menutup Issue [#22](../../../../issues/22).
-Issue [#17](../../../../issues/17) **tetap terbuka** — bagian hukumnya hanya bisa dijawab pemilik.
+Issue [#17](../../../../issues/17) **tetap terbuka** — ToS OpenAI & Microsoft sudah dibaca
+(7 Sep 2026, lihat butir 4), tapi sisanya keputusan pemilik: OpenAI **Business Terms**
+yang mengatur API, dan batas kutipan untuk sumber non-arXiv.
 **Tanggal:** 2026-09-04
 
 ## Konteks
@@ -80,11 +82,24 @@ robots.txt hanya mengizinkan **mengambil**, ia tidak pernah berbicara soal
 **menerbitkan ulang**.
 
 ⚠️ **Aturan di atas adalah pengurang paparan, bukan nasihat hukum, dan bukan
-pengganti #17.** Yang tetap harus pemilik kerjakan sendiri: membuka ToS OpenAI
-(halamannya membalas 403 ke pengambil otomatis, jadi **belum pernah dibaca siapa
-pun**) dan ToS Microsoft — yang paling ketat, karena menyatakan isinya "for
-informational and non-commercial or personal use only and will not be copied or
-posted". Kalau TechVerse akan komersial, klausul itu menyentuh langsung.
+pengganti #17.**
+
+📌 **Diperbarui 7 September 2026 — kedua ToS sudah dibaca**, di peramban
+sungguhan; blokir 403 hanya menyasar pengambil otomatis. Rekaman lengkapnya di
+[`AUDIT-KELAYAKAN.md`](../../AUDIT-KELAYAKAN.md#pembaruan-7-september-2026--ketentuan-layanan-sudah-dibaca)
+— **jangan disalin ke sini**, supaya tidak ada dua versi yang bisa hanyut
+sendiri. Dua hal yang mengubah ADR ini:
+
+- 🔴 **Membacanya TIDAK menutup #17.** ToS OpenAI mengatur pemakaian *Services*
+  (ChatGPT, DALL·E), bukan penerbitan ulang isi editorial `openai.com`; untuk
+  API yang berlaku **Business Terms yang terpisah, dan itu belum dibaca.**
+  Asumsi lama bahwa membaca satu halaman akan menyelesaikan pertanyaannya
+  ternyata salah.
+- **Microsoft ternyata tiga lapis**, dan kalimat yang selama ini dikutip berkas
+  ini sebenarnya **syarat dari sebuah izin**, bukan larangan telanjang. Efek
+  praktisnya untuk aturan di atas tetap sama, dan malah menajamkannya: syarat
+  *"tanpa modifikasi"* berarti **judul + tautan aman, ringkasan tidak** —
+  persis batas yang sudah dipasang di paragraf sebelumnya.
 
 Yang berubah dengan keputusan ini: **#17 berhenti menghalangi V1.** Ia tetap
 menghalangi apa pun di luar arXiv, dan itu memang seharusnya.

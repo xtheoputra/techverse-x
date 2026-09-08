@@ -28,6 +28,45 @@ paling dibutuhkan.
 
 ---
 
+## Kredensial untuk MENARIK citra
+
+Langkah pertama platform mana pun, dan satu-satunya yang sudah pasti dibutuhkan
+sebelum apa pun di halaman ini berlaku. Citranya privat, jadi platform harus
+diberi kredensial registry — biasanya bernama *registry secret*, *image pull
+secret*, atau *private registry credentials*.
+
+Isinya: **registry `ghcr.io`, pengguna = nama akun GitHub, sandi = token yang
+punya cakupan `read:packages`.**
+
+🔴 **`docker login` yang berhasil TIDAK membuktikan Anda bisa menarik.**
+Dibuktikan 2026-09-08, tepat sesudah ketiga citra pertama terbit:
+
+```
+$ gh auth token | docker login ghcr.io -u <pemilik> --password-stdin
+Login Succeeded
+
+$ docker pull ghcr.io/<pemilik>/techverse-x/api:<sha>
+Error response from daemon: unknown: failed to resolve reference ...: 403 Forbidden
+```
+
+Token OAuth bawaan `gh` bercakupan `gist`, `read:org`, `repo`, `workflow` —
+**`read:packages` tidak termasuk**, dan ketiadaannya baru terasa saat menarik,
+bukan saat masuk. Platform yang kredensialnya kurang cakupan akan gagal dengan
+cara yang sama: masuk terlihat sehat, `ImagePullBackOff` menyusul kemudian.
+
+Tiga cara memberi cakupan itu, dari yang paling sempit:
+
+| Cara | Catatan |
+|---|---|
+| **Fine-grained PAT**, izin *Packages: read*, dibatasi ke repo ini | Paling sempit. Bisa kedaluwarsa — catat tanggalnya. |
+| **Classic PAT** dengan `read:packages` | Berlaku untuk semua paket akun, tidak bisa dipersempit. |
+| **Menjadikan paketnya publik** (Package settings → Change visibility) | Menghapus kebutuhan kredensial sama sekali. Ingat: citra `api` memuat kode aplikasi. |
+
+Kalau yang dipakai token milik sendiri, cakupannya bisa ditambahkan dengan
+`gh auth refresh -s read:packages` (membuka peramban).
+
+---
+
 ## Urutan yang mengikat
 
 ```

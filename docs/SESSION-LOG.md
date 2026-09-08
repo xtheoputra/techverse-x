@@ -4,6 +4,56 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-08 — Sesi 9: Citra pertama benar-benar terbit
+
+Permintaan pemilik: *"lanjutkan semua tugas kemarin."*
+
+### Kedua PR bertumpuk mendarat
+
+`#29` (Redis opsional) lebih dulu ke `main` — `ee6f836` — lalu `#31` (citra produksi) — `4bfbfff`. Merge commit, bukan squash, alasan yang sama seperti Sesi 7.
+
+Diperiksa **sebelum** merge, bukan sesudah: kedua cabang digabung ke salinan `main` di mesin lokal lalu `run.ps1 verify` dijalankan di atas hasilnya. Hijau seluruhnya — 53 uji unit + 4 uji integrasi, 0 peringatan, lint dan build web bersih. `main` sudah bergerak 6 commit sejak kedua cabang dibuat, tapi berkas yang disentuh tidak beririsan sama sekali.
+
+Sesudah merge, log CI `main` dibaca per-baris untuk memastikan keempat uji integrasi **benar-benar berjalan**, bukan sekadar "Test Run Successful" atas nol uji: `Total tests: 4 / Passed: 4`, dan yang paling lambat (`Ready_membalas_503...`, 6 detik) memang menunggu koneksi Redis mati seperti yang dimaksudkan.
+
+### `rilis-citra.yml` akhirnya berjalan — dan hijau di percobaan pertama
+
+Ketiga citra dibangun, dipindai Trivy (CRITICAL+HIGH, nol temuan), lalu didorong ke GHCR dengan dua tag masing-masing:
+
+| Citra | Digest |
+|---|---|
+| `api` | `sha256:bd13e2d1fe5ca4ea75fbfc59512e35c5c0d421c0c6e1b4677dd92f7eaf66c896` |
+| `migrate` | `sha256:881f624c1cd0baca419b18da2ee67e691234a6fb22bb1d93977b73e230d47437` |
+| `web` | `sha256:e9941bc425a9ad7e5079a3aaeb465cf01662e5dcf67a3196e08230cd6f3f0641` |
+
+Satu kekhawatiran sebelum merge terjawab sendiri: setelan repo ini `default_workflow_permissions = read`, dan sempat meragukan apakah `packages: write` di badan workflow cukup untuk masuk GHCR. **Cukup** — blok `permissions:` tingkat workflow memang menaikkan, bukan sekadar mempersempit.
+
+### Yang ditemukan justru sesudah citranya terbit
+
+🔴 **`docker login` yang berhasil tidak membuktikan apa pun tentang menarik.** Login ke `ghcr.io` dengan token `gh` berhasil; `docker pull` citra yang baru saja terbit membalas **403**. Token OAuth `gh` bercakupan `gist`, `read:org`, `repo`, `workflow` — **`read:packages` tidak ada**, dan ketiadaannya baru terasa satu langkah kemudian.
+
+Ini bukan soal mesin ini saja: **menarik citra adalah langkah pertama platform hosting mana pun**, dan `PENYEBARAN.md` — runbook yang ditulis sebelum satu citra pun pernah terbit — tidak menyebutnya sama sekali. Sekarang ada bagian **Kredensial untuk MENARIK citra**, lengkap dengan galat 403 yang sesungguhnya dan tiga cara memberi cakupan itu.
+
+### Dua jebakan GitHub yang memakan waktu
+
+⚠️ **`gh pr merge --delete-branch` MENUTUP PR yang bertumpuk di atasnya, bukan mengarahkannya ulang.** Menghapus `fase-1/redis-opsional-di-produksi` sesudah #29 mendarat membuat #31 ikut **CLOSED**. Lalu kebuntuan: tidak bisa dibuka lagi karena cabang base-nya sudah tidak ada, dan tidak bisa dipindah base-nya karena PR-nya tertutup (*"Cannot change the base branch of a closed pull request"*).
+
+Jalan keluarnya **mendorong balik cabang yang baru saja dihapus** (tip-nya masih ada di klona lokal), buka lagi PR-nya, pindahkan base ke `main`, baru hapus cabangnya. Untuk PR bertumpuk berikutnya: **jangan `--delete-branch` pada PR bawah** — arahkan ulang PR atasnya lebih dulu.
+
+⚠️ **`Closes #30` di JUDUL PR tidak menutup apa pun**, dan ketahuannya cuma karena `closingIssuesReferences` #31 kosong sementara #29 berisi `[28]`. Dua sebab menumpuk, dan hanya satu yang bisa saya buktikan sendiri:
+
+1. **Terbukti di sini:** selama base PR bukan cabang default, daftar itu **tetap kosong walaupun badan PR sudah memuat `Closes #30`**. Ia baru muncul sesudah base dipindah ke `main`.
+2. **Dokumentasi, tidak saya uji terpisah:** kata kuncinya dibaca dari **badan** PR. Badan #29 memang membukanya dengan `Closes #28.`, badan #31 tidak punya sama sekali — judulnya saja yang menulisnya, dan itu tidak pernah cukup.
+
+Keduanya diperbaiki bersamaan, jadi #30 tertutup otomatis saat #31 mendarat. Ini varian ketiga dari jebakan yang sama dengan Sesi 7 (*"Menutup #26"* berbahasa Indonesia): **selalu periksa `closingIssuesReferences` sebelum merge, jangan percaya kalimatnya.**
+
+### Klaim basi yang ikut disapu
+
+- **ADR-016 butir 4** masih menulis ToS OpenAI *"belum pernah dibaca siapa pun"* — sudah dibaca 7 September. Diperbaiki dengan penunjuk ke `AUDIT-KELAYAKAN.md`, bukan salinan keempat, plus temuan yang mengubah ADR itu sendiri: **membacanya tidak menutup #17**, karena ToS OpenAI mengatur *Services* dan bukan penerbitan ulang isi editorial.
+- **Blok "Yang menunggu sesi berikutnya"** yang menggantung di tengah berkas ini masih mendaftar PR #23 dan #25 sebagai menunggu review — keduanya mendarat empat sesi lalu.
+
+---
+
 ## 2026-09-07 — Sesi 8 (lanjutan): Citra produksi yang terbukti melayani situsnya
 
 Ditumpuk di atas cabang Redis, karena citra produksi tanpa Redis mustahil sebelum perubahan itu ada.
@@ -73,6 +123,8 @@ Sebelas dari tiga belas berasal dari **`npm` yang ikut terbawa citra dasar `node
 **Platform hosting, domain, dan sertifikat.** Azure muncul di ADR-016 hanya sebagai tabel perkiraan biaya, bukan keputusan. Citra ini tidak mengunci pilihan apa pun — ia jalan di Container Apps, Fly.io, Render, maupun Railway.
 
 ⚠️ **`rilis-citra.yml` belum pernah berjalan** — ia baru menyala saat mendarat di `main`. Yang sudah terbukti separuhnya: membangun ketiga citra sudah hijau di CI. Yang belum: login dan dorong ke GHCR.
+
+> ✅ **Terjawab 2026-09-08 (Sesi 9): ia berjalan dan hijau di percobaan pertama**, ketiga citra terbit ke GHCR. Kalimat di atas dibiarkan sebagai rekaman keadaan hari itu.
 
 ---
 
@@ -202,11 +254,15 @@ Diperbaiki jadi `branches: [main, "fase-*/**"]`, dan run `pull_request` pertaman
 
 ---
 
-## Yang menunggu sesi berikutnya
+### Yang ditunggu Sesi 6 — semuanya sudah lewat
 
-**Semua yang tersisa milik pemilik. Nol yang bisa dikerjakan asisten sendiri tanpa keputusan.**
+> 📌 **Snapshot akhir Sesi 6, bukan daftar yang berlaku.** Ketiga barisnya sudah
+> terjawab: **#23 dan #25 di-merge di Sesi 7**, dan **ToS OpenAI & Microsoft
+> dibaca 7 September 2026** (#17 tetap terbuka, tapi bukan lagi karena "belum
+> ada yang membacanya" — lihat `AUDIT-KELAYAKAN.md`). Daftar yang berlaku ada
+> di entri sesi paling atas.
 
-| Menunggu | Catatan |
+| Ditunggu waktu itu | Catatan hari itu |
 |---|---|
 | **Review PR [#23](../../pull/23)** | Kerangka Fase 1. 3/3 gerbang hijau. |
 | **Review PR [#25](../../pull/25)** | Bidang + kematangan konten, ditumpuk di atas #23. 6/6 gerbang hijau. |
