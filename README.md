@@ -21,7 +21,7 @@ Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan he
 | Migrasi EF Core, schema per bounded context | Kode AI apa pun |
 | Health check `live`/`ready` yang menguji dependensi | Vector DB, Neo4j, event bus |
 | Halaman web yang membaca API sungguhan | Pengambilan berita |
-| CI: 8 gerbang — build ketat, uji unit + integrasi, migrasi dari nol, pindai rahasia, build citra, pindai citra | **Platform hosting, domain, sertifikat** |
+| CI: **8 dari 9 gerbang** blueprint menyala — Lint · Unit · Integrasi · SAST · Dependency Scan · Secret Scan · Container Scan · Build, plus penjaga "migrasi bisa dijalankan dari nol". Yang belum: **Contract Test** (belum ada kontrak antar-layanan) | **Platform hosting, domain, sertifikat** |
 | **Citra produksi terbit ke GHCR** tiap `main` bergerak — API, web, dan bundel migrasi EF | Terraform, Kubernetes |
 
 > 🐳 **Redis dipakai di pengembangan saja.** [ADR-016](docs/adr/ADR-016-pagu-biaya.md) memutuskan ia **tidak di-provision di V1** — ia harus membuktikan dirinya dulu dengan beban yang benar-benar ada. Kesiapan API sudah tahu cara hidup tanpanya, dan itu diuji ([`tests/integration`](tests/integration)).
