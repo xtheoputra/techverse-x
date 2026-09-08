@@ -1,9 +1,8 @@
 # ADR-016 — Pagu biaya bulanan, dan aturan penerbitan ulang sumber luar
 
-**Status:** Diterima. Menutup Issue [#22](../../../../issues/22).
-Issue [#17](../../../../issues/17) **tetap terbuka** — ToS OpenAI & Microsoft sudah dibaca
-(7 Sep 2026, lihat butir 4), tapi sisanya keputusan pemilik: OpenAI **Business Terms**
-yang mengatur API, dan batas kutipan untuk sumber non-arXiv.
+**Status:** Diterima. Menutup Issue [#22](../../../../issues/22) dan — sejak 8 Sep 2026 —
+Issue [#17](../../../../issues/17): **keempat dokumen ketentuan layanan sudah dibaca**
+dan **batas kutipan sumber non-arXiv sudah ditetapkan**. Lihat butir 4.
 **Tanggal:** 2026-09-04
 
 ## Konteks
@@ -75,11 +74,17 @@ Ini keputusan yang sekaligus menjawab biaya **dan** memundurkan blocker hukum.
   yang tipis. Ringkasan menyusul hanya setelah pagu terbukti aman selama satu
   bulan penuh.
 
-Untuk sumber selain arXiv, aturan operasional sementara sampai #17 dijawab
-pemilik: **boleh disimpan, tapi yang ditampilkan hanya judul, tautan, dan sumber
-— tidak pernah isi penuh.** Prinsip yang dipegang datang dari issue itu sendiri:
-robots.txt hanya mengizinkan **mengambil**, ia tidak pernah berbicara soal
-**menerbitkan ulang**.
+Untuk sumber selain arXiv — **aturan tetap sejak 8 September 2026, bukan lagi
+sementara**: boleh disimpan, tapi yang ditampilkan hanya **judul, tautan
+kanonik, nama sumber, dan tanggal terbit**. **Nol kutipan, nol ringkasan, nol
+abstrak.** Prinsip yang dipegang datang dari issue itu sendiri: robots.txt hanya
+mengizinkan **mengambil**, ia tidak pernah berbicara soal **menerbitkan ulang**.
+
+**Kenapa nol dan bukan "sekian kata":** V1 hanya menayangkan arXiv, jadi
+menetapkan jatah kutipan sekarang berarti memutuskan sesuatu yang belum ada
+pemakainya. Angkanya ditetapkan **per sumber** saat sumber non-arXiv pertama
+benar-benar mau ditayangkan — syaratnya memang berbeda per sumber: Microsoft
+menuntut *"tanpa modifikasi"*, arXiv tidak menuntut apa pun.
 
 ⚠️ **Aturan di atas adalah pengurang paparan, bukan nasihat hukum, dan bukan
 pengganti #17.**
@@ -95,6 +100,14 @@ sendiri. Dua hal yang mengubah ADR ini:
   API yang berlaku **Business Terms yang terpisah, dan itu belum dibaca.**
   Asumsi lama bahwa membaca satu halaman akan menyelesaikan pertanyaannya
   ternyata salah.
+  > ✅ **Dibaca 8 September 2026** — *OpenAI Services Agreement* (berlaku 1 Jan
+  > 2026) dan *Sharing & Publication Policy*. Hasilnya melegakan: **§3.3 tidak
+  > memuat satu pun larangan menerbitkan ulang Output**, dan **§4.1 menegaskan
+  > Output milik pelanggan**. ⚠️ Tapi **§10 No Publicity** melarang memasang nama
+  > atau logo OpenAI di situs tanpa izin tertulis — *"Powered by OpenAI"* di
+  > halaman muka melanggarnya. Dan satu kalimat di *Sharing & Publication Policy*
+  > **berbenturan dengan tingkat `draf` ADR-012**; ia belum menyala karena V1
+  > tidak memanggil model sama sekali. Detailnya di `AUDIT-KELAYAKAN.md`.
 - **Microsoft ternyata tiga lapis**, dan kalimat yang selama ini dikutip berkas
   ini sebenarnya **syarat dari sebuah izin**, bukan larangan telanjang. Efek
   praktisnya untuk aturan di atas tetap sama, dan malah menajamkannya: syarat
