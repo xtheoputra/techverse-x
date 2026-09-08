@@ -83,3 +83,319 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    CREATE TABLE technology.fields (
+        "Id" uuid NOT NULL,
+        "Slug" character varying(120) NOT NULL,
+        "Name" character varying(120) NOT NULL,
+        "Summary" character varying(1000) NOT NULL,
+        "Priority" character varying(20) NOT NULL,
+        "DisplayOrder" integer NOT NULL,
+        CONSTRAINT "PK_fields" PRIMARY KEY ("Id")
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-000000000001', 1, 'AI & Machine Learning', 'Core', 'ai-machine-learning', 'Fondasi: ML klasik, deep learning, LLM, computer vision, NLP, reinforcement learning, multimodal.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-000000000002', 2, 'AI Agents', 'Core', 'ai-agents', 'Lapisan orkestrasi: tool use, MCP, A2A, memori agen, evals, keamanan agen, human-in-the-loop.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-000000000003', 3, 'Cybersecurity', 'Core', 'cybersecurity', 'Ethical hacking, SOC, malware, reverse engineering, keamanan awan, dan keamanan AI.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-000000000004', 4, 'Cloud & Infrastructure', 'Core', 'cloud-infrastructure', 'Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering. Nama lebar dipertahankan dengan sengaja - lihat ADR-010.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-000000000005', 5, 'Data Engineering', 'Core', 'data-engineering', 'Lapisan yang menentukan proyek AI hidup atau mati: ingestion, orkestrasi, lakehouse, format tabel terbuka, streaming, kontrak data, pemodelan.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-000000000006', 6, 'IoT', 'Core', 'iot', 'Konektivitas, firmware & RTOS, Matter/Thread, gateway tepi, keamanan perangkat, IIoT, telemetri deret waktu, dan satu halaman jembatan TinyML.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-000000000007', 7, 'Edge AI', 'Supporting', 'edge-ai', 'AI yang berjalan di perangkat: kuantisasi, distilasi, NPU, runtime on-device. Bidang sendiri, BUKAN anak IoT - tinyML Foundation sendiri sudah berganti nama jadi Edge AI Foundation.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-000000000008', 8, 'Robotics', 'Supporting', 'robotics', 'ROS2, humanoid, drone, kendaraan otonom, dan Robotics AI yang pindah ke sini dari AI & ML.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-000000000009', 9, 'Quantum Computing', 'Supporting', 'quantum-computing', 'Qubit, Qiskit, algoritma kuantum, kriptografi kuantum. Era qubit logis; keunggulan komersial belum ada.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-00000000000a', 10, 'Biotechnology', 'Supporting', 'biotechnology', 'CRISPR, AlphaFold, biologi sintetis, kesehatan digital.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-00000000000b', 11, 'Blockchain', 'Supporting', 'blockchain', 'Smart contract, Ethereum, Solana, Layer 2, DeFi.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-00000000000c', 12, 'Renewable Energy', 'Supporting', 'renewable-energy', 'Solar PV, angin, panas bumi, hidro, bioenergi & SAF, hidrogen hijau, integrasi jaringan & penyimpanan, ekonomi & kebijakan. Fusi TIDAK di sini - lihat ADR-010.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-00000000000d', 13, 'Space Technology', 'Peripheral', 'space-technology', 'Konektivitas LEO, akses ke orbit, smallsat, segmen darat, observasi Bumi, GNSS/PNT, keselamatan orbit. Irisan terkuatnya: 3GPP NTN.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-00000000000e', 14, 'XR (AR/VR/MR)', 'Peripheral', 'xr', 'Realitas diperluas. Dipertahankan sebagai pintu pencarian, tapi sengaja tidak diinvestasikan - lihat ADR-010.');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    CREATE UNIQUE INDEX ix_fields_display_order ON technology.fields ("DisplayOrder");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    CREATE UNIQUE INDEX ix_fields_name ON technology.fields ("Name");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    CREATE UNIQUE INDEX ix_fields_slug ON technology.fields ("Slug");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    ALTER TABLE technology.technologies ADD "FieldId" uuid;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    ALTER TABLE technology.technologies ADD "Maturity" character varying(20);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    ALTER TABLE technology.technologies ADD "ReviewedAt" timestamp with time zone;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    ALTER TABLE technology.technologies ADD "ReviewedBy" character varying(120);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+
+                    UPDATE technology.technologies AS t
+                    SET "FieldId" = f."Id"
+                    FROM technology.fields AS f
+                    WHERE t."Category" = f."Name";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+
+                    UPDATE technology.technologies
+                    SET "Maturity" = 'Curated'
+                    WHERE "Maturity" IS NULL;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+
+                    DO $$
+                    DECLARE tersisa text;
+                    BEGIN
+                        SELECT string_agg(DISTINCT "Category", ', ')
+                        INTO tersisa
+                        FROM technology.technologies
+                        WHERE "FieldId" IS NULL;
+
+                        IF tersisa IS NOT NULL THEN
+                            RAISE EXCEPTION
+                                'Migrasi berhenti: kategori lama berikut bukan salah satu dari 14 bidang ADR-010: %. Perbaiki kategorinya dulu, atau kalau ini basis data pengembangan berisi contoh saja, jalankan `run.ps1 reset` lalu migrate ulang.',
+                                tersisa;
+                        END IF;
+                    END $$;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    ALTER TABLE technology.technologies ALTER COLUMN "Maturity" TYPE character varying(20);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    DROP INDEX technology.ix_technologies_category;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    ALTER TABLE technology.technologies DROP COLUMN "Category";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    CREATE INDEX ix_technologies_field_id ON technology.technologies ("FieldId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    CREATE INDEX ix_technologies_field_maturity ON technology.technologies ("FieldId", "Maturity");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    ALTER TABLE technology.technologies ADD CONSTRAINT "FK_technologies_fields_FieldId" FOREIGN KEY ("FieldId") REFERENCES technology.fields ("Id") ON DELETE RESTRICT;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260904091808_BidangDanKematanganKonten') THEN
+    INSERT INTO technology.__ef_migrations_history ("MigrationId", "ProductVersion")
+    VALUES ('20260904091808_BidangDanKematanganKonten', '10.0.4');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260908063009_EmpatBagianIsiHalaman') THEN
+    CREATE TABLE technology.projects (
+        "Id" uuid NOT NULL,
+        "TechnologyId" uuid NOT NULL,
+        "Title" character varying(200) NOT NULL,
+        "Brief" character varying(4000) NOT NULL,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_projects" PRIMARY KEY ("Id"),
+        CONSTRAINT "FK_projects_technologies_TechnologyId" FOREIGN KEY ("TechnologyId") REFERENCES technology.technologies ("Id") ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260908063009_EmpatBagianIsiHalaman') THEN
+    CREATE TABLE technology.resources (
+        "Id" uuid NOT NULL,
+        "TechnologyId" uuid NOT NULL,
+        "Type" character varying(20) NOT NULL,
+        "Title" character varying(300) NOT NULL,
+        "Url" character varying(1000) NOT NULL,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_resources" PRIMARY KEY ("Id"),
+        CONSTRAINT "FK_resources_technologies_TechnologyId" FOREIGN KEY ("TechnologyId") REFERENCES technology.technologies ("Id") ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260908063009_EmpatBagianIsiHalaman') THEN
+    CREATE TABLE technology.roadmap_steps (
+        "Id" uuid NOT NULL,
+        "TechnologyId" uuid NOT NULL,
+        "Order" integer NOT NULL,
+        "Title" character varying(200) NOT NULL,
+        "Description" character varying(2000) NOT NULL,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_roadmap_steps" PRIMARY KEY ("Id"),
+        CONSTRAINT "FK_roadmap_steps_technologies_TechnologyId" FOREIGN KEY ("TechnologyId") REFERENCES technology.technologies ("Id") ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260908063009_EmpatBagianIsiHalaman') THEN
+    CREATE TABLE technology.tools (
+        "Id" uuid NOT NULL,
+        "Slug" character varying(160) NOT NULL,
+        "Name" character varying(200) NOT NULL,
+        "Summary" character varying(2000) NOT NULL,
+        "Homepage" character varying(500),
+        "CreatedAt" timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_tools" PRIMARY KEY ("Id")
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260908063009_EmpatBagianIsiHalaman') THEN
+    CREATE TABLE technology.technology_tools (
+        "TechnologyId" uuid NOT NULL,
+        "ToolId" uuid NOT NULL,
+        "Note" character varying(500),
+        "CreatedAt" timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_technology_tools" PRIMARY KEY ("TechnologyId", "ToolId"),
+        CONSTRAINT "FK_technology_tools_technologies_TechnologyId" FOREIGN KEY ("TechnologyId") REFERENCES technology.technologies ("Id") ON DELETE CASCADE,
+        CONSTRAINT "FK_technology_tools_tools_ToolId" FOREIGN KEY ("ToolId") REFERENCES technology.tools ("Id") ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260908063009_EmpatBagianIsiHalaman') THEN
+    CREATE INDEX "IX_projects_TechnologyId" ON technology.projects ("TechnologyId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260908063009_EmpatBagianIsiHalaman') THEN
+    CREATE INDEX ix_resources_technology_type ON technology.resources ("TechnologyId", "Type");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260908063009_EmpatBagianIsiHalaman') THEN
+    CREATE UNIQUE INDEX ix_roadmap_steps_technology_order ON technology.roadmap_steps ("TechnologyId", "Order");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260908063009_EmpatBagianIsiHalaman') THEN
+    CREATE INDEX ix_technology_tools_tool_id ON technology.technology_tools ("ToolId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260908063009_EmpatBagianIsiHalaman') THEN
+    CREATE UNIQUE INDEX ix_tools_slug ON technology.tools ("Slug");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260908063009_EmpatBagianIsiHalaman') THEN
+    INSERT INTO technology.__ef_migrations_history ("MigrationId", "ProductVersion")
+    VALUES ('20260908063009_EmpatBagianIsiHalaman', '10.0.4');
+    END IF;
+END $EF$;
+COMMIT;
+

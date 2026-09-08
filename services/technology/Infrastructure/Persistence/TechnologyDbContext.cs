@@ -22,6 +22,20 @@ public sealed class TechnologyDbContext(DbContextOptions<TechnologyDbContext> op
 
     public DbSet<TechnologyRelationship> Relationships => Set<TechnologyRelationship>();
 
+    /// <summary>
+    /// Katalog alat. <b>DbSet sendiri, bukan sekadar navigasi dari
+    /// <see cref="Technologies"/></b> — satu alat dipakai lintas topik, jadi ia
+    /// harus bisa dicari dan disunting tanpa melewati topik mana pun (ADR-015).
+    /// </summary>
+    /// <remarks>
+    /// Ketiga bagian isi yang lain — <see cref="Domain.RoadmapStep"/>,
+    /// <see cref="Domain.Project"/>, <see cref="Domain.Resource"/> — sengaja
+    /// TIDAK punya <c>DbSet</c>. Mereka hanya berarti di dalam topiknya, dan
+    /// memberi mereka pintu masuk sendiri mengundang penulisan yang melewati
+    /// agregatnya — persis jalan yang membuat nomor langkah roadmap bisa berlubang.
+    /// </remarks>
+    public DbSet<Tool> Tools => Set<Tool>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
