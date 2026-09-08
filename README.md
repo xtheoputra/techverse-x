@@ -53,7 +53,7 @@ Gerbang yang sama dengan CI, sebelum push:
 .\run.ps1 verify               make verify
 ```
 
-⚠️ **`verify` dan `test` menuntut `up` lebih dulu.** Uji integrasi menyentuh PostgreSQL sungguhan — kesiapan yang diuji tanpa dependensi sungguhan tidak mengukur apa pun.
+⚠️ **`verify` dan `test` menuntut `up` LALU `migrate` lebih dulu.** Uji integrasi menulis baris ke PostgreSQL sungguhan — kesiapan yang diuji tanpa dependensi sungguhan tidak mengukur apa pun. Tanpa `migrate`, galatnya `relation "technology.technologies" does not exist`.
 
 ### Isi contoh itu bukan kurikulum
 

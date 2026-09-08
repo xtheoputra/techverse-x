@@ -67,12 +67,13 @@ switch ($Command) {
             @{ n = 'api';       d = 'Menjalankan API di http://localhost:5080' }
             @{ n = 'web';       d = 'Menjalankan web di http://localhost:3000' }
             @{ n = 'build';     d = 'Build solusi .NET' }
-            @{ n = 'test';      d = 'Menjalankan uji .NET (uji integrasi butuh up)' }
-            @{ n = 'verify';    d = 'Gerbang yang sama dengan CI (butuh up)' }
+            @{ n = 'test';      d = 'Menjalankan uji .NET (uji integrasi butuh up + migrate)' }
+            @{ n = 'verify';    d = 'Gerbang yang sama dengan CI (butuh up + migrate)' }
         ) | ForEach-Object { Write-Host ('  {0,-12} {1}' -f $_.n, $_.d) }
         Write-Host ''
-        Write-Host '  Uji integrasi menyentuh PostgreSQL sungguhan, jadi jalankan' -ForegroundColor DarkGray
-        Write-Host '  .\run.ps1 up lebih dulu sebelum test maupun verify.' -ForegroundColor DarkGray
+        Write-Host '  Uji integrasi MENULIS BARIS ke PostgreSQL sungguhan, jadi jalankan' -ForegroundColor DarkGray
+        Write-Host '  .\run.ps1 up LALU .\run.ps1 migrate sebelum test maupun verify.' -ForegroundColor DarkGray
+        Write-Host '  Tanpa migrate, galatnya: relation "technology.technologies" does not exist.' -ForegroundColor DarkGray
         Write-Host ''
     }
 

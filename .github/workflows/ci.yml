@@ -79,12 +79,21 @@ jobs:
       - name: Build (peringatan = galat)
         run: dotnet build TechVerseX.slnx --no-restore --configuration Release
 
-      # Uji unit DAN uji integrasi. Yang kedua menyalakan host sungguhan lewat
-      # WebApplicationFactory dan menyentuh service container `postgres` di atas,
-      # jadi langkah ini tidak lagi bebas-infrastruktur.
-      - name: Uji unit + integrasi
-        run: dotnet test TechVerseX.slnx --no-build --configuration Release --verbosity normal
-
+      # 🔴 MIGRASI SEBELUM UJI, dan urutannya bukan selera.
+      #
+      # Service container `postgres` di atas menyala KOSONG. Sampai 2026-09-08
+      # langkah ini ada SESUDAH uji, dan itu tidak ketahuan karena satu-satunya
+      # uji integrasi yang ada cuma menyentuh /health/ready - yang memakai
+      # AddDbContextCheck, dan itu hanya menguji KONEKSI, bukan keberadaan tabel.
+      # Uji pertama yang benar-benar menulis baris langsung memerah dengan
+      # `relation "technology.technologies" does not exist`.
+      #
+      # Urutan ini sekaligus menyamakan CI dengan urutan yang PENYEBARAN.md
+      # wajibkan di produksi: postgres -> migrate -> api. CI yang menjalankan
+      # urutan berbeda dari produksi adalah CI yang mengukur keadaan lain.
+      #
+      # "Dari nol" tetap terjaga: basis datanya masih kosong saat langkah ini
+      # berjalan - uji baru menyentuhnya sesudah ini.
       - name: Migrasi bisa dijalankan dari nol
         run: |
           dotnet tool restore
@@ -94,6 +103,13 @@ jobs:
         env:
           ConnectionStrings__Postgres: "Host=localhost;Port=5432;Database=techversex;Username=techversex;Password=techversex_dev"
           ConnectionStrings__Redis: "localhost:6379"
+
+      # Uji unit DAN uji integrasi. Yang kedua menyalakan host sungguhan lewat
+      # WebApplicationFactory dan menyentuh service container `postgres` di atas,
+      # jadi langkah ini tidak lagi bebas-infrastruktur - ia menuntut skema yang
+      # baru saja dibuat langkah di atasnya.
+      - name: Uji unit + integrasi
+        run: dotnet test TechVerseX.slnx --no-build --configuration Release --verbosity normal
 
   frontend:
     name: Frontend (Next.js)
