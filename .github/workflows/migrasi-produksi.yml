@@ -1,0 +1,87 @@
+# Menjalankan migrasi basis data PRODUKSI.
+#
+# Kenapa ini ada sebagai workflow, bukan sebagai fasilitas platform (ADR-019):
+# Koyeb - tempat API berjalan di tier gratis - TIDAK punya *pre-deploy command*
+# seperti Render. Tapi Neon terjangkau dari internet, jadi CI bisa
+# menjalankannya.
+#
+# 🔑 Yang dijalankan adalah CITRA `api` YANG SAMA PERSIS yang akan berjalan di
+# produksi, memanggil /app/efbundle di dalamnya. Bukan `dotnet ef` dari kode
+# sumber - itu akan menjalankan migrasi dari bit yang BERBEDA dari yang tayang.
+#
+# ⚠️ SENGAJA MANUAL (workflow_dispatch), bukan otomatis pada push.
+# Ia menyentuh data produksi. Gerbang yang dilewati manusia lebih murah daripada
+# migrasi salah yang mendarat sendiri. Urutan `migrate -> api` di PENYEBARAN.md
+# tetap ditegakkan - oleh urutan tombol, dan itu ditulis apa adanya di sana.
+
+name: Migrasi produksi
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "SHA citra yang akan dimigrasikan (harus SAMA dengan yang dipasang di Koyeb)"
+        required: true
+        type: string
+
+jobs:
+  migrasi:
+    name: Jalankan bundel migrasi terhadap Neon
+    runs-on: ubuntu-latest
+
+    # Environment memberi tempat untuk memasang required reviewer kalau suatu
+    # saat diinginkan - gerbang tambahan tanpa mengubah workflow ini.
+    environment: produksi
+
+    permissions:
+      contents: read
+      # Hanya BACA paket. Workflow ini tidak menerbitkan apa pun.
+      packages: read
+
+    steps:
+      - name: Masuk ke GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Siapkan nama citra
+        id: nama
+        run: echo "citra=ghcr.io/${GITHUB_REPOSITORY,,}/api:${{ inputs.sha }}" >> "$GITHUB_OUTPUT"
+
+      # Ditarik lebih dulu, terpisah dari langkah menjalankan, supaya kegagalan
+      # MENARIK bisa dibedakan dari kegagalan MEMIGRASI. Keduanya punya obat yang
+      # sangat berbeda: yang satu soal kredensial atau tag salah, yang lain soal
+      # basis data.
+      - name: Tarik citra api
+        run: docker pull "${{ steps.nama.outputs.citra }}"
+
+      - name: Jalankan bundel migrasi
+        env:
+          POSTGRES: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          if [ -z "$POSTGRES" ]; then
+            echo "::error::Secret NEON_DATABASE_URL belum diisi."
+            exit 1
+          fi
+
+          # Bentuk URI dari Neon diterima apa adanya - aplikasi
+          # menerjemahkannya sendiri (PostgresConnectionString), sebab Npgsql
+          # melempar untuk URI.
+          docker run --rm \
+            -e "ConnectionStrings__Postgres=$POSTGRES" \
+            --entrypoint /app/efbundle \
+            "${{ steps.nama.outputs.citra }}"
+
+      - name: Ringkasan
+        run: |
+          {
+            echo "### Migrasi selesai"
+            echo
+            echo "Citra: \`${{ steps.nama.outputs.citra }}\`"
+            echo
+            echo "Langkah berikutnya: pasang SHA yang **sama** di Koyeb."
+            echo "Memasang SHA yang berbeda dari yang baru saja dimigrasikan"
+            echo "adalah cara paling mudah membuat skema dan kode tidak sejalan."
+          } >> "$GITHUB_STEP_SUMMARY"

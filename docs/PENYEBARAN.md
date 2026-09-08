@@ -193,77 +193,88 @@ ambang adalah cara paling cepat membuat gerbang ini berhenti menjaga apa pun.
 
 ---
 
-## Menyebarkan ke Render
+## Menyebarkan: Vercel + Koyeb + Neon
 
-Platformnya sudah diputuskan di [ADR-017](adr/ADR-017-platform-hosting.md):
-**Render, tier berbayar.** Bagian ini contoh konkretnya. Segala yang di atas
-tetap berlaku untuk platform mana pun — bagian ini tidak menggantikannya.
+Platformnya diputuskan di [ADR-019](adr/ADR-019-hosting-gratis-tanpa-kartu.md):
+**tiga tempat gratis, tak satu pun menuntut kartu.** Segala yang di atas tetap
+berlaku untuk platform mana pun — bagian ini contoh konkretnya.
 
-Infrastrukturnya ditulis sebagai berkas: [`render.yaml`](../render.yaml) di akar
-repo. Empat nilai di dalamnya bertanda `GANTI` dan hanya bisa diisi pemilik.
+| Bagian | Tempatnya | Dari apa |
+|---|---|---|
+| **web** | Vercel Hobby | dibangun dari **sumber** |
+| **api** | Koyeb Free | citra `ghcr.io/<pemilik>/techverse-x/api:<sha>` |
+| **PostgreSQL** | Neon Free | — |
 
-### Enam langkah
+### Urutannya mengikat, dan di sini ia dijaga TANGAN
 
-1. **Buat akun Render** dan sebuah Workspace.
-2. **Tambahkan kredensial registry** (Workspace Settings → Registry Credentials):
-   registry `ghcr.io`, pengguna = nama akun GitHub, sandi = token bercakupan
-   **`read:packages`**. Catat **id kredensialnya** → itu nilai `<CRED-ID>`.
-   ⚠️ Lihat bagian *Kredensial untuk MENARIK citra* di atas: `docker login` yang
-   berhasil **tidak** membuktikan token itu boleh menarik.
-3. **Isi `<SHA>`** di `render.yaml` dengan tag citra yang mau dipasang — ambil
-   dari ringkasan workflow *Rilis citra* di Actions. Tag SHA, bukan `:main`.
-4. **Blueprint → New Blueprint Instance**, arahkan ke repo ini. Render membaca
-   `render.yaml` dan membuat ketiga sumber daya sekaligus.
-5. **Tunggu penyebaran pertama.** Urutannya ditegakkan `preDeployCommand`:
-   bundel migrasi berjalan sampai selesai sebelum API menyala. Kalau ia gagal,
-   penyebarannya berhenti dan **versi lama tetap melayani**.
-6. **Periksa `/health/ready` di host API.** Ia harus **200** dan badannya hanya
-   menyebut `postgres` — kalau `redis` muncul di sana, berarti
-   `ConnectionStrings__Redis` terisi dan itu salah (lihat *Redis: jangan
-   dipasang*).
+`postgres → migrate → api → web`. Koyeb tidak punya *pre-deploy command*, jadi
+langkah `migrate` dijalankan dari GitHub Actions memakai **citra `api` yang sama
+persis** — bukan dari kode sumber, sebab itu akan memigrasi dari bit yang berbeda
+dari yang tayang.
 
-### Tiga hal yang khas Render dan sudah diketahui
+1. **Neon** — buat proyek, salin *connection string*. Bentuknya URI
+   (`postgresql://…`); aplikasi menerimanya apa adanya
+   (`PostgresConnectionString`), jadi jangan dirakit ulang dengan tangan.
+2. **GitHub → Settings → Secrets** — isi `NEON_DATABASE_URL` dengan URI itu.
+3. **Actions → *Migrasi produksi* → Run workflow**, isi SHA-nya. Ini langkah
+   `migrate`. Ia harus **hijau** sebelum lanjut.
+4. **Koyeb** — buat Service dari citra `…/api:<sha>` **yang SAMA** dengan langkah
+   3. Registry secret: token GitHub bercakupan `read:packages`. Isi
+   `ConnectionStrings__Postgres` dengan URI Neon. Port `8080`.
+   ⚠️ **`ConnectionStrings__Redis` dikosongkan** — ADR-016.
+5. **Vercel** — impor repo, *Root Directory* `apps/web`. Isi `API_BASE_URL`
+   dengan URL publik service Koyeb (`https://…koyeb.app`).
+6. **Periksa** `/health/ready` di URL Koyeb: harus **200**, dan badannya hanya
+   menyebut `postgres`. Kalau `redis` muncul, berarti langkah 4 salah.
 
-**1. Postgres-nya diserahkan sebagai URI, bukan sebagai `Host=...;Port=...`.**
-Aplikasi menerjemahkannya sendiri (`PostgresConnectionString`) karena Npgsql
-melempar untuk bentuk URI. Jadi `fromDatabase` di `render.yaml` bisa dipakai apa
-adanya — tidak perlu merakit string koneksi dengan tangan.
+🔴 **Memasang SHA yang berbeda dari yang baru dimigrasikan adalah cara paling
+mudah membuat skema dan kode tidak sejalan.** Langkah 3 dan 4 harus menyebut SHA
+yang sama.
 
-**2. Pre-deploy berjalan di citra layanan itu SENDIRI.** Karena itu bundel
-migrasi ikut dimasukkan ke citra `api` (`/app/efbundle`). Citra `migrate` yang
-berdiri sendiri tetap terbit dan tetap dipakai compose, VPS, dan
-`initContainers` — dua jalan, satu migrasi EF yang sama.
+### Kenapa API yang tidur tidak menjadi masalah
 
-**3. ⚠️ Render TIDAK punya urutan antar-layanan.** `web` bisa menyala sebelum
-`api` siap, jadi di penyebaran pertama halaman ber-data bisa gagal beberapa saat.
-`docker-compose.prod.yml` menegakkan urutan itu; Render tidak.
+Instance Koyeb gratis **tidur setelah satu jam** menganggur, dan itu tidak bisa
+dimatikan. Yang membuatnya tidak terasa bukan mencegahnya tidur, melainkan
+**panggilan API di web di-cache lima menit** (`REVALIDATE_SECONDS` di
+`apps/web/src/lib/api.ts`).
 
-### 🔴 Jangan pakai tier gratisnya
+Sudah dibuktikan dengan menjalankan: dengan **peti kemas API dimatikan total**,
+halaman tetap menyajikan 14 bidang dan 5 topik. Kendalinya juga dibuktikan —
+proses baru dengan cache kosong dan API mati memang menampilkan *"API belum bisa
+dihubungi"*.
 
-| Batas | Akibatnya |
-|---|---|
-| Web service **tidur setelah 15 menit** menganggur | Pengunjung pertama menunggu **30–60 detik** |
-| Postgres gratis **kedaluwarsa 30 hari**, dihapus setelah tenggang 14 hari | Bukan basis data, melainkan hitungan mundur |
+⚠️ **Pembaca pertama sesudah penyebaran baru tetap menunggu**, sebab cachenya
+kosong. Batas waktu fetch sengaja 30 detik untuk itu. Fetch yang **gagal** tidak
+ikut ter-cache, jadi galatnya tidak bertahan lima menit.
 
-Gratis di sini memindahkan bebannya dari uang ke pengalaman pembaca dan ke risiko
-kehilangan data. ADR-017 menolaknya justru atas dasar kriteria *"mudah dibuka dan
-kuat"*, bukan atas dasar biaya.
+### Tiga batas yang sudah diketahui
+
+1. 🔴 **Vercel Hobby hanya untuk pemakaian NON-KOMERSIAL.** Begitu TechVerse X
+   memungut bayaran, plan ini dilanggar.
+2. **Citra `web` tidak dipakai untuk penyebaran** — Vercel membangun dari sumber.
+   Citranya tetap terbit dan tetap dipakai `docker-compose.prod.yml`, tapi
+   *"pasang tag SHA"* kini hanya berlaku untuk API.
+3. **Koyeb gratis hanya Frankfurt atau Washington** — tidak ada Asia. Latensi ke
+   pembaca Indonesia tinggi, dan itu tidak terasa justru karena cachenya: yang
+   jauh cuma penyegaran di latar.
 
 ---
 
+
 ## Yang belum ada
 
-- **Pilihan platform.** ✅ **ADR hosting sekarang ADA** —
-  [ADR-017](adr/ADR-017-platform-hosting.md) memeriksa lima kandidat terhadap
-  empat syarat dan mengusulkan **Render**, tapi statusnya masih **Diusulkan**:
-  keputusannya milik pemilik ([Issue #33](../../issues/33)). Azure di ADR-016
-  tetap cuma tabel perkiraan biaya, bukan keputusan.
-- 🔴 **Konsekuensi yang paling mengejutkan dari ADR itu, dan yang paling
-  menyentuh halaman ini:** bagian *Urutan yang mengikat* di atas menuntut
-  **citra `migrate` yang BERBEDA** berjalan sampai selesai — dan *pre-deploy
-  command* milik Render, Railway, maupun Fly.io menjalankan perintah di dalam
-  **citra layanan itu sendiri**. Hanya `initContainers` Azure Container Apps
-  (dan `docker-compose` di halaman ini) yang memetakan langsung. Di platform
-  lain, bentuk bundel migrasinya harus berubah.
-- **Domain.** Belum dibeli.
-- **HTTPS/sertifikat.** Umumnya urusan platform, tapi tetap harus dibuktikan.
+- **Pilihan platform.** ✅ **Sudah diputuskan** —
+  [ADR-019](adr/ADR-019-hosting-gratis-tanpa-kartu.md): Vercel + Koyeb + Neon,
+  gratis dan tanpa kartu. ⛔ [ADR-017](adr/ADR-017-platform-hosting.md) (Render
+  berbayar) **sudah digantikan**; ia dibiarkan utuh karena pemeriksaan empat
+  syaratnya masih benar dan masih dipakai.
+- 🔴 **Temuan ADR-017 yang paling menyentuh halaman ini tetap berlaku:** bagian
+  *Urutan yang mengikat* di atas menuntut **citra `migrate` yang BERBEDA**
+  berjalan sampai selesai — dan *pre-deploy command* milik Render maupun Railway,
+  serta `release_command` Fly.io, menjalankan perintah di dalam **citra layanan
+  itu sendiri**. Hanya `initContainers` Azure Container Apps (dan
+  `docker-compose` di halaman ini) yang memetakan langsung. Itulah yang
+  melahirkan `/app/efbundle` di citra `api` — dan di Koyeb, yang tidak punya
+  pre-deploy sama sekali, ia dipanggil dari GitHub Actions.
+- **Domain.** Belum dibeli. Sementara ini alamatnya `*.vercel.app`.
+- **HTTPS/sertifikat.** Diurus Vercel dan Koyeb, tapi tetap harus dibuktikan.

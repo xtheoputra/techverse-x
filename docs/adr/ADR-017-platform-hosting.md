@@ -1,13 +1,20 @@
 # ADR-017 — Platform hosting V1, dan kenapa bentuk citra `migrate` ikut diputuskan di sini
 
-**Status:** ✅ **Diterima — Render, tier berbayar.** Menutup Issue [#33](../../../../issues/33).
-Pemilik mendelegasikan pilihannya pada 2026-09-08: *"gunakan apapun, yang tidak memberatkan
-dan paling mudah dan kuat, dapat dengan mudah dibuka walaupun dalam tahap pengembangan."*
+**Status:** ⛔ **DIGANTIKAN [ADR-019](ADR-019-hosting-gratis-tanpa-kartu.md)** pada hari yang sama.
+Menutup Issue [#33](../../../../issues/33).
 **Tanggal:** 2026-09-08
 
-> **Yang tersisa untuk pemilik hanyalah langkah berakun:** membuat akun Render,
-> memilih plan berbayar, dan menempel token GHCR. Kode, blueprint, dan runbook-nya
-> sudah selesai dan terbukti — lihat *Keputusan final* di bawah.
+> 🔴 **JANGAN pakai ADR ini sebagai keputusan yang berlaku.** Pemilik membatalkan
+> Render beberapa jam setelah ia diterima: *"jangan render, akun gratis pilihannya
+> pada apa"*. Yang berlaku sekarang **Vercel + Koyeb + Neon** — lihat
+> [ADR-019](ADR-019-hosting-gratis-tanpa-kartu.md).
+>
+> **Ia dibiarkan utuh, bukan dihapus,** karena dua bagiannya masih dipakai dan
+> masih benar: (a) pemeriksaan empat syarat yang menemukan bahwa **bentuk citra
+> `migrate` menyeleksi platform** — temuan itulah yang melahirkan
+> `/app/efbundle`, dan ADR-019 memakainya juga; (b) alasan Fly.io gugur. Dan
+> kalau suatu hari Render berbayar dipilih lagi, seluruh pekerjaannya masih di
+> sini.
 
 ## Konteks
 

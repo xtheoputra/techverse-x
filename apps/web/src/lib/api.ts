@@ -51,15 +51,43 @@ export type ApiResult<T> =
   | { ok: false; reason: string };
 
 /**
- * Di Next.js 16 `fetch` TIDAK di-cache secara bawaan dan menahan render sampai
- * selesai. Itu yang kita mau di sini — daftarnya harus segar. Kalau nanti perlu
- * di-cache, pakai direktif `use cache`, bukan opsi fetch yang lama.
+ * Berapa lama hasil API boleh dipakai ulang sebelum diambil lagi, dalam detik.
+ *
+ * 🔑 Angka ini BUKAN setelan performa — ia yang membuat penyebaran gratis
+ * mungkin (ADR-019). API berjalan di instance yang **tidur setelah satu jam
+ * menganggur**; tanpa cache, setiap pembaca pertama sesudah jeda menunggu
+ * instance itu bangun. Dengan cache, pembaca menerima HTML yang sudah jadi, dan
+ * yang menunggu bangunnya API adalah penyegaran di latar — bukan orangnya.
+ *
+ * Lima menit dipilih karena isi TechVerse X berubah dalam hitungan hari, bukan
+ * detik. Menaikkannya menghemat bangun, menurunkannya membuat perubahan tampak
+ * lebih cepat; keduanya sah. Yang TIDAK sah adalah mengembalikannya ke nol,
+ * sebab itu memindahkan penantian kembali ke pembaca.
+ */
+const REVALIDATE_SECONDS = 300;
+
+/**
+ * Di Next.js 16 `fetch` TIDAK di-cache secara bawaan. Di sini ia SENGAJA
+ * di-cache lewat `next.revalidate` — lihat {@link REVALIDATE_SECONDS}.
+ *
+ * ⚠️ `cacheComponents` belum dinyalakan di `next.config.ts`, jadi yang berlaku
+ * model caching lama (`next: { revalidate }`), bukan direktif `use cache`.
+ * Kalau suatu saat bendera itu dinyalakan, berkas inilah yang pertama harus
+ * ditulis ulang.
  */
 async function getJson<T>(path: string): Promise<ApiResult<T>> {
   try {
     const response = await fetch(`${baseUrl}${path}`, {
       headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(5000),
+      next: { revalidate: REVALIDATE_SECONDS },
+
+      // 🔑 30 detik, bukan 5 - dan itu KONSEKUENSI dari baris di atasnya, bukan
+      // kelonggaran. Selama fetch menahan render, batas pendek benar: pembaca
+      // tidak boleh menunggu lama. Sesudah di-cache, fetch ini berjalan di
+      // penyegaran latar, dan batas pendek justru berbahaya - ia menggugurkan
+      // permintaan tepat saat instance yang tidur sedang bangun, lalu GALATNYA
+      // yang ter-cache untuk lima menit berikutnya.
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!response.ok) {

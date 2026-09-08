@@ -11,6 +11,12 @@ export default async function TechnologyList() {
   // adalah jawaban API pada saat build — yaitu "API tidak bisa dihubungi",
   // karena saat build API memang tidak jalan. `connection()` menyatakan bahwa
   // komponen ini harus dirender per-permintaan.
+  //
+  // ⚠️ JANGAN dibuang demi "supaya bisa di-cache". Yang di-cache bukan HALAMANnya
+  // melainkan PANGGILAN API-nya (lihat REVALIDATE_SECONDS di lib/api.ts), dan
+  // keduanya tidak bertabrakan: halaman tetap dirender per-permintaan, tapi
+  // rendernya dilayani cache data, bukan API. Dibuktikan dengan MENJALANKAN —
+  // dengan peti kemas API dimatikan, halaman ini tetap menampilkan isinya.
   await connection();
 
   const result = await searchTechnologies({ pageSize: 24 });
