@@ -13,7 +13,28 @@ name: Rilis citra
 on:
   push:
     branches: [main]
-  # Supaya bisa dijalankan sendiri tanpa menunggu commit berikutnya.
+    # ADR-018: commit yang murni dokumen tidak membangun ulang citra.
+    #
+    # Diukur, bukan diduga: commit dokumen (`aa78079`) memakan 199 detik -
+    # praktis sama dengan commit kode (`4bfbfff`, 206 detik) - dan menghasilkan
+    # tiga citra baru yang isinya tidak mungkin berbeda.
+    #
+    # Aman, dan itu DIPERIKSA ke Dockerfile-nya: tidak satu pun COPY menyalin
+    # dokumen ke citra akhir (api menyalin keluaran `dotnet publish`, web
+    # menyalin keluaran `standalone`), dan .dockerignore sudah membuang `docs`
+    # serta `*.md` dari konteks build.
+    #
+    # ⚠️ Invariannya berubah: dari "setiap commit main punya citra" jadi "setiap
+    # commit main YANG BISA MENGUBAH CITRA punya citra". Artinya
+    # `git rev-parse HEAD` berhenti jadi jawaban yang benar untuk "tag apa yang
+    # dipasang" - jawabannya ada di ringkasan jalan ini yang terakhir hijau.
+    # PENYEBARAN.md menuliskannya.
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
+  # Supaya bisa dijalankan sendiri tanpa menunggu commit berikutnya - dan supaya
+  # membangun ulang sesudah commit dokumen tetap satu klik.
   workflow_dispatch:
 
 env:

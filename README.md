@@ -29,7 +29,9 @@ Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan he
 
 > ✅ **Ke-22 keputusan Fase 0 dan Fase 1 sudah diambil pada 2026-09-04** dan tercatat di **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** — baca itu lebih dulu. Kolom "Belum ada" di tabel atas sekarang berarti *belum dibangun*, bukan lagi *belum diputuskan*.
 >
-> ⚠️ Yang masih menunggu tangan pemilik: Issue [#17](../../issues/17) — ketentuan layanan OpenAI dan Microsoft. **Langkah 1 sudah selesai (7 Sep 2026): keduanya sudah dibaca**; sisa langkah 2–3 (batas kutipan wajar, tinjauan hukum bila komersial). V1 karenanya hanya menerbitkan ulang **arXiv**.
+> ⚖️ **Sisi hukum sudah tuntas untuk V1** (Issue [#17](../../issues/17), ditutup 8 Sep 2026). Keempat dokumen ketentuan layanan dibaca di peramban sungguhan, dan batas kutipan ditetapkan: **arXiv boleh metadata penuh (CC0); sumber lain hanya judul, tautan, nama sumber, dan tanggal — nol kutipan.** Rekamannya di [AUDIT-KELAYAKAN.md](AUDIT-KELAYAKAN.md#pembaruan-8-september-2026--dua-dokumen-terakhir-issue-17-sudah-dibaca).
+>
+> ⚠️ Dua hal yang mengikat begitu AI dinyalakan: **OpenAI §10 melarang memasang nama/logo mereka** di situs tanpa izin tertulis (*"Powered by OpenAI"* melanggarnya), dan *Sharing & Publication Policy* menuntut **manusia memikul tanggung jawab akhir** atas isi terbit — yang berbenturan dengan tingkat `draf`. Belum menyala: V1 tidak memanggil model sama sekali.
 
 ---
 
@@ -74,7 +76,7 @@ Gerbang yang sama dengan CI, sebelum push:
 | **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** | **Ke-22 keputusan dalam satu halaman**, berikut cara membatalkan tiap keputusan. Berlaku di atas `KERANGKA.md` kalau keduanya berbeda. |
 | **[docs/RENCANA-V1.md](docs/RENCANA-V1.md)** | Rencana enam bulan yang menggantikan `KERANGKA.md` 2.9. Deployment naik dari Bulan 6 ke Bulan 1. |
 | **[docs/PENYEBARAN.md](docs/PENYEBARAN.md)** | Runbook penyebaran, **netral platform**. Kredensial menarik citra, urutan `postgres → migrate → api → web`, variabel lingkungan, dan health check mana yang dipakai untuk apa. |
-| **[docs/adr/](docs/adr/)** | Tujuh belas Architecture Decision Record. Enam belas **Diterima**; [ADR-017](docs/adr/ADR-017-platform-hosting.md) (platform hosting) masih **Diusulkan** — ia menyangkut akun dan uang, jadi ia menyiapkan keputusannya dan tidak mengambilnya. |
+| **[docs/adr/](docs/adr/)** | Delapan belas Architecture Decision Record, semuanya **Diterima**. Dua terbaru menyangkut penyebaran: [ADR-017](docs/adr/ADR-017-platform-hosting.md) memilih platform hosting, [ADR-018](docs/adr/ADR-018-rilis-citra-dan-reproducibility.md) mengatur kapan citra dibangun ulang. |
 | **[docs/SESSION-LOG.md](docs/SESSION-LOG.md)** | Catatan sesi kerja, urutan terbaru di atas. |
 
 ### Kode

@@ -28,8 +28,14 @@ public static class TechnologyModule
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
+        // Platform terkelola menyerahkan kredensial sebagai URI postgres://...,
+        // sementara Npgsql menuntut bentuk kunci-nilai. Diterjemahkan DI SINI,
+        // bukan di pemanggil, supaya bundel migrasi EF - yang memakai apps/api
+        // sebagai startup project - mendapat perlakuan yang sama persis.
+        var npgsqlConnectionString = PostgresConnectionString.Normalize(connectionString);
+
         services.AddDbContext<TechnologyDbContext>(options =>
-            options.UseNpgsql(connectionString, npgsql =>
+            options.UseNpgsql(npgsqlConnectionString, npgsql =>
                 npgsql.MigrationsHistoryTable("__ef_migrations_history", TechnologyDbContext.Schema)));
 
         services.AddScoped<CreateTechnologyHandler>();

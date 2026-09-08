@@ -72,11 +72,45 @@ USER $APP_UID
 ENTRYPOINT ["./migrate"]
 
 # ---------------------------------------------------------------------------
+# Tahap 3b: bundel migrasi KEDUA, kali ini FRAMEWORK-DEPENDENT.
+#
+# Kenapa ada dua, dan kenapa ini bukan pemborosan (ADR-017):
+#
+#   - Citra `migrator` di atas berbasis runtime-deps, yang TIDAK punya runtime
+#     .NET. Karena itu bundelnya harus --self-contained: ia memikul runtimenya
+#     sendiri. Itu bentuk yang dipakai docker-compose, VPS, dan initContainers
+#     Azure Container Apps - semuanya menjalankan citra TERPISAH.
+#
+#   - Tapi *pre-deploy command* milik Render, Railway, dan release_command
+#     Fly.io semuanya menjalankan perintah DI DALAM CITRA LAYANAN ITU SENDIRI,
+#     bukan citra lain. Supaya urutan `migrate -> api` tetap bisa ditegakkan di
+#     sana, bundelnya harus ikut ke dalam citra `api`.
+#
+#   - Di citra `api` (basis aspnet:10.0) runtimenya SUDAH ADA, jadi bundel di
+#     sini framework-dependent - jauh lebih kecil daripada varian self-contained,
+#     dan tidak butuh restore ber-RID sendiri.
+#
+# ⚠️ API TIDAK PERNAH memanggil bundel ini sendiri. Larangan "migrasi di startup
+# API" (PENYEBARAN.md) tetap berlaku: yang memanggilnya adalah hook pre-deploy
+# platform, SEKALI PER PENYEBARAN - bukan sekali per instans.
+# ---------------------------------------------------------------------------
+FROM restore AS migrations-fdd
+RUN dotnet tool restore \
+ && dotnet ef migrations bundle \
+        --project services/technology/TechVerseX.TechnologyService.csproj \
+        --startup-project apps/api/TechVerseX.Api.csproj \
+        --force \
+        --output /migrate-fdd/efbundle
+
+# ---------------------------------------------------------------------------
 # Tahap 4: citra akhir API.
 # ---------------------------------------------------------------------------
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=publish /app ./
+
+# Bundel migrasi ikut, TIDAK dijalankan sendiri. Lihat catatan tahap 3b.
+COPY --from=migrations-fdd /migrate-fdd/ ./
 
 # Berjalan sebagai pengguna tak-berhak yang sudah disiapkan citra dasar .NET.
 USER $APP_UID
