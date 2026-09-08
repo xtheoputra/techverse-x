@@ -110,3 +110,47 @@ ditebak sekarang.
 - Ollama disebut di [ADR-014](ADR-014-mcp-dan-penyedia-ai.md) sebagai penyedia
   yang didukung Agent Framework. Kalau pagu OpenAI tetap terlampaui, jalan
   menurunkan biaya sudah terbuka tanpa perubahan arsitektur.
+
+---
+
+## Pembaruan 2026-09-07 — pekerjaan yang ditandai di butir 2 sudah ditulis
+
+Butir 2 di atas menutup dirinya dengan peringatan bahwa mematikan Redis di
+produksi menuntut **"perubahan kode yang belum ditulis dan belum diuji"**.
+Perubahan itu sekarang ada, berikut gerbangnya.
+
+**Keputusannya tidak berubah** — Redis tetap tidak di-provision di V1. Yang
+berubah hanya: keputusan itu kini benar-benar bisa dijalankan.
+
+Tiga hal yang ditemukan saat mengerjakannya, dan dua di antaranya lebih buruk
+daripada yang diduga halaman ini:
+
+1. **Kesiapan tidak sekadar merah — ia membalas `500`, bukan `503`.**
+   `ConnectionMultiplexer.Connect` melempar di dalam pabrik DI, yaitu saat
+   `RedisHealthCheck` sedang **dibangun**, sebelum `CheckHealthAsync` sempat
+   berjalan. Akibatnya `try/catch` di dalam health check itu — yang ditulis
+   persis untuk kasus ini — tidak pernah dijalankan, dan pemanggil tidak pernah
+   tahu dependensi mana yang jatuh. Diperbaiki dengan `AbortOnConnectFail =
+   false`, sehingga kegagalannya jatuh ke `PingAsync` dan tertangkap.
+
+2. **`appsettings.json` memanggang `"Redis": "localhost:6379"`.** Selama baris
+   itu ada, produksi selalu mengira Redis terpasang, apa pun yang diputuskan di
+   halaman ini. Baris itu pindah ke `Properties/launchSettings.json`, yang hanya
+   berlaku saat `dotnet run` — jadi pengembangan tetap menguji jalur Redis, dan
+   produksi (yang menjalankan DLL-nya langsung) tidak pernah melihatnya.
+
+   ⚠️ Tempat yang tampak paling wajar, `appsettings.Development.json`, **salah**:
+   `.gitignore` menelannya, jadi isinya tidak akan pernah sampai ke CI maupun ke
+   klona baru. Percobaan pertama memakai berkas itu dan baru ketahuan karena
+   `git status` tidak menampilkannya.
+
+3. **Check yang tidak dipasang tidak boleh muncul sebagai "sehat".** Kalau tidak
+   ada string koneksi, `redis` hilang sama sekali dari `/health/ready`, bukan
+   dilaporkan hijau. Perbedaannya penting: yang kedua menyembunyikan salah
+   konfigurasi.
+
+Dijaga oleh uji integrasi pertama repo ini
+(`tests/integration/HealthEndpointTests.cs`), dan dibuktikan **merah lebih
+dulu**. Bukti akhirnya diambil dengan menjalankan API sungguhan berlingkungan
+`Production` **selagi Redis pengembangan tetap menyala di 6379** — tanpa kendali
+itu, hijaunya tidak membuktikan apa pun.

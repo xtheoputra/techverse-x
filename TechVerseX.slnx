@@ -12,6 +12,9 @@
     <Project Path="services/technology/TechVerseX.TechnologyService.csproj" />
   </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/integration/">
+    <Project Path="tests/integration/TechVerseX.Api.Tests.csproj" />
+  </Folder>
   <Folder Name="/tests/unit/">
     <Project Path="tests/unit/TechVerseX.TechnologyService.Tests.csproj" />
   </Folder>
