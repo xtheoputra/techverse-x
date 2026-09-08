@@ -4,10 +4,17 @@ namespace TechVerseX.TechnologyService.Domain;
 /// Akar agregat bidang Technology — "jantung TechVerse X" (KERANGKA.md 4.6).
 /// </summary>
 /// <remarks>
-/// Satu topik di bawah satu <see cref="Field"/>. Isi halamannya — roadmap, tools,
-/// mini project, resources (ADR-012) — belum dimodelkan di sini; itu irisan
-/// berikutnya. Yang sudah ada: tempatnya di taksonomi, dan seberapa dipercaya
-/// isinya.
+/// Satu topik di bawah satu <see cref="Field"/>, berikut <b>kelima bagian
+/// template ADR-012</b>: Overview (<see cref="Summary"/>), Learning Roadmap
+/// (<see cref="Roadmap"/>), Tools (<see cref="Tools"/>), Mini Project
+/// (<see cref="Projects"/>), dan Resources (<see cref="Resources"/>).
+/// <para>
+/// Keempat bagian terakhir mendarat belakangan, dan kedatangannya mengubah satu
+/// hal yang lebih penting daripada sekadar menambah tabel: <see cref="MarkDrafted"/>
+/// selama ini <em>mengaku</em> berarti "kelima bagian terisi" padahal tidak ada
+/// satu pun yang bisa diperiksanya. Sekarang ada, dan ia memeriksanya — lihat
+/// <see cref="MissingSections"/>.
+/// </para>
 /// </remarks>
 public sealed class Technology
 {
@@ -25,6 +32,14 @@ public sealed class Technology
 
     private readonly List<DomainEvent> _events = [];
     private readonly List<TechnologyRelationship> _relationships = [];
+
+    // Empat bagian template yang dimiliki agregat ini. Perhatikan yang KETIGA:
+    // ia menyimpan TAUTAN ke alat, bukan alatnya — Tool agregat sendiri, sebab
+    // satu alat dipakai lintas topik (ADR-015).
+    private readonly List<RoadmapStep> _roadmap = [];
+    private readonly List<TechnologyTool> _tools = [];
+    private readonly List<Project> _projects = [];
+    private readonly List<Resource> _resources = [];
 
     private Technology()
     {
@@ -83,7 +98,67 @@ public sealed class Technology
 
     public IReadOnlyList<TechnologyRelationship> Relationships => _relationships;
 
+    /// <summary>Bagian 2 template, berurut. Langkah <c>0</c> adalah prasyarat (ADR-012).</summary>
+    public IReadOnlyList<RoadmapStep> Roadmap => _roadmap;
+
+    /// <summary>Bagian 3 template — <b>tautan</b> ke alat, bukan salinannya.</summary>
+    public IReadOnlyList<TechnologyTool> Tools => _tools;
+
+    /// <summary>Bagian 4 template.</summary>
+    public IReadOnlyList<Project> Projects => _projects;
+
+    /// <summary>Bagian 5 template.</summary>
+    public IReadOnlyList<Resource> Resources => _resources;
+
     public IReadOnlyList<DomainEvent> Events => _events;
+
+    /// <summary>
+    /// Bagian template ADR-012 yang masih kosong. <b>Kosong berarti kelimanya
+    /// terisi</b>, dan hanya kalau kosong halaman ini boleh naik ke <c>draf</c>.
+    /// </summary>
+    /// <remarks>
+    /// Ia mengembalikan DAFTAR, bukan sekadar <c>bool</c>, karena pesan
+    /// "belum lengkap" yang tidak menyebut apanya memaksa penulis menebak. Nama
+    /// bagiannya memakai istilah template supaya jawabannya bisa langsung
+    /// dicocokkan ke ADR-012 tanpa penerjemahan.
+    /// </remarks>
+    public IReadOnlyList<string> MissingSections
+    {
+        get
+        {
+            var missing = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(Summary))
+            {
+                missing.Add("Overview");
+            }
+
+            // Roadmap yang cuma berisi prasyarat belum mengajari apa pun — ia
+            // baru menyebut titik berangkatnya. Karena itu syaratnya BUKAN
+            // "ada isinya", melainkan ada langkah SESUDAH langkah 0.
+            if (_roadmap.Count < 2)
+            {
+                missing.Add("Learning Roadmap");
+            }
+
+            if (_tools.Count == 0)
+            {
+                missing.Add("Tools");
+            }
+
+            if (_projects.Count == 0)
+            {
+                missing.Add("Mini Project");
+            }
+
+            if (_resources.Count == 0)
+            {
+                missing.Add("Resources");
+            }
+
+            return missing;
+        }
+    }
 
     public static Technology Create(string name, string summary, Guid fieldId, string? slug = null)
     {
@@ -134,13 +209,107 @@ public sealed class Technology
         _events.Add(new TechnologyUpdated(Id, Slug));
     }
 
-    /// <summary>Menaikkan isi ke tingkat draf mesin — kelima bagian terisi, belum diperiksa.</summary>
+    /// <summary>
+    /// Menetapkan <b>langkah 0 — prasyarat</b> (ADR-012). Memanggilnya lagi
+    /// mengganti prasyarat yang ada, bukan menambah langkah kedua bernomor nol.
+    /// </summary>
+    /// <remarks>
+    /// Ia harus dipanggil sebelum <see cref="AddRoadmapStep"/>. Bukan demi
+    /// kerapian: kalau langkah biasa boleh lebih dulu, langkah pertama yang
+    /// masuk akan mendapat nomor 0 dan diam-diam menjadi "prasyarat" tanpa ada
+    /// yang bermaksud begitu.
+    /// </remarks>
+    public void SetPrerequisite(string title, string description)
+    {
+        var step = RoadmapStep.Create(Id, RoadmapStep.PrerequisiteOrder, title, description);
+
+        var existing = _roadmap.FindIndex(s => s.Order == RoadmapStep.PrerequisiteOrder);
+        if (existing >= 0)
+        {
+            _roadmap[existing] = step;
+        }
+        else
+        {
+            _roadmap.Insert(0, step);
+        }
+
+        Touch();
+    }
+
+    /// <summary>
+    /// Menambah satu langkah roadmap di ujung. <b>Nomornya ditentukan di sini,
+    /// bukan dikirim pemanggil</b> — lihat catatan di <see cref="RoadmapStep"/>.
+    /// </summary>
+    public void AddRoadmapStep(string title, string description)
+    {
+        if (_roadmap.Count == 0)
+        {
+            throw new InvalidOperationException(
+                $"Roadmap '{Slug}' belum punya langkah 0. Panggil SetPrerequisite() dulu — ADR-012 menjadikan prasyarat langkah pertama, bukan bagian terpisah.");
+        }
+
+        _roadmap.Add(RoadmapStep.Create(Id, _roadmap.Count, title, description));
+        Touch();
+    }
+
+    /// <summary>
+    /// Menautkan sebuah <see cref="Tool"/> ke topik ini. Menautkan alat yang sama
+    /// dua kali tidak menambah baris kedua; catatannya yang diperbarui.
+    /// </summary>
+    public void AttachTool(Guid toolId, string? note = null)
+    {
+        var link = TechnologyTool.Create(Id, toolId, note);
+
+        var existing = _tools.FindIndex(t => t.ToolId == toolId);
+        if (existing >= 0)
+        {
+            _tools[existing] = link;
+        }
+        else
+        {
+            _tools.Add(link);
+        }
+
+        Touch();
+    }
+
+    /// <summary>Menambah Mini Project — bagian 4 template.</summary>
+    public void AddProject(string title, string brief)
+    {
+        _projects.Add(Project.Create(Id, title, brief));
+        Touch();
+    }
+
+    /// <summary>Menambah sumber belajar — bagian 5 template.</summary>
+    public void AddResource(ResourceType type, string title, string url)
+    {
+        _resources.Add(Resource.Create(Id, type, title, url));
+        Touch();
+    }
+
+    /// <summary>
+    /// Menaikkan isi ke tingkat draf mesin — <b>kelima bagian terisi</b>, belum
+    /// diperiksa.
+    /// </summary>
+    /// <remarks>
+    /// 🔑 Kalimat "kelima bagian terisi" dulu hanya ada di ringkasan ini, dan
+    /// metodenya meluluskan halaman kosong. Sejak keempat entitas isi mendarat,
+    /// ia <b>diperiksa</b> — dan pesan gagalnya menyebut bagian mana yang kurang,
+    /// supaya penulisnya tidak perlu menebak.
+    /// </remarks>
     public void MarkDrafted()
     {
         if (Maturity == ContentMaturity.HumanReviewed)
         {
             throw new InvalidOperationException(
                 $"Teknologi '{Slug}' sudah diperiksa manusia. Turunkan lewat Update(), bukan dengan menandainya draf.");
+        }
+
+        var missing = MissingSections;
+        if (missing.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Teknologi '{Slug}' belum bisa jadi draf — bagian template yang masih kosong: {string.Join(", ", missing)}.");
         }
 
         if (Maturity == ContentMaturity.MachineDrafted)
@@ -207,6 +376,23 @@ public sealed class Technology
     }
 
     public void ClearEvents() => _events.Clear();
+
+    /// <summary>
+    /// Mencatat bahwa isi halaman berubah.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Sengaja <b>tidak</b> menurunkan <see cref="ContentMaturity.HumanReviewed"/>
+    /// seperti <see cref="Update"/>. Alasannya bukan kelalaian: menambah satu
+    /// sumber belajar ke halaman yang sudah diperiksa manusia bukan pembatalan
+    /// pemeriksaan itu, dan kalau ia dianggap begitu, memperbaiki satu tautan
+    /// mati akan membuang seluruh nilai kerja pemeriksanya.
+    /// <para>
+    /// Ini keputusan yang layak dibantah kalau ternyata salah — batasnya tipis,
+    /// dan uji <c>MenambahBagian_TIDAKMenggugurkanPemeriksaanManusia</c> ada
+    /// supaya perubahan pendapat soal ini harus disengaja.
+    /// </para>
+    /// </remarks>
+    private void Touch() => UpdatedAt = DateTimeOffset.UtcNow;
 
     /// <summary>Mengubah "AI Agents" menjadi "ai-agents". Sekarang meneruskan ke <see cref="Slugs"/>.</summary>
     public static string Slugify(string value) => Slugs.From(value);

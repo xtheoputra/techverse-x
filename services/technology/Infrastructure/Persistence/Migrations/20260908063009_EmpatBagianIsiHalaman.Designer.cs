@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TechVerseX.TechnologyService.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using TechVerseX.TechnologyService.Infrastructure.Persistence;
 namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TechnologyDbContext))]
-    partial class TechnologyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260908063009_EmpatBagianIsiHalaman")]
+    partial class EmpatBagianIsiHalaman
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

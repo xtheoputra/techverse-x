@@ -138,6 +138,53 @@ menggantikan `Category` teks bebas, dan `ContentMaturity` sebagai kolom tersendi
 `Chunk` sengaja paling belakang - ia menuntut ekstensi pgvector dipasang di image
 Postgres, dan itu perubahan infrastruktur yang berdiri sendiri.
 
+> ✅ **Kalimat "yang belum" di atas sudah usang sejak 2026-09-08** - keempat yang
+> pertama mendarat. Ia dibiarkan sebagai rekaman keadaan hari itu; yang berlaku
+> ada di pembaruan di bawah.
+
+## Pembaruan 2026-09-08 - keempat bagian isi mendarat
+
+Cabang `fase-1/entitas-isi-halaman`. **`RoadmapStep`, `Tool` + `TechnologyTool`,
+`Project`, dan `Resource` sudah ada di kode**, berikut migrasi
+`EmpatBagianIsiHalaman` (lima tabel, murni penambahan - nol perubahan pada tabel
+lama). **Yang belum tinggal `Article` dan `Chunk`.**
+
+### Yang berubah lebih penting daripada bertambahnya empat tabel
+
+`Technology.MarkDrafted()` selama ini **mengaku** berarti *"kelima bagian
+terisi"* di ringkasannya sendiri, sementara ia meluluskan halaman yang sama
+sekali kosong - tidak ada satu pun bagian yang bisa diperiksanya. Sekarang ada,
+dan ia memeriksanya; `Technology.MissingSections` menyebut bagian **mana** yang
+kurang alih-alih sekadar menolak.
+
+**Enam uji lama memerah saat aturan itu dipasang** - keenamnya menaikkan halaman
+ke `draf` tanpa satu pun bagian terisi. Itu buktinya bahwa kalimat di ringkasan
+metode memang tidak pernah menjaga apa pun.
+
+### Dua bentuk yang kini mustahil dilanggar, bukan sekadar tidak dianjurkan
+
+- **Nomor langkah roadmap tidak pernah dikirim pemanggil.** `SetPrerequisite()`
+  memegang langkah 0, `AddRoadmapStep()` menambah di ujung sambil memberi nomor
+  sendiri. Roadmap berlubang (0, 1, 4) karenanya tidak punya jalan masuk, dan
+  *"langkah 0 adalah prasyarat"* (ADR-012) berhenti bergantung pada ketelitian
+  penulisnya.
+- **`Technology.Tools` bertipe `IReadOnlyList<TechnologyTool>`, bukan
+  `IReadOnlyList<Tool>`.** Alasan m2m di tabel entitas di atas ditegakkan tipe:
+  tidak ada tempat untuk menyalin alat ke dalam halaman.
+
+### Satu klaim yang dibuktikan KELIRU, dan dicatat apa adanya
+
+Uji integrasi yang lahir bersama entitas ini mula-mula mengklaim ia menjaga baris
+`UsePropertyAccessMode(PropertyAccessMode.Field)` di `TechnologyConfiguration`.
+**Klaim itu diuji dengan mematikan barisnya - dan keenam uji tetap hijau.** Bahkan
+keempat blok `HasMany`-nya sekalian dimatikan, tetap hijau: konvensi EF Core
+sudah memetakan semuanya sendiri.
+
+Konfigurasi eksplisitnya **dipertahankan**, karena ia menuliskan maksud - terutama
+pilihan `Cascade`, yang justru bisa hilang tanpa satu pun uji memerah. Yang
+diperbaiki klaimnya, bukan kodenya. Pelajarannya sama dengan pelajaran migrasi di
+bawah: **penjaga yang belum pernah terlihat merah belum terbukti menjaga apa pun.**
+
 ### Nama enum di kode, supaya dokumen dan kode tidak hanyut
 
 | ADR ini | Kode |

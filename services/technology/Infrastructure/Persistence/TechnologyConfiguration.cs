@@ -58,6 +58,47 @@ internal sealed class TechnologyConfiguration : IEntityTypeConfiguration<Technol
 
         builder.Navigation(t => t.Relationships).UsePropertyAccessMode(PropertyAccessMode.Field);
 
+        // Keempat bagian isi template ADR-012. Cascade, tidak seperti Field dan
+        // Tool di atas: langkah roadmap, proyek, dan sumber TIDAK punya arti di
+        // luar topiknya, jadi membuang topiknya memang membuang isinya. Yang
+        // tidak ikut terbuang adalah Tool-nya sendiri - yang dihapus di sini
+        // cuma tautannya.
+        //
+        // JUJUR SOAL APA YANG BLOK INI LAKUKAN: konvensi EF Core sudah memetakan
+        // keempatnya sendiri. Diukur, bukan diduga - seluruh blok ini berikut
+        // keempat Navigation di bawahnya pernah DIMATIKAN, dan keenam uji
+        // integrasi TETAP HIJAU. Jadi ia menuliskan MAKSUD (terutama pilihan
+        // Cascade di atas), bukan menahan sesuatu. Jangan menyangka menghapusnya
+        // akan memerahkan uji - itu justru cara kehilangan pilihan Cascade ini
+        // tanpa ada yang memberi tahu.
+        builder.HasMany(t => t.Roadmap)
+            .WithOne()
+            .HasForeignKey(s => s.TechnologyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(t => t.Tools)
+            .WithOne()
+            .HasForeignKey(t => t.TechnologyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(t => t.Projects)
+            .WithOne()
+            .HasForeignKey(p => p.TechnologyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasMany(t => t.Resources)
+            .WithOne()
+            .HasForeignKey(r => r.TechnologyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(t => t.Roadmap).UsePropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(t => t.Tools).UsePropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(t => t.Projects).UsePropertyAccessMode(PropertyAccessMode.Field);
+        builder.Navigation(t => t.Resources).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        // Diturunkan dari keempat koleksi di atas, jadi ia bukan kolom.
+        builder.Ignore(t => t.MissingSections);
+
         // Event domain hidup di memori sampai bus-nya dipasang (ADR-004).
         builder.Ignore(t => t.Events);
     }

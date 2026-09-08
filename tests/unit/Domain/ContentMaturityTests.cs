@@ -15,8 +15,22 @@ public sealed class ContentMaturityTests
 {
     private static readonly Guid AnyField = FieldCatalog.All[0].Id;
 
+    /// <summary>
+    /// Halaman dengan <b>kelima bagian template terisi</b>.
+    /// </summary>
+    /// <remarks>
+    /// Isinya ditambahkan sejak <see cref="Technology.MarkDrafted"/> berhenti
+    /// meluluskan halaman kosong. Enam uji di berkas ini memerah saat aturan itu
+    /// dipasang — bukti bahwa dulu mereka menaikkan halaman ke <c>draf</c> tanpa
+    /// satu pun bagian terisi, persis keadaan yang ADR-012 larang.
+    /// <para>
+    /// Kematangannya tetap <see cref="ContentMaturity.Curated"/> di sini: mengisi
+    /// bagian tidak menaikkan tingkat dengan sendirinya, dan itu memang benar.
+    /// </para>
+    /// </remarks>
     private static Technology NewTechnology() =>
-        Technology.Create("Model Context Protocol", "Protokol tool untuk agen.", AnyField);
+        Technology.Create("Model Context Protocol", "Protokol tool untuk agen.", AnyField)
+            .IsiKelimaBagian();
 
     [Fact]
     public void MarkReviewed_MenolakHalamanYangMasihKurasi()
