@@ -181,8 +181,17 @@ ambang adalah cara paling cepat membuat gerbang ini berhenti menjaga apa pun.
 
 ## Yang belum ada
 
-- **Pilihan platform.** Azure disebut di ADR-016 hanya di tabel perkiraan biaya.
-- **ADR hosting**, berikut hitungan biaya yang diperiksa ulang terhadap pagu
-  **USD 60/bulan** — pagu yang belum pernah diuji tagihan sungguhan.
+- **Pilihan platform.** ✅ **ADR hosting sekarang ADA** —
+  [ADR-017](adr/ADR-017-platform-hosting.md) memeriksa lima kandidat terhadap
+  empat syarat dan mengusulkan **Render**, tapi statusnya masih **Diusulkan**:
+  keputusannya milik pemilik ([Issue #33](../../issues/33)). Azure di ADR-016
+  tetap cuma tabel perkiraan biaya, bukan keputusan.
+- 🔴 **Konsekuensi yang paling mengejutkan dari ADR itu, dan yang paling
+  menyentuh halaman ini:** bagian *Urutan yang mengikat* di atas menuntut
+  **citra `migrate` yang BERBEDA** berjalan sampai selesai — dan *pre-deploy
+  command* milik Render, Railway, maupun Fly.io menjalankan perintah di dalam
+  **citra layanan itu sendiri**. Hanya `initContainers` Azure Container Apps
+  (dan `docker-compose` di halaman ini) yang memetakan langsung. Di platform
+  lain, bentuk bundel migrasinya harus berubah.
 - **Domain.** Belum dibeli.
 - **HTTPS/sertifikat.** Umumnya urusan platform, tapi tetap harus dibuktikan.

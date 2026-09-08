@@ -47,6 +47,18 @@ Jalan keluarnya **mendorong balik cabang yang baru saja dihapus** (tip-nya masih
 
 Keduanya diperbaiki bersamaan, jadi #30 tertutup otomatis saat #31 mendarat. Ini varian ketiga dari jebakan yang sama dengan Sesi 7 (*"Menutup #26"* berbahasa Indonesia): **selalu periksa `closingIssuesReferences` sebelum merge, jangan percaya kalimatnya.**
 
+### ADR hosting akhirnya ditulis — dan harga bukan yang memutuskan
+
+Pemilik memilih agar keputusan platform **disiapkan**, bukan diambil. Hasilnya [ADR-017](adr/ADR-017-platform-hosting.md), satu-satunya ADR berstatus **Diusulkan** ([Issue #33](../../issues/33)).
+
+Pemeriksaannya dimulai dari harga dan berakhir di tempat lain. Empat syarat diturunkan dari apa yang repo ini sudah putuskan, dan **satu di antaranya menggugurkan kandidat tanpa menyentuh angka dolar**: `PENYEBARAN.md` menuntut **citra `migrate` yang BERBEDA** berjalan sampai selesai sebelum `api` menyala, sementara *pre-deploy command* milik Render, Railway, dan `release_command` Fly.io **semuanya menjalankan perintah di dalam citra layanan itu sendiri**. Hanya `initContainers` Azure Container Apps yang memetakan langsung ke bentuk yang sudah dibangun. Fly.io gugur pada tiga syarat sekaligus — termasuk tidak punya dukungan registry privat luar, yang akan membatalkan keputusan "terbitkan ke GHCR dulu" yang sudah diambil.
+
+🔑 **Temuan yang paling layak diingat: bentuk citra `migrate` dan pilihan platform ternyata TERIKAT, dan bentuk citranya sudah diputuskan lebih dulu tanpa tahu ia akan menyeleksi platform.** Memisahkan bundel jadi citra sendiri benar untuk `docker-compose`, dan diam-diam mempersempit pilihan PaaS jadi satu.
+
+Usulnya **Render**, dengan bundel migrasi pindah ke citra `api` — di sana ia bisa *framework-dependent* dan jauh lebih kecil, karena `aspnet:10.0` sudah punya runtime yang membuat `--self-contained` diperlukan di citra `migrator`. Alasan utamanya bukan Render paling murah, tapi **harganya tetap** di pagu yang belum pernah diuji tagihan sungguhan.
+
+⚠️ Kolom **kemampuan** di ADR itu seluruhnya dari dokumentasi vendor; kolom **harga** dari artikel banding pihak ketiga dan ditandai wajib dicek ulang. Bagian "angka mana yang diverifikasi" ditulis eksplisit supaya tidak ada yang mengutip keduanya seolah sekualitas.
+
 ### Klaim basi yang ikut disapu
 
 - **ADR-016 butir 4** masih menulis ToS OpenAI *"belum pernah dibaca siapa pun"* — sudah dibaca 7 September. Diperbaiki dengan penunjuk ke `AUDIT-KELAYAKAN.md`, bukan salinan keempat, plus temuan yang mengubah ADR itu sendiri: **membacanya tidak menutup #17**, karena ToS OpenAI mengatur *Services* dan bukan penerbitan ulang isi editorial.

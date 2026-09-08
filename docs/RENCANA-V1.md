@@ -86,6 +86,15 @@ Yang belum ada adalah **keputusan platform hosting** — ADR-016 menyebut Azure
 hanya di tabel perkiraan biaya, bukan sebagai keputusan — plus **domain** dan
 **sertifikat**. Ketiganya menyangkut akun dan uang.
 
+📋 **Keputusan itu kini sudah DISIAPKAN, tinggal diambil.**
+[ADR-017](adr/ADR-017-platform-hosting.md) memeriksa lima kandidat terhadap empat
+syarat dan mengusulkan **Render** ([Issue #33](../../issues/33)). Temuan yang
+mengubah bentuk keputusannya: **harga bukan penyeleksi yang paling tajam** —
+`PENYEBARAN.md` menuntut citra `migrate` yang BERBEDA berjalan sampai selesai,
+dan *pre-deploy command* kebanyakan PaaS menjalankan perintah di dalam citra
+layanan itu sendiri. Fly.io gugur pada tiga syarat sekaligus, tak satu pun soal
+harga.
+
 ⚠️ Ukuran keberhasilan Bulan 1 di tabel di atas adalah **URL publik yang bisa
 dibuka orang lain**. Tiga dari empat butir selesai tidak membuat ukuran itu
 tercapai — ia hanya tercapai kalau butir keempat tercapai.

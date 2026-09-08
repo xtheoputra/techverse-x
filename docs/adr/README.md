@@ -21,6 +21,10 @@ Satu berkas per keputusan. Nama berkasnya mengikuti daftar yang sudah ditetapkan
 | [014](ADR-014-mcp-dan-penyedia-ai.md) | MCP ke dalam dulu; penyedia AI tidak dikunci | Diterima - Issue [#16](../../../../issues/16) |
 | [015](ADR-015-skema-data-v1.md) | Skema data V1: 9 entitas, **dua sumbu status** | Diterima - Issue [#20](../../../../issues/20); `Field` + `ContentMaturity` sudah mendarat |
 | [016](ADR-016-pagu-biaya.md) | Pagu **USD 60/bulan** + aturan penerbitan ulang | Diterima - Issue [#22](../../../../issues/22) |
+| [017](ADR-017-platform-hosting.md) | Platform hosting V1: usul **Render**, dan bentuk citra `migrate` ikut terputuskan | 🟡 **DIUSULKAN** - menunggu pemilik, Issue [#33](../../../../issues/33) |
+
+⚠️ **ADR-017 satu-satunya yang belum berstatus Diterima.** Ia menyangkut akun dan
+uang, jadi ia menyiapkan keputusannya dan tidak mengambilnya.
 
 Ringkasan seluruh 22 keputusan dalam satu halaman:
 [`docs/KEPUTUSAN.md`](../KEPUTUSAN.md). Rencana yang menggantikan `KERANGKA.md`
