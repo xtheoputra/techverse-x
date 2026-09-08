@@ -23,6 +23,7 @@ Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan he
 | Halaman web yang membaca API sungguhan | Pengambilan berita |
 | CI: **8 dari 9 gerbang** blueprint menyala — Lint · Unit · Integrasi · SAST · Dependency Scan · Secret Scan · Container Scan · Build, plus penjaga "migrasi bisa dijalankan dari nol". Yang belum: **Contract Test** (belum ada kontrak antar-layanan) | **Platform hosting, domain, sertifikat** |
 | **Citra produksi terbit ke GHCR** tiap `main` bergerak — API, web, dan bundel migrasi EF | Terraform, Kubernetes |
+| **Kelima bagian template [ADR-012](docs/adr/ADR-012-template-halaman.md) punya tabelnya sendiri** — roadmap (langkah 0 = prasyarat), tools (m2m), mini project, resources | Halaman `/teknologi/<slug>` dan endpoint isinya |
 
 > 🐳 **Redis dipakai di pengembangan saja.** [ADR-016](docs/adr/ADR-016-pagu-biaya.md) memutuskan ia **tidak di-provision di V1** — ia harus membuktikan dirinya dulu dengan beban yang benar-benar ada. Kesiapan API sudah tahu cara hidup tanpanya, dan itu diuji ([`tests/integration`](tests/integration)).
 
@@ -83,8 +84,8 @@ apps/api/            Host ASP.NET Core — health check, correlation id, OpenAPI
 apps/web/            Next.js 16 App Router
 services/technology/ Bounded context pertama — vertical slice + DDD ringan
 packages/contracts/  Kontrak API yang dipakai bersama
-tests/unit/          53 uji domain
-tests/integration/   4 uji kesiapan API (host sungguhan + PostgreSQL sungguhan)
+tests/unit/          73 uji domain
+tests/integration/   6 uji (host sungguhan + PostgreSQL sungguhan)
 database/            SQL migrasi hasil generate + skrip isi contoh
 infrastructure/      Init Docker
 ```

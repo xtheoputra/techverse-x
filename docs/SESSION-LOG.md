@@ -4,6 +4,50 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-08 — Sesi 9 (lanjutan): Empat bagian isi, dan dua penjaga yang ternyata tidak menjaga
+
+Permintaan pemilik: *"lanjutkan secara berurutan tugas fasenya."* Butir Bulan 1 yang tersisa (deploy) menunggu keputusan platform di [#33](../../issues/33), jadi yang dikerjakan butir berikutnya menurut [`RENCANA-V1.md`](RENCANA-V1.md): **entitas isi halaman** ([#34](../../issues/34), PR [#35](../../pull/35), ter-merge `0ac4923`).
+
+### Yang mendarat
+
+`RoadmapStep`, `Tool` + `TechnologyTool`, `Project`, dan `Resource`, berikut migrasi `EmpatBagianIsiHalaman` — lima tabel, **murni penambahan**. Uji naik dari **53 → 73 unit** dan **4 → 6 integrasi**. Sisa entitas ADR-015 tinggal `Article` dan `Chunk`.
+
+### Nilai utamanya bukan empat tabel itu
+
+`MarkDrafted()` sudah lama menulis di ringkasannya sendiri bahwa ia berarti *"kelima bagian terisi"* — sementara ia meluluskan halaman yang **sama sekali kosong**, sebab bagian-bagian itu belum punya entitas untuk diperiksa. Sekarang ia memeriksanya, dan `MissingSections` menyebut bagian **mana** yang kurang.
+
+🔴 **Enam uji lama memerah saat aturan itu dipasang** — keenamnya menaikkan halaman ke `draf` tanpa satu pun bagian terisi, persis keadaan yang ADR-012 larang.
+
+Dua bentuk yang kini tidak punya jalan masuk untuk dilanggar: **nomor langkah roadmap tidak pernah dikirim pemanggil** (jadi roadmap berlubang mustahil, dan "langkah 0 = prasyarat" berhenti bergantung pada ketelitian penulis), dan **`Technology.Tools` bertipe `IReadOnlyList<TechnologyTool>`**, bukan `IReadOnlyList<Tool>` — tidak ada tempat untuk menyalin alat ke dalam halaman.
+
+### Penjaga pertama yang ternyata tidak menjaga: klaim saya sendiri
+
+Docstring uji integrasi yang baru mula-mula mengklaim ia menjaga baris `UsePropertyAccessMode(PropertyAccessMode.Field)`. **Klaim itu diuji dengan mematikan barisnya — keenam uji tetap hijau.** Keempat blok `HasMany`-nya sekalian dimatikan: **masih hijau.** Konvensi EF Core sudah memetakan semuanya sendiri.
+
+Konfigurasinya dipertahankan karena ia menuliskan maksud — terutama pilihan `Cascade`, yang justru bisa hilang tanpa satu pun uji memerah. **Yang diperbaiki klaimnya, bukan kodenya**, dan peringatannya ditulis di kode itu sendiri.
+
+### Penjaga kedua yang ternyata tidak menjaga: urutan langkah CI
+
+`run.ps1 verify` hijau di mesin sendiri, lalu CI langsung merah:
+
+```
+relation "technology.technologies" does not exist
+```
+
+Service container `postgres` menyala **kosong**, dan langkah *"Migrasi bisa dijalankan dari nol"* berada **sesudah** langkah uji.
+
+🔑 **Kenapa ini tidak pernah ketahuan:** satu-satunya uji integrasi sebelumnya cuma menyentuh `/health/ready`, yang memakai `AddDbContextCheck` — dan itu **hanya menguji koneksi, bukan keberadaan tabel**. Urutan yang salah itu karenanya hijau terus sejak uji integrasi pertama dipasang. Uji pertama yang benar-benar **menulis baris** langsung menabraknya.
+
+Urutannya ditukar, dan hasil sampingnya lebih baik daripada sekadar perbaikan: **CI kini menjalankan urutan yang sama dengan yang [`PENYEBARAN.md`](PENYEBARAN.md) wajibkan di produksi** — `postgres → migrate → api`. *CI yang urutannya berbeda dari produksi adalah CI yang mengukur keadaan lain.*
+
+Ikut dikoreksi: `run.ps1` dan `README.md` menulis bahwa `test`/`verify` butuh `up` — ternyata butuh **`up` LALU `migrate`**, dan galatnya kini dituliskan apa adanya supaya tidak perlu ditebak.
+
+### Yang belum, dan disengaja
+
+Endpoint API dan halaman `/teknologi/<slug>` belum ada — entitasnya dulu, supaya halaman punya isi untuk ditampilkan. Bulan 2 menuntut **7 topik AI Agents berstatus `tinjau`**, dan ⚠️ **tingkat `tinjau` hanya bisa dicapai lewat `MarkReviewed(reviewer)` yang menuntut nama pemeriksanya** — menurut ADR-012 itu memang pekerjaan manusia, bukan asisten.
+
+---
+
 ## 2026-09-08 — Sesi 9: Citra pertama benar-benar terbit
 
 Permintaan pemilik: *"lanjutkan semua tugas kemarin."*
