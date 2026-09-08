@@ -4,6 +4,51 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-08 — Sesi 9 (lanjutan 3): Render dibatalkan, dan hosting gratis ternyata bisa
+
+Permintaan pemilik, beberapa jam sesudah ADR-017 diterima: *"jangan render, akun gratis pilihannya pada apa"*. Hasilnya [ADR-019](adr/ADR-019-hosting-gratis-tanpa-kartu.md), yang **menggantikan** ADR-017.
+
+### Yang keliru dari ADR-017 adalah cara memandang soalnya, bukan jawabannya
+
+ADR-017 mencari **satu platform** untuk semuanya. Begitu soalnya dipecah tiga, keberatan terbesarnya lenyap:
+
+| Bagian | Gratis? |
+|---|---|
+| **PostgreSQL** | ✅ mudah — Neon: pgvector, scale-to-zero, **tanpa kedaluwarsa**, tanpa kartu |
+| **web** | ✅ mudah — Vercel Hobby: tanpa kartu, tanpa cold start |
+| **api (.NET)** | 🔴 sulit — hampir semua tier gratis cuma memberi **satu** layanan |
+
+🔑 **Yang ditolak ADR-017 sebenarnya bukan "gratis", melainkan Postgres gratis Render yang menghapus dirinya sendiri setelah 30 hari.** Neon tidak melakukan itu, dan seluruh keberatan itu gugur.
+
+Survei juga menemukan dua perubahan setahun terakhir: **Docker Space Hugging Face kini menuntut plan berbayar**, dan **Oracle memangkas Always Free ARM 4→2 OCPU tanpa pengumuman apa pun** (Juni 2026). Keduanya pengingat bahwa ADR ini berumur simpan lebih pendek daripada ADR lain di repo ini.
+
+### Yang membuatnya bekerja, dan itu DIBUKTIKAN bukan diharapkan
+
+Instance Koyeb gratis tidur setelah satu jam dan itu tidak bisa dimatikan. Jawabannya bukan mencegahnya tidur, melainkan membuat pembaca tidak bergantung padanya: panggilan API di web kini **di-cache lima menit**.
+
+| Keadaan | Halaman menampilkan |
+|---|---|
+| Proses baru, cache kosong, **API mati** | ❌ *"API belum bisa dihubungi"* |
+| API hidup (cache terisi) | ✅ 14 bidang · 5 topik |
+| **API dimatikan lagi**, cache terisi | ✅ 14 bidang · 5 topik |
+
+🔴 **Percobaan kendali PERTAMA saya cacat, dan itu dicatat apa adanya:** cache dihapus dari disk **selagi proses Next masih hidup**, halamannya tetap berisi, dan saya nyaris menyimpulkan cachenya bekerja padahal yang menjawab salinan di memori. Kendali yang benar menuntut **prosesnya dimatikan lebih dulu** — baru baris pertama tabel itu muncul.
+
+⚠️ `await connection()` **tetap ada**. Yang di-cache bukan halamannya melainkan panggilan API-nya; keduanya tidak bertabrakan. Membuangnya mengembalikan cacat lama: halaman dipanggang saat build dan yang tersimpan adalah galat.
+
+⚠️ Batas waktu fetch dinaikkan **5 → 30 detik**, dan itu **konsekuensi**, bukan kelonggaran: selama fetch menahan render, batas pendek benar; sesudah di-cache, batas pendek justru menggugurkan permintaan tepat saat instance yang tidur sedang bangun — lalu galatnya yang ter-cache.
+
+### Migrasi tanpa pre-deploy
+
+Koyeb tidak punya *pre-deploy command*. Tapi Neon terjangkau dari internet, jadi `migrasi-produksi.yml` menjalankan **citra `api` yang sama persis** dan memanggil `/app/efbundle` di dalamnya — bukan `dotnet ef` dari kode sumber, sebab itu memigrasi dari bit yang berbeda dari yang tayang. Sengaja **manual**, karena ia menyentuh data produksi.
+
+### Dua batas baru yang mengikat
+
+- 🔴 **Vercel Hobby hanya untuk pemakaian NON-KOMERSIAL** — kembaran temuan §10 OpenAI: batas yang tidak terasa hari ini dan mengikat di hari pertama komersialisasi.
+- **Citra `web` berhenti dipakai untuk penyebaran** (Vercel membangun dari sumber). Ia tetap terbit dan tetap dipakai `docker-compose.prod.yml`.
+
+---
+
 ## 2026-09-08 — Sesi 9 (lanjutan 2): Ketiga issue terbuka ditutup sekaligus
 
 Permintaan pemilik, tiga sekaligus: **#33** *"gunakan apapun, yang tidak memberatkan dan paling mudah dan kuat, dapat dengan mudah dibuka walaupun dalam tahap pengembangan"* · **#32** *"cari semua rilis citra di internet, ambil semua informasi yang dibutuhkan untuk dokumen"* · **#17** *"kerjakan"*.
