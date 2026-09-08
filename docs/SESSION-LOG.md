@@ -4,27 +4,83 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
-## 2026-09-08 — Sesi 9 (lanjutan 3): Render dibatalkan, dan hosting gratis ternyata bisa
+## 2026-09-08 — Sesi 9: Dari dua PR menunggu sampai nol issue terbuka
 
-Permintaan pemilik, beberapa jam sesudah ADR-017 diterima: *"jangan render, akun gratis pilihannya pada apa"*. Hasilnya [ADR-019](adr/ADR-019-hosting-gratis-tanpa-kartu.md), yang **menggantikan** ADR-017.
+Sesi terpanjang sejauh ini. Permintaan pemilik berturut-turut: *"lanjutkan semua tugas kemarin"* → *"lanjutkan secara berurutan tugas fasenya"* → *"#33 gunakan apapun… #32 cari semua rilis citra di internet… #17 kerjakan"* → *"jangan render, akun gratis pilihannya pada apa"*.
 
-### Yang keliru dari ADR-017 adalah cara memandang soalnya, bukan jawabannya
+Keadaan akhir: `main` = `8be066d`, **nol PR dan nol issue terbuka**, 83 uji unit + 6 uji integrasi, CI dan Rilis citra hijau.
 
-ADR-017 mencari **satu platform** untuk semuanya. Begitu soalnya dipecah tiga, keberatan terbesarnya lenyap:
+### 🔜 Yang menunggu besok
 
-| Bagian | Gratis? |
+**Ketiganya menuntut akun atas nama pemilik. Tidak ada lagi yang bisa dikerjakan asisten sendiri untuk menayangkan situs.**
+
+| Menunggu | Butuh apa |
 |---|---|
-| **PostgreSQL** | ✅ mudah — Neon: pgvector, scale-to-zero, **tanpa kedaluwarsa**, tanpa kartu |
-| **web** | ✅ mudah — Vercel Hobby: tanpa kartu, tanpa cold start |
-| **api (.NET)** | 🔴 sulit — hampir semua tier gratis cuma memberi **satu** layanan |
+| [#38](../../issues/38) | Buat akun **Neon**, salin URI-nya ke secret `NEON_DATABASE_URL` |
+| [#39](../../issues/39) | Buat akun **Koyeb**, service dari `…/api:8be066d`, token GHCR `read:packages` |
+| [#40](../../issues/40) | Buat akun **Vercel**, impor repo, root `apps/web`, isi `API_BASE_URL` |
 
-🔑 **Yang ditolak ADR-017 sebenarnya bukan "gratis", melainkan Postgres gratis Render yang menghapus dirinya sendiri setelah 30 hari.** Neon tidak melakukan itu, dan seluruh keberatan itu gugur.
+Sesudah tayang, pekerjaan berikutnya sudah tercatat sebagai issue juga: endpoint isi halaman + `/teknologi/<slug>` ([#41](../../issues/41)), dan isi AI Agents menuju Bulan 2 ([#42](../../issues/42)).
 
-Survei juga menemukan dua perubahan setahun terakhir: **Docker Space Hugging Face kini menuntut plan berbayar**, dan **Oracle memangkas Always Free ARM 4→2 OCPU tanpa pengumuman apa pun** (Juni 2026). Keduanya pengingat bahwa ADR ini berumur simpan lebih pendek daripada ADR lain di repo ini.
+⚠️ **Ukuran Bulan 2 tidak bisa dicapai asisten sendiri.** Targetnya "7 topik berstatus `tinjau`", dan satu-satunya jalan ke `tinjau` adalah `MarkReviewed(reviewer)` yang menuntut nama pemeriksanya — ADR-012 sengaja menjadikannya pekerjaan manusia.
 
-### Yang membuatnya bekerja, dan itu DIBUKTIKAN bukan diharapkan
+---
 
-Instance Koyeb gratis tidur setelah satu jam dan itu tidak bisa dimatikan. Jawabannya bukan mencegahnya tidur, melainkan membuat pembaca tidak bergantung padanya: panggilan API di web kini **di-cache lima menit**.
+### 1. Dua PR bertumpuk mendarat, dan citra pertama benar-benar terbit
+
+`#29` (Redis opsional) → `ee6f836`, lalu `#31` (citra produksi) → `4bfbfff`. Merge commit, bukan squash.
+
+Diperiksa **sebelum** merge: kedua cabang digabung ke salinan `main` lokal dan `run.ps1 verify` dijalankan di atas hasilnya. Sesudah merge, log CI dibaca per-baris untuk memastikan keempat uji integrasi **benar-benar berjalan** — `Total tests: 4 / Passed: 4` — bukan sekadar "Test Run Successful" atas nol uji.
+
+📦 **`rilis-citra.yml` yang belum pernah berjalan itu akhirnya menyala, dan hijau di percobaan pertama:** tiga citra dibangun → dipindai Trivy (nol CRITICAL/HIGH) → didorong ke GHCR dengan tag SHA dan `:main`. Satu kekhawatiran terjawab sendiri: setelan repo `default_workflow_permissions = read` ternyata **tidak** menghalangi — blok `permissions:` tingkat workflow memang menaikkan izin.
+
+🔴 **Yang ditemukan justru sesudah citranya terbit: `docker login` yang berhasil tidak membuktikan apa pun tentang menarik.** Login ke `ghcr.io` sukses; `docker pull` membalas **403** karena tokennya tidak bercakupan `read:packages`. Menarik citra adalah langkah pertama platform hosting mana pun, dan `PENYEBARAN.md` — runbook yang ditulis sebelum satu citra pun terbit — tidak menyebutnya sama sekali.
+
+⚠️ **Dua jebakan GitHub yang memakan waktu:**
+
+- **`gh pr merge --delete-branch` MENUTUP PR yang bertumpuk di atasnya**, bukan mengarahkannya ulang. Lalu kebuntuan: tidak bisa dibuka lagi (cabang base hilang) dan tidak bisa dipindah base-nya (PR tertutup). Jalan keluarnya **mendorong balik cabang yang baru dihapus**, buka lagi, pindahkan base, baru hapus.
+- **`Closes #30` di JUDUL PR tidak menutup apa pun.** Dua sebab menumpuk, dan hanya satu yang terbukti di sini: selama base PR bukan cabang default, `closingIssuesReferences` **tetap kosong walaupun badan PR sudah memuat kata kuncinya**. Ini varian ketiga dari jebakan yang sama dengan Sesi 7 — **selalu periksa `closingIssuesReferences` sebelum merge, jangan percaya kalimatnya.**
+
+### 2. Empat bagian isi halaman — dan `MarkDrafted()` berhenti mengaku
+
+`RoadmapStep`, `Tool` + `TechnologyTool`, `Project`, `Resource` mendarat berikut migrasi lima tabel (murni penambahan). Uji **53 → 73** unit, **4 → 6** integrasi. Sisa entitas ADR-015 tinggal `Article` dan `Chunk`.
+
+🔑 **Nilai utamanya bukan empat tabel itu.** `MarkDrafted()` sudah lama menulis di ringkasannya sendiri bahwa ia berarti *"kelima bagian terisi"* — sementara ia meluluskan halaman yang **sama sekali kosong**, sebab bagian-bagian itu belum punya entitas untuk diperiksa. **Enam uji lama memerah** saat aturan itu akhirnya dipasang.
+
+Dua bentuk yang kini tidak punya jalan masuk untuk dilanggar: **nomor langkah roadmap tidak pernah dikirim pemanggil** (roadmap berlubang jadi mustahil, dan *"langkah 0 = prasyarat"* berhenti bergantung pada ketelitian penulis), dan **`Technology.Tools` bertipe `IReadOnlyList<TechnologyTool>`** — tidak ada tempat untuk menyalin alat ke dalam halaman.
+
+### 3. Tiga issue ditutup: platform, rilis citra, hukum
+
+**#33 — platform.** Diputuskan Render berbayar, lalu **dibatalkan pemilik** beberapa jam kemudian. Lihat bagian 4.
+
+**#32 — rilis citra.** Diukur: commit dokumen (`aa78079`, 199 detik) memakan waktu praktis sama dengan commit kode (`4bfbfff`, 206 detik), dan menghasilkan tiga citra baru yang isinya tidak mungkin berbeda. Riset reproducible build lengkap dan seluruh jalurnya bisa dikerjakan — `SOURCE_DATE_EPOCH`, `rewrite-timestamp=true` (**opsi eksportir, bukan flag build**), matikan provenance, `DotNet.ReproducibleBuilds`, verifikasi bangun-dua-kali.
+
+🔑 **Yang membatalkannya adalah syarat yang tidak disebut panduan mana pun: citra dasar repo ini memakai tag BERGERAK, dan itu disengaja.** Memakunya ke digest **melemahkan Container Scan** — gerbang itu bernilai justru karena membangun ulang menarik lapisan dasar yang sudah ditambal. Trade-off sesungguhnya: **digest yang bisa dibandingkan ⟷ tambalan keamanan yang datang sendiri.** Untuk situs yang belum tayang dengan satu pengurus, tambalan otomatis menang. Yang dipasang cuma `paths-ignore` untuk dokumen — dan itu **diperiksa ke Dockerfile-nya**, bukan diduga.
+
+**#17 — hukum.** *OpenAI Services Agreement* dan *Sharing & Publication Policy* dibaca di peramban sungguhan (pengambil otomatis tetap 403). **§3.3 memuat daftar larangan yang lengkap dan TIDAK ADA satu pun larangan menerbitkan ulang Output**; §4.1 menegaskan Output milik pelanggan, §4.2 menyatakan isi kita tidak dipakai melatih layanannya.
+
+Dua yang mengikat, keduanya baru kelihatan setelah dibaca:
+
+- ⚠️ **§10 "No Publicity"** melarang memasang nama/logo pihak lain di situs tanpa izin tertulis. Menempel *"Powered by OpenAI"* — hal yang terasa sopan dan jujur — **melanggarnya**.
+- 🔴 **Satu kalimat *Sharing & Publication Policy* berbenturan dengan tingkat `draf` ADR-012:** isi tidak boleh direpresentasikan sebagai sepenuhnya buatan AI, dan **manusia harus memikul tanggung jawab akhir**. Label `draf` lahir demi kejujuran — dan justru karena jujur, ia menyatakan persis apa yang dilarang, pada saat belum ada manusia yang memikulnya. **Dua pembacaan sama masuk akalnya, ditulis apa adanya alih-alih dipilih diam-diam.** Belum menyala: V1 nol panggilan model.
+
+**Batas kutipan ditetapkan:** arXiv metadata penuh (CC0); sumber lain hanya judul, tautan, nama sumber, tanggal — **nol kutipan**. Kenapa nol dan bukan "sekian kata": V1 hanya menayangkan arXiv, jadi menetapkan jatah sekarang berarti memutuskan sesuatu yang belum ada pemakainya.
+
+### 4. Render dibatalkan, dan hosting gratis ternyata bisa
+
+Pemilik: *"jangan render, akun gratis pilihannya pada apa"*. Hasilnya [ADR-019](adr/ADR-019-hosting-gratis-tanpa-kartu.md), yang **menggantikan** ADR-017.
+
+🔑 **Yang keliru dari ADR-017 adalah cara memandang soalnya, bukan jawabannya.** Ia mencari **satu platform** untuk semuanya. Begitu soalnya dipecah tiga, keberatan terbesarnya lenyap: yang ditolak sebenarnya bukan "gratis", melainkan **Postgres gratis Render yang menghapus dirinya sendiri setelah 30 hari**. Neon tidak begitu.
+
+| Bagian | Tempatnya | Kartu |
+|---|---|---|
+| **PostgreSQL** | Neon — pgvector, scale-to-zero, tanpa kedaluwarsa | tidak |
+| **web** | Vercel Hobby — tanpa cold start | tidak |
+| **api** | Koyeb Free — GHCR privat didukung resmi | tidak |
+
+Survei menemukan dua perubahan setahun terakhir: **Docker Space Hugging Face kini menuntut plan berbayar**, dan **Oracle memangkas Always Free ARM 4→2 OCPU tanpa pengumuman apa pun**. Keduanya ditulis di ADR-nya sebagai pengingat bahwa ia berumur simpan lebih pendek daripada ADR lain di repo ini.
+
+**Yang membuatnya bekerja — dibuktikan, bukan diharapkan.** Instance Koyeb gratis tidur setelah satu jam dan itu tidak bisa dimatikan. Jawabannya bukan mencegahnya tidur, melainkan membuat pembaca tidak bergantung padanya: panggilan API di web kini di-cache lima menit.
 
 | Keadaan | Halaman menampilkan |
 |---|---|
@@ -32,164 +88,23 @@ Instance Koyeb gratis tidur setelah satu jam dan itu tidak bisa dimatikan. Jawab
 | API hidup (cache terisi) | ✅ 14 bidang · 5 topik |
 | **API dimatikan lagi**, cache terisi | ✅ 14 bidang · 5 topik |
 
-🔴 **Percobaan kendali PERTAMA saya cacat, dan itu dicatat apa adanya:** cache dihapus dari disk **selagi proses Next masih hidup**, halamannya tetap berisi, dan saya nyaris menyimpulkan cachenya bekerja padahal yang menjawab salinan di memori. Kendali yang benar menuntut **prosesnya dimatikan lebih dulu** — baru baris pertama tabel itu muncul.
+⚠️ `await connection()` **tetap ada**; yang di-cache panggilan API-nya, bukan halamannya. Batas waktu fetch dinaikkan **5 → 30 detik**, dan itu **konsekuensi** bukan kelonggaran: sesudah di-cache, batas pendek justru menggugurkan permintaan tepat saat instance yang tidur sedang bangun — lalu **galatnya** yang ter-cache.
 
-⚠️ `await connection()` **tetap ada**. Yang di-cache bukan halamannya melainkan panggilan API-nya; keduanya tidak bertabrakan. Membuangnya mengembalikan cacat lama: halaman dipanggang saat build dan yang tersimpan adalah galat.
+**Migrasi tanpa pre-deploy:** Koyeb tidak punya *pre-deploy command*, tapi Neon terjangkau internet. `migrasi-produksi.yml` menjalankan **citra `api` yang sama persis** dan memanggil `/app/efbundle` — bukan `dotnet ef` dari kode sumber, sebab itu memigrasi dari bit yang berbeda dari yang tayang. Sengaja manual.
 
-⚠️ Batas waktu fetch dinaikkan **5 → 30 detik**, dan itu **konsekuensi**, bukan kelonggaran: selama fetch menahan render, batas pendek benar; sesudah di-cache, batas pendek justru menggugurkan permintaan tepat saat instance yang tidur sedang bangun — lalu galatnya yang ter-cache.
+🔴 **Dua batas baru yang mengikat:** **Vercel Hobby hanya untuk pemakaian NON-KOMERSIAL** (kembaran §10 OpenAI — tidak terasa hari ini, mengikat di hari pertama komersialisasi), dan **citra `web` berhenti dipakai untuk penyebaran** karena Vercel membangun dari sumber.
 
-### Migrasi tanpa pre-deploy
+### 5. Tiga pelajaran yang berlaku di luar sesi ini
 
-Koyeb tidak punya *pre-deploy command*. Tapi Neon terjangkau dari internet, jadi `migrasi-produksi.yml` menjalankan **citra `api` yang sama persis** dan memanggil `/app/efbundle` di dalamnya — bukan `dotnet ef` dari kode sumber, sebab itu memigrasi dari bit yang berbeda dari yang tayang. Sengaja **manual**, karena ia menyentuh data produksi.
+Ketiganya bentuk yang sama: **sesuatu tampak menjaga, padahal tidak.**
 
-### Dua batas baru yang mengikat
+1. **Penjaga yang tidak menjaga — klaim saya sendiri.** Docstring uji integrasi baru mengklaim ia menjaga `UsePropertyAccessMode(PropertyAccessMode.Field)`. Dibuktikan keliru dengan **mematikan barisnya** — keenam uji tetap hijau; keempat blok `HasMany` sekalian dimatikan, masih hijau. Konvensi EF Core sudah memetakan semuanya. Konfigurasinya dipertahankan sebagai penulisan **maksud**, dan **klaimnya yang diperbaiki, bukan kodenya**.
 
-- 🔴 **Vercel Hobby hanya untuk pemakaian NON-KOMERSIAL** — kembaran temuan §10 OpenAI: batas yang tidak terasa hari ini dan mengikat di hari pertama komersialisasi.
-- **Citra `web` berhenti dipakai untuk penyebaran** (Vercel membangun dari sumber). Ia tetap terbit dan tetap dipakai `docker-compose.prod.yml`.
+2. **Penjaga yang tidak menjaga — urutan langkah CI.** `run.ps1 verify` hijau lokal, CI merah: `relation "technology.technologies" does not exist`. Langkah migrasi berada **sesudah** langkah uji. Kenapa tak pernah ketahuan: satu-satunya uji integrasi sebelumnya cuma menyentuh `/health/ready`, dan **`AddDbContextCheck` hanya menguji KONEKSI, bukan keberadaan tabel**. Uji pertama yang benar-benar **menulis baris** langsung menabraknya. Urutannya ditukar, dan hasil sampingnya: **CI kini menjalankan urutan yang sama dengan produksi**.
 
----
+3. **Kendali yang tidak mengendalikan.** Untuk membuktikan cache API bekerja, cache dihapus dari disk — **selagi proses Next masih hidup**. Halamannya tetap berisi, dan saya nyaris menyimpulkan cachenya bekerja padahal yang menjawab salinan di memori. **Kendali yang benar menuntut prosesnya dimatikan lebih dulu.**
 
-## 2026-09-08 — Sesi 9 (lanjutan 2): Ketiga issue terbuka ditutup sekaligus
-
-Permintaan pemilik, tiga sekaligus: **#33** *"gunakan apapun, yang tidak memberatkan dan paling mudah dan kuat, dapat dengan mudah dibuka walaupun dalam tahap pengembangan"* · **#32** *"cari semua rilis citra di internet, ambil semua informasi yang dibutuhkan untuk dokumen"* · **#17** *"kerjakan"*.
-
-### #33 — Render berbayar, dan gratisnya justru MELANGGAR syaratnya
-
-Kriteria *"dapat dengan mudah dibuka"* yang menggugurkan pilihan yang tampak paling ringan. Tier gratis Render: web service **tidur setelah 15 menit** (pengunjung berikutnya menunggu **30–60 detik**) dan **Postgres gratisnya kedaluwarsa 30 hari** lalu dihapus. Situs yang butuh satu menit untuk terbuka bukan situs yang mudah dibuka; basis data yang menghapus dirinya sendiri bukan yang kuat. **Gratis di sini justru paling memberatkan** — ia memindahkan bebannya dari uang ke pengalaman pembaca dan ke risiko kehilangan data.
-
-Dua hal dikerjakan sebelum akun dibuat, keduanya **dibuktikan dengan menjalankan**:
-
-1. **Bundel migrasi masuk citra `api`** — framework-dependent, 35,8 MB (bukan self-contained), karena basis `aspnet:10.0` sudah punya runtimenya. Dijalankan dari **dalam** citra `api` terhadap basis data **kosong** → 9 tabel + 14 bidang tersemai. Citra `migrate` yang berdiri sendiri tetap terbit untuk compose, VPS, dan `initContainers`.
-2. 🔴 **Kejutan penyebaran yang ditemukan SEBELUM menyebarkan:** Render — dan Railway, Heroku, Neon, Supabase — menyerahkan kredensial sebagai **URI** `postgresql://…`, sementara **Npgsql menuntut bentuk kunci-nilai dan MELEMPAR untuk URI**. Menempel nilai pemberian platform apa adanya akan gagal saat *start*, bukan saat konfigurasi. `PostgresConnectionString.Normalize()` menerjemahkan keduanya, dan **uji pertamanya bukan menguji kode kita melainkan membuktikan penerjemahnya memang dibutuhkan.**
-
-`render.yaml` lahir dengan empat nilai bertanda `GANTI`. Uji 73 → 83. Sisa untuk pemilik tinggal tiga langkah berakun: buat akun, tempel token GHCR `read:packages`, beli domain.
-
-### #32 — riset lengkap, lalu jawabannya justru "jangan"
-
-Jalurnya jelas dan semuanya bisa dikerjakan: `SOURCE_DATE_EPOCH` standar lintas-alat, Buildx ≥ 0.10 mempropagasikannya otomatis, `rewrite-timestamp=true` adalah **opsi eksportir bukan flag build** (BuildKit ≥ 0.13), provenance dimatikan, sisi .NET pakai `DotNet.ReproducibleBuilds`, verifikasi dengan membangun dua kali lalu membandingkan digest.
-
-🔑 **Yang membatalkannya adalah syarat yang tidak disebut panduan mana pun: citra dasar repo ini memakai TAG BERGERAK, dan itu disengaja.** Begitu Microsoft menerbitkan `aspnet:10.0` baru, membangun ulang sumber yang sama **wajib** menghasilkan citra berbeda — dan itu benar. Bit-for-bit mustahil tanpa memaku citra dasar ke digest.
-
-Dan memakunya menabrak gerbang kita sendiri: **Container Scan bernilai justru karena membangun ulang menarik lapisan dasar yang sudah ditambal.** Jadi trade-offnya bukan "boros vs rapi", melainkan **digest yang bisa dibandingkan ⟷ tambalan keamanan yang datang sendiri**. Untuk situs yang belum tayang dengan satu pengurus, tambalan otomatis menang.
-
-Yang dikerjakan: `paths-ignore` untuk dokumen — **aman, dan itu diperiksa ke Dockerfile-nya**, bukan diduga. Invariannya berubah jadi *"setiap commit yang BISA mengubah citra punya citra"*, dan lubangnya ditutup dengan menjawab pertanyaannya: `git rev-parse HEAD` berhenti jadi jawaban yang benar, dan `PENYEBARAN.md` kini menuliskan jawaban yang benar.
-
-### #17 — hasilnya jauh lebih ramah, tapi dua hal mengikat
-
-*OpenAI Services Agreement* (berlaku 1 Jan 2026) dan *Sharing & Publication Policy* dibaca di peramban sungguhan. **§3.3 memuat daftar larangan yang lengkap dan TIDAK ADA satu pun larangan menerbitkan ulang Output**; §4.1 justru menegaskan Output milik pelanggan, §4.2 menyatakan isi kita tidak dipakai melatih layanannya.
-
-Dua yang mengikat, dan keduanya baru kelihatan setelah dibaca:
-
-- ⚠️ **§10 "No Publicity"** melarang memasang nama atau logo pihak lain di situs tanpa izin tertulis. Menempel *"Powered by OpenAI"* di halaman muka — hal yang terasa sopan dan jujur — **melanggarnya**. Ini satu-satunya klausul yang bisa dilanggar besok pagi tanpa sadar.
-- 🔴 **Satu kalimat *Sharing & Publication Policy* berbenturan dengan tingkat `draf` ADR-012**: isi tidak boleh direpresentasikan sebagai sepenuhnya buatan AI, dan **seorang manusia harus memikul tanggung jawab akhir**. Label `draf` lahir demi kejujuran — dan justru karena jujur, ia menyatakan persis apa yang kalimat itu minta jangan dinyatakan. Dua pembacaan sama masuk akalnya, **ditulis apa adanya alih-alih dipilih diam-diam**. Belum menyala: V1 tidak memanggil model sama sekali.
-
-**Batas kutipan ditetapkan, tidak ditunda lagi:** arXiv boleh metadata penuh (CC0); sumber lain hanya judul, tautan, nama sumber, tanggal — **nol kutipan**. Kenapa nol dan bukan "sekian kata": V1 hanya menayangkan arXiv, jadi menetapkan jatah sekarang berarti memutuskan sesuatu yang belum ada pemakainya.
-
----
-
-## 2026-09-08 — Sesi 9 (lanjutan): Empat bagian isi, dan dua penjaga yang ternyata tidak menjaga
-
-Permintaan pemilik: *"lanjutkan secara berurutan tugas fasenya."* Butir Bulan 1 yang tersisa (deploy) menunggu keputusan platform di [#33](../../issues/33), jadi yang dikerjakan butir berikutnya menurut [`RENCANA-V1.md`](RENCANA-V1.md): **entitas isi halaman** ([#34](../../issues/34), PR [#35](../../pull/35), ter-merge `0ac4923`).
-
-### Yang mendarat
-
-`RoadmapStep`, `Tool` + `TechnologyTool`, `Project`, dan `Resource`, berikut migrasi `EmpatBagianIsiHalaman` — lima tabel, **murni penambahan**. Uji naik dari **53 → 73 unit** dan **4 → 6 integrasi**. Sisa entitas ADR-015 tinggal `Article` dan `Chunk`.
-
-### Nilai utamanya bukan empat tabel itu
-
-`MarkDrafted()` sudah lama menulis di ringkasannya sendiri bahwa ia berarti *"kelima bagian terisi"* — sementara ia meluluskan halaman yang **sama sekali kosong**, sebab bagian-bagian itu belum punya entitas untuk diperiksa. Sekarang ia memeriksanya, dan `MissingSections` menyebut bagian **mana** yang kurang.
-
-🔴 **Enam uji lama memerah saat aturan itu dipasang** — keenamnya menaikkan halaman ke `draf` tanpa satu pun bagian terisi, persis keadaan yang ADR-012 larang.
-
-Dua bentuk yang kini tidak punya jalan masuk untuk dilanggar: **nomor langkah roadmap tidak pernah dikirim pemanggil** (jadi roadmap berlubang mustahil, dan "langkah 0 = prasyarat" berhenti bergantung pada ketelitian penulis), dan **`Technology.Tools` bertipe `IReadOnlyList<TechnologyTool>`**, bukan `IReadOnlyList<Tool>` — tidak ada tempat untuk menyalin alat ke dalam halaman.
-
-### Penjaga pertama yang ternyata tidak menjaga: klaim saya sendiri
-
-Docstring uji integrasi yang baru mula-mula mengklaim ia menjaga baris `UsePropertyAccessMode(PropertyAccessMode.Field)`. **Klaim itu diuji dengan mematikan barisnya — keenam uji tetap hijau.** Keempat blok `HasMany`-nya sekalian dimatikan: **masih hijau.** Konvensi EF Core sudah memetakan semuanya sendiri.
-
-Konfigurasinya dipertahankan karena ia menuliskan maksud — terutama pilihan `Cascade`, yang justru bisa hilang tanpa satu pun uji memerah. **Yang diperbaiki klaimnya, bukan kodenya**, dan peringatannya ditulis di kode itu sendiri.
-
-### Penjaga kedua yang ternyata tidak menjaga: urutan langkah CI
-
-`run.ps1 verify` hijau di mesin sendiri, lalu CI langsung merah:
-
-```
-relation "technology.technologies" does not exist
-```
-
-Service container `postgres` menyala **kosong**, dan langkah *"Migrasi bisa dijalankan dari nol"* berada **sesudah** langkah uji.
-
-🔑 **Kenapa ini tidak pernah ketahuan:** satu-satunya uji integrasi sebelumnya cuma menyentuh `/health/ready`, yang memakai `AddDbContextCheck` — dan itu **hanya menguji koneksi, bukan keberadaan tabel**. Urutan yang salah itu karenanya hijau terus sejak uji integrasi pertama dipasang. Uji pertama yang benar-benar **menulis baris** langsung menabraknya.
-
-Urutannya ditukar, dan hasil sampingnya lebih baik daripada sekadar perbaikan: **CI kini menjalankan urutan yang sama dengan yang [`PENYEBARAN.md`](PENYEBARAN.md) wajibkan di produksi** — `postgres → migrate → api`. *CI yang urutannya berbeda dari produksi adalah CI yang mengukur keadaan lain.*
-
-Ikut dikoreksi: `run.ps1` dan `README.md` menulis bahwa `test`/`verify` butuh `up` — ternyata butuh **`up` LALU `migrate`**, dan galatnya kini dituliskan apa adanya supaya tidak perlu ditebak.
-
-### Yang belum, dan disengaja
-
-Endpoint API dan halaman `/teknologi/<slug>` belum ada — entitasnya dulu, supaya halaman punya isi untuk ditampilkan. Bulan 2 menuntut **7 topik AI Agents berstatus `tinjau`**, dan ⚠️ **tingkat `tinjau` hanya bisa dicapai lewat `MarkReviewed(reviewer)` yang menuntut nama pemeriksanya** — menurut ADR-012 itu memang pekerjaan manusia, bukan asisten.
-
----
-
-## 2026-09-08 — Sesi 9: Citra pertama benar-benar terbit
-
-Permintaan pemilik: *"lanjutkan semua tugas kemarin."*
-
-### Kedua PR bertumpuk mendarat
-
-`#29` (Redis opsional) lebih dulu ke `main` — `ee6f836` — lalu `#31` (citra produksi) — `4bfbfff`. Merge commit, bukan squash, alasan yang sama seperti Sesi 7.
-
-Diperiksa **sebelum** merge, bukan sesudah: kedua cabang digabung ke salinan `main` di mesin lokal lalu `run.ps1 verify` dijalankan di atas hasilnya. Hijau seluruhnya — 53 uji unit + 4 uji integrasi, 0 peringatan, lint dan build web bersih. `main` sudah bergerak 6 commit sejak kedua cabang dibuat, tapi berkas yang disentuh tidak beririsan sama sekali.
-
-Sesudah merge, log CI `main` dibaca per-baris untuk memastikan keempat uji integrasi **benar-benar berjalan**, bukan sekadar "Test Run Successful" atas nol uji: `Total tests: 4 / Passed: 4`, dan yang paling lambat (`Ready_membalas_503...`, 6 detik) memang menunggu koneksi Redis mati seperti yang dimaksudkan.
-
-### `rilis-citra.yml` akhirnya berjalan — dan hijau di percobaan pertama
-
-Ketiga citra dibangun, dipindai Trivy (CRITICAL+HIGH, nol temuan), lalu didorong ke GHCR dengan dua tag masing-masing:
-
-| Citra | Digest |
-|---|---|
-| `api` | `sha256:bd13e2d1fe5ca4ea75fbfc59512e35c5c0d421c0c6e1b4677dd92f7eaf66c896` |
-| `migrate` | `sha256:881f624c1cd0baca419b18da2ee67e691234a6fb22bb1d93977b73e230d47437` |
-| `web` | `sha256:e9941bc425a9ad7e5079a3aaeb465cf01662e5dcf67a3196e08230cd6f3f0641` |
-
-Satu kekhawatiran sebelum merge terjawab sendiri: setelan repo ini `default_workflow_permissions = read`, dan sempat meragukan apakah `packages: write` di badan workflow cukup untuk masuk GHCR. **Cukup** — blok `permissions:` tingkat workflow memang menaikkan, bukan sekadar mempersempit.
-
-### Yang ditemukan justru sesudah citranya terbit
-
-🔴 **`docker login` yang berhasil tidak membuktikan apa pun tentang menarik.** Login ke `ghcr.io` dengan token `gh` berhasil; `docker pull` citra yang baru saja terbit membalas **403**. Token OAuth `gh` bercakupan `gist`, `read:org`, `repo`, `workflow` — **`read:packages` tidak ada**, dan ketiadaannya baru terasa satu langkah kemudian.
-
-Ini bukan soal mesin ini saja: **menarik citra adalah langkah pertama platform hosting mana pun**, dan `PENYEBARAN.md` — runbook yang ditulis sebelum satu citra pun pernah terbit — tidak menyebutnya sama sekali. Sekarang ada bagian **Kredensial untuk MENARIK citra**, lengkap dengan galat 403 yang sesungguhnya dan tiga cara memberi cakupan itu.
-
-### Dua jebakan GitHub yang memakan waktu
-
-⚠️ **`gh pr merge --delete-branch` MENUTUP PR yang bertumpuk di atasnya, bukan mengarahkannya ulang.** Menghapus `fase-1/redis-opsional-di-produksi` sesudah #29 mendarat membuat #31 ikut **CLOSED**. Lalu kebuntuan: tidak bisa dibuka lagi karena cabang base-nya sudah tidak ada, dan tidak bisa dipindah base-nya karena PR-nya tertutup (*"Cannot change the base branch of a closed pull request"*).
-
-Jalan keluarnya **mendorong balik cabang yang baru saja dihapus** (tip-nya masih ada di klona lokal), buka lagi PR-nya, pindahkan base ke `main`, baru hapus cabangnya. Untuk PR bertumpuk berikutnya: **jangan `--delete-branch` pada PR bawah** — arahkan ulang PR atasnya lebih dulu.
-
-⚠️ **`Closes #30` di JUDUL PR tidak menutup apa pun**, dan ketahuannya cuma karena `closingIssuesReferences` #31 kosong sementara #29 berisi `[28]`. Dua sebab menumpuk, dan hanya satu yang bisa saya buktikan sendiri:
-
-1. **Terbukti di sini:** selama base PR bukan cabang default, daftar itu **tetap kosong walaupun badan PR sudah memuat `Closes #30`**. Ia baru muncul sesudah base dipindah ke `main`.
-2. **Dokumentasi, tidak saya uji terpisah:** kata kuncinya dibaca dari **badan** PR. Badan #29 memang membukanya dengan `Closes #28.`, badan #31 tidak punya sama sekali — judulnya saja yang menulisnya, dan itu tidak pernah cukup.
-
-Keduanya diperbaiki bersamaan, jadi #30 tertutup otomatis saat #31 mendarat. Ini varian ketiga dari jebakan yang sama dengan Sesi 7 (*"Menutup #26"* berbahasa Indonesia): **selalu periksa `closingIssuesReferences` sebelum merge, jangan percaya kalimatnya.**
-
-### ADR hosting akhirnya ditulis — dan harga bukan yang memutuskan
-
-Pemilik memilih agar keputusan platform **disiapkan**, bukan diambil. Hasilnya [ADR-017](adr/ADR-017-platform-hosting.md), satu-satunya ADR berstatus **Diusulkan** ([Issue #33](../../issues/33)).
-
-Pemeriksaannya dimulai dari harga dan berakhir di tempat lain. Empat syarat diturunkan dari apa yang repo ini sudah putuskan, dan **satu di antaranya menggugurkan kandidat tanpa menyentuh angka dolar**: `PENYEBARAN.md` menuntut **citra `migrate` yang BERBEDA** berjalan sampai selesai sebelum `api` menyala, sementara *pre-deploy command* milik Render, Railway, dan `release_command` Fly.io **semuanya menjalankan perintah di dalam citra layanan itu sendiri**. Hanya `initContainers` Azure Container Apps yang memetakan langsung ke bentuk yang sudah dibangun. Fly.io gugur pada tiga syarat sekaligus — termasuk tidak punya dukungan registry privat luar, yang akan membatalkan keputusan "terbitkan ke GHCR dulu" yang sudah diambil.
-
-🔑 **Temuan yang paling layak diingat: bentuk citra `migrate` dan pilihan platform ternyata TERIKAT, dan bentuk citranya sudah diputuskan lebih dulu tanpa tahu ia akan menyeleksi platform.** Memisahkan bundel jadi citra sendiri benar untuk `docker-compose`, dan diam-diam mempersempit pilihan PaaS jadi satu.
-
-Usulnya **Render**, dengan bundel migrasi pindah ke citra `api` — di sana ia bisa *framework-dependent* dan jauh lebih kecil, karena `aspnet:10.0` sudah punya runtime yang membuat `--self-contained` diperlukan di citra `migrator`. Alasan utamanya bukan Render paling murah, tapi **harganya tetap** di pagu yang belum pernah diuji tagihan sungguhan.
-
-⚠️ Kolom **kemampuan** di ADR itu seluruhnya dari dokumentasi vendor; kolom **harga** dari artikel banding pihak ketiga dan ditandai wajib dicek ulang. Bagian "angka mana yang diverifikasi" ditulis eksplisit supaya tidak ada yang mengutip keduanya seolah sekualitas.
-
-### Klaim basi yang ikut disapu
-
-- **ADR-016 butir 4** masih menulis ToS OpenAI *"belum pernah dibaca siapa pun"* — sudah dibaca 7 September. Diperbaiki dengan penunjuk ke `AUDIT-KELAYAKAN.md`, bukan salinan keempat, plus temuan yang mengubah ADR itu sendiri: **membacanya tidak menutup #17**, karena ToS OpenAI mengatur *Services* dan bukan penerbitan ulang isi editorial.
-- **Blok "Yang menunggu sesi berikutnya"** yang menggantung di tengah berkas ini masih mendaftar PR #23 dan #25 sebagai menunggu review — keduanya mendarat empat sesi lalu.
+🔑 Dan satu lagi yang bukan tentang penjaga, tapi tentang urutan memutuskan: **bentuk citra `migrate` dan pilihan platform ternyata TERIKAT, dan bentuk citranya sudah diputuskan lebih dulu tanpa tahu ia akan menyeleksi platform.** Pertanyaan yang layak diajukan lebih awal: *keputusan pengemasan ini diam-diam mempersempit pilihan apa nanti?*
 
 ---
 

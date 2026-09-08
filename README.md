@@ -8,9 +8,21 @@ Sasaran pemakai: pemilik sendiri, mahasiswa, engineer, sampai perusahaan yang bu
 
 ---
 
-## Status: Fase 1 — kerangka kode berjalan, Fase 0 **sudah terkunci**
+## Status: Fase 1 — semuanya siap tayang, tinggal tiga akun
 
-Repositori ini sekarang punya **kode yang jalan**, tapi baru kerangkanya: fondasi yang dipakai semua fitur, belum fiturnya.
+Repositori ini punya **kode yang jalan** dan **citra produksi yang sudah terbit**, tapi isinya baru kerangka: fondasi yang dipakai semua fitur, belum fiturnya.
+
+> ### 🔜 Langkah berikutnya, berurutan
+>
+> Semua yang bisa dikerjakan tanpa akun **sudah selesai.** Yang menahan situs tayang tinggal tiga pendaftaran — **ketiganya gratis dan tanpa kartu** ([ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md)):
+>
+> 1. **[#38](../../issues/38)** — Neon (PostgreSQL) → simpan URI sebagai secret `NEON_DATABASE_URL`
+> 2. **[#39](../../issues/39)** — Koyeb (API) dari citra GHCR
+> 3. **[#40](../../issues/40)** — Vercel (web) → **ini yang memberi URL publiknya**
+>
+> Sesudah tayang: **[#41](../../issues/41)** endpoint isi halaman + `/teknologi/<slug>`, lalu **[#42](../../issues/42)** isi AI Agents menuju Bulan 2.
+>
+> Enam langkah terincinya ada di **[docs/PENYEBARAN.md](docs/PENYEBARAN.md#menyebarkan-vercel--koyeb--neon)**.
 
 Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan health check yang benar-benar menyentuh dependensinya. Diverifikasi dua kali — di mesin pengembang (2026-09-03) dan **dari dalam peti kemas produksi, tiga kontainer, basis data kosong** (2026-09-07).
 
@@ -86,7 +98,7 @@ apps/api/            Host ASP.NET Core — health check, correlation id, OpenAPI
 apps/web/            Next.js 16 App Router
 services/technology/ Bounded context pertama — vertical slice + DDD ringan
 packages/contracts/  Kontrak API yang dipakai bersama
-tests/unit/          73 uji domain
+tests/unit/          83 uji domain + infrastruktur
 tests/integration/   6 uji (host sungguhan + PostgreSQL sungguhan)
 database/            SQL migrasi hasil generate + skrip isi contoh
 infrastructure/      Init Docker
