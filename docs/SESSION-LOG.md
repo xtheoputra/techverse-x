@@ -4,6 +4,44 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-08 — Sesi 9 (lanjutan 2): Ketiga issue terbuka ditutup sekaligus
+
+Permintaan pemilik, tiga sekaligus: **#33** *"gunakan apapun, yang tidak memberatkan dan paling mudah dan kuat, dapat dengan mudah dibuka walaupun dalam tahap pengembangan"* · **#32** *"cari semua rilis citra di internet, ambil semua informasi yang dibutuhkan untuk dokumen"* · **#17** *"kerjakan"*.
+
+### #33 — Render berbayar, dan gratisnya justru MELANGGAR syaratnya
+
+Kriteria *"dapat dengan mudah dibuka"* yang menggugurkan pilihan yang tampak paling ringan. Tier gratis Render: web service **tidur setelah 15 menit** (pengunjung berikutnya menunggu **30–60 detik**) dan **Postgres gratisnya kedaluwarsa 30 hari** lalu dihapus. Situs yang butuh satu menit untuk terbuka bukan situs yang mudah dibuka; basis data yang menghapus dirinya sendiri bukan yang kuat. **Gratis di sini justru paling memberatkan** — ia memindahkan bebannya dari uang ke pengalaman pembaca dan ke risiko kehilangan data.
+
+Dua hal dikerjakan sebelum akun dibuat, keduanya **dibuktikan dengan menjalankan**:
+
+1. **Bundel migrasi masuk citra `api`** — framework-dependent, 35,8 MB (bukan self-contained), karena basis `aspnet:10.0` sudah punya runtimenya. Dijalankan dari **dalam** citra `api` terhadap basis data **kosong** → 9 tabel + 14 bidang tersemai. Citra `migrate` yang berdiri sendiri tetap terbit untuk compose, VPS, dan `initContainers`.
+2. 🔴 **Kejutan penyebaran yang ditemukan SEBELUM menyebarkan:** Render — dan Railway, Heroku, Neon, Supabase — menyerahkan kredensial sebagai **URI** `postgresql://…`, sementara **Npgsql menuntut bentuk kunci-nilai dan MELEMPAR untuk URI**. Menempel nilai pemberian platform apa adanya akan gagal saat *start*, bukan saat konfigurasi. `PostgresConnectionString.Normalize()` menerjemahkan keduanya, dan **uji pertamanya bukan menguji kode kita melainkan membuktikan penerjemahnya memang dibutuhkan.**
+
+`render.yaml` lahir dengan empat nilai bertanda `GANTI`. Uji 73 → 83. Sisa untuk pemilik tinggal tiga langkah berakun: buat akun, tempel token GHCR `read:packages`, beli domain.
+
+### #32 — riset lengkap, lalu jawabannya justru "jangan"
+
+Jalurnya jelas dan semuanya bisa dikerjakan: `SOURCE_DATE_EPOCH` standar lintas-alat, Buildx ≥ 0.10 mempropagasikannya otomatis, `rewrite-timestamp=true` adalah **opsi eksportir bukan flag build** (BuildKit ≥ 0.13), provenance dimatikan, sisi .NET pakai `DotNet.ReproducibleBuilds`, verifikasi dengan membangun dua kali lalu membandingkan digest.
+
+🔑 **Yang membatalkannya adalah syarat yang tidak disebut panduan mana pun: citra dasar repo ini memakai TAG BERGERAK, dan itu disengaja.** Begitu Microsoft menerbitkan `aspnet:10.0` baru, membangun ulang sumber yang sama **wajib** menghasilkan citra berbeda — dan itu benar. Bit-for-bit mustahil tanpa memaku citra dasar ke digest.
+
+Dan memakunya menabrak gerbang kita sendiri: **Container Scan bernilai justru karena membangun ulang menarik lapisan dasar yang sudah ditambal.** Jadi trade-offnya bukan "boros vs rapi", melainkan **digest yang bisa dibandingkan ⟷ tambalan keamanan yang datang sendiri**. Untuk situs yang belum tayang dengan satu pengurus, tambalan otomatis menang.
+
+Yang dikerjakan: `paths-ignore` untuk dokumen — **aman, dan itu diperiksa ke Dockerfile-nya**, bukan diduga. Invariannya berubah jadi *"setiap commit yang BISA mengubah citra punya citra"*, dan lubangnya ditutup dengan menjawab pertanyaannya: `git rev-parse HEAD` berhenti jadi jawaban yang benar, dan `PENYEBARAN.md` kini menuliskan jawaban yang benar.
+
+### #17 — hasilnya jauh lebih ramah, tapi dua hal mengikat
+
+*OpenAI Services Agreement* (berlaku 1 Jan 2026) dan *Sharing & Publication Policy* dibaca di peramban sungguhan. **§3.3 memuat daftar larangan yang lengkap dan TIDAK ADA satu pun larangan menerbitkan ulang Output**; §4.1 justru menegaskan Output milik pelanggan, §4.2 menyatakan isi kita tidak dipakai melatih layanannya.
+
+Dua yang mengikat, dan keduanya baru kelihatan setelah dibaca:
+
+- ⚠️ **§10 "No Publicity"** melarang memasang nama atau logo pihak lain di situs tanpa izin tertulis. Menempel *"Powered by OpenAI"* di halaman muka — hal yang terasa sopan dan jujur — **melanggarnya**. Ini satu-satunya klausul yang bisa dilanggar besok pagi tanpa sadar.
+- 🔴 **Satu kalimat *Sharing & Publication Policy* berbenturan dengan tingkat `draf` ADR-012**: isi tidak boleh direpresentasikan sebagai sepenuhnya buatan AI, dan **seorang manusia harus memikul tanggung jawab akhir**. Label `draf` lahir demi kejujuran — dan justru karena jujur, ia menyatakan persis apa yang kalimat itu minta jangan dinyatakan. Dua pembacaan sama masuk akalnya, **ditulis apa adanya alih-alih dipilih diam-diam**. Belum menyala: V1 tidak memanggil model sama sekali.
+
+**Batas kutipan ditetapkan, tidak ditunda lagi:** arXiv boleh metadata penuh (CC0); sumber lain hanya judul, tautan, nama sumber, tanggal — **nol kutipan**. Kenapa nol dan bukan "sekian kata": V1 hanya menayangkan arXiv, jadi menetapkan jatah sekarang berarti memutuskan sesuatu yang belum ada pemakainya.
+
+---
+
 ## 2026-09-08 — Sesi 9 (lanjutan): Empat bagian isi, dan dua penjaga yang ternyata tidak menjaga
 
 Permintaan pemilik: *"lanjutkan secara berurutan tugas fasenya."* Butir Bulan 1 yang tersisa (deploy) menunggu keputusan platform di [#33](../../issues/33), jadi yang dikerjakan butir berikutnya menurut [`RENCANA-V1.md`](RENCANA-V1.md): **entitas isi halaman** ([#34](../../issues/34), PR [#35](../../pull/35), ter-merge `0ac4923`).
