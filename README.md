@@ -76,7 +76,7 @@ Gerbang yang sama dengan CI, sebelum push:
 | **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** | **Ke-22 keputusan dalam satu halaman**, berikut cara membatalkan tiap keputusan. Berlaku di atas `KERANGKA.md` kalau keduanya berbeda. |
 | **[docs/RENCANA-V1.md](docs/RENCANA-V1.md)** | Rencana enam bulan yang menggantikan `KERANGKA.md` 2.9. Deployment naik dari Bulan 6 ke Bulan 1. |
 | **[docs/PENYEBARAN.md](docs/PENYEBARAN.md)** | Runbook penyebaran, **netral platform**. Kredensial menarik citra, urutan `postgres → migrate → api → web`, variabel lingkungan, dan health check mana yang dipakai untuk apa. |
-| **[docs/adr/](docs/adr/)** | Tujuh belas Architecture Decision Record. Enam belas **Diterima**; [ADR-017](docs/adr/ADR-017-platform-hosting.md) (platform hosting) masih **Diusulkan** — ia menyangkut akun dan uang, jadi ia menyiapkan keputusannya dan tidak mengambilnya. |
+| **[docs/adr/](docs/adr/)** | Delapan belas Architecture Decision Record, semuanya **Diterima**. Dua terbaru menyangkut penyebaran: [ADR-017](docs/adr/ADR-017-platform-hosting.md) memilih platform hosting, [ADR-018](docs/adr/ADR-018-rilis-citra-dan-reproducibility.md) mengatur kapan citra dibangun ulang. |
 | **[docs/SESSION-LOG.md](docs/SESSION-LOG.md)** | Catatan sesi kerja, urutan terbaru di atas. |
 
 ### Kode

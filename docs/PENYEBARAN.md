@@ -26,6 +26,20 @@ yang bergerak berarti melepas kendali atas apa yang sebenarnya sedang berjalan,
 dan pertanyaan "versi berapa yang tayang?" kehilangan jawabannya tepat saat ia
 paling dibutuhkan.
 
+### 🔑 SHA yang mana?
+
+> **SHA yang disebut di ringkasan jalan _Rilis citra_ terakhir yang hijau** —
+> bukan `git rev-parse HEAD`.
+
+Keduanya sering sama, tapi **tidak selalu**, dan itu disengaja:
+[ADR-018](adr/ADR-018-rilis-citra-dan-reproducibility.md) membuat commit yang
+murni dokumen **tidak** membangun citra baru. Jadi kalau commit terakhir di
+`main` cuma menyentuh `docs/` atau `*.md`, citra untuk SHA itu **tidak ada** —
+yang berlaku citra dari commit kode terakhir sebelumnya.
+
+Membangun ulang untuk SHA mana pun tetap satu klik: Actions → *Rilis citra* →
+**Run workflow**.
+
 ---
 
 ## Kredensial untuk MENARIK citra
