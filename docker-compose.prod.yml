@@ -1,0 +1,93 @@
+# Bentuk PRODUKSI, dijalankan di mesin lokal.
+#
+# Ini bukan pengganti docker-compose.yml. Yang itu infrastruktur pengembangan
+# (KERANGKA.md 4.12: "jangan membuat production architecture dan local
+# architecture identik"). Yang INI ada untuk satu tujuan lain: membuktikan citra
+# produksinya benar-benar melayani situsnya, sebelum uang hosting keluar.
+#
+#     docker compose -f docker-compose.prod.yml up --build
+#     -> http://localhost:8080
+#
+# Tiga hal yang sengaja berbeda dari docker-compose.yml:
+#
+#   1. TIDAK ADA REDIS. ADR-016 memutuskan Redis tidak di-provision di V1, dan
+#      kesiapan API sudah tahu cara hidup tanpanya. Kalau berkas ini menyalakan
+#      Redis, ia justru menyembunyikan hal yang paling perlu dibuktikan.
+#   2. Migrasi berjalan sebagai satu langkah tersendiri yang HARUS selesai lebih
+#      dulu, bukan diselipkan ke dalam startup API.
+#   3. Postgres tidak membuka port ke host. Di produksi ia tidak boleh terjangkau
+#      dari luar, dan itu ikut diuji di sini.
+
+name: techversex-prod
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: techversex
+      POSTGRES_USER: techversex
+      # Hanya untuk pembuktian lokal. Hosting sungguhan memakai basis data
+      # terkelola dengan kredensial dari brankas rahasianya.
+      POSTGRES_PASSWORD: techversex_prod_lokal
+    volumes:
+      - postgres-prod-data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U techversex -d techversex"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # Bundel migrasi: satu berkas yang bisa dijalankan, tanpa SDK dan tanpa kode
+  # sumber. Berjalan sampai selesai lalu berhenti.
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: migrator
+    environment:
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=techversex;Username=techversex;Password=techversex_prod_lokal"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: final
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=techversex;Username=techversex;Password=techversex_prod_lokal"
+      # ConnectionStrings__Redis sengaja TIDAK ADA. Lihat catatan di kepala berkas.
+    ports:
+      # API memang publik menurut KERANGKA.md 4.9. Dibuka di sini juga supaya
+      # /health/ready bisa diperiksa langsung dari luar peti kemas.
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      # Nama service, bukan localhost: di dalam jaringan compose setiap peti
+      # kemas punya localhost-nya sendiri.
+      API_BASE_URL: "http://api:8080"
+    ports:
+      - "8080:3000"
+    depends_on:
+      - api
+
+volumes:
+  postgres-prod-data:
