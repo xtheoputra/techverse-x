@@ -40,6 +40,38 @@ yang berlaku citra dari commit kode terakhir sebelumnya.
 Membangun ulang untuk SHA mana pun tetap satu klik: Actions → *Rilis citra* →
 **Run workflow**.
 
+### 🔴 Panjangnya juga menentukan: tag di registry selalu SHA **40 karakter**
+
+`rilis-citra.yml` memberi tag `${GITHUB_SHA}`, dan itu SHA **penuh**. Manusia
+menulis SHA pendek. Akibatnya:
+
+```
+docker pull ghcr.io/<pemilik>/techverse-x/api:b23650e
+Error response from daemon: manifest unknown
+```
+
+⚠️ **Galat itu berbohong tentang sebabnya.** *"manifest unknown"* terbaca seperti
+*"citranya belum terbit"*, padahal citranya ada dan sehat — yang tidak ada cuma
+tag sependek itu. Terbukti pada gladi bersih 2026-09-09, dan yang menabraknya
+adalah orang yang sedang memegang runbook ini.
+
+🔑 **Bedakan dua kegagalan yang terlihat mirip tapi obatnya berlawanan:**
+
+| Balasan registry | Artinya | Yang diperbaiki |
+|---|---|---|
+| `manifest unknown` | kredensial **diterima**; **tag**nya tidak ada | SHA-nya — panjang atau memang belum pernah dibangun |
+| `denied` / `unauthorized` | soal **izin**; tag belum sempat dicari | cakupan token (`read:packages`) |
+
+**Siapa yang memaafkan SHA pendek, dan siapa yang tidak:**
+
+| Tempat | SHA pendek? |
+|---|---|
+| Workflow *Migrasi produksi* | ✅ dikanonikalkan sendiri lewat API GitHub |
+| **Koyeb** (dan `docker pull` mana pun) | 🔴 **TIDAK** — tulis 40 karakter |
+
+Jalan teraman: salin ref citra **apa adanya** dari ringkasan *Migrasi produksi*,
+yang memang mencetaknya lengkap.
+
 ---
 
 ## Kredensial untuk MENARIK citra
@@ -252,11 +284,15 @@ dari yang tayang.
    (`postgresql://…`); aplikasi menerimanya apa adanya
    (`PostgresConnectionString`), jadi jangan dirakit ulang dengan tangan.
 2. **GitHub → Settings → Secrets** — isi `NEON_DATABASE_URL` dengan URI itu.
-3. **Actions → *Migrasi produksi* → Run workflow**, isi SHA-nya. Ini langkah
-   `migrate`. Ia harus **hijau** sebelum lanjut.
-4. **Koyeb** — buat Service dari citra `…/api:<sha>` **yang SAMA** dengan langkah
-   3. Registry secret: token GitHub bercakupan `read:packages`. Isi
-   `ConnectionStrings__Postgres` dengan URI Neon. Port `8080`.
+3. **Actions → *Migrasi produksi* → Run workflow**, isi SHA-nya (pendek maupun
+   penuh — langkah ini mengkanonikalkannya sendiri). Ini langkah `migrate`. Ia
+   harus **hijau** sebelum lanjut, dan ringkasannya mencetak **ref citra
+   lengkap** yang dipakai langkah berikutnya.
+4. **Koyeb** — buat Service dari ref citra **yang persis sama** dengan yang
+   dicetak langkah 3. 🔴 **Salin lengkap; SHA 40 karakter, bukan tujuh** — Koyeb
+   tidak mengkanonikalkan apa pun, dan SHA pendek di sini berujung
+   `manifest unknown`. Registry secret: token GitHub bercakupan `read:packages`.
+   Isi `ConnectionStrings__Postgres` dengan URI Neon. Port `8080`.
    ⚠️ **`ConnectionStrings__Redis` dikosongkan** — ADR-016.
    ⚠️ **`Editorial__WritesEnabled` juga dikosongkan** — ADR-020.
 5. **Vercel** — impor repo, *Root Directory* `apps/web`. Isi `API_BASE_URL`
@@ -312,6 +348,34 @@ curl -s -o /dev/null -w '%{http_code}\n' http://localhost:5085/api/v1/fields
 npm run build --workspace web
 cd apps/web && API_BASE_URL=http://localhost:5085 npx next start -p 3010
 ```
+
+⚠️ `next start` akan memperingatkan *"does not work with output: standalone"*.
+Halamannya tetap tersaji dan pemeriksaan ini tetap sah — ia menyajikan `.next`
+biasa, bukan `.next/standalone`. **Vercel tidak memakai `standalone` sama
+sekali**; setelan itu ada untuk citra `web`.
+
+#### Bentuk Vercel yang sesungguhnya: *Root Directory* = `apps/web`
+
+Perintah di atas dibangun dari **akar repo**. Vercel tidak begitu — ia memakai
+`apps/web` sebagai *Root Directory*, dan itu bentuk yang berbeda karena
+**`apps/web` tidak punya `package-lock.json` sendiri**; satu-satunya lockfile ada
+di akar. Kedua kemungkinan sudah dilatih di pohon hasil `git archive` yang bersih:
+
+| Setelan Vercel | Yang terjadi | Hasil |
+|---|---|---|
+| *Include files outside root* **ON** (bawaan monorepo) | npm menaiki pohon, menemukan akar workspace, memakai **lockfile akar** | ✅ build hijau, versi **terpin** |
+| *Include files outside root* **OFF** | hanya `apps/web` yang ada; npm memasang **tanpa lockfile** | ✅ build hijau, tapi versi **tidak terpin** |
+
+🔑 **Biarkan setelan itu ON.** Keduanya hijau hari ini — dan pada percobaan ini
+keduanya bahkan memilih versi yang **sama persis** (`next` 16.3.4, `tailwindcss`
+4.3.3, `eslint` 9.39.5, `typescript` 5.9.3) — tapi yang OFF hijau karena rentang
+`^` kebetulan belum bergerak, bukan karena ada yang menahannya. Yang ON dijamin
+lockfile.
+
+⚠️ **Yang dilatih di sini BENTUKNYA, bukan platformnya.** Perilaku Vercel yang
+sesungguhnya baru bisa dibuktikan sesudah akunnya ada (#40). Yang sudah
+tersingkir adalah satu-satunya risiko yang bisa diperiksa tanpa akun: bahwa
+`apps/web` tanpa lockfile gagal dipasang atau gagal dibangun. Ia tidak.
 
 ⚠️ Dua hal yang berbeda dari produksi, dan keduanya **memang tidak bisa
 ditiru** di sini: Postgres lokal tidak punya TLS, jadi `sslmode` dan

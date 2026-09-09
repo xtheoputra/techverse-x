@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       sha:
-        description: "SHA citra yang akan dimigrasikan (harus SAMA dengan yang dipasang di Koyeb)"
+        description: "SHA commit yang citranya akan dimigrasikan - pendek atau penuh, keduanya diterima (harus SAMA dengan yang dipasang di Koyeb)"
         required: true
         type: string
 
@@ -46,16 +46,68 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # 🔴 SHA PENDEK MENGHENTIKAN LANGKAH 3, dan sebabnya murni bentuk tulisan.
+      #
+      # `rilis-citra.yml` memberi tag `${GITHUB_SHA}` - EMPAT PULUH karakter -
+      # sementara manusia menulis SHA tujuh karakter, dan badan issue #38/#39
+      # dulu mencontohkannya begitu. `docker pull .../api:b23650e` membalas
+      # `manifest unknown`, yang terbaca seperti "citranya belum terbit" padahal
+      # citranya ada dan sehat. Terbukti pada gladi bersih 2026-09-09.
+      #
+      # Diperbaiki DI SINI, bukan dengan menambah tag pendek di rilis-citra.yml:
+      # dua nama untuk satu citra justru mengundang kesalahan yang lebih mahal -
+      # memigrasi tag yang satu lalu memasang tag yang lain di Koyeb.
+      #
+      # ⚠️ Kelonggaran ini HANYA berlaku di sini. Koyeb tidak punya langkah
+      # kanonikalisasi: di sana ref citranya harus ditulis LENGKAP.
+      - name: Kanonikalkan SHA
+        id: sha
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MASUKAN: ${{ inputs.sha }}
+        run: |
+          penuh="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${MASUKAN}" --jq .sha 2>/dev/null || true)"
+
+          if [ -z "$penuh" ]; then
+            echo "::error::SHA '${MASUKAN}' tidak dikenali di repo ini. Ambil dari ringkasan jalan 'Rilis citra' terakhir yang hijau."
+            exit 1
+          fi
+
+          echo "penuh=$penuh" >> "$GITHUB_OUTPUT"
+          echo "Masukan '${MASUKAN}' -> $penuh"
+
       - name: Siapkan nama citra
         id: nama
-        run: echo "citra=ghcr.io/${GITHUB_REPOSITORY,,}/api:${{ inputs.sha }}" >> "$GITHUB_OUTPUT"
+        run: echo "citra=ghcr.io/${GITHUB_REPOSITORY,,}/api:${{ steps.sha.outputs.penuh }}" >> "$GITHUB_OUTPUT"
 
       # Ditarik lebih dulu, terpisah dari langkah menjalankan, supaya kegagalan
       # MENARIK bisa dibedakan dari kegagalan MEMIGRASI. Keduanya punya obat yang
       # sangat berbeda: yang satu soal kredensial atau tag salah, yang lain soal
       # basis data.
       - name: Tarik citra api
-        run: docker pull "${{ steps.nama.outputs.citra }}"
+        run: |
+          if docker pull "${{ steps.nama.outputs.citra }}" 2>"$RUNNER_TEMP/tarik.err"; then
+            exit 0
+          fi
+
+          cat "$RUNNER_TEMP/tarik.err"
+
+          # 🔑 DUA KEGAGALAN YANG TERLIHAT MIRIP TAPI OBATNYA BERLAWANAN, dan
+          # membedakannya di sini supaya tidak ada yang menebak:
+          #
+          #   manifest unknown  -> kredensialnya DITERIMA; TAGnya yang tidak ada.
+          #   denied/unauthorized -> soal IZIN; tagnya belum sempat dicari.
+          #
+          # Pernah salah dibaca: `docker login` yang berhasil sempat dianggap
+          # membuktikan hak menarik, padahal tarikan lokal membalas 403 karena
+          # token `gh` tidak bercakupan `read:packages`.
+          if grep -qi "manifest unknown" "$RUNNER_TEMP/tarik.err"; then
+            echo "::error::Tidak ada citra bertag itu. Kredensialnya DITERIMA - yang tidak ada TAGnya. Kemungkinan besar SHA-nya memang belum pernah membangun citra (ADR-018 melewati commit dokumen). Ambil SHA dari ringkasan jalan 'Rilis citra' terakhir yang hijau."
+          elif grep -qiE "denied|unauthorized" "$RUNNER_TEMP/tarik.err"; then
+            echo "::error::Registry MENOLAK - ini soal izin, bukan soal tag. Periksa 'packages: read' pada workflow ini."
+          fi
+
+          exit 1
 
       - name: Jalankan bundel migrasi
         env:
@@ -81,7 +133,14 @@ jobs:
             echo
             echo "Citra: \`${{ steps.nama.outputs.citra }}\`"
             echo
-            echo "Langkah berikutnya: pasang SHA yang **sama** di Koyeb."
+            echo "Langkah berikutnya: pasang ref citra di atas **apa adanya** di Koyeb."
+            echo
+            echo "> ⚠️ **Salin ref lengkapnya, jangan SHA pendek.** Tag di registry"
+            echo "> selalu SHA 40 karakter. Langkah ini boleh menerima SHA pendek"
+            echo "> karena ia mengkanonikalkannya sendiri; **Koyeb tidak**, dan"
+            echo "> di sana SHA pendek berujung \`manifest unknown\` - galat yang"
+            echo "> terbaca seperti \"citranya belum terbit\" padahal citranya ada."
+            echo
             echo "Memasang SHA yang berbeda dari yang baru saja dimigrasikan"
             echo "adalah cara paling mudah membuat skema dan kode tidak sejalan."
           } >> "$GITHUB_STEP_SUMMARY"
