@@ -25,6 +25,7 @@ Satu berkas per keputusan. Nama berkasnya mengikuti daftar yang sudah ditetapkan
 | [018](ADR-018-rilis-citra-dan-reproducibility.md) | Rilis citra melewati commit dokumen; **reproducibility TIDAK dikejar** | Diterima - Issue [#32](../../../../issues/32) |
 | [019](ADR-019-hosting-gratis-tanpa-kartu.md) | **Vercel + Koyeb + Neon** - gratis, tanpa kartu. Menggantikan 017 | Diterima |
 | [020](ADR-020-permukaan-tulis-api.md) | **Endpoint tulis tidak dipasang di produksi** - melengkapi 013, yang hanya menimbang login PEMBACA | Diterima |
+| [021](ADR-021-jalan-menuju-tinjau.md) | Jalan sah menuju `tinjau`: **workflow bergerbang**, nama pemeriksa dari `github.actor` | Diterima sebagai pola - **dibangun sesudah [#40](../../../../issues/40)** |
 
 ⚠️ **ADR-017 dibiarkan utuh meski digantikan**, karena dua bagiannya masih benar
 dan masih dipakai: pemeriksaan empat syarat yang menemukan **bentuk citra
