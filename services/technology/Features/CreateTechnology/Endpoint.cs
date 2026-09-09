@@ -45,6 +45,17 @@ public static class CreateTechnologyEndpoint
             });
         }
 
+        if (result.IsSlugOwnedByField)
+        {
+            // Ruang nama /teknologi/<slug> dipakai bersama bidang dan topik
+            // (ADR-009). Pesannya menyebut SIAPA pemiliknya, sebab "sudah dipakai"
+            // tanpa itu akan membuat penulis mencari topik yang tidak ada.
+            return TypedResults.Conflict(
+                $"Slug '{result.FieldOwnedSlug}' sudah dipegang sebuah bidang. "
+                + "/teknologi/<slug> dipakai bersama bidang dan topik (ADR-009), jadi keduanya tidak boleh bernama sama. "
+                + "Pilih slug lain lewat medan 'slug'.");
+        }
+
         return result.IsConflict
             ? TypedResults.Conflict($"Slug '{result.ConflictingSlug}' sudah dipakai teknologi lain.")
             : TypedResults.Created($"/api/v1/technologies/{result.Value!.Slug}", result.Value);

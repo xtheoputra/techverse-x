@@ -1,11 +1,19 @@
 namespace TechVerseX.Contracts.Technology;
 
 /// <summary>
-/// Satu teknologi, bentuk lengkap.
+/// Satu teknologi, bentuk lengkap — <b>termasuk kelima bagian template ADR-012</b>.
 /// </summary>
 /// <remarks>
-/// Isi halaman menurut template ADR-012 — roadmap, tools, mini project,
-/// resources — belum ada di sini; itu irisan berikutnya.
+/// Bagian 1 template adalah <see cref="Summary"/> sendiri (<em>Overview</em>);
+/// empat sisanya dibawa keempat daftar di bawah.
+/// <para>
+/// 🔑 <b><see cref="MissingSections"/> ikut dikirim, dan itu bukan kemewahan.</b>
+/// Ia jawaban <c>Technology.MissingSections</c> apa adanya: bagian mana yang masih
+/// kosong, memakai istilah template. Tanpa medan ini, satu-satunya cara klien tahu
+/// sebuah halaman belum lengkap adalah menghitung sendiri keempat daftar itu — dan
+/// aturan <em>"roadmap butuh langkah SESUDAH langkah 0"</em> akan ditulis ulang di
+/// setiap klien, lalu menyimpang di salah satunya.
+/// </para>
 /// </remarks>
 public sealed record TechnologyResponse(
     Guid Id,
@@ -18,7 +26,12 @@ public sealed record TechnologyResponse(
     string Maturity,
     DateTimeOffset? ReviewedAt,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
+    DateTimeOffset UpdatedAt,
+    IReadOnlyList<RoadmapStepResponse> Roadmap,
+    IReadOnlyList<TechnologyToolResponse> Tools,
+    IReadOnlyList<ProjectResponse> Projects,
+    IReadOnlyList<ResourceResponse> Resources,
+    IReadOnlyList<string> MissingSections);
 
 /// <summary>
 /// Bentuk ringkas untuk daftar dan hasil pencarian.

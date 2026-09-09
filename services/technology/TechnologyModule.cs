@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TechVerseX.TechnologyService.Features.CreateTechnology;
+using TechVerseX.TechnologyService.Features.CreateTool;
+using TechVerseX.TechnologyService.Features.EditContentSections;
 using TechVerseX.TechnologyService.Features.GetTechnology;
 using TechVerseX.TechnologyService.Features.ListFields;
 using TechVerseX.TechnologyService.Features.SearchTechnology;
@@ -42,6 +44,8 @@ public static class TechnologyModule
         services.AddScoped<ListFieldsHandler>();
         services.AddScoped<GetTechnologyHandler>();
         services.AddScoped<SearchTechnologyHandler>();
+        services.AddScoped<EditContentSectionsHandler>();
+        services.AddScoped<CreateToolHandler>();
 
         services.AddScoped<IValidator<CreateTechnologyCommand>, CreateTechnologyValidator>();
 
@@ -59,11 +63,22 @@ public static class TechnologyModule
         technologies.MapGetTechnology();
         technologies.MapCreateTechnology();
 
+        // Bagian isi halaman bersarang di bawah topiknya — mereka tidak punya
+        // hidup di luar topik itu, sama seperti mereka tidak punya DbSet sendiri.
+        technologies.MapEditContentSections();
+
         // Bidang punya grupnya sendiri, bukan sub-rute teknologi: menurut ADR-009
         // ia entitas ber-URL kanonik, bukan atribut sebuah teknologi.
         var fields = routes.MapGroup("/api/v1/fields").WithTags("Field");
 
         fields.MapListFields();
+
+        // Katalog alat punya grup sendiri, BUKAN sub-rute topik: satu alat dipakai
+        // banyak topik, dan menempatkannya di bawah salah satunya akan menyiratkan
+        // kepemilikan yang tidak ada.
+        var tools = routes.MapGroup("/api/v1/tools").WithTags("Tool");
+
+        tools.MapCreateTool();
 
         return routes;
     }

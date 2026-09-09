@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { connection } from 'next/server';
 import MaturityBadge from '@/components/MaturityBadge';
 import { searchTechnologies } from '@/lib/api';
@@ -57,7 +58,11 @@ export default async function TechnologyList() {
             className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
           >
             <p className="text-xs uppercase tracking-wide text-neutral-500">{technology.fieldName}</p>
-            <h3 className="mt-1 font-semibold">{technology.name}</h3>
+            <h3 className="mt-1 font-semibold">
+              <Link href={`/teknologi/${technology.slug}`} className="underline underline-offset-2">
+                {technology.name}
+              </Link>
+            </h3>
             <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{technology.summary}</p>
 
             {/* Aturan keras ADR-012: kematangan isi selalu ikut tampil. Kontrak
