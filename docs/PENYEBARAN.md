@@ -349,6 +349,34 @@ npm run build --workspace web
 cd apps/web && API_BASE_URL=http://localhost:5085 npx next start -p 3010
 ```
 
+⚠️ `next start` akan memperingatkan *"does not work with output: standalone"*.
+Halamannya tetap tersaji dan pemeriksaan ini tetap sah — ia menyajikan `.next`
+biasa, bukan `.next/standalone`. **Vercel tidak memakai `standalone` sama
+sekali**; setelan itu ada untuk citra `web`.
+
+#### Bentuk Vercel yang sesungguhnya: *Root Directory* = `apps/web`
+
+Perintah di atas dibangun dari **akar repo**. Vercel tidak begitu — ia memakai
+`apps/web` sebagai *Root Directory*, dan itu bentuk yang berbeda karena
+**`apps/web` tidak punya `package-lock.json` sendiri**; satu-satunya lockfile ada
+di akar. Kedua kemungkinan sudah dilatih di pohon hasil `git archive` yang bersih:
+
+| Setelan Vercel | Yang terjadi | Hasil |
+|---|---|---|
+| *Include files outside root* **ON** (bawaan monorepo) | npm menaiki pohon, menemukan akar workspace, memakai **lockfile akar** | ✅ build hijau, versi **terpin** |
+| *Include files outside root* **OFF** | hanya `apps/web` yang ada; npm memasang **tanpa lockfile** | ✅ build hijau, tapi versi **tidak terpin** |
+
+🔑 **Biarkan setelan itu ON.** Keduanya hijau hari ini — dan pada percobaan ini
+keduanya bahkan memilih versi yang **sama persis** (`next` 16.3.4, `tailwindcss`
+4.3.3, `eslint` 9.39.5, `typescript` 5.9.3) — tapi yang OFF hijau karena rentang
+`^` kebetulan belum bergerak, bukan karena ada yang menahannya. Yang ON dijamin
+lockfile.
+
+⚠️ **Yang dilatih di sini BENTUKNYA, bukan platformnya.** Perilaku Vercel yang
+sesungguhnya baru bisa dibuktikan sesudah akunnya ada (#40). Yang sudah
+tersingkir adalah satu-satunya risiko yang bisa diperiksa tanpa akun: bahwa
+`apps/web` tanpa lockfile gagal dipasang atau gagal dibangun. Ia tidak.
+
 ⚠️ Dua hal yang berbeda dari produksi, dan keduanya **memang tidak bisa
 ditiru** di sini: Postgres lokal tidak punya TLS, jadi `sslmode` dan
 `channel_binding` dipakai dengan nilai `prefer`, bukan `require`. Yang tetap
