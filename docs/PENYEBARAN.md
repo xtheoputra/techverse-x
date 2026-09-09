@@ -231,6 +231,96 @@ dari yang tayang.
 mudah membuat skema dan kode tidak sejalan.** Langkah 3 dan 4 harus menyebut SHA
 yang sama.
 
+### Gladi bersih tanpa satu pun akun
+
+Keenam langkah di atas bisa **dilatih lengkap di mesin sendiri** sebelum akun
+mana pun dibuat, dan sekali dijalankan ia langsung menemukan satu cacat yang
+menghentikan langkah 3 (lihat bagian berikutnya). Yang menjadikannya latihan yang
+berarti bukan menjalankan citranya, melainkan **satu detail yang mudah terlewat:**
+
+> 🔑 **Basis data latihannya harus dibuat TANPA skrip init.**
+> `docker-compose.yml` memasang `infrastructure/docker/postgres-init/01-schemas.sql`
+> yang sudah membuat skema `technology` lebih dulu — **Neon tidak punya
+> fasilitas seperti itu.** Migrasi yang hijau di atas basis data dev karena itu
+> belum membuktikan apa pun tentang Neon. `CREATE DATABASE <nama>` di dalam
+> peti kemas yang sama memberi basis data yang benar-benar kosong (skrip init
+> hanya berjalan sekali, untuk basis data bawaan), dan itulah tiruan Neon yang
+> sah.
+
+```bash
+docker exec techversex-postgres psql -U techversex -d techversex -c "CREATE DATABASE gladi;"
+docker build -f apps/api/Dockerfile -t tvx/api:gladi .
+
+# Langkah 3, persis seperti workflow "Migrasi produksi" menjalankannya.
+docker run --rm --network techversex_default \
+  -e "ConnectionStrings__Postgres=postgresql://techversex:techversex_dev@techversex-postgres:5432/gladi?sslmode=prefer&channel_binding=prefer" \
+  --entrypoint /app/efbundle tvx/api:gladi
+
+# Langkah 4 + 6.
+docker run -d --name tvx-gladi --network techversex_default -p 5085:8080 \
+  -e "ConnectionStrings__Postgres=<URI yang sama>" tvx/api:gladi
+curl -s http://localhost:5085/health/ready
+
+# Langkah 5, dibangun dari SUMBER seperti Vercel - bukan dari citra `web`.
+npm run build --workspace web
+cd apps/web && API_BASE_URL=http://localhost:5085 npx next start -p 3010
+```
+
+⚠️ Dua hal yang berbeda dari produksi, dan keduanya **memang tidak bisa
+ditiru** di sini: Postgres lokal tidak punya TLS, jadi `sslmode` dan
+`channel_binding` dipakai dengan nilai `prefer`, bukan `require`. Yang tetap
+terbukti adalah **string koneksinya dimengerti**; yang tidak terbukti adalah
+transportnya. Kalau Neon menolak, bacalah galatnya: *"Couldn't set …"* berarti
+parameternya, *"SSL connection requested…"* berarti transport.
+
+💡 Hasilnya sudah dicatat: 9 tabel + 14 bidang dari basis data kosong,
+`/health/ready` **200 hanya menyebut `postgres`**, dan halaman dari sumber
+menampilkan **14 bidang**.
+
+⚠️ **Dua baris pertama langkah 3 selalu terlihat seperti kegagalan, dan bukan:**
+
+```
+Cannot load library libgssapi_krb5.so.2
+Error: libgssapi_krb5.so.2: cannot open shared object file: No such file or directory
+```
+
+Itu Npgsql mencari pustaka Kerberos yang memang sengaja tidak ada di citra dasar
+.NET. Migrasinya berjalan terus sampai `Done.` — **yang menentukan adalah exit
+code langkahnya, bukan kata "Error" di dalam lognya.**
+
+### 🔴 `channel_binding`: satu garis bawah yang menghentikan langkah 3
+
+Dasbor Neon menyerahkan string koneksinya lengkap dengan **dua** parameter:
+
+```
+postgresql://user:sandi@ep-….neon.tech/dbname?sslmode=require&channel_binding=require
+```
+
+Langkah 1 melarang merakit ulang string itu dengan tangan — dan sampai
+2026-09-09, mematuhi larangan itu **menggagalkan migrasinya**. Sebabnya satu
+karakter: **Npgsql mencocokkan nama parameter dengan mengabaikan huruf
+besar-kecil dan spasi, tapi TIDAK garis bawah.** Karena itu `sslmode` lolos (ia
+tak punya pemisah sama sekali) sementara `channel_binding` ditolak — walaupun
+Npgsql punya properti `Channel Binding` untuk persis parameter itu.
+
+Gejalanya menyesatkan, dan itu bagian terburuknya. EF membungkusnya jadi:
+
+```
+An error occurred while accessing the Microsoft.Extensions.Hosting services.
+Continuing without the application service provider. Error: Couldn't set channel_binding
+Unable to create a 'DbContext' of type '…'. The exception 'Unable to resolve service for type
+'Microsoft.EntityFrameworkCore.DbContextOptions`1[…]' …' was thrown …
+```
+
+Kalimat yang menyebut sebabnya berada **di tengah**, diapit kata *"Continuing"*
+dan sebuah galat DI yang terdengar seperti masalah lain sama sekali.
+
+`PostgresConnectionString` kini menerjemahkan garis bawah jadi spasi, jadi
+seluruh parameter gaya libpq (`channel_binding`, `application_name`, …) ikut
+terbawa. Yang benar-benar tidak dikenali **tetap ditolak** — membuangnya
+diam-diam persis kesalahan yang dihindari sepanjang berkas ini — tapi pesannya
+kini menyebut nama parameternya.
+
 ### Kenapa API yang tidur tidak menjadi masalah
 
 Instance Koyeb gratis **tidur setelah satu jam** menganggur, dan itu tidak bisa

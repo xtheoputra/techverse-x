@@ -4,6 +4,56 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-09 — Sesi 10: Gladi bersih penyebaran, dan dua klaim yang runtuh karenanya
+
+Permintaan pemilik: *"lanjutkan pekerjaan"*.
+
+Papan kerjanya menunjukkan buntu: lima issue terbuka, **empat di antaranya menunggu akun pemilik** (#38 · #39 · #40 · #42), dan satu-satunya yang bisa dikerjakan asisten (#41) secara eksplisit dipesan **sesudah situs tayang**. Sesi 9 sendiri menyimpulkan *"tidak ada lagi yang bisa dikerjakan asisten sendiri untuk menayangkan situs."*
+
+**Kesimpulan itu keliru,** dan sesi ini menunjukkan kenapa: yang belum dikerjakan bukan *langkahnya*, melainkan **latihannya**. Keenam langkah `PENYEBARAN.md` dilatih lengkap di mesin sendiri dengan tiruan lokal — dan langkah 3 gagal.
+
+### 1. Gladi bersih: yang membuatnya berarti adalah basis data yang dibuat SATU CARA saja
+
+Kuncinya satu detail: **`docker-compose.yml` memasang skrip init yang sudah membuat skema `technology`, dan Neon tidak punya fasilitas seperti itu.** Migrasi yang hijau di atas basis data dev karena itu tidak membuktikan apa pun tentang Neon. `CREATE DATABASE` di peti kemas yang sama memberi basis data yang benar-benar kosong — tiruan Neon yang sah — sebab skrip init hanya berjalan sekali untuk basis data bawaan.
+
+Di atas tiruan itu, urutan `migrate → api → web` dijalankan dari **citra `api` yang dibangun dari Dockerfile yang sama**, lalu web **dibangun dari sumber** seperti Vercel, bukan dari citra `web`.
+
+| Langkah | Hasil |
+|---|---|
+| `/app/efbundle` atas basis data kosong | **9 tabel + 14 bidang** — `EnsureSchema` memang membuat skemanya sendiri |
+| `/health/ready` citra `api` | **200**, badannya **hanya** menyebut `postgres` |
+| `next build` dari sumber + `API_BASE_URL` | halaman menyajikan **14 bidang** |
+
+### 2. 🔴 Cacat yang menghentikan langkah 3: satu garis bawah
+
+Dasbor Neon menyerahkan `?sslmode=require&channel_binding=require`, dan langkah 1 **melarang merakit ulang string itu dengan tangan**. Mematuhi larangan itu menggagalkan migrasinya: **Npgsql mencocokkan nama parameter dengan mengabaikan huruf besar-kecil dan spasi, tapi TIDAK garis bawah.** `sslmode` lolos karena tak punya pemisah sama sekali; `channel_binding` ditolak — padahal Npgsql punya properti `Channel Binding` untuk persis parameter itu.
+
+🔑 **Kenapa uji yang ada tidak melihatnya:** `Parameter_kueri_seperti_sslmode_tidak_dibuang` memilih contoh yang, secara kebetulan, satu-satunya bentuk yang **tidak** bisa gagal. Ia menguji *ada tidaknya* pass-through parameter, bukan *ejaan* parameternya.
+
+⚠️ Gejalanya menyesatkan: EF membungkusnya jadi *"Continuing without the application service provider"* diikuti galat DI yang terdengar seperti masalah lain. Kalimat yang menyebut sebabnya terjepit di tengah.
+
+Diperbaiki di `PostgresConnectionString` (garis bawah → spasi). Yang benar-benar asing **tetap ditolak**, tapi pesannya kini menyebut nama parameternya. **Empat uji baru; dua di antaranya dibuktikan MERAH** dengan mematikan terjemahannya, dan uji `Npgsql_MEMANG_menolak_parameter_bergaris_bawah` menjaga alasan keberadaannya — kalau Npgsql suatu hari ikut mengabaikan garis bawah, uji itu yang pertama memerah.
+
+**Kendalinya:** dengan string Neon apa adanya (`require`/`require`), galatnya **berpindah** dari *"Couldn't set channel_binding"* ke *"SSL connection requested. No SSL enabled connection from this host is configured"* — dari "stringmu tidak dimengerti" menjadi "server INI tidak punya TLS", dan Neon punya.
+
+### 3. 🔴 Cacat kedua, dan ia hanya terlihat dari MENJALANKAN halamannya
+
+Kartu bidang menampilkan `FieldPriority` dengan kata-kata kematangan isi. Halaman sungguhan berbunyi:
+
+> **AI Agents — Ditulis manusia** · … · **0 topik · 0 diperiksa manusia**
+
+Dua kalimat yang saling membantah di satu kartu, dan **enam kartu Core memasang klaim "ditulis manusia" sementara nol topik pernah diperiksa siapa pun** — persis klaim yang dilarang ADR-012, di halaman yang paragrafnya sendiri mengutip larangan itu.
+
+Sebabnya bukan salah sumbu: `FieldPriority` memang menyatakan kematangan **tertinggi yang DIJANJIKAN**. Yang salah **tensesnya** — janji ditulis seolah pencapaian. Label kini berbunyi *"Target: ditulis manusia"*.
+
+🔑 **Nol uji membaca teks kartu itu**, dan tidak ada gerbang yang bisa melihatnya. Ia muncul hanya karena halamannya benar-benar dibuka — pengulangan pelajaran yang sudah tercatat di repo ini: *bukti terbaik bukan uji, melainkan halaman sungguhan.*
+
+### Keadaan akhir sesi
+
+`run.ps1 verify` hijau: **87 uji unit** (83 → 87) + **6 uji integrasi**. Kelima issue tetap terbuka — **tidak satu pun ditutup sesi ini**, sebab keempatnya memang menunggu akun pemilik dan #41 masih menunggu situsnya tayang. Yang berubah: ketika pemilik akhirnya membuat ketiga akun itu, langkah 3 tidak lagi gagal.
+
+---
+
 ## 2026-09-08 — Sesi 9: Dari dua PR menunggu sampai nol issue terbuka
 
 Sesi terpanjang sejauh ini. Permintaan pemilik berturut-turut: *"lanjutkan semua tugas kemarin"* → *"lanjutkan secara berurutan tugas fasenya"* → *"#33 gunakan apapun… #32 cari semua rilis citra di internet… #17 kerjakan"* → *"jangan render, akun gratis pilihannya pada apa"*.
@@ -13,6 +63,11 @@ Keadaan akhir: `main` = `8be066d`, **nol PR dan nol issue terbuka**, 83 uji unit
 ### 🔜 Yang menunggu besok
 
 **Ketiganya menuntut akun atas nama pemilik. Tidak ada lagi yang bisa dikerjakan asisten sendiri untuk menayangkan situs.**
+
+> ⛔ **Sudah terjawab — kalimat kedua itu keliru (Sesi 10).** Akunnya memang tetap
+> menuntut pemilik, tapi *melatih* keenam langkahnya tidak. Gladi bersih dengan
+> tiruan lokal menemukan cacat yang menghentikan langkah 3 (`channel_binding`).
+> Kalimat aslinya dibiarkan utuh sebagai catatan sejarah.
 
 | Menunggu | Butuh apa |
 |---|---|

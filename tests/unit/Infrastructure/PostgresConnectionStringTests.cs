@@ -83,6 +83,79 @@ public sealed class PostgresConnectionStringTests
         Assert.Equal(SslMode.Require, new NpgsqlConnectionStringBuilder(hasil).SslMode);
     }
 
+    [Fact]
+    public void Npgsql_MEMANG_menolak_parameter_bergaris_bawah()
+    {
+        // Pasangan dari uji pertama berkas ini: sebelum menjaga terjemahannya,
+        // buktikan dulu terjemahan itu memang dibutuhkan.
+        //
+        // Npgsql PUNYA properti untuk parameter ini - namanya "Channel Binding".
+        // Yang tidak ia lakukan adalah mengabaikan GARIS BAWAH saat mencocokkan
+        // kata kunci; spasi dan huruf besar-kecil diabaikan, garis bawah tidak.
+        // Kalau suatu hari Npgsql ikut mengabaikannya, uji ini yang pertama
+        // memerah - dan KeywordNpgsql boleh dibuang.
+        var builder = new NpgsqlConnectionStringBuilder();
+
+        Assert.ThrowsAny<ArgumentException>(() => builder["channel_binding"] = "require");
+
+        // Bentuk berspasi diterima. Inilah yang membuat terjemahannya cukup
+        // menukar satu karakter, bukan memelihara tabel padanan.
+        builder["channel binding"] = "require";
+        Assert.Equal(ChannelBinding.Require, builder.ChannelBinding);
+    }
+
+    [Fact]
+    public void String_koneksi_Neon_APA_ADANYA_diterima()
+    {
+        // 🔴 Bentuk PERSIS yang dipajang dasbor Neon, disalin dari dokumentasinya
+        // (neon.com/docs/connect/connect-from-any-app). Ia membawa DUA parameter,
+        // dan yang kedua bergaris bawah.
+        //
+        // Ini bukan uji hipotetis: PENYEBARAN.md dan issue #38 sama-sama melarang
+        // merakit ulang string koneksi dengan tangan, jadi bentuk inilah yang
+        // benar-benar akan masuk ke secret NEON_DATABASE_URL.
+        const string neon =
+            "postgresql://alex:AbC123dEf@ep-cool-darkness-a1b2c3d4-pooler.us-east-2.aws.neon.tech/dbname"
+            + "?sslmode=require&channel_binding=require";
+
+        var builder = new NpgsqlConnectionStringBuilder(PostgresConnectionString.Normalize(neon));
+
+        Assert.Equal("ep-cool-darkness-a1b2c3d4-pooler.us-east-2.aws.neon.tech", builder.Host);
+        Assert.Equal("dbname", builder.Database);
+        Assert.Equal("alex", builder.Username);
+        Assert.Equal("AbC123dEf", builder.Password);
+
+        // URI Neon tidak menyebut port sama sekali.
+        Assert.Equal(5432, builder.Port);
+
+        // Keduanya soal keamanan transport. Membuang salah satunya diam-diam
+        // jauh lebih buruk daripada gagal terang-terangan.
+        Assert.Equal(SslMode.Require, builder.SslMode);
+        Assert.Equal(ChannelBinding.Require, builder.ChannelBinding);
+    }
+
+    [Fact]
+    public void Parameter_bergaris_bawah_lain_ikut_diterjemahkan()
+    {
+        // Terjemahannya berlaku umum, bukan tambalan khusus Neon.
+        var hasil = PostgresConnectionString.Normalize($"{UriRender}?application_name=techversex-api");
+
+        Assert.Equal("techversex-api", new NpgsqlConnectionStringBuilder(hasil).ApplicationName);
+    }
+
+    [Fact]
+    public void Parameter_yang_benar_benar_asing_ditolak_sambil_menyebut_namanya()
+    {
+        // Yang tidak dikenali TETAP ditolak - membuangnya diam-diam persis
+        // kesalahan yang dihindari sepanjang berkas ini. Yang diperbaiki cuma
+        // keterbacaannya: pesan Npgsql sendiri terkubur di balik dua lapis
+        // pembungkus EF.
+        var galat = Assert.Throws<ArgumentException>(
+            () => PostgresConnectionString.Normalize($"{UriRender}?parameter_karangan=1"));
+
+        Assert.Contains("parameter_karangan", galat.Message, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
