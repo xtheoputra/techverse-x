@@ -58,6 +58,18 @@ Workflow ini ditulis di Sesi 9 dan **tidak pernah sekali pun dijalankan**. Aman 
 - ⚖️ **[ADR-021](adr/ADR-021-jalan-menuju-tinjau.md) — pertanyaan yang ADR-020 biarkan terbuka, ditutup.** Jalan menuju `tinjau` = **workflow manual bergerbang** meniru *Migrasi produksi* (polanya kini terbukti), peti kemas `api` menyala **di dalam runner** dengan sakelar tulis hidup lalu dipanggil lewat `localhost` — **ADR-020 tidak dilonggarkan sedikit pun**. 🔑 **Nama pemeriksa diambil dari `github.actor`, bukan diketik**: nama yang sudah diautentikasi GitHub jauh lebih kuat daripada teks bebas, jadi ini **memperkuat** ADR-012 alih-alih melonggarkannya. Endpointnya nanti hidup di dalam grup tulis yang sudah ada, jadi ketiga uji ADR-020 langsung menjaganya tanpa satu pun uji baru.
 - 🔴 **Sengaja TIDAK dibangun sekarang, dan itu bagian dari keputusannya.** `RENCANA-V1.md` menulis Bulan 1 mengejar URL bukan fitur, dan #41 memesan urutan itu eksplisit. Membangunnya sekarang = mesin peninjauan untuk isi yang belum ada, di situs yang belum tayang, terhadap basis data yang belum dibuat. **Pemicunya: #40 tutup.** Yang berlaku sejak hari ini cuma satu — soalnya tidak terbuka lagi, jadi tak perlu diperdebatkan ulang tiap sesi.
 
+### Penutup: keadaan saat sesi diakhiri
+
+`main` **`c1afd33`**, push & bersih, **satu-satunya cabang**. Lima PR mendarat hari ini (#43–#47), #41 tertutup. **87 uji unit + 18 integrasi**, `run.ps1 verify` hijau, CI hijau, `Rilis citra` hijau. 📦 **SHA citra `a213ce3`** — dan `main` justru `c1afd33`, sebab commit terakhir murni dokumen: ADR-018 membuktikan dirinya sendiri secara langsung.
+
+**Jalur kritis kini sepenuhnya di tangan pemilik:** #38 Neon → #39 Koyeb → #40 Vercel. Itu **adalah** sasaran Bulan 1. Segala yang bisa dibuktikan tanpa akun sudah dibuktikan — tarikan citra privat dari Actions, workflow migrasi sampai penjaga secret, bentuk build Vercel, dan permukaan tulis tertutup di citra yang tayang.
+
+**Sesudah #40 tutup, urutannya sudah tetap:** bangun jalan [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md) → isi tujuh topik AI Agents sampai `draf` → pemilik menaikkannya ke `tinjau` (#42).
+
+🔴 **Satu temuan ditinggalkan sebagai [#48](../../../../issues/48), dan ia drift yang disebabkan perubahan sesi ini sendiri.** ADR-020 menutup permukaan tulis; `docker-compose.prod.yml` karenanya tidak punya lagi cara memasukkan data — sementara `PENYEBARAN.md` masih menjanjikan tumpukan itu membuktikan *"halaman yang benar-benar menampilkan datanya"*. ⚠️ Ditulis apa adanya di issue-nya: **disimpulkan dari membaca compose-nya, BELUM dijalankan** — langkah pertamanya membuktikan dulu, bukan langsung menyunting dokumen. Sekalian di sana: gladi bersih tujuh langkah yang lengkap terakhir dijalankan **sebelum** #41, ADR-020, dan gerbang citra, jadi `/app/efbundle` dari basis data kosong belum diuji ulang terhadap citra yang tayang hari ini.
+
+💡 **Pola yang berulang tiga kali hari ini, dan layak dicari lagi besok: klaim berhenti benar tanpa ada yang memberi tahu pembacanya.** Komentar gerbang citra yang melebih-lebihkan kendalinya · badan #38/#39 yang mengunci SHA mati · dan sekarang `PENYEBARAN.md` soal compose. Ketiganya ditulis oleh orang yang sama yang mengubah keadaannya.
+
 ### Cara kerja yang layak diulang
 
 🔑 **Sapuan "berapa pemanggilnya?" berbuah justru karena dijalankan atas penegak yang sudah DIPERCAYA.** `MarkReviewed()` adalah bagian yang paling sering dikutip sebagai bukti ADR-012 ditegakkan — dan itulah kenapa nol pemanggilnya tidak pernah terlihat selama tiga sesi. Pertanyaannya: *aturan ini ditegakkan oleh tipe — tapi tipe itu dipanggil dari mana?*
