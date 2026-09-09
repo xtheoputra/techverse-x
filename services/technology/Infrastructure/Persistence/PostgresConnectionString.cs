@@ -70,11 +70,50 @@ public static class PostgresConnectionString
         // kegagalan koneksi yang sebabnya tidak kelihatan.
         foreach (var pasangan in ParseQuery(uri.Query))
         {
-            builder[pasangan.Key] = pasangan.Value;
+            var kunci = KeywordNpgsql(pasangan.Key);
+
+            try
+            {
+                builder[kunci] = pasangan.Value;
+            }
+            catch (ArgumentException ex)
+            {
+                // Pesan asli Npgsql hanya berbunyi "Couldn't set <nama>", dan EF
+                // membungkusnya lagi di balik "Continuing without the application
+                // service provider" - dua lapis yang membuat sebabnya nyaris tak
+                // terbaca. Sebutkan parameternya, dan sebutkan bahwa yang salah
+                // BUKAN string dari platformnya.
+                throw new ArgumentException(
+                    $"Parameter '{pasangan.Key}' pada URI ConnectionStrings:Postgres tidak dikenali Npgsql. "
+                    + "Jangan menyunting string yang diberikan platform; laporkan parameter ini supaya "
+                    + "penerjemahnya yang diperbaiki.",
+                    nameof(value),
+                    ex);
+            }
         }
 
         return builder.ConnectionString;
     }
+
+    /// <summary>
+    /// Menerjemahkan nama parameter gaya libpq ke nama yang dikenali Npgsql.
+    /// </summary>
+    /// <remarks>
+    /// 🔴 <b>Ini yang menghentikan penyebaran pertama ke Neon, dan sebabnya satu
+    /// karakter.</b> libpq menulis parameternya dengan <b>garis bawah</b>
+    /// (<c>channel_binding</c>, <c>application_name</c>), sedangkan Npgsql
+    /// mencocokkan kata kunci dengan mengabaikan huruf besar-kecil <b>dan spasi
+    /// — tapi TIDAK garis bawah</b>. Karena itu <c>sslmode</c> lolos (tak punya
+    /// pemisah sama sekali) sementara <c>channel_binding</c> ditolak, walau
+    /// Npgsql punya properti <c>Channel Binding</c> untuk persis parameter itu.
+    /// <para>
+    /// Neon menyerahkan <c>?sslmode=require&amp;channel_binding=require</c> apa
+    /// adanya di dasbornya, dan <c>PENYEBARAN.md</c> melarang merakit ulang
+    /// string koneksi dengan tangan. Tanpa terjemahan ini, kedua larangan itu
+    /// bertabrakan dan yang kalah adalah penyebarannya.
+    /// </para>
+    /// </remarks>
+    private static string KeywordNpgsql(string keyword) => keyword.Replace('_', ' ');
 
     private static IEnumerable<KeyValuePair<string, string>> ParseQuery(string query)
     {

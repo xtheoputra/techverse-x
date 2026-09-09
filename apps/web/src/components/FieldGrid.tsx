@@ -9,10 +9,24 @@ import { listFields } from '@/lib/api';
  * semenit; angka kedua adalah ukuran kemajuan proyek yang sebenarnya.
  */
 
+/**
+ * Label prioritas ADR-010 — dan perhatikan KATA "target"-nya.
+ *
+ * 🔴 Tanpa kata itu, kartunya BERBOHONG. `FieldPriority` menyatakan kematangan
+ * TERTINGGI YANG DIJANJIKAN untuk topik di bawah sebuah bidang, bukan kematangan
+ * yang sudah dicapai. Ketika labelnya berbunyi "Ditulis manusia", enam kartu Core
+ * memasang klaim itu tepat di atas barisnya sendiri yang berbunyi
+ * "0 topik · 0 diperiksa manusia" — dua kalimat yang saling membantah di satu
+ * kartu, dan klaim yang persis dilarang ADR-012.
+ *
+ * Ini ketahuan dari MENJALANKAN halamannya, bukan dari uji: tidak ada satu pun
+ * uji yang membaca teks kartu ini. Selama semua bidang masih nol topik, itulah
+ * yang akan dibaca pengunjung pertama di URL publik (#40).
+ */
 const PRIORITY_LABEL = {
-  Core: 'Ditulis manusia',
-  Supporting: 'Draf',
-  Peripheral: 'Kurasi saja',
+  Core: 'Target: ditulis manusia',
+  Supporting: 'Target: draf',
+  Peripheral: 'Target: kurasi tautan',
 } as const;
 
 export default async function FieldGrid() {
