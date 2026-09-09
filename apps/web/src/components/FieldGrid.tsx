@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { connection } from 'next/server';
 import { listFields } from '@/lib/api';
 
@@ -64,13 +65,18 @@ export default async function FieldGrid() {
             className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
           >
             <div className="flex items-baseline justify-between gap-2">
-              <h3 className="font-semibold">{field.name}</h3>
+              <h3 className="font-semibold">
+                <Link href={`/teknologi/${field.slug}`} className="underline underline-offset-2">
+                  {field.name}
+                </Link>
+              </h3>
               <span className="shrink-0 text-xs text-neutral-500">{PRIORITY_LABEL[field.priority]}</span>
             </div>
             <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{field.summary}</p>
             <p className="mt-2 text-xs text-neutral-500">
               {field.topicCount} topik · {field.reviewedTopicCount} diperiksa manusia
             </p>
+            {/* Alamatnya berhenti jadi teks mati: rute /teknologi/<slug> kini ada. */}
             <p className="mt-1 font-mono text-xs text-neutral-400">/teknologi/{field.slug}</p>
           </li>
         ))}

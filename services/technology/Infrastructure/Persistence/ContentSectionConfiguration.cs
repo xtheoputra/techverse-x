@@ -12,6 +12,25 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence;
 /// <c>body</c>: bentuk seperti itu memindahkan seluruh aturan ke kode aplikasi
 /// dan membuat "halaman ini lengkap atau belum" jadi pertanyaan yang tidak bisa
 /// dijawab basis data. Berkas ini konsekuensinya — empat tabel bertipe.
+/// <para>
+/// 🔴 <b><c>ValueGeneratedNever()</c> pada ketiga kunci di bawah BUKAN kerapian —
+/// tanpanya, menambah bagian ke topik yang SUDAH TERSIMPAN gagal dengan 500.</b>
+/// Kunci di sini dibuat domain (<c>Guid.CreateVersion7()</c>), jadi nilainya sudah
+/// terisi saat entitas baru muncul di koleksi agregat. Konvensi EF untuk kunci
+/// <c>Guid</c> adalah <c>ValueGeneratedOnAdd</c>, dan dengan itu EF memakai
+/// "kuncinya sudah berisi ⇒ barisnya sudah ada" lalu menerbitkan <c>UPDATE</c>
+/// alih-alih <c>INSERT</c>. UPDATE itu tidak menyentuh satu baris pun dan muncul
+/// sebagai <c>DbUpdateConcurrencyException</c> — pesan yang menuduh balapan data,
+/// padahal yang salah pemetaan.
+/// </para>
+/// <para>
+/// ⚠️ <b>Kenapa ini tidak pernah ketahuan sampai Sesi 10:</b> satu-satunya kode
+/// yang pernah menyimpan bagian isi membuat topiknya <em>dan</em> bagiannya dalam
+/// satu <c>SaveChanges</c>. Di graf yang seluruhnya <c>Added</c>, anaknya ikut
+/// <c>Added</c> dan heuristik itu tidak pernah dipakai. Endpoint isi halaman
+/// adalah jalur pertama yang menambah anak ke agregat yang sudah ada di basis
+/// data. <c>ContentSectionEndpointTests</c> yang menjaganya sekarang.
+/// </para>
 /// </remarks>
 internal sealed class RoadmapStepConfiguration : IEntityTypeConfiguration<RoadmapStep>
 {
@@ -21,6 +40,9 @@ internal sealed class RoadmapStepConfiguration : IEntityTypeConfiguration<Roadma
 
         builder.ToTable("roadmap_steps");
         builder.HasKey(s => s.Id);
+
+        // Lihat catatan di ringkasan berkas ini sebelum membuang baris ini.
+        builder.Property(s => s.Id).ValueGeneratedNever();
 
         builder.Property(s => s.Order).IsRequired();
         builder.Property(s => s.Title).HasMaxLength(200).IsRequired();
@@ -94,6 +116,8 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
         builder.ToTable("projects");
         builder.HasKey(p => p.Id);
+        // Kunci dibuat domain, bukan basis data - lihat ringkasan berkas ini.
+        builder.Property(p => p.Id).ValueGeneratedNever();
 
         builder.Property(p => p.Title).HasMaxLength(200).IsRequired();
         builder.Property(p => p.Brief).HasMaxLength(4000).IsRequired();
@@ -109,6 +133,8 @@ internal sealed class ResourceConfiguration : IEntityTypeConfiguration<Resource>
 
         builder.ToTable("resources");
         builder.HasKey(r => r.Id);
+        // Kunci dibuat domain, bukan basis data - lihat ringkasan berkas ini.
+        builder.Property(r => r.Id).ValueGeneratedNever();
 
         // Enum jadi teks, alasan yang sama dengan Status dan Maturity: dump basis
         // data harus terbaca manusia, dan menyisipkan anggota enum baru tidak

@@ -79,6 +79,14 @@ yang tidak punya jalan keluar sestandar itu.
 
 - `apps/api` **tidak** memasang autentikasi apa pun sekarang, konsisten dengan
   [ADR-008](ADR-008-batas-fase-1.md).
+- 🔴 **Ditambahkan 2026-09-09 — lihat [ADR-020](ADR-020-permukaan-tulis-api.md).**
+  Ketiga alasan di atas semuanya menimbang identitas **PEMBACA** (Progress
+  Tracker, Badge, AI Mentor). ADR ini tidak pernah menimbang permukaan tulis
+  **REDAKSI** — delapan endpoint yang mengubah isi situs — dan kalimat "V1 tanpa
+  autentikasi" terlanjur dibaca seolah sudah menjawabnya. Ia tidak: keputusan
+  yang sudah diambil itu menjawab pertanyaan yang lain. Kesimpulan ADR ini tetap berlaku
+  apa adanya; yang ditambahkan ADR-020 adalah bahwa produksi **tidak memasang
+  endpoint tulisnya sama sekali** selama belum ada cara sah mengenali penulisnya.
 - Karena V1 tanpa login, AI Mentor tidak bisa dibatasi per pengguna. Batasnya
   jadi **pagu pemakaian harian global**, ditetapkan di
   [ADR-016](ADR-016-pagu-biaya.md).

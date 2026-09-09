@@ -107,7 +107,36 @@ sama.
 |---|---|---|
 | `ConnectionStrings__Postgres` | **ya** | Tanpa ini API berhenti saat menyala dengan pesan yang menyebutkan namanya. Sengaja keras. |
 | `ConnectionStrings__Redis` | **tidak** | **Jangan diisi di V1.** Lihat di bawah. |
+| `Editorial__WritesEnabled` | **tidak** | 🔴 **JANGAN DIISI.** Lihat di bawah. |
 | `ASPNETCORE_ENVIRONMENT` | tidak | Biarkan kosong (= `Production`). |
+
+#### 🔴 `Editorial__WritesEnabled`: biarkan kosong
+
+Bawaannya `false`, dan itulah bentuk produksi V1 — **terbitan yang hanya bisa
+dibaca** ([ADR-020](adr/ADR-020-permukaan-tulis-api.md)). Mengisinya `true` di
+lingkungan yang terjangkau internet berarti **siapa pun yang menemukan URL API
+boleh mengubah isi situs**: membuat topik yang langsung tampil di halaman muka,
+menyisipkan tautan asing di bagian Resources, dan menaikkan halaman ke `draf`.
+V1 tidak punya autentikasi sama sekali ([ADR-013](adr/ADR-013-autentikasi.md)),
+jadi tidak ada apa pun di belakangnya yang menyaring.
+
+Tidak ada yang hilang karena dibiarkan kosong: keempat belas bidang datang dari
+**migrasi**, bukan dari HTTP.
+
+**Cara memeriksanya sesudah menyebar** — dua baris, dan keduanya harus benar:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -X POST https://<api>/api/v1/technologies \
+  -H 'Content-Type: application/json' -d '{"name":"Uji","summary":"Uji","fieldSlug":"ai-agents"}'
+# harus 405   (404 untuk endpoint tulis yang lain)
+
+curl -s -o /dev/null -w '%{http_code}\n' https://<api>/api/v1/fields
+# harus 200   - kendalinya: yang tertutup MENULIS, bukan seluruh API
+```
+
+Log startup juga menyebutkannya. `Editorial:WritesEnabled mati` adalah bentuk
+yang benar; baris ber-level **`warn`** yang berbunyi `HIDUP` di produksi adalah
+insiden, bukan catatan.
 
 ### `web`
 
@@ -222,10 +251,15 @@ dari yang tayang.
    3. Registry secret: token GitHub bercakupan `read:packages`. Isi
    `ConnectionStrings__Postgres` dengan URI Neon. Port `8080`.
    ⚠️ **`ConnectionStrings__Redis` dikosongkan** — ADR-016.
+   ⚠️ **`Editorial__WritesEnabled` juga dikosongkan** — ADR-020.
 5. **Vercel** — impor repo, *Root Directory* `apps/web`. Isi `API_BASE_URL`
    dengan URL publik service Koyeb (`https://…koyeb.app`).
 6. **Periksa** `/health/ready` di URL Koyeb: harus **200**, dan badannya hanya
    menyebut `postgres`. Kalau `redis` muncul, berarti langkah 4 salah.
+7. **Periksa permukaan tulisnya tertutup** — dua `curl` di bagian
+   *Variabel lingkungan* di atas. Ini langkah tersendiri dan bukan pelengkap:
+   sampai ia dijalankan, yang terbukti baru bahwa situsnya **bisa dibaca**, dan
+   API yang sehat tapi terbuka terlihat persis sama sehatnya.
 
 🔴 **Memasang SHA yang berbeda dari yang baru dimigrasikan adalah cara paling
 mudah membuat skema dan kode tidak sejalan.** Langkah 3 dan 4 harus menyebut SHA
@@ -233,7 +267,7 @@ yang sama.
 
 ### Gladi bersih tanpa satu pun akun
 
-Keenam langkah di atas bisa **dilatih lengkap di mesin sendiri** sebelum akun
+Ketujuh langkah di atas bisa **dilatih lengkap di mesin sendiri** sebelum akun
 mana pun dibuat, dan sekali dijalankan ia langsung menemukan satu cacat yang
 menghentikan langkah 3 (lihat bagian berikutnya). Yang menjadikannya latihan yang
 berarti bukan menjalankan citranya, melainkan **satu detail yang mudah terlewat:**
@@ -260,6 +294,12 @@ docker run --rm --network techversex_default \
 docker run -d --name tvx-gladi --network techversex_default -p 5085:8080 \
   -e "ConnectionStrings__Postgres=<URI yang sama>" tvx/api:gladi
 curl -s http://localhost:5085/health/ready
+
+# Langkah 7 - permukaan tulis. Peti kemas ini TIDAK membaca launchSettings.json,
+# jadi ia sudah berbentuk produksi: yang di bawah harus 405, lalu 200.
+curl -s -o /dev/null -w '%{http_code}\n' -X POST http://localhost:5085/api/v1/technologies \
+  -H 'Content-Type: application/json' -d '{"name":"Uji","summary":"Uji","fieldSlug":"ai-agents"}'
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:5085/api/v1/fields
 
 # Langkah 5, dibangun dari SUMBER seperti Vercel - bukan dari citra `web`.
 npm run build --workspace web

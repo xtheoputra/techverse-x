@@ -37,6 +37,47 @@ export type Field = {
   reviewedTopicCount: number;
 };
 
+export type RoadmapStep = {
+  order: number;
+  isPrerequisite: boolean;
+  title: string;
+  description: string;
+};
+
+export type TechnologyTool = {
+  slug: string;
+  name: string;
+  summary: string;
+  homepage: string | null;
+  note: string | null;
+};
+
+export type Project = { id: string; title: string; brief: string };
+
+export type ResourceType = 'OfficialDocs' | 'Video' | 'Paper' | 'Repository';
+
+export type Resource = { id: string; type: ResourceType; title: string; url: string };
+
+/**
+ * Satu topik lengkap dengan kelima bagian template ADR-012.
+ *
+ * `missingSections` datang dari server, bukan dihitung di sini — lihat catatan
+ * di `TechnologyResponse`. Aturan "roadmap baru terisi kalau ada langkah SESUDAH
+ * langkah 0" tinggal di agregat, dan menyalinnya ke klien adalah cara paling
+ * mudah membuat dua jawaban yang berbeda untuk satu pertanyaan.
+ */
+export type TechnologyDetail = TechnologySummary & {
+  status: string;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  roadmap: RoadmapStep[];
+  tools: TechnologyTool[];
+  projects: Project[];
+  resources: Resource[];
+  missingSections: string[];
+};
+
 export type PagedResponse<T> = {
   items: T[];
   page: number;
@@ -46,9 +87,18 @@ export type PagedResponse<T> = {
   hasNextPage: boolean;
 };
 
+/**
+ * 🔴 `notFound` dipisahkan dari kegagalan lain DENGAN SENGAJA.
+ *
+ * "Topik ini tidak ada" dan "API-nya sedang tidak bisa dihubungi" tampak sama di
+ * lapisan fetch dan **harus berakhir berbeda di halaman**: yang pertama boleh
+ * jadi 404, yang kedua tidak pernah boleh. API di Koyeb tidur setelah satu jam
+ * (ADR-019), jadi menyamakan keduanya berarti setiap kali instance-nya bangun,
+ * halaman yang sehat menjawab "hilang" — ke pembaca maupun ke mesin pengindeks.
+ */
 export type ApiResult<T> =
   | { ok: true; data: T }
-  | { ok: false; reason: string };
+  | { ok: false; reason: string; notFound: boolean };
 
 /**
  * Berapa lama hasil API boleh dipakai ulang sebelum diambil lagi, dalam detik.
@@ -91,14 +141,20 @@ async function getJson<T>(path: string): Promise<ApiResult<T>> {
     });
 
     if (!response.ok) {
-      return { ok: false, reason: `API membalas ${response.status}.` };
+      return {
+        ok: false,
+        reason: `API membalas ${response.status}.`,
+        notFound: response.status === 404,
+      };
     }
 
     return { ok: true, data: (await response.json()) as T };
   } catch {
     // API mati bukan alasan halamannya ikut putih. Fase 1 masih sering
     // dijalankan tanpa backend menyala.
-    return { ok: false, reason: `Tidak bisa menghubungi API di ${baseUrl}.` };
+    //
+    // ⚠️ notFound: false — tidak bisa dihubungi BUKAN tidak ada.
+    return { ok: false, reason: `Tidak bisa menghubungi API di ${baseUrl}.`, notFound: false };
   }
 }
 
@@ -116,4 +172,9 @@ export function searchTechnologies(
 /** Keempat belas bidang ADR-010. Daftarnya tertutup, jadi tidak ada penomoran halaman. */
 export function listFields(): Promise<ApiResult<Field[]>> {
   return getJson<Field[]>('/api/v1/fields');
+}
+
+/** Satu topik berikut kelima bagian isinya. */
+export function getTechnology(slug: string): Promise<ApiResult<TechnologyDetail>> {
+  return getJson<TechnologyDetail>(`/api/v1/technologies/${encodeURIComponent(slug)}`);
 }

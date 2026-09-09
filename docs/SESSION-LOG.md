@@ -4,6 +4,36 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-09 — Sesi 11: Isi halaman mendarat, lalu satu pertanyaan membuka lubang yang jauh lebih besar
+
+Permintaan pemilik: *"lanjutkan"*.
+
+Sesi ini membuka dengan dua cabang selesai tapi menggantung: **#43 terbuka dan hijau**, dan `fase-1/isi-halaman` sudah dikerjakan penuh tapi **tidak pernah dibuatkan PR**. Keduanya digabungkan, diperiksa ulang dengan dijalankan, lalu didaratkan. Yang mendarat: endpoint kelima bagian isi + `/teknologi/<slug>` (#41), perbaikan seed, dan **ADR-020**.
+
+### Pertanyaan yang membuka lubangnya
+
+Sapuan rutin *"penegak ini punya berapa pemanggil?"* menemukan **`MarkReviewed()` dan `Publish()` nol pemanggil di kode produksi** — bukan endpoint, bukan skrip, bukan UI; hanya uji unit. Konsekuensinya bukan soal kerapian:
+
+🔴 **Target Bulan 2 (#42) hari ini tidak bisa dicapai SIAPA PUN, bukan hanya oleh asisten.** Catatan Sesi 6 dan Sesi 9 benar bahwa `tinjau` menuntut manusia — tapi keduanya berhenti di situ, dan yang tak pernah ditanyakan adalah *manusianya menekan apa?* Angka "N topik sudah diperiksa manusia" di halaman muka adalah pencacah **tanpa produsen**: ia terpaku di nol karena tidak ada kode yang bisa menaikkannya.
+
+Menarik benang itu ke pertanyaan berikutnya — *kalau pemilik mau menandai halaman, lewat jalan mana?* — sampai pada `apps/api` yang **memasang seluruh permukaan tulis tanpa syarat: tanpa autentikasi, tanpa rate limit, tanpa CORS.**
+
+🔴🔴 **Keputusan yang sudah diambil ternyata menjawab pertanyaan yang lain.** ADR-013 memutuskan "V1 tanpa autentikasi", dan ketiga alasannya menimbang identitas **PEMBACA** — Progress Tracker, Badge, AI Mentor. Permukaan tulis **REDAKSI** tidak disebut satu baris pun, sementara kalimat "V1 tanpa autentikasi" terlanjur terbaca seolah sudah menutup soalnya. Begitu #39 dan #40 selesai — dua langkah berikutnya, bukan sesuatu yang jauh — `https://….koyeb.app` menerima delapan endpoint tulis dari siapa pun yang menemukan alamatnya.
+
+**Keputusan pemilik: tutup.** Bentuknya di [ADR-020](adr/ADR-020-permukaan-tulis-api.md) — endpoint tulis **tidak dipasang** kecuali diminta, bawaannya mati, dan parameternya tanpa nilai bawaan supaya host yang lupa menyatakan pilihannya gagal *dikompilasi*. Yang **tidak** diputuskan, dan sengaja dibiarkan terbuka: bagaimana isi sungguhan nanti masuk ke produksi.
+
+### Yang ditemukan dari MENJALANKAN, lagi
+
+- **`run.ps1 seed` menggandakan halaman yang dibuatnya untuk dilihat.** Dijalankan dua kali ia meninggalkan langkah roadmap, proyek, dan sumber yang kembar — di halaman contoh yang justru ada supaya bentuk halaman yang sudah jadi bisa dilihat orang. Lolos karena **`MarkDrafted()` memeriksa bagian yang KOSONG, bukan yang KEMBAR**, jadi seed tetap mencetak *"kelima bagian terisi"* dan `missingSections` tetap kosong di atas halaman yang sudah rusak.
+- **Sabotase gerbang baru menemukan cacat di uji yang menjaganya.** Saat gerbangnya sengaja dijebolkan untuk dibuktikan merah, uji yang seharusnya tidak membuat apa pun justru membuat topik, lalu gagal sebelum sempat mendaftarkannya untuk dibersihkan — satu baris tertinggal. 🔑 **Uji yang bersih-bersih hanya di jalur suksesnya sama saja dengan tidak bersih-bersih**, dan justru di hari gerbangnya rusak basis data pengembang paling mudah ikut kotor.
+- **Dua emoji di komentar `run.ps1` nyaris mengulang jebakan em dash.** Keduanya memuat byte `0x94` — yang dibaca PowerShell 5.1 sebagai tanda kutip penutup, sebab yang sama persis dengan em dash yang pernah merusak skrip ini. Ketahuan dari sapuan non-ASCII sebelum di-commit, bukan dari skrip yang gagal parse.
+
+### Cara kerja yang layak diulang
+
+🔑 **Sapuan "berapa pemanggilnya?" berbuah justru karena dijalankan atas penegak yang sudah DIPERCAYA.** `MarkReviewed()` adalah bagian yang paling sering dikutip sebagai bukti ADR-012 ditegakkan — dan itulah kenapa nol pemanggilnya tidak pernah terlihat selama tiga sesi. Pertanyaannya: *aturan ini ditegakkan oleh tipe — tapi tipe itu dipanggil dari mana?*
+
+---
+
 ## 2026-09-09 — Sesi 10: Gladi bersih penyebaran, dan dua klaim yang runtuh karenanya
 
 Permintaan pemilik: *"lanjutkan pekerjaan"*.

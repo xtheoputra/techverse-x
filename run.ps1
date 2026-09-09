@@ -113,12 +113,20 @@ switch ($Command) {
         Write-Host "Mengisi contoh ke $api ..." -ForegroundColor Cyan
 
         # fieldSlug harus salah satu dari 14 bidang ADR-010 - lihat GET /api/v1/fields.
-        # 'Edge AI' dulu memakai kategori 'Belum diputuskan'; sekarang ia bidang
-        # sendiri, karena Issue #5 sudah ditutup.
+        #
+        # PENTING: nama contoh di sini TIDAK BOLEH sama dengan nama bidang.
+        # /teknologi/<slug> dipakai bersama bidang dan topik (ADR-009), jadi topik
+        # bernama 'AI Agents' akan menuntut slug 'ai-agents' yang sudah dipegang
+        # bidangnya. Sampai Sesi 10 seed ini memang membuat tiga tabrakan seperti
+        # itu - 'AI Agents', 'Edge AI', 'Quantum Computing' - dan sejak API
+        # menolaknya, ketiganya diganti nama topik yang sebenarnya.
+        #
+        # Ini juga taksonomi yang lebih jujur: topik hidup DI BAWAH bidang, ia
+        # bukan bidang itu sendiri.
         $samples = @(
-            @{ name = 'AI Agents'; summary = 'Pergeseran dari AI yang menjawab ke AI yang mengerjakan.'; fieldSlug = 'ai-agents' }
-            @{ name = 'Edge AI'; summary = 'AI berjalan langsung di perangkat, bukan di awan.'; fieldSlug = 'edge-ai' }
-            @{ name = 'Quantum Computing'; summary = 'Era qubit logis; keunggulan komersial belum ada.'; fieldSlug = 'quantum-computing' }
+            @{ name = 'Model Context Protocol'; summary = 'Protokol terbuka yang menstandarkan cara model bahasa menjangkau alat dan data.'; fieldSlug = 'ai-agents' }
+            @{ name = 'Kuantisasi Model'; summary = 'Memampatkan bobot model supaya muat dan cepat di perangkat.'; fieldSlug = 'edge-ai' }
+            @{ name = 'Qiskit'; summary = 'Kerangka kerja Python untuk menyusun dan menjalankan sirkuit kuantum.'; fieldSlug = 'quantum-computing' }
             @{ name = 'Digital Twin'; summary = 'Kembaran digital dari objek atau sistem nyata.'; fieldSlug = 'iot' }
             @{ name = 'Cybersecurity Berbasis AI'; summary = 'Ancaman otomatis, maka pertahanannya ikut otomatis.'; fieldSlug = 'cybersecurity' }
         )
@@ -131,8 +139,111 @@ switch ($Command) {
             catch {
                 $code = $_.Exception.Response.StatusCode.value__
                 if ($code -eq 409) { Write-Host ('  ada     {0}' -f $sample.name) }
+                elseif ($code -eq 404 -or $code -eq 405) {
+                    # 404/405 di sini hampir selalu berarti satu hal, dan tanpa
+                    # kalimat ini gejalanya menyesatkan: endpointnya BUKAN hilang,
+                    # ia memang sengaja tidak dipasang (ADR-020). Jangan biarkan
+                    # orang menebak - dan jangan teruskan sisa seed-nya.
+                    Write-Host ''
+                    Write-Host ('  Endpoint tulis tidak dipasang di {0} (HTTP {1}).' -f $api, $code) -ForegroundColor Yellow
+                    Write-Host '  Itu bentuk PRODUKSI menurut ADR-020 - dan seed memang tidak boleh jalan di sana.' -ForegroundColor Yellow
+                    Write-Host '  Untuk pengembangan: jalankan APInya dengan `run.ps1 api` (dotnet run membaca' -ForegroundColor Yellow
+                    Write-Host '  launchSettings.json, yang menyalakan Editorial__WritesEnabled). API yang dijalankan' -ForegroundColor Yellow
+                    Write-Host '  lewat peti kemas atau --no-launch-profile TIDAK menyalakannya.' -ForegroundColor Yellow
+                    exit 1
+                }
                 else { Write-Host ('  GAGAL   {0} (HTTP {1})' -f $sample.name, $code) -ForegroundColor Red }
             }
+        }
+
+        # Satu topik diisi LENGKAP kelima bagiannya.
+        #
+        # Tanpa ini halaman /teknologi/<slug> memang bisa dibuka, tapi setiap
+        # bagiannya berbunyi 'Belum diisi' - dan bentuk halaman yang sudah jadi
+        # tidak pernah terlihat oleh siapa pun yang menjalankan proyek ini di
+        # mesinnya sendiri.
+        $isi = 'model-context-protocol'
+        Write-Host "Mengisi kelima bagian $isi ..." -ForegroundColor Cyan
+
+        function Invoke-Isi($method, $path, $body) {
+            try {
+                Invoke-RestMethod -Uri "$api$path" -Method $method -ContentType 'application/json' -Body ($body | ConvertTo-Json) | Out-Null
+                return $true
+            }
+            catch {
+                $code = $_.Exception.Response.StatusCode.value__
+                Write-Host ('  lewat   {0} (HTTP {1})' -f $path, $code) -ForegroundColor DarkGray
+                return $false
+            }
+        }
+
+        # PENTING: SEED HARUS BISA DIJALANKAN BERKALI-KALI, dan sampai 2026-09-09 bagian
+        # ini TIDAK bisa.
+        #
+        # Membuat topiknya memang sudah idempoten sejak awal - 409 dibaca sebagai
+        # 'ada'. Mengisi bagiannya tidak: dari kelima bagian, hanya prasyarat (PUT,
+        # mengganti langkah 0) dan tautan alat (AttachTool memperbarui catatan,
+        # tidak menambah baris kedua) yang aman diulang. Tiga sisanya menambah di
+        # ujung, jadi menjalankan `run.ps1 seed` dua kali meninggalkan langkah
+        # roadmap, proyek, dan sumber yang KEMBAR - persis di halaman yang dibuat
+        # untuk memperlihatkan bentuk halaman yang sudah jadi.
+        #
+        # KENAPA LOLOS SELAMA INI: `MarkDrafted()` tetap hijau. Ia
+        # memeriksa bagian yang KOSONG, bukan yang kembar, jadi baris terakhir
+        # tetap mencetak 'kelima bagian terisi' di atas halaman yang rusak.
+        # Ketahuannya bukan dari uji - dari MENJALANKAN seed dua kali.
+        #
+        # Diperbaiki di sini, bukan dengan melarang duplikat di domain: dua sumber
+        # ber-URL sama memang layak ditolak, tapi itu aturan baru yang menuntut
+        # keputusan tersendiri. Yang jelas salah adalah seed yang menjanjikan
+        # 'ada' lalu menggandakan.
+        $sekarang = $null
+        try { $sekarang = Invoke-RestMethod -Uri "$api/api/v1/technologies/$isi" } catch { $sekarang = $null }
+
+        function Test-SudahAda($daftar, $medan, $nilai) {
+            if ($null -eq $daftar) { return $false }
+            return [bool]($daftar | Where-Object { $_.$medan -eq $nilai })
+        }
+
+        # Alat dulu: menautkan menuntut alatnya sudah ada di katalog.
+        Invoke-Isi 'Post' '/api/v1/tools' @{ name = 'MCP Inspector'; summary = 'Alat memeriksa server MCP secara interaktif.'; homepage = 'https://modelcontextprotocol.io' } | Out-Null
+
+        # Prasyarat WAJIB lebih dulu - AddRoadmapStep menolak dipanggil sebelum
+        # langkah 0 ada, dan nomor langkahnya tidak pernah dikirim dari sini.
+        # PUT, jadi mengulanginya mengganti langkah 0, bukan menambah.
+        Invoke-Isi 'Put' "/api/v1/technologies/$isi/roadmap/prasyarat" @{ title = 'Dasar HTTP dan JSON-RPC'; description = 'Paham request/response dan bentuk pesan JSON-RPC.' } | Out-Null
+
+        # Urutan langkah ditentukan server dari posisi, jadi tambahkan berurutan
+        # dan lewati yang judulnya sudah ada.
+        $langkah = @(
+            @{ title = 'Menjalankan server MCP pertama'; description = 'Pasang SDK, jalankan server contoh, sambungkan ke klien.' }
+            @{ title = 'Menulis tool sendiri'; description = 'Deklarasikan skema masukan dan tangani pemanggilannya.' }
+        )
+        foreach ($l in $langkah) {
+            if (Test-SudahAda $sekarang.roadmap 'title' $l.title) { continue }
+            Invoke-Isi 'Post' "/api/v1/technologies/$isi/roadmap" $l | Out-Null
+        }
+
+        # AttachTool sengaja upsert - aman diulang, dan catatannya ikut diperbarui.
+        Invoke-Isi 'Post' "/api/v1/technologies/$isi/tools" @{ toolSlug = 'mcp-inspector'; note = 'Dipakai sejak langkah pertama untuk melihat pesan yang lewat.' } | Out-Null
+
+        $proyek = @{ title = 'Server MCP untuk catatan lokal'; brief = 'Bangun server yang mengekspos folder catatan sebagai resource, lalu bacalah dari klien.' }
+        if (-not (Test-SudahAda $sekarang.projects 'title' $proyek.title)) {
+            Invoke-Isi 'Post' "/api/v1/technologies/$isi/projects" $proyek | Out-Null
+        }
+
+        # Sumber dikenali dari URL-nya, bukan judulnya: judul boleh ditulis ulang,
+        # alamatnya yang menentukan ia sumber yang sama.
+        $sumber = @{ type = 'OfficialDocs'; title = 'Spesifikasi Model Context Protocol'; url = 'https://modelcontextprotocol.io/specification' }
+        if (-not (Test-SudahAda $sekarang.resources 'url' $sumber.url)) {
+            Invoke-Isi 'Post' "/api/v1/technologies/$isi/resources" $sumber | Out-Null
+        }
+
+        # Naik ke draf. Ia menolak kalau ada satu bagian pun yang masih kosong,
+        # jadi berhasilnya baris ini sekaligus bukti keenam panggilan di atas
+        # benar-benar mendarat.
+        if (Invoke-Isi 'Post' "/api/v1/technologies/$isi/draf" @{}) {
+            Write-Host '  draf    kelima bagian terisi' -ForegroundColor Green
         }
     }
 
