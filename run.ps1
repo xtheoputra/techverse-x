@@ -139,6 +139,19 @@ switch ($Command) {
             catch {
                 $code = $_.Exception.Response.StatusCode.value__
                 if ($code -eq 409) { Write-Host ('  ada     {0}' -f $sample.name) }
+                elseif ($code -eq 404 -or $code -eq 405) {
+                    # 404/405 di sini hampir selalu berarti satu hal, dan tanpa
+                    # kalimat ini gejalanya menyesatkan: endpointnya BUKAN hilang,
+                    # ia memang sengaja tidak dipasang (ADR-020). Jangan biarkan
+                    # orang menebak - dan jangan teruskan sisa seed-nya.
+                    Write-Host ''
+                    Write-Host ('  Endpoint tulis tidak dipasang di {0} (HTTP {1}).' -f $api, $code) -ForegroundColor Yellow
+                    Write-Host '  Itu bentuk PRODUKSI menurut ADR-020 - dan seed memang tidak boleh jalan di sana.' -ForegroundColor Yellow
+                    Write-Host '  Untuk pengembangan: jalankan APInya dengan `run.ps1 api` (dotnet run membaca' -ForegroundColor Yellow
+                    Write-Host '  launchSettings.json, yang menyalakan Editorial__WritesEnabled). API yang dijalankan' -ForegroundColor Yellow
+                    Write-Host '  lewat peti kemas atau --no-launch-profile TIDAK menyalakannya.' -ForegroundColor Yellow
+                    exit 1
+                }
                 else { Write-Host ('  GAGAL   {0} (HTTP {1})' -f $sample.name, $code) -ForegroundColor Red }
             }
         }

@@ -24,6 +24,23 @@ var postgres = builder.Configuration.GetConnectionString("Postgres")
 var redisConnection = builder.Configuration.GetConnectionString("Redis");
 var redisTerpasang = !string.IsNullOrWhiteSpace(redisConnection);
 
+// Permukaan TULIS redaksi — MATI kecuali dinyalakan sengaja (ADR-020).
+//
+// V1 tidak punya autentikasi sama sekali (ADR-013), jadi tiap endpoint tulis
+// yang dipasang di produksi adalah endpoint yang boleh dipakai siapa pun yang
+// menemukan URL-nya. ADR-013 menimbang login untuk PEMBACA — Progress Tracker,
+// Badge, AI Mentor — dan tidak pernah menimbang permukaan tulis redaksi.
+//
+// Bawaannya `false`, dan itu bagian dari keputusannya: lingkungan yang lupa
+// mengonfigurasi mendapat bentuk yang AMAN, bukan bentuk yang terbuka. Produksi
+// V1 memang terbitan yang hanya bisa dibaca — keempat belas bidangnya datang
+// dari migrasi, bukan dari HTTP.
+//
+// Dinyalakan di launchSettings.json (dev, lewat `dotnet run`) dan di uji
+// integrasi lewat UseSetting — dua tempat yang sama-sama TIDAK pernah dilihat
+// produksi, persis seperti ConnectionStrings__Redis di bawahnya.
+var editorialWrites = builder.Configuration.GetValue("Editorial:WritesEnabled", false);
+
 // ---- Logging (T009) --------------------------------------------------------
 builder.Logging.ClearProviders();
 builder.Logging.AddSimpleConsole(options =>
@@ -79,6 +96,18 @@ if (!redisTerpasang)
     CatatanStartup.RedisTidakTerpasang(app.Logger);
 }
 
+// Dicatat DUA-DUANYA, bukan hanya keadaan yang tidak biasa. Kalau hanya keadaan
+// terbuka yang dicatat, log produksi yang sehat jadi sunyi - dan sunyi tidak
+// bisa dibedakan dari "barisnya hilang saat refactor".
+if (editorialWrites)
+{
+    CatatanStartup.PermukaanTulisTerbuka(app.Logger);
+}
+else
+{
+    CatatanStartup.PermukaanTulisTertutup(app.Logger);
+}
+
 // ---- Pipeline --------------------------------------------------------------
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseExceptionHandler();
@@ -129,7 +158,7 @@ app.MapGet("/", () => Results.Ok(new
     catatan = "Fase 1 skeleton. Fase 0 belum terkunci — lihat Issues repo.",
 }));
 
-app.MapTechnologyEndpoints();
+app.MapTechnologyEndpoints(editorialWrites);
 
 await app.RunAsync().ConfigureAwait(false);
 
@@ -150,4 +179,17 @@ internal static partial class CatatanStartup
         Level = LogLevel.Information,
         Message = "Redis tidak dikonfigurasi - health check 'redis' tidak dipasang. Ini bentuk produksi V1 menurut ADR-016.")]
     public static partial void RedisTidakTerpasang(ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Editorial:WritesEnabled mati - endpoint tulis TIDAK dipasang. Ini bentuk produksi V1 menurut ADR-020: terbitan yang hanya bisa dibaca.")]
+    public static partial void PermukaanTulisTertutup(ILogger logger);
+
+    // Peringatan, bukan informasi: di lingkungan mana pun yang terjangkau
+    // internet, baris ini menandai permukaan tulis TANPA autentikasi (ADR-013).
+    // Kalau ia muncul di log produksi, itu insiden, bukan catatan.
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Editorial:WritesEnabled HIDUP - endpoint tulis dipasang TANPA autentikasi (ADR-013). Sah untuk pengembangan dan uji; di lingkungan yang terjangkau internet ini berarti siapa pun boleh mengubah isi situs.")]
+    public static partial void PermukaanTulisTerbuka(ILogger logger);
 }

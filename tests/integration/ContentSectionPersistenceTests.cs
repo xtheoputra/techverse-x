@@ -48,6 +48,10 @@ public sealed class ContentSectionPersistenceTests
         {
             builder.UseSetting("ConnectionStrings:Postgres", Postgres);
             builder.UseSetting("ConnectionStrings:Redis", string.Empty);
+
+            // Endpoint tulis mati kecuali diminta — ADR-020. Lihat catatan yang
+            // sama di ContentSectionEndpointTests.
+            builder.UseSetting("Editorial:WritesEnabled", "true");
         });
 
     [Fact]

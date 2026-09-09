@@ -24,6 +24,7 @@ Satu berkas per keputusan. Nama berkasnya mengikuti daftar yang sudah ditetapkan
 | [017](ADR-017-platform-hosting.md) | Platform hosting: Render berbayar, dan bundel migrasi ikut ke citra `api` | ⛔ **DIGANTIKAN [019](ADR-019-hosting-gratis-tanpa-kartu.md)** - Issue [#33](../../../../issues/33) |
 | [018](ADR-018-rilis-citra-dan-reproducibility.md) | Rilis citra melewati commit dokumen; **reproducibility TIDAK dikejar** | Diterima - Issue [#32](../../../../issues/32) |
 | [019](ADR-019-hosting-gratis-tanpa-kartu.md) | **Vercel + Koyeb + Neon** - gratis, tanpa kartu. Menggantikan 017 | Diterima |
+| [020](ADR-020-permukaan-tulis-api.md) | **Endpoint tulis tidak dipasang di produksi** - melengkapi 013, yang hanya menimbang login PEMBACA | Diterima |
 
 ⚠️ **ADR-017 dibiarkan utuh meski digantikan**, karena dua bagiannya masih benar
 dan masih dipakai: pemeriksaan empat syarat yang menemukan **bentuk citra

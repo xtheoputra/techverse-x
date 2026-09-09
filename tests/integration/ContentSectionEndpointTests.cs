@@ -46,6 +46,12 @@ public sealed class ContentSectionEndpointTests : IAsyncLifetime
         {
             builder.UseSetting("ConnectionStrings:Postgres", Postgres);
             builder.UseSetting("ConnectionStrings:Redis", string.Empty);
+
+            // 🔴 Tanpa baris ini SELURUH berkas ini gagal: endpoint tulis tidak
+            // dipasang kecuali diminta (ADR-020), dan WebApplicationFactory tidak
+            // pernah membaca launchSettings.json. Bahwa baris ini WAJIB ditulis
+            // di sini adalah bagian dari buktinya — bentuk bawaannya tertutup.
+            builder.UseSetting("Editorial:WritesEnabled", "true");
         });
 
     private static string Unik(string prefix) => $"{prefix}-{Guid.NewGuid():N}";
