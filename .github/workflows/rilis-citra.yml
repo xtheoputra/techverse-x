@@ -105,6 +105,14 @@ jobs:
             echo "::endgroup::"
           done
 
+      # Diperiksa SEBELUM didorong, alasannya sama persis dengan Trivy di atas:
+      # citra yang sudah terbit bisa ditarik orang. Gerbang ini dipasang di DUA
+      # tempat - di sini dan di `ci.yml` - karena PR saja tidak cukup: push
+      # langsung ke `main` tidak pernah lewat job `citra`, dan justru jalan inilah
+      # yang menerbitkan artefak yang dipasang di produksi.
+      - name: Citra API menolak menulis (ADR-020)
+        run: bash .github/scripts/periksa-permukaan-tulis.sh "${{ steps.nama.outputs.dasar }}/api:${GITHUB_SHA}"
+
       - name: Terbitkan API
         run: docker push --all-tags "${{ steps.nama.outputs.dasar }}/api"
 

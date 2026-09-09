@@ -192,6 +192,13 @@ jobs:
       - name: Citra web
         run: docker build -f apps/web/Dockerfile -t techversex-web:ci .
 
+      # Gerbang ADR-020 di tingkat CITRA. Uji integrasi membuktikannya di tingkat
+      # KODE, dengan host yang dirakit sendiri lewat WebApplicationFactory - yang
+      # tidak bisa melihat apakah artefak yang benar-benar disebarkan membawa
+      # sesuatu yang membukanya lagi. Alasannya lengkap ada di skripnya.
+      - name: Citra API menolak menulis (ADR-020)
+        run: bash .github/scripts/periksa-permukaan-tulis.sh techversex-api:ci
+
       # Trivy dijalankan sebagai peti kemas, bukan lewat action pihak ketiga:
       # gerbang ini tidak butuh satu pun izin tambahan, dan tidak menambah
       # aksi yang harus dipercaya. `--exit-code 1` yang membuatnya menggigit -

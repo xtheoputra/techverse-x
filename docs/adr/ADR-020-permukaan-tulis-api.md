@@ -111,6 +111,26 @@ Yang **belum** diputuskan, dan sengaja dibiarkan terbuka:
   kedelapan endpoint hilang saat bawaan, membaca tetap jalan (kendali), dan
   alamat yang sama persis terbuka lagi saat sakelarnya hidup (kendali arah
   berlawanan, supaya satu salah ketik alamat tidak meluluskan ujinya).
+- 🔒 **Dijaga DUA KALI, di dua tingkat yang berbeda.** Uji integrasi menjaganya
+  di tingkat **kode**, tapi ia merakit host-nya sendiri lewat
+  `WebApplicationFactory` — jadi ia buta terhadap satu kelas regresi: **artefak
+  yang membukanya kembali.** Sebuah `ENV Editorial__WritesEnabled=true` di
+  Dockerfile, sebuah default dari citra dasar, atau `launchSettings.json` yang
+  suatu hari ikut terbawa `dotnet publish` akan **lolos seluruh uji .NET** dan
+  baru terlihat di produksi. Karena itu `.github/scripts/periksa-permukaan-tulis.sh`
+  menjalankan **citra yang sudah jadi** dan menuntut `POST /api/v1/technologies`
+  membalas 405 — dipasang di `ci.yml` (PR) dan di `rilis-citra.yml` **sebelum
+  push**, dua tempat yang sama dengan Container Scan, dan karena alasan yang sama:
+  yang sudah terbit bisa ditarik orang.
+  - Pemeriksaannya **tidak butuh Postgres**, dan muatannya **sengaja tidak sah**:
+    validator menjawab sebelum satu baris pun dibaca, jadi **405 = rutenya tidak
+    ada** dan **400 = rutenya ada**, keduanya tanpa dependensi. Muatan yang sah
+    justru menyeret basis data ke dalam alat ukurnya (terukur: 400 dalam 0,0
+    detik vs 500 dalam 2,3 detik, dan menggantung pada batas waktu yang lebih
+    pendek).
+  - Ketiga keadaannya sudah dijalankan: citra benar **lulus**, citra yang
+    sengaja diberi `ENV` pembuka **gagal** dengan diagnosis "rutenya ADA", dan
+    peti kemas yang tidak menyala **gagal pada KENDALInya** — bukan lolos.
 - **Log startup menyebut kedua keadaan**, bukan hanya yang tidak biasa — keadaan
   terbuka sebagai `Warning`, keadaan tertutup sebagai `Information`. Log produksi
   yang sehat karenanya tidak sunyi, dan sunyi tidak bisa disalahartikan sebagai

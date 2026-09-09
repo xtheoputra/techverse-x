@@ -138,6 +138,13 @@ Log startup juga menyebutkannya. `Editorial:WritesEnabled mati` adalah bentuk
 yang benar; baris ber-level **`warn`** yang berbunyi `HIDUP` di produksi adalah
 insiden, bukan catatan.
 
+💡 **CITRA-nya sendiri sudah dijaga CI** (`.github/scripts/periksa-permukaan-tulis.sh`,
+dipasang di `ci.yml` dan di `rilis-citra.yml` sebelum push), jadi citra yang
+permukaan tulisnya terbuka tidak akan pernah terbit. Yang **tidak** bisa dijaga
+dari sana adalah **konfigurasi di platformnya** — karena itu dua `curl` di atas
+tetap dijalankan setelah menyebar. Yang dijaga CI adalah artefaknya; yang
+diperiksa `curl` adalah apa yang benar-benar Anda pasang.
+
 ### `web`
 
 | Variabel | Wajib | Catatan |
