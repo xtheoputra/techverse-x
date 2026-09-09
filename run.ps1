@@ -164,18 +164,67 @@ switch ($Command) {
             }
         }
 
+        # PENTING: SEED HARUS BISA DIJALANKAN BERKALI-KALI, dan sampai 2026-09-09 bagian
+        # ini TIDAK bisa.
+        #
+        # Membuat topiknya memang sudah idempoten sejak awal - 409 dibaca sebagai
+        # 'ada'. Mengisi bagiannya tidak: dari kelima bagian, hanya prasyarat (PUT,
+        # mengganti langkah 0) dan tautan alat (AttachTool memperbarui catatan,
+        # tidak menambah baris kedua) yang aman diulang. Tiga sisanya menambah di
+        # ujung, jadi menjalankan `run.ps1 seed` dua kali meninggalkan langkah
+        # roadmap, proyek, dan sumber yang KEMBAR - persis di halaman yang dibuat
+        # untuk memperlihatkan bentuk halaman yang sudah jadi.
+        #
+        # KENAPA LOLOS SELAMA INI: `MarkDrafted()` tetap hijau. Ia
+        # memeriksa bagian yang KOSONG, bukan yang kembar, jadi baris terakhir
+        # tetap mencetak 'kelima bagian terisi' di atas halaman yang rusak.
+        # Ketahuannya bukan dari uji - dari MENJALANKAN seed dua kali.
+        #
+        # Diperbaiki di sini, bukan dengan melarang duplikat di domain: dua sumber
+        # ber-URL sama memang layak ditolak, tapi itu aturan baru yang menuntut
+        # keputusan tersendiri. Yang jelas salah adalah seed yang menjanjikan
+        # 'ada' lalu menggandakan.
+        $sekarang = $null
+        try { $sekarang = Invoke-RestMethod -Uri "$api/api/v1/technologies/$isi" } catch { $sekarang = $null }
+
+        function Test-SudahAda($daftar, $medan, $nilai) {
+            if ($null -eq $daftar) { return $false }
+            return [bool]($daftar | Where-Object { $_.$medan -eq $nilai })
+        }
+
         # Alat dulu: menautkan menuntut alatnya sudah ada di katalog.
         Invoke-Isi 'Post' '/api/v1/tools' @{ name = 'MCP Inspector'; summary = 'Alat memeriksa server MCP secara interaktif.'; homepage = 'https://modelcontextprotocol.io' } | Out-Null
 
         # Prasyarat WAJIB lebih dulu - AddRoadmapStep menolak dipanggil sebelum
         # langkah 0 ada, dan nomor langkahnya tidak pernah dikirim dari sini.
+        # PUT, jadi mengulanginya mengganti langkah 0, bukan menambah.
         Invoke-Isi 'Put' "/api/v1/technologies/$isi/roadmap/prasyarat" @{ title = 'Dasar HTTP dan JSON-RPC'; description = 'Paham request/response dan bentuk pesan JSON-RPC.' } | Out-Null
-        Invoke-Isi 'Post' "/api/v1/technologies/$isi/roadmap" @{ title = 'Menjalankan server MCP pertama'; description = 'Pasang SDK, jalankan server contoh, sambungkan ke klien.' } | Out-Null
-        Invoke-Isi 'Post' "/api/v1/technologies/$isi/roadmap" @{ title = 'Menulis tool sendiri'; description = 'Deklarasikan skema masukan dan tangani pemanggilannya.' } | Out-Null
 
+        # Urutan langkah ditentukan server dari posisi, jadi tambahkan berurutan
+        # dan lewati yang judulnya sudah ada.
+        $langkah = @(
+            @{ title = 'Menjalankan server MCP pertama'; description = 'Pasang SDK, jalankan server contoh, sambungkan ke klien.' }
+            @{ title = 'Menulis tool sendiri'; description = 'Deklarasikan skema masukan dan tangani pemanggilannya.' }
+        )
+        foreach ($l in $langkah) {
+            if (Test-SudahAda $sekarang.roadmap 'title' $l.title) { continue }
+            Invoke-Isi 'Post' "/api/v1/technologies/$isi/roadmap" $l | Out-Null
+        }
+
+        # AttachTool sengaja upsert - aman diulang, dan catatannya ikut diperbarui.
         Invoke-Isi 'Post' "/api/v1/technologies/$isi/tools" @{ toolSlug = 'mcp-inspector'; note = 'Dipakai sejak langkah pertama untuk melihat pesan yang lewat.' } | Out-Null
-        Invoke-Isi 'Post' "/api/v1/technologies/$isi/projects" @{ title = 'Server MCP untuk catatan lokal'; brief = 'Bangun server yang mengekspos folder catatan sebagai resource, lalu bacalah dari klien.' } | Out-Null
-        Invoke-Isi 'Post' "/api/v1/technologies/$isi/resources" @{ type = 'OfficialDocs'; title = 'Spesifikasi Model Context Protocol'; url = 'https://modelcontextprotocol.io/specification' } | Out-Null
+
+        $proyek = @{ title = 'Server MCP untuk catatan lokal'; brief = 'Bangun server yang mengekspos folder catatan sebagai resource, lalu bacalah dari klien.' }
+        if (-not (Test-SudahAda $sekarang.projects 'title' $proyek.title)) {
+            Invoke-Isi 'Post' "/api/v1/technologies/$isi/projects" $proyek | Out-Null
+        }
+
+        # Sumber dikenali dari URL-nya, bukan judulnya: judul boleh ditulis ulang,
+        # alamatnya yang menentukan ia sumber yang sama.
+        $sumber = @{ type = 'OfficialDocs'; title = 'Spesifikasi Model Context Protocol'; url = 'https://modelcontextprotocol.io/specification' }
+        if (-not (Test-SudahAda $sekarang.resources 'url' $sumber.url)) {
+            Invoke-Isi 'Post' "/api/v1/technologies/$isi/resources" $sumber | Out-Null
+        }
 
         # Naik ke draf. Ia menolak kalau ada satu bagian pun yang masih kosong,
         # jadi berhasilnya baris ini sekaligus bukti keenam panggilan di atas
