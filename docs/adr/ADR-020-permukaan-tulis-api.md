@@ -94,6 +94,10 @@ Yang **belum** diputuskan, dan sengaja dibiarkan terbuka:
   menyalakan sakelar ini sementara di balik jaringan yang terkendali; workflow
   GitHub Actions bergerbang `environment:` seperti *Migrasi produksi*; atau
   autentikasi sungguhan sesuai ADR-013 begitu ada yang perlu dilindungi.
+  - ✅ **Sudah dijawab [ADR-021](ADR-021-jalan-menuju-tinjau.md)** (2026-09-09):
+    arah kedua yang dipilih, dan **sakelar di ADR ini tidak dilonggarkan sedikit
+    pun** — peti kemasnya menyala di dalam runner, dipanggil lewat `localhost`,
+    dan tidak pernah punya alamat publik.
 - **`MarkReviewed()` dan `Publish()` sampai hari ini nol pemanggil di kode
   produksi** — bukan endpoint, bukan skrip, bukan UI; hanya uji unit. Artinya
   target Bulan 2 ("tujuh topik AI Agents berstatus `tinjau`",
