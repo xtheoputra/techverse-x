@@ -141,11 +141,7 @@ async function getJson<T>(path: string): Promise<ApiResult<T>> {
     });
 
     if (!response.ok) {
-      return {
-        ok: false,
-        reason: `API membalas ${response.status}.`,
-        notFound: response.status === 404,
-      };
+      return gagal(path, `API membalas ${response.status}.`, response.status === 404);
     }
 
     return { ok: true, data: (await response.json()) as T };
@@ -154,8 +150,37 @@ async function getJson<T>(path: string): Promise<ApiResult<T>> {
     // dijalankan tanpa backend menyala.
     //
     // ⚠️ notFound: false — tidak bisa dihubungi BUKAN tidak ada.
-    return { ok: false, reason: `Tidak bisa menghubungi API di ${baseUrl}.`, notFound: false };
+    return gagal(path, `Tidak bisa menghubungi API di ${baseUrl}.`, false);
   }
+}
+
+/**
+ * Satu tempat keluar untuk kegagalan — dan satu-satunya tempat sebabnya DICATAT.
+ *
+ * 🔑 **Sebab kegagalan pindah dari HALAMAN ke LOG, bukan hilang.** Sampai
+ * 2026-09-10 kalimat ini dicetak apa adanya ke pembaca, lengkap dengan alamat
+ * API internal, di empat tempat — dan di produksi itu keadaan yang biasa, bukan
+ * langka: instance gratis Koyeb tidur tiap jam (ADR-019). Menyembunyikannya dari
+ * halaman tanpa menaruhnya di tempat lain akan MENGHILANGKAN diagnosis yang
+ * dipakai #40 untuk membedakan `API_BASE_URL` yang salah dari #39 yang belum
+ * selesai. Karena itu ia dicatat di sini.
+ *
+ * Ini berjalan di server — `server-only` di kepala berkas menjaminnya — jadi
+ * keluarannya masuk ke log fungsi Vercel atau stdout peti kemas, bukan ke
+ * peramban pembaca.
+ *
+ * ⚠️ `path`-nya ikut dicatat: tanpa itu, dua komponen yang gagal berbarengan
+ * menghasilkan dua baris yang identik dan tak terbedakan.
+ */
+function gagal<T>(path: string, reason: string, notFound: boolean): ApiResult<T> {
+  // 404 bukan insiden — itu jawaban yang sah untuk slug yang memang tidak ada,
+  // dan mencatatnya berarti setiap perayap yang menebak URL menghasilkan baris
+  // log palsu.
+  if (!notFound) {
+    console.error(`[TechVerseX] GET ${path} gagal: ${reason}`);
+  }
+
+  return { ok: false, reason, notFound };
 }
 
 export function searchTechnologies(
