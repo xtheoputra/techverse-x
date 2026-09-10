@@ -20,7 +20,9 @@ Repositori ini punya **kode yang jalan** dan **citra produksi yang sudah terbit*
 > 2. **[#39](../../issues/39)** — Koyeb (API) dari citra GHCR
 > 3. **[#40](../../issues/40)** — Vercel (web) → **ini yang memberi URL publiknya**
 >
-> Sesudah tayang: **[#41](../../issues/41)** endpoint isi halaman + `/teknologi/<slug>`, lalu **[#42](../../issues/42)** isi AI Agents menuju Bulan 2.
+> Sesudah tayang: **[#42](../../issues/42)** — isi AI Agents menuju Bulan 2. [#41](../../issues/41) (endpoint isi halaman + `/teknologi/<slug>`) **sudah selesai**, mendarat lewat PR #44.
+>
+> 🔴 **Tapi #42 belum bisa dikerjakan siapa pun — termasuk pemilik.** `MarkReviewed()` nol pemanggil di kode produksi, jadi tidak ada satu jalan pun untuk menaikkan halaman ke `tinjau`. Jalannya sudah diputuskan di [ADR-021](docs/adr/ADR-021-jalan-menuju-tinjau.md) — workflow bergerbang, nama pemeriksa dari `github.actor` — dan **sengaja belum dibangun sampai #40 tutup**, sebab Bulan 1 mengejar URL, bukan fitur.
 >
 > Enam langkah terincinya ada di **[docs/PENYEBARAN.md](docs/PENYEBARAN.md#menyebarkan-vercel--koyeb--neon)**.
 
