@@ -73,12 +73,50 @@ Diperbaiki dengan satu sumbu di `lib/lingkungan.ts`: **bentuk bangunan**, bukan 
 Pola terbesar Sesi 11 — *klaim berhenti benar tanpa memberi tahu pembacanya* — dipakai sebagai daftar periksa, bukan cuma dicatat:
 
 - **`README.md`**: "Sembilan belas ADR" → **21**; "basis data kosong" (2026-09-07) → *"volume basis data baru"*, sebab yang itu ternyata bukan basis data kosong; komentar `seed` dipertegas bahwa API-nya harus yang dari baris di atasnya.
-- **Issue #39 & #40**: keduanya mengutip frasa **"API belum bisa dihubungi"** sebagai gejala yang harus dicari — dan sesudah perubahan hari ini, frasa itu **tidak muncul lagi di build produksi**, yaitu justru di tempat kedua issue menyuruh mencarinya. Badannya diperbarui.
+- **Issue #40**: ia mengutip frasa **"API belum bisa dihubungi"** sebagai gejala yang harus dicari — dan sesudah perubahan hari ini frasa itu **tidak muncul lagi di build produksi**, yaitu justru di tempat issue itu menyuruh mencarinya. Badannya diperbarui: gejala yang baru, plus tempat sebabnya sekarang tinggal. ⚠️ Kalimat ini semula berbunyi *"#39 & #40, keduanya"* — keliru, dan ketahuan hanya karena badan keempat issue benar-benar di-`grep`, bukan diingat. **Klaim tentang sapuan pun perlu diperiksa seperti klaim lain.**
 - **`docker-compose.prod.yml`**: butir "tiga hal yang sengaja berbeda" jadi **empat**, dengan alasan keputusan #48 ditulis di tempat orang berikutnya akan bertanya.
 
 ### Ukuran
 
 **87 uji unit + 18 uji integrasi**, `run.ps1 verify` hijau. Nol uji ditambahkan: yang berubah teks yang dicetak ke pembaca, dan repo ini belum punya harness uji JS sama sekali — memasangnya keputusan tersendiri, bukan sisipan. Sesuai kebiasaan repo ini, buktinya **halaman sungguhan dari peti kemas**, dua arah: build produksi bersih dari `run.ps1` maupun alamat internal, `next dev` tetap mencetak keduanya berikut frasa yang dikutip #39/#40.
+
+
+### Lanjutan: perbaikannya sendiri kena pola yang sama (PR #51)
+
+🔴 **PR #50 berhenti mencetak sebab kegagalan ke pembaca — dan tidak menaruhnya di tempat lain.** Itu menghapus satu-satunya diagnosis yang dipakai #40 untuk membedakan `API_BASE_URL` yang salah dari #39 yang belum selesai. **Persis pola yang #48 keluhkan, dilakukan oleh perbaikannya sendiri**, dalam hari yang sama.
+
+Sebabnya kini dicatat lewat satu tempat keluar `gagal()` di `lib/api.ts`; `server-only` menjamin ia berjalan di server, jadi keluarannya masuk ke log fungsi Vercel atau stdout peti kemas. **404 sengaja tidak dicatat** — itu jawaban yang sah untuk slug yang memang tidak ada, dan mencatatnya menjadikan tiap perayap yang menebak URL sebagai baris log palsu.
+
+⚠️ **Alat ukurnya berbohong dua kali berturut-turut, dan keduanya soal JENDELA, bukan kode.** `docker compose logs --since <penanda>` tetap memulangkan baris lama, jadi kendali "404 tidak dicatat" terbaca **gagal** dua kali. Yang menyelesaikannya bukan menambah percobaan melainkan **membuang filternya**: dump penuh memperlihatkan peti kemas itu hanya pernah punya dua baris, keduanya bertanggal sebelum penanda. 💡 *Kalau kendali gagal, curigai jendela pengukurannya sebelum menyalahkan yang diukur.*
+
+### Lanjutan: dokumen rencana ikut disapu (PR #52)
+
+Pertanyaan *"fase apa yang tersisa?"* dijawab dengan membaca `RENCANA-V1.md` — dan halaman itu sendiri ternyata memuat **tiga klaim basi**, satu di antaranya bisa membuat pembaca mendaftar ke platform yang salah:
+
+1. *"Yang belum ada adalah **keputusan platform hosting**"* + arahan ke usul **Render** — padahal ADR-019 sudah memilih **Vercel + Koyeb + Neon** beberapa jam sesudah ADR-017 diterima.
+2. *"terbukti melayani situsnya **dari basis data kosong**"* — kembaran persis kalimat yang baru saja runtuh di #48, hidup di halaman lain. **Memperbaiki satu tempat saja akan meninggalkannya.**
+3. `README.md` menyebut **#41** sebagai pekerjaan *sesudah* tayang, padahal #41 sudah mendarat lewat PR #44. Premis #42 ikut dibetulkan di sana.
+
+### Keadaan akhir Sesi 12
+
+| | |
+|---|---|
+| `main` | **`d5d4cb3`** — push & bersih, **satu-satunya cabang** (lokal & remote) |
+| PR | **#50 · #51 · #52** ketiganya merge; **#48 DITUTUP** |
+| Uji | **87 unit + 18 integrasi**, `run.ps1 verify` hijau |
+| CI | keempat job hijau di ketiga PR, termasuk gerbang citra ADR-020 |
+| 📦 SHA citra | **`e1871bb1127868aee8c0baf3880affbe1a04badf`** |
+
+📦 **Perhatikan SHA citra ≠ `main` lagi, dan itu ADR-018 membuktikan diri untuk kedua kalinya:** commit terakhir (PR #52) murni dokumen, jadi `Rilis citra` memang tidak berjalan untuknya. **`git rev-parse HEAD` tetap bukan jawaban "tag apa yang dipasang".**
+
+### Yang tersisa, dan kenapa bukan asisten yang mengerjakannya
+
+**Empat issue terbuka, nol di antaranya bisa diselesaikan tanpa pemilik.**
+
+- **#38 → #39 → #40** menuntut pendaftaran akun (Neon · Koyeb · Vercel). Gratis, tanpa kartu, tapi tetap atas nama pemilik. Segala yang bisa **dilatih** tanpa akun sudah dilatih, dan latihannya memang berbuah — `channel_binding`, SHA pendek, bentuk *Root Directory* `apps/web`, dan hari ini bentuk produksi tanpa permukaan tulis.
+- **#42** menunggu ADR-021 dibangun, dan **ADR-021 sengaja menunggu #40 tutup.** Membangunnya sekarang melanggar aturan yang dipilih sendiri: *Bulan 1 mengejar URL, bukan fitur.*
+
+⚠️ **Dan pertanyaan "bagian mana yang bisa dilatih sekarang?" tetap ditanyakan, bukan dilewati** — itu yang membuka Sesi 10 dan Sesi 11 saat papannya juga tampak buntu. Jawaban hari ini: yang tersisa hanya **transport TLS** (`sslmode=require` dan `channel_binding=require` menuntut TLS sungguhan, dan Postgres lokal tidak punya). Sengaja **tidak** dilatih: sertifikat swa-tanda-tangan menuntut `Trust Server Certificate=true`, yang **bukan** keadaan Neon — hasilnya akan berbicara tentang keadaan lain, dan godaan menambal string koneksi produksi supaya "hijau" justru penurunan keamanan. Ini ditulis di sini supaya tidak dicoba diam-diam nanti.
 
 ---
 
