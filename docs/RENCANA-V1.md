@@ -57,7 +57,7 @@ sudah dikeluarkan.
 | **5** | **AI Mentor.** Agent Framework + MCP ke dalam + pgvector di atas konten sendiri, dengan pagu harian keras | Mentor menjawab dan **menunjukkan sumbernya** |
 | **6** | **Labs + Project Generator** · cadangan untuk yang meleset | Satu proyek bisa dikerjakan orang dari awal sampai selesai |
 
-### Keadaan Bulan 1 per 8 September 2026
+### Keadaan Bulan 1 per 10 September 2026
 
 Rencana di atas tidak punya penanda kemajuan, jadi pertanyaan *"Bulan 1 sudah
 selesai belum?"* tidak punya jawaban di dokumen ini. Ini jawabannya, dan tiap
@@ -71,8 +71,15 @@ baris diperiksa ke kode atau ke GitHub — bukan ke dokumen lain.
 | **Deploy `main` ke produksi** | 🛑 **belum** — lihat di bawah |
 
 **Yang menahan hanya butir terakhir, dan penahannya bukan teknis.** Citra
-produksi sudah ada dan terbukti melayani situsnya dari basis data kosong (PR
+produksi sudah ada dan terbukti melayani situsnya (PR
 [#31](../../issues/31)), berikut bundel migrasi dan gerbang pemindaian citra.
+
+⚠️ **Satu kata di kalimat itu dulu berlebihan.** Sampai 2026-09-10 ia berbunyi
+*"dari basis data kosong"* — padahal `docker-compose.prod.yml` memasang skrip init
+yang membuat skema `technology` lebih dulu, fasilitas yang **Neon tidak punya**.
+Migrasi dari basis data yang benar-benar kosong dibuktikan terpisah, lewat
+`CREATE DATABASE`; caranya di
+[`PENYEBARAN.md`](PENYEBARAN.md#gladi-bersih-tanpa-satu-pun-akun).
 
 📦 **Sejak 8 September 2026 ketiganya bukan cuma "bisa dibangun" — ia sudah
 TERBIT.** `rilis-citra.yml` berjalan untuk pertama kalinya di `main` `4bfbfff`
@@ -82,18 +89,35 @@ Artinya langkah "cari artefaknya" sudah hilang dari daftar pekerjaan penyebaran 
 platform apa pun tinggal menariknya, dan syarat menariknya kini tertulis di
 [`PENYEBARAN.md`](PENYEBARAN.md#kredensial-untuk-menarik-citra).
 
-Yang belum ada adalah **keputusan platform hosting** — ADR-016 menyebut Azure
-hanya di tabel perkiraan biaya, bukan sebagai keputusan — plus **domain** dan
-**sertifikat**. Ketiganya menyangkut akun dan uang.
+📋 **Keputusan platform SUDAH DIAMBIL — dan bukan yang diusulkan semula.**
+[ADR-017](adr/ADR-017-platform-hosting.md) memeriksa lima kandidat dan
+mengusulkan **Render** ([#33](../../issues/33)); usul itu **ditolak pemilik
+beberapa jam kemudian** karena berbayar, dan digantikan
+[ADR-019](adr/ADR-019-hosting-gratis-tanpa-kartu.md): **Vercel (web) + Koyeb
+(api) + Neon (Postgres) — gratis, tanpa kartu.**
 
-📋 **Keputusan itu kini sudah DISIAPKAN, tinggal diambil.**
-[ADR-017](adr/ADR-017-platform-hosting.md) memeriksa lima kandidat terhadap empat
-syarat dan mengusulkan **Render** ([Issue #33](../../issues/33)). Temuan yang
-mengubah bentuk keputusannya: **harga bukan penyeleksi yang paling tajam** —
-`PENYEBARAN.md` menuntut citra `migrate` yang BERBEDA berjalan sampai selesai,
-dan *pre-deploy command* kebanyakan PaaS menjalankan perintah di dalam citra
-layanan itu sendiri. Fly.io gugur pada tiga syarat sekaligus, tak satu pun soal
-harga.
+🔑 **Pelajaran yang membuat penggantinya mungkin: ADR-017 mencari SATU
+platform, dan itu yang keliru.** Begitu soalnya dipecah tiga (db · web · api),
+keberatan terbesarnya lenyap — yang ditolak sebenarnya bukan "gratis", melainkan
+Postgres gratis Render yang menghapus dirinya sendiri setelah 30 hari. Neon tidak
+begitu. Temuan ADR-017 yang tetap dipakai: **harga bukan penyeleksi yang paling
+tajam** — `PENYEBARAN.md` menuntut citra `migrate` yang BERBEDA berjalan sampai
+selesai, dan *pre-deploy command* kebanyakan PaaS menjalankan perintah di dalam
+citra layanan itu sendiri. Itu yang melahirkan `/app/efbundle` di dalam citra
+`api`.
+
+🛑 **Jadi yang menahan Bulan 1 hari ini tinggal tiga pendaftaran akun**, dan
+ketiganya gratis tanpa kartu tapi tetap harus atas nama pemilik: **#38** (Neon)
+→ **#39** (Koyeb) → **#40** (Vercel). Domain dan sertifikat tidak lagi menahan:
+ketiga platform memberi subdomain ber-TLS sendiri.
+
+✅ **Segala yang bisa dilatih tanpa akun sudah dilatih**, dan latihannya memang
+berbuah — dua cacat yang menghentikan langkah 3 (`channel_binding`, lalu SHA
+pendek) ditemukan begitu, bukan dari uji. Per 2026-09-10 yang sudah terbukti:
+tarikan citra privat dari Actions, bentuk *Root Directory* `apps/web` di kedua
+setelan lockfile, `/app/efbundle` dari basis data yang benar-benar kosong, dan
+bentuk produksi yang **tidak punya permukaan tulis sama sekali**
+([#48](../../issues/48)).
 
 ⚠️ Ukuran keberhasilan Bulan 1 di tabel di atas adalah **URL publik yang bisa
 dibuka orang lain**. Tiga dari empat butir selesai tidak membuat ukuran itu
