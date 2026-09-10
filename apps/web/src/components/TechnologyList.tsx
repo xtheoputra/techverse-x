@@ -28,8 +28,8 @@ export default async function TechnologyList() {
       <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
         {mesinPengembang ? (
           <>
-            {/* Frasa ini dikutip sebagai gejala di issue #39 dan #40 - jangan
-                diubah tanpa ikut menyapu kedua issue itu. */}
+            {/* Frasa ini dikutip sebagai gejala di issue #40 - jangan diubah
+                tanpa ikut menyapu issue itu. */}
             <p className="font-medium">API belum bisa dihubungi.</p>
             <p className="mt-1 text-neutral-600 dark:text-neutral-400">{result.reason}</p>
             <p className="mt-2 text-neutral-600 dark:text-neutral-400">
