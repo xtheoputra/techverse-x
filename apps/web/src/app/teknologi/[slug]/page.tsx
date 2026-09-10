@@ -12,6 +12,7 @@ import {
   type TechnologyDetail,
   type TechnologySummary,
 } from '@/lib/api';
+import { mesinPengembang } from '@/lib/lingkungan';
 
 /**
  * `/teknologi/<slug>` — satu-satunya URL yang ADR-009 janjikan stabil.
@@ -92,7 +93,9 @@ export default async function TeknologiPage({ params }: Params) {
       <Breadcrumb />
       <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
         <p className="font-medium">Halaman ini belum bisa diambil.</p>
-        <p className="mt-1 text-neutral-600 dark:text-neutral-400">{resolved.reason}</p>
+        {mesinPengembang ? (
+          <p className="mt-1 text-neutral-600 dark:text-neutral-400">{resolved.reason}</p>
+        ) : null}
         <p className="mt-2 text-neutral-600 dark:text-neutral-400">
           Ini bukan berarti alamatnya salah — muat ulang beberapa detik lagi.
         </p>
@@ -128,7 +131,9 @@ async function FieldView({ field }: { field: Field }) {
       </header>
 
       {!topics.ok ? (
-        <p className="text-sm text-neutral-500">Daftar topik belum bisa diambil. {topics.reason}</p>
+        <p className="text-sm text-neutral-500">
+          Daftar topik belum bisa diambil.{mesinPengembang ? ` ${topics.reason}` : ''}
+        </p>
       ) : topics.data.items.length === 0 ? (
         <p className="rounded-lg border border-neutral-200 bg-white p-4 text-sm text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
           Bidang ini belum punya satu topik pun. Itu keadaan yang jujur, bukan galat — Bulan 1 mengejar

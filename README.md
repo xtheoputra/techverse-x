@@ -24,7 +24,7 @@ Repositori ini punya **kode yang jalan** dan **citra produksi yang sudah terbit*
 >
 > Enam langkah terincinya ada di **[docs/PENYEBARAN.md](docs/PENYEBARAN.md#menyebarkan-vercel--koyeb--neon)**.
 
-Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan health check yang benar-benar menyentuh dependensinya. Diverifikasi dua kali — di mesin pengembang (2026-09-03) dan **dari dalam peti kemas produksi, tiga kontainer, basis data kosong** (2026-09-07).
+Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan health check yang benar-benar menyentuh dependensinya. Diverifikasi tiga kali — di mesin pengembang (2026-09-03), **dari dalam peti kemas produksi, tiga kontainer, volume basis data baru** (2026-09-07), dan **terhadap citra yang berlaku hari ini** (2026-09-10, [#48](../../issues/48)) yang sekalian menegaskan bentuk produksi itu **tidak punya permukaan tulis**: 14 bidang, nol topik.
 
 | Sudah jalan | Belum ada |
 |---|---|
@@ -56,7 +56,7 @@ Butuh **.NET SDK 10**, **Node 22+**, dan **Docker**.
 .\run.ps1 up                   make up        # Postgres + Redis
 .\run.ps1 migrate              make migrate   # bikin tabelnya
 .\run.ps1 api                  make api       # http://localhost:5080
-.\run.ps1 seed                 make seed      # isi contoh (API harus jalan)
+.\run.ps1 seed                 make seed      # isi contoh (API dari baris di atas)
 .\run.ps1 web                  make web       # http://localhost:3000
 ```
 
@@ -88,7 +88,7 @@ Gerbang yang sama dengan CI, sebelum push:
 | **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** | **Ke-22 keputusan dalam satu halaman**, berikut cara membatalkan tiap keputusan. Berlaku di atas `KERANGKA.md` kalau keduanya berbeda. |
 | **[docs/RENCANA-V1.md](docs/RENCANA-V1.md)** | Rencana enam bulan yang menggantikan `KERANGKA.md` 2.9. Deployment naik dari Bulan 6 ke Bulan 1. |
 | **[docs/PENYEBARAN.md](docs/PENYEBARAN.md)** | Runbook penyebaran, **netral platform**. Kredensial menarik citra, urutan `postgres → migrate → api → web`, variabel lingkungan, dan health check mana yang dipakai untuk apa. |
-| **[docs/adr/](docs/adr/)** | Sembilan belas Architecture Decision Record. Yang menyangkut penyebaran: [ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md) memilih **Vercel + Koyeb + Neon** (gratis, tanpa kartu) dan **menggantikan** [ADR-017](docs/adr/ADR-017-platform-hosting.md); [ADR-018](docs/adr/ADR-018-rilis-citra-dan-reproducibility.md) mengatur kapan citra dibangun ulang. |
+| **[docs/adr/](docs/adr/)** | Dua puluh satu Architecture Decision Record. Yang menyangkut penyebaran: [ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md) memilih **Vercel + Koyeb + Neon** (gratis, tanpa kartu) dan **menggantikan** [ADR-017](docs/adr/ADR-017-platform-hosting.md); [ADR-018](docs/adr/ADR-018-rilis-citra-dan-reproducibility.md) mengatur kapan citra dibangun ulang. |
 | **[docs/SESSION-LOG.md](docs/SESSION-LOG.md)** | Catatan sesi kerja, urutan terbaru di atas. |
 
 ### Kode

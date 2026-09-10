@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { connection } from 'next/server';
 import MaturityBadge from '@/components/MaturityBadge';
 import { searchTechnologies } from '@/lib/api';
+import { mesinPengembang } from '@/lib/lingkungan';
 
 /**
  * Irisan vertikal pertama yang benar-benar menyentuh backend:
@@ -25,12 +26,25 @@ export default async function TechnologyList() {
   if (!result.ok) {
     return (
       <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
-        <p className="font-medium">API belum bisa dihubungi.</p>
-        <p className="mt-1 text-neutral-600 dark:text-neutral-400">{result.reason}</p>
-        <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-          Jalankan <code className="rounded bg-neutral-200 px-1 py-0.5 dark:bg-neutral-800">run.ps1 up</code> lalu{' '}
-          <code className="rounded bg-neutral-200 px-1 py-0.5 dark:bg-neutral-800">run.ps1 api</code>.
-        </p>
+        {mesinPengembang ? (
+          <>
+            {/* Frasa ini dikutip sebagai gejala di issue #39 dan #40 - jangan
+                diubah tanpa ikut menyapu kedua issue itu. */}
+            <p className="font-medium">API belum bisa dihubungi.</p>
+            <p className="mt-1 text-neutral-600 dark:text-neutral-400">{result.reason}</p>
+            <p className="mt-2 text-neutral-600 dark:text-neutral-400">
+              Jalankan <code className="rounded bg-neutral-200 px-1 py-0.5 dark:bg-neutral-800">run.ps1 up</code> lalu{' '}
+              <code className="rounded bg-neutral-200 px-1 py-0.5 dark:bg-neutral-800">run.ps1 api</code>.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="font-medium">Daftar topik belum bisa dimuat.</p>
+            <p className="mt-1 text-neutral-600 dark:text-neutral-400">
+              Coba muat ulang beberapa saat lagi. Keempat belas bidang di bawah tetap bisa dibuka.
+            </p>
+          </>
+        )}
       </div>
     );
   }
@@ -42,7 +56,13 @@ export default async function TechnologyList() {
       <div className="rounded-lg border border-neutral-300 bg-white p-4 text-sm dark:border-neutral-700 dark:bg-neutral-900">
         <p className="font-medium">Belum ada satu topik pun.</p>
         <p className="mt-1 text-neutral-600 dark:text-neutral-400">
-          Isi contoh: <code className="rounded bg-neutral-200 px-1 py-0.5 dark:bg-neutral-800">run.ps1 seed</code>
+          {mesinPengembang ? (
+            <>
+              Isi contoh: <code className="rounded bg-neutral-200 px-1 py-0.5 dark:bg-neutral-800">run.ps1 seed</code>
+            </>
+          ) : (
+            <>Itu keadaan yang jujur, bukan galat — Bulan 1 mengejar taksonominya lebih dulu.</>
+          )}
         </p>
       </div>
     );
