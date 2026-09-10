@@ -227,8 +227,38 @@ docker compose -f docker-compose.prod.yml up --build
 
 Ini bukan pengganti `docker-compose.yml` — yang itu infrastruktur pengembangan.
 Yang ini ada supaya bentuk produksinya bisa dibuktikan **sebelum uang hosting
-keluar**: migrasi dari basis data kosong, kesiapan tanpa Redis, dan halaman yang
-benar-benar menampilkan datanya.
+keluar**.
+
+Yang benar-benar dibuktikannya, diukur ulang 2026-09-10 (issue
+[#48](../../issues/48)):
+
+| Klaim | Keadaan |
+|---|---|
+| **Kesiapan tanpa Redis** | ✅ `/health/ready` **200**, dan badannya hanya menyebut `postgres` |
+| **Urutan `migrate → api` ditegakkan** | ✅ `migrate` keluar dengan kode 0 lebih dulu, `api` menunggunya |
+| **Permukaan tulis tertutup** | ✅ kedelapan endpoint tulis **tidak dipasang** — ADR-020, dan ini yang paling mirip produksi |
+| **Halaman menyajikan isinya** | ⚠️ **14 bidang, NOL topik** — dan itu memang yang akan dilihat pengunjung hari ini |
+| **Migrasi dari basis data kosong** | ⚠️ **tidak di sini** — lihat peringatan di bawah |
+
+🔴 **Tumpukan ini tidak punya satu pun cara memasukkan topik, dan itu disengaja.**
+Sejak [ADR-020](adr/ADR-020-permukaan-tulis-api.md) permukaan tulis tidak dipasang
+kecuali `Editorial:WritesEnabled` dinyalakan, dan berkas ini **tidak**
+menyalakannya. `run.ps1 seed` terhadapnya berhenti dengan **exit 1** sambil
+menyebut ADR-020. Sampai 2026-09-10 alinea ini masih menjanjikan *"halaman yang
+benar-benar menampilkan datanya"* — janji yang berhenti bisa ditepati sehari
+sebelumnya, tanpa ada yang memberi tahu pembacanya.
+
+Kalau yang ingin dilihat adalah **bentuk halaman topik yang sudah jadi**, itu
+pekerjaan `docker-compose.yml` + `run.ps1 api` + `run.ps1 seed` — bukan berkas
+ini. Dua berkas, dua tugas.
+
+⚠️ **Dan berkas ini bukan tiruan Neon yang sah untuk urusan migrasi.** Postgres di
+dalamnya memasang `infrastructure/docker/postgres-init/01-schemas.sql`, jadi skema
+`technology` sudah **ada sebelum `migrate` jalan** — terbukti dari komentar skema
+yang hanya ditulis skrip itu, bukan oleh `EnsureSchema`. Neon tidak memberi
+fasilitas seperti itu. Pembuktian migrasi dari basis data yang benar-benar kosong
+ada di [*Gladi bersih tanpa satu pun akun*](#gladi-bersih-tanpa-satu-pun-akun) di
+bawah, lewat `CREATE DATABASE`.
 
 ---
 
@@ -387,6 +417,14 @@ parameternya, *"SSL connection requested…"* berarti transport.
 💡 Hasilnya sudah dicatat: 9 tabel + 14 bidang dari basis data kosong,
 `/health/ready` **200 hanya menyebut `postgres`**, dan halaman dari sumber
 menampilkan **14 bidang**.
+
+✅ **Diulang 2026-09-10 terhadap citra hari ini** — yaitu sesudah ADR-020 dan
+sesudah gerbang citra dipasang, dua hal yang belum ada saat angka di atas diambil.
+Hasilnya sama persis: **9 tabel, 14 bidang, 0 topik**, exit code **0**. Yang
+diperiksa di sini `/app/efbundle` **di dalam citra `api`** — bukan `dotnet ef`
+dari sumber seperti di CI, dan bukan citra `migrate` seperti di
+`docker-compose.prod.yml`. Ketiganya artefak yang berbeda; yang dipakai produksi
+lewat *Migrasi produksi* adalah yang ini.
 
 ⚠️ **Dua baris pertama langkah 3 selalu terlihat seperti kegagalan, dan bukan:**
 

@@ -4,6 +4,84 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-10 — Sesi 12: janji `docker-compose.prod.yml` dibuktikan dengan dijalankan, dan sapuannya menemukan tiga kebocoran lagi
+
+Permintaan pemilik: *"kerjakan semua tugas dan fase yang tersisa"*.
+
+Papan kerjanya jelas dan sempit. Dari lima issue terbuka, **#38 · #39 · #40 menuntut akun atas nama pemilik** dan **#42 terkunci di belakang ADR-021** yang sengaja belum dibangun sampai #40 tutup. Yang tersisa untuk asisten: **#48** — dan issue itu sendiri melarang jalan pintasnya, dengan kalimat *"langkah pertama issue ini adalah membuktikannya dengan menjalankan, bukan langsung menyunting dokumen."*
+
+### Yang dibuktikan, bukan disimpulkan
+
+`docker compose -f docker-compose.prod.yml up --build` dijalankan dari volume yang baru dibuat. Hasilnya:
+
+| Yang diperiksa | Hasil |
+|---|---|
+| `migrate` selesai lebih dulu, `api` menunggunya | ✅ exit 0, tiga migrasi terpasang |
+| `/health/ready` | ✅ **200**, badannya **hanya** menyebut `postgres` |
+| Kedelapan endpoint tulis | ✅ **tidak satu pun dipasang** |
+| Ketiga endpoint baca | ✅ hidup — kendalinya: yang tertutup MENULIS, bukan seluruh API |
+| `run.ps1 seed` terhadapnya | ✅ berhenti, **exit 1**, menyebut ADR-020 |
+| Halaman muka | ⚠️ **14 bidang, NOL topik** |
+
+**Klaim `PENYEBARAN.md` karena itu memang sudah berhenti benar**, persis seperti dugaan #48 — tapi baru sekarang ia punya angka.
+
+🔑 **Kendali yang membuat angka di atas berarti:** citra `api` **yang sama persis** dijalankan sekali lagi dengan `Editorial__WritesEnabled=true`. Ketujuh dari delapan endpoint tulis berpindah dari 404/405 ke **400**. Tanpa kendali ini, "404" tidak membuktikan apa-apa — ia sama saja bunyinya dengan alamat yang salah ketik.
+
+🐞 **Dan endpoint kedelapan membongkar alat ukurnya sendiri.** `POST …/draf` tetap **404** walau sakelarnya hidup, sebab `MarkDrafted` **tidak menerima badan permintaan** — muatan sengaja-tak-sah yang jadi dasar seluruh probe tidak pernah dibaca, jadi yang menjawab adalah slug yang memang tidak ada. Diskriminator yang benar untuk rute ini bukan muatan melainkan **metode**: `GET` ke alamat itu menjawab **404 di produksi** dan **405 saat sakelarnya hidup**. 💡 *Satu alat ukur jarang sah untuk seluruh permukaan — periksa tiap kolom yang jawabannya seragam.*
+
+### Keputusan #48: sakelarnya dibiarkan MATI
+
+Pilihannya dua — nyalakan `Editorial__WritesEnabled` di compose supaya tumpukan itu bisa di-seed lagi, atau biarkan mati dan koreksi dokumennya. **Jawabannya ternyata sudah tertulis di berkas itu sendiri, sejak sebelum ADR-020 ada:**
+
+> *"Kalau berkas ini menyalakan Redis, ia justru menyembunyikan hal yang paling perlu dibuktikan."*
+
+Kalimat itu dibuat untuk Redis dan berlaku sama persis untuk permukaan tulis. Terbitan yang hanya bisa dibaca **adalah** bentuk produksi V1; tumpukan yang berisi topik justru menampilkan **lebih** banyak daripada yang akan dilihat pengunjung. Yang hilang — melihat bentuk halaman topik yang sudah jadi — tidak hilang dari proyek, ia cuma tinggal di `docker-compose.yml` + `run.ps1 api` + `run.ps1 seed`. Dua berkas, dua tugas.
+
+### 🔴 Kalimat yang sama ternyata memuat DUA klaim basi, bukan satu
+
+`PENYEBARAN.md` menjanjikan tiga hal sekaligus: *"migrasi dari basis data kosong, kesiapan tanpa Redis, dan halaman yang benar-benar menampilkan datanya."* #48 menuduh yang ketiga. Yang **pertama** ternyata ikut basi, dan tidak ada yang menuduhnya.
+
+`docker-compose.prod.yml` memasang `postgres-init/01-schemas.sql`, jadi skema `technology` **sudah ada sebelum `migrate` jalan**. Dibuktikan lewat pembeda yang tidak bisa dibantah: **komentar skema**. Skrip init menulisnya, `EnsureSchema` tidak.
+
+```
+DB techversex  (compose prod)   -> "Bounded context Technology. Source of truth …"
+DB gladi_s12   (CREATE DATABASE) -> (tanpa komentar)
+```
+
+Neon tidak punya fasilitas seperti itu — ini pengulangan persis temuan Sesi 10: **cari keadaan yang dev/CI dapat GRATIS dan produksi TIDAK.** Pembuktian yang sah karena itu dijalankan terpisah, dan sekalian menutup butir kedua #48: **`/app/efbundle` di dalam citra `api`, terhadap basis data hasil `CREATE DATABASE`** — artefak yang dipakai *Migrasi produksi*, bukan `dotnet ef` dari sumber seperti di CI dan bukan citra `migrate` seperti di compose. Hasilnya **9 tabel, 14 bidang, 0 topik, exit 0**, sama persis dengan Sesi 10 tapi kini terhadap citra sesudah ADR-020 dan sesudah gerbang citra.
+
+### 🔴🔴 Sapuan yang sama menemukan cacat yang jauh lebih dekat ke pengunjung
+
+Halaman produksi yang dijalankan tadi mencetak ini di bawah judulnya:
+
+> **Belum ada satu topik pun.**
+> Isi contoh: `run.ps1 seed`
+
+Halamannya **menyuruh pembacanya menjalankan perintah yang baru saja terbukti berhenti dengan exit 1.** Dan yang membuatnya serius bukan keberadaannya, melainkan **kapan** ia muncul — kedua keadaan yang mencetak bahan pengembang justru keadaan **biasa** dari situs yang sudah tayang:
+
+- **kosong** — hari ini nol topik, dan #42 masih terkunci. Jadi begitu #40 selesai, **inilah tampilan pembukanya.**
+- **galat** — instance gratis Koyeb tidur setelah satu jam (ADR-019). Bukan kecelakaan langka; itu cara kerja tier yang sengaja dipilih.
+
+🔑 **Kendali "matikan API-nya" menemukan dua kebocoran lagi yang tidak terlihat dari membaca kode.** Sapuan `grep run.ps1` cuma menemukan satu berkas; menjalankan halamannya dengan API mati memperlihatkan `FieldGrid` — lalu `teknologi/[slug]` — mencetak **alamat API internal** (`Tidak bisa menghubungi API di http://api:8080`) lewat `result.reason`, jalur yang sama sekali tidak mengandung kata `run.ps1`. **Empat tempat, tiga berkas.**
+
+Diperbaiki dengan satu sumbu di `lib/lingkungan.ts`: **bentuk bangunan**, bukan "apakah API-nya hidup". Build produksi yang disajikan di mana pun tidak mencetak bahan pengembang; `next dev` tetap mencetaknya lengkap.
+
+🐞 **Alat ukur saya sendiri sempat mengukur keadaan yang salah, lagi.** Kendali "API mati" diulang lewat `compose up -d --build web` — yang **ikut menyalakan kembali `api`**, sebab api dependensi web. Laporannya berbunyi *"tidak ada kebocoran"* padahal yang terukur jalur SUKSES, bukan jalur galat. Ketahuan hanya karena keluarannya diperiksa, bukan angkanya. 💡 *Sesudah "gerbangnya hijau", tanyakan dulu: keadaan yang mana yang barusan diukur?*
+
+### Yang ikut disapu
+
+Pola terbesar Sesi 11 — *klaim berhenti benar tanpa memberi tahu pembacanya* — dipakai sebagai daftar periksa, bukan cuma dicatat:
+
+- **`README.md`**: "Sembilan belas ADR" → **21**; "basis data kosong" (2026-09-07) → *"volume basis data baru"*, sebab yang itu ternyata bukan basis data kosong; komentar `seed` dipertegas bahwa API-nya harus yang dari baris di atasnya.
+- **Issue #39 & #40**: keduanya mengutip frasa **"API belum bisa dihubungi"** sebagai gejala yang harus dicari — dan sesudah perubahan hari ini, frasa itu **tidak muncul lagi di build produksi**, yaitu justru di tempat kedua issue menyuruh mencarinya. Badannya diperbarui.
+- **`docker-compose.prod.yml`**: butir "tiga hal yang sengaja berbeda" jadi **empat**, dengan alasan keputusan #48 ditulis di tempat orang berikutnya akan bertanya.
+
+### Ukuran
+
+**87 uji unit + 18 uji integrasi**, `run.ps1 verify` hijau. Nol uji ditambahkan: yang berubah teks yang dicetak ke pembaca, dan repo ini belum punya harness uji JS sama sekali — memasangnya keputusan tersendiri, bukan sisipan. Sesuai kebiasaan repo ini, buktinya **halaman sungguhan dari peti kemas**, dua arah: build produksi bersih dari `run.ps1` maupun alamat internal, `next dev` tetap mencetak keduanya berikut frasa yang dikutip #39/#40.
+
+---
+
 ## 2026-09-09 — Sesi 11: Isi halaman mendarat, lalu satu pertanyaan membuka lubang yang jauh lebih besar
 
 Permintaan pemilik: *"lanjutkan"*.

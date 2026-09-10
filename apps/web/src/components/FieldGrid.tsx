@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { connection } from 'next/server';
 import { listFields } from '@/lib/api';
+import { mesinPengembang } from '@/lib/lingkungan';
 
 /**
  * Empat belas bidang ADR-010 — sasaran Bulan 1 di docs/RENCANA-V1.md.
@@ -41,7 +42,11 @@ export default async function FieldGrid() {
     return (
       <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
         <p className="font-medium">Daftar bidang belum bisa diambil.</p>
-        <p className="mt-1 text-neutral-600 dark:text-neutral-400">{result.reason}</p>
+        <p className="mt-1 text-neutral-600 dark:text-neutral-400">
+          {/* `result.reason` menyebut alamat API internal - bahan diagnosis, bukan
+              kalimat untuk pembaca. Lihat lib/lingkungan.ts. */}
+          {mesinPengembang ? result.reason : 'Coba muat ulang beberapa saat lagi.'}
+        </p>
       </div>
     );
   }

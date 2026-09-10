@@ -8,7 +8,7 @@
 #     docker compose -f docker-compose.prod.yml up --build
 #     -> http://localhost:8080
 #
-# Tiga hal yang sengaja berbeda dari docker-compose.yml:
+# Empat hal yang sengaja berbeda dari docker-compose.yml:
 #
 #   1. TIDAK ADA REDIS. ADR-016 memutuskan Redis tidak di-provision di V1, dan
 #      kesiapan API sudah tahu cara hidup tanpanya. Kalau berkas ini menyalakan
@@ -17,6 +17,23 @@
 #      dulu, bukan diselipkan ke dalam startup API.
 #   3. Postgres tidak membuka port ke host. Di produksi ia tidak boleh terjangkau
 #      dari luar, dan itu ikut diuji di sini.
+#   4. TIDAK ADA PERMUKAAN TULIS. `Editorial__WritesEnabled` tidak diisi, jadi
+#      kedelapan endpoint tulis tidak dipasang (ADR-020) dan tumpukan ini tidak
+#      punya satu pun cara memasukkan topik. `run.ps1 seed` terhadapnya berhenti
+#      dengan exit 1. Itu BUKAN kekurangan berkas ini - itu bentuk produksinya.
+#
+# Butir 4 sempat jadi pertanyaan terbuka (issue #48): nyalakan sakelarnya di sini
+# supaya tumpukan ini bisa di-seed lagi, atau biarkan mati? Jawabannya ternyata
+# sudah tertulis di kalimat terakhir butir 1, yang dibuat untuk Redis dan berlaku
+# sama persis di sini: menyalakan sesuatu supaya layarnya lebih berisi membuat
+# berkas ini berhenti membuktikan bentuk yang akan tayang. Terbitan yang hanya
+# bisa dibaca ADALAH bentuk produksi V1 - tumpukan yang berisi topik justru
+# menampilkan LEBIH banyak daripada yang akan dilihat pengunjung sungguhan.
+#
+# Yang hilang karenanya - melihat bentuk halaman topik yang sudah jadi - tidak
+# hilang dari proyek ini. Ia tinggal di berkas sebelah: docker-compose.yml +
+# `run.ps1 api` + `run.ps1 seed`. Dua berkas, dua tugas; persis alinea pertama
+# di kepala catatan ini.
 
 name: techversex-prod
 
@@ -64,6 +81,10 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=techversex;Username=techversex;Password=techversex_prod_lokal"
       # ConnectionStrings__Redis sengaja TIDAK ADA. Lihat catatan di kepala berkas.
+      #
+      # Editorial__WritesEnabled sengaja TIDAK ADA juga - butir 4 di kepala
+      # berkas. Menambahkannya di sini adalah cara paling mudah membuat tumpukan
+      # ini berhenti mengukur bentuk yang akan tayang.
     ports:
       # API memang publik menurut KERANGKA.md 4.9. Dibuka di sini juga supaya
       # /health/ready bisa diperiksa langsung dari luar peti kemas.
