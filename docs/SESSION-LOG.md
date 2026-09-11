@@ -122,6 +122,15 @@ PR [#56](../../pull/56) dibuka, dan **keenam job merah dalam 2–4 detik dengan 
 
 🔴 **Akibatnya lebih besar daripada satu PR: `rilis-citra.yml` juga tidak bisa jalan.** Jadi SHA citra tetap beku di `e1871bb1…`, dan **#39 (Koyeb) ikut tertahan** — tidak ada citra baru untuk ditarik. Ditagih di [#57](../../issues/57), berlabel `blocker`; deskripsi milestone Fase 1 ikut diperbarui, sebab sampai hari ini ia menulis *"yang tersisa cuma dua hal"*.
 
+### 🧹 Higiene GitHub: audit Sesi 12 sendiri punya kolom yang tak pernah diukur
+
+Butir 5 [[simpan-dan-commit-workflow]] dijalankan sebagai pemeriksaan, bukan asumsi — dan hasilnya persis pola repo ini lagi:
+
+- 🔴 **`pr_tanpa_milestone = 9`.** Sembilan PR ter-merge (#23 · #35 · #36 · #37 · #44 · #45 · #46 · #47 · #49) tidak pernah punya milestone. **Sesi 12 memperbaiki LABEL PR dan menyatakan audit akhirnya nol** — dan memang nol, sebab auditnya cuma menghitung `issue_tanpa_label`, `issue_tanpa_milestone`, dan `pr_tanpa_label`. **Kolom keempat tidak pernah dihitung, jadi ia tidak bisa merah.** 💡 *Audit yang menyatakan "nol" hanya sekuat daftar kolom yang diperiksanya — periksa dulu ia mengukur berapa kolom.* Kesembilannya sudah masuk milestone Fase 1.
+- 🔴 **Deskripsi repo basi — tapi BUKAN pada angka ujinya.** Ia berbunyi *"sisa tinggal ketiga akunnya"*, dan itu berhenti benar hari ini karena #57 penahan baru yang bukan salah satu dari ketiganya. Sudah diperbarui (339 dari 350 karakter).
+- ⚖️ **Angka uji di deskripsi repo SENGAJA dibiarkan `87 + 18`.** Deskripsi repo menggambarkan `main`, dan #56 belum masuk `main`. Menulis `95 + 32` sekarang adalah klaim yang **mendahului** kenyataan — bentuk basi yang sama, cuma arah waktunya terbalik. Bentuk penggantinya sudah ditulis di komentar #57 supaya tidak perlu disusun ulang saat merge.
+- ✅ Deskripsi ketiga milestone diperiksa satu per satu ke keadaan hari ini; Fase 1 diperbarui (menyebut #57), `Bulan 3` baru dibuat sesi ini. Topics ditambah `postgresql`. Audit akhir: **issue tanpa label 0 · issue tanpa milestone 0 · PR tanpa label 0 · PR tanpa milestone 0**.
+
 ### Yang TIDAK dikerjakan, dan kenapa
 
 **ADR-021 tetap tidak dibangun.** Pemicunya tertulis jelas — #40 tutup — dan #40 masih terbuka. Membangunnya sekarang berarti menulis mesin peninjauan untuk isi yang belum ada, di situs yang belum tayang. Kalau pemilik ingin urutan itu dibalik, itu keputusan pemilik, bukan kesimpulan asisten.
