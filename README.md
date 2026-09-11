@@ -26,18 +26,33 @@ Repositori ini punya **kode yang jalan** dan **citra produksi yang sudah terbit*
 >
 > Enam langkah terincinya ada di **[docs/PENYEBARAN.md](docs/PENYEBARAN.md#menyebarkan-vercel--koyeb--neon)**.
 
+> ### 🔎 Dan sementara ketiganya menunggu, Bulan 3 dimulai duluan
+>
+> Ketiga akun di atas **tidak menghalangi pekerjaan lain**, jadi sasaran Bulan 3
+> `docs/RENCANA-V1.md` — *"orang bisa menemukan halaman tanpa menebak URL"* —
+> dikerjakan lebih dulu. **Pencarian teks penuh PostgreSQL sudah mendarat**
+> ([ADR-022](docs/adr/ADR-022-pencarian-teks-penuh.md)): kotak cari di tiap
+> halaman, `/cari?q=…`, dan **bidang ikut dicari** — sebelum ini `quantum`
+> menjawab nol padahal situsnya punya bidang bernama *Quantum Computing*.
+>
+> Sisa Bulan 3 ada di milestone **Bulan 3 — Explore, Learn & Pencarian**:
+> [#55](../../issues/55) (Knowledge Graph — tabel relasinya punya nol produsen
+> dan nol pembaca) dan [#54](../../issues/54) (pencarian belum menjangkau isi
+> halaman).
+
 Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan health check yang benar-benar menyentuh dependensinya. Diverifikasi tiga kali — di mesin pengembang (2026-09-03), **dari dalam peti kemas produksi, tiga kontainer, volume basis data baru** (2026-09-07), dan **terhadap citra yang berlaku hari ini** (2026-09-10, [#48](../../issues/48)) yang sekalian menegaskan bentuk produksi itu **tidak punya permukaan tulis**: 14 bidang, nol topik.
 
 | Sudah jalan | Belum ada |
 |---|---|
-| API .NET 10 + PostgreSQL 17 | Navigasi & taksonomi bidang |
+| API .NET 10 + PostgreSQL 17 | Navigasi tujuh bagian aplikasi (taksonomi 14 bidangnya sendiri **sudah** mendarat) |
 | Irisan vertikal Technology (buat · ambil · cari) | Autentikasi |
 | Migrasi EF Core, schema per bounded context | Kode AI apa pun |
 | Health check `live`/`ready` yang menguji dependensi | Vector DB, Neo4j, event bus |
 | Halaman web yang membaca API sungguhan | Pengambilan berita |
+| **Pencarian teks penuh PostgreSQL** — `tsvector` terhitung di `technologies` dan `fields`, halaman `/cari`, kotak cari di tiap halaman ([ADR-022](docs/adr/ADR-022-pencarian-teks-penuh.md)) | Pencarian ke dalam **isi** halaman ([#54](../../issues/54)) — hari ini yang tercari nama dan ringkasan |
 | CI: **8 dari 9 gerbang** blueprint menyala — Lint · Unit · Integrasi · SAST · Dependency Scan · Secret Scan · Container Scan · Build, plus penjaga "migrasi bisa dijalankan dari nol". Yang belum: **Contract Test** (belum ada kontrak antar-layanan) | **Platform hosting, domain, sertifikat** |
 | **Citra produksi terbit ke GHCR** tiap `main` bergerak — API, web, dan bundel migrasi EF | Terraform, Kubernetes |
-| **Kelima bagian template [ADR-012](docs/adr/ADR-012-template-halaman.md) punya tabelnya sendiri** — roadmap (langkah 0 = prasyarat), tools (m2m), mini project, resources | Halaman `/teknologi/<slug>` dan endpoint isinya |
+| **Kelima bagian template [ADR-012](docs/adr/ADR-012-template-halaman.md) punya tabelnya sendiri** — roadmap (langkah 0 = prasyarat), tools (m2m), mini project, resources, **berikut halaman `/teknologi/<slug>` dan endpoint isinya** (#41, PR #44) | Relasi antar-topik: tabelnya ada, produsen dan pembacanya **belum** ([#55](../../issues/55)) |
 
 > 🐳 **Redis dipakai di pengembangan saja.** [ADR-016](docs/adr/ADR-016-pagu-biaya.md) memutuskan ia **tidak di-provision di V1** — ia harus membuktikan dirinya dulu dengan beban yang benar-benar ada. Kesiapan API sudah tahu cara hidup tanpanya, dan itu diuji ([`tests/integration`](tests/integration)).
 
@@ -59,7 +74,7 @@ Butuh **.NET SDK 10**, **Node 22+**, dan **Docker**.
 .\run.ps1 migrate              make migrate   # bikin tabelnya
 .\run.ps1 api                  make api       # http://localhost:5080
 .\run.ps1 seed                 make seed      # isi contoh (API dari baris di atas)
-.\run.ps1 web                  make web       # http://localhost:3000
+.\run.ps1 web                  make web       # http://localhost:3000 - coba /cari?q=quantum
 ```
 
 `.\run.ps1` tanpa argumen menampilkan seluruh perintah. Isi `run.ps1` dan `Makefile` sengaja dijaga sama: yang satu untuk Windows, yang lain untuk CI dan Linux.
@@ -90,7 +105,7 @@ Gerbang yang sama dengan CI, sebelum push:
 | **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** | **Ke-22 keputusan dalam satu halaman**, berikut cara membatalkan tiap keputusan. Berlaku di atas `KERANGKA.md` kalau keduanya berbeda. |
 | **[docs/RENCANA-V1.md](docs/RENCANA-V1.md)** | Rencana enam bulan yang menggantikan `KERANGKA.md` 2.9. Deployment naik dari Bulan 6 ke Bulan 1. |
 | **[docs/PENYEBARAN.md](docs/PENYEBARAN.md)** | Runbook penyebaran, **netral platform**. Kredensial menarik citra, urutan `postgres → migrate → api → web`, variabel lingkungan, dan health check mana yang dipakai untuk apa. |
-| **[docs/adr/](docs/adr/)** | Dua puluh satu Architecture Decision Record. Yang menyangkut penyebaran: [ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md) memilih **Vercel + Koyeb + Neon** (gratis, tanpa kartu) dan **menggantikan** [ADR-017](docs/adr/ADR-017-platform-hosting.md); [ADR-018](docs/adr/ADR-018-rilis-citra-dan-reproducibility.md) mengatur kapan citra dibangun ulang. |
+| **[docs/adr/](docs/adr/)** | Dua puluh dua Architecture Decision Record. Yang menyangkut penyebaran: [ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md) memilih **Vercel + Koyeb + Neon** (gratis, tanpa kartu) dan **menggantikan** [ADR-017](docs/adr/ADR-017-platform-hosting.md); [ADR-018](docs/adr/ADR-018-rilis-citra-dan-reproducibility.md) mengatur kapan citra dibangun ulang. |
 | **[docs/SESSION-LOG.md](docs/SESSION-LOG.md)** | Catatan sesi kerja, urutan terbaru di atas. |
 
 ### Kode

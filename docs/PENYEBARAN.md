@@ -164,6 +164,12 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST https://<api>/api/v1/technologi
 
 curl -s -o /dev/null -w '%{http_code}\n' https://<api>/api/v1/fields
 # harus 200   - kendalinya: yang tertutup MENULIS, bukan seluruh API
+
+curl -s "https://<api>/api/v1/search?q=quantum" | head -c 200
+# harus memuat "quantum-computing"   - pencarian permukaan BACA (ADR-022),
+# jadi ia ikut tayang. Kata kunci ini dipilih karena jawabannya datang dari
+# BIDANG, yang disemai migrasi - jadi ia benar bahkan saat belum ada satu
+# topik pun.
 ```
 
 Log startup juga menyebutkannya. `Editorial:WritesEnabled mati` adalah bentuk

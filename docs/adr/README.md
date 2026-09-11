@@ -26,6 +26,7 @@ Satu berkas per keputusan. Nama berkasnya mengikuti daftar yang sudah ditetapkan
 | [019](ADR-019-hosting-gratis-tanpa-kartu.md) | **Vercel + Koyeb + Neon** - gratis, tanpa kartu. Menggantikan 017 | Diterima |
 | [020](ADR-020-permukaan-tulis-api.md) | **Endpoint tulis tidak dipasang di produksi** - melengkapi 013, yang hanya menimbang login PEMBACA | Diterima |
 | [021](ADR-021-jalan-menuju-tinjau.md) | Jalan sah menuju `tinjau`: **workflow bergerbang**, nama pemeriksa dari `github.actor` | Diterima sebagai pola - **dibangun sesudah [#40](../../../../issues/40)** |
+| [022](ADR-022-pencarian-teks-penuh.md) | **Pencarian teks penuh PostgreSQL**: kolom `tsvector` terhitung di `technologies` DAN `fields`, kamus `english`, `websearch_to_tsquery`, dan cadangan **awal kata** untuk pengetikan sebagian | Diterima - **sudah dibangun** |
 
 ⚠️ **ADR-017 dibiarkan utuh meski digantikan**, karena dua bagiannya masih benar
 dan masih dipakai: pemeriksaan empat syarat yang menemukan **bentuk citra

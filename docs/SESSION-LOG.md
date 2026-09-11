@@ -4,6 +4,120 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-11 — Sesi 13: papan kerja buntu, jadi Bulan 3 dikerjakan duluan — dan pengukurannya yang memilih tiap keputusan
+
+Permintaan pemilik: *"lanjutkan semua tugas dan fase"*.
+
+Papan kerjanya sama persis dengan yang ditinggalkan Sesi 12: empat issue terbuka, **nol yang bisa dikerjakan tanpa pemilik** — #38/#39/#40 menuntut pendaftaran akun, #42 terkunci di belakang ADR-021 yang sengaja menunggu #40 tutup. Diperiksa lagi ke GitHub, bukan diingat: masih empat, masih sama.
+
+🔑 **Yang membuka jalan bukan menemukan celah di keempat issue itu, melainkan membaca `RENCANA-V1.md` sampai baris berikutnya.** Bulan 1 dan 2 memang terhalang. **Bulan 3 tidak terhalang apa pun** — *"Explore + Learn + pencarian"*, dan pencariannya murni kerja kode. Urutan bulan di rencana itu urutan **prioritas**, bukan kunci.
+
+Ini pengulangan pelajaran Sesi 10 dalam bentuk lain. Di sana pertanyaannya *"bagian mana yang bisa DILATIH sekarang?"*; di sini *"fase mana yang tidak menunggu siapa pun?"*
+
+### Yang diukur sebelum satu baris pun ditulis
+
+Tiap keputusan di [ADR-022](adr/ADR-022-pencarian-teks-penuh.md) lahir dari menjalankan kueri terhadap isi sungguhan — keempat belas bidang `FieldCatalog` plus lima contoh `run.ps1 seed` — bukan dari kebiasaan.
+
+**1. Apa yang sebenarnya rusak dengan `ILIKE`?** Sepuluh kata kunci dicoba. **Empat menjawab nol semata-mata karena urutan katanya dibalik** (`protokol model`, `kuantum sirkuit`, `digital kembaran`, `model bahasa alat`). Itu angka yang membuat pekerjaan ini layak, dan sebelum diukur ia cuma dugaan.
+
+**2. `english` atau `simple`?** Dugaan awal — *kamus Inggris akan merusak teks Indonesia* — **diperiksa dan ternyata salah**:
+
+| Yang diperiksa | Hasil |
+|---|---|
+| Kata **Indonesia** yang hilang karena stopword Inggris | **nol** (yang hilang cuma `in`, `on`, `the` — memang kata Inggris) |
+| Tabrakan stemmer di seluruh korpus | **satu**: `computer` + `computing` → `comput`, dan itu memang diinginkan |
+| Yang dibeli | `agent` menemukan "AI Agents", `container` menemukan "containers" — dengan `simple` keduanya nol |
+
+Kata Indonesia memang dipotong (`akses` → `aks`), tapi **simetris** — potongan yang sama berlaku di kuerinya. 💡 *Dugaan yang terdengar masuk akal tentang bahasa ternyata paling murah diperiksa dengan satu kueri.*
+
+**3. `to_tsquery` atau `websearch_to_tsquery`?** Yang pertama — fungsi yang muncul di hampir semua contoh FTS — **melempar**:
+
+```
+to_tsquery('english', 'quantum &')  ->  ERROR: no operand in tsquery
+```
+
+Di kotak pencarian publik itu **HTTP 500 yang dipicu satu karakter yang diketik pengunjung**. Dijaga dua arah: empat masukan kotor dituntut menjawab 200, **dan** sebuah kendali menuntut `to_tsquery` benar-benar meledak untuk masukan yang sama. Tanpa kendali itu, "200" cuma berarti *hari ini tidak meledak*.
+
+### 🔴 Dua kata kunci yang FTS-nya sendiri TIDAK selesaikan — dan itu yang paling berguna
+
+Dari sepuluh kata kunci percobaan, dua menjawab nol di **ketiga** kolom. Keduanya membongkar batas yang lebih besar daripada pilihan fungsi mana pun:
+
+- **`quantum` → nol.** Padahal situs ini punya bidang bernama **Quantum Computing**; ringkasan Qiskit menulis "kuantum", ejaan Indonesia. **Pencarian tidak menyentuh bidang sama sekali** — dan hari ini ada 14 bidang berbanding nol sampai lima topik, jadi pencarian yang cuma menjawab topik akan membalas "tidak ada hasil" untuk hampir setiap kata yang tercetak di halaman muka. Diperbaiki: `fields` punya `tsvector`-nya sendiri, dan sebuah topik **ikut terjaring oleh bidangnya**.
+- **`json-rpc` → nol, dan tetap nol sesudahnya.** Frasa *"Dasar HTTP dan JSON-RPC"* benar-benar tercetak di situs ini, sebagai prasyarat roadmap Model Context Protocol. **Kolom terhitung hanya boleh menyebut kolom di barisnya sendiri**, jadi keempat tabel anak tidak bisa ikut tanpa mengembalikan sifat yang justru dibuang (sesuatu yang bisa lupa diperbarui). Ditagih di [#54](../../issues/54), lengkap dengan kenapa keputusannya belum layak diambil: hari ini baru **satu** topik yang kelima bagiannya terisi, dan itu pun isi contoh.
+
+💡💡 **Pola yang berulang: kolom "sesudah" di tabel pengukuran berguna, tapi baris yang tetap NOL di kedua kolom jauh lebih berguna.** Ia menunjuk batas yang tidak akan pernah muncul dari memperbaiki yang sudah hampir benar.
+
+### 🔴 Sapuan "berapa pemanggilnya?" berbuah untuk KETIGA kalinya
+
+Sasaran Bulan 3 yang lain berbunyi *"Knowledge Graph dasar **(relasi sudah ada di skema)**"*. Frasa dalam kurung itu benar tentang skema dan **menyesatkan tentang pekerjaannya**:
+
+| Yang diperiksa | Keadaan |
+|---|---|
+| Tabel + entitas + enum + uji unit | ✅ ada |
+| `TechnologyRelationship.Create()` dipanggil kode produksi | 🛑 **nol** |
+| Metode di agregat untuk menambah relasi | 🛑 **tidak ada sama sekali** |
+| Endpoint · medan di kontrak · tempat menampilkannya · baris di DB | 🛑 tidak ada · tidak ada · tidak ada · **0** |
+
+Bentuknya: **tabel tanpa produsen, tanpa pembaca, dan tanpa isi.** Ini kembaran persis `MarkReviewed()` dan `Publish()` di Sesi 11 — pola **ketiga**. Ditagih di [#55](../../issues/55) berikut empat keputusan yang harus diambil lebih dulu.
+
+💡 Sapuan yang menemukan ketiganya sama dan murah: **"penegak/entitas ini punya berapa pemanggil di kode produksi?"** Layak dijalankan tiap sesi.
+
+### 🔴 Dan kendali "matikan API-nya" menemukan klaim basi yang ditanam PERBAIKAN Sesi 12 sendiri
+
+Halaman `/cari` dijalankan dari **build produksi** dengan API dimatikan — kendali yang sama yang menemukan dua kebocoran di Sesi 12. Halaman barunya bersih (tak ada alamat internal, tak ada `run.ps1`; sebabnya masuk log server lewat `gagal()`, terbukti di stdout). Tapi beranda di sebelahnya tidak:
+
+> **Daftar topik belum bisa dimuat.**
+> Coba muat ulang beberapa saat lagi. **Keempat belas bidang di bawah tetap bisa dibuka.**
+
+Kalimat kedua keliru **dua kali**:
+
+1. **Bidangnya ada DI ATAS, bukan di bawah.** `FieldGrid` dirender lebih dulu di `page.tsx` — diukur di posisi HTML jadinya (offset 11.033 vs 11.432), bukan ditebak.
+2. **Janjinya tidak bisa ditepati.** Daftar bidang datang dari API yang sama; kalau ia tak terjangkau, kartu bidang di atas **juga** sedang mencetak galat, dan `/teknologi/<slug>` ikut gagal karena ia pun memanggil `listFields`.
+
+🔴 Kalimat itu lahir di **PR #50** — yaitu di perbaikan yang dibuat justru untuk membuang bahan pengembang dari halaman itu. **Pola yang sama persis dengan PR #51: perbaikannya sendiri menanam klaim yang berhenti benar.** Dua sesi berturut-turut, dua kali, di berkas yang sama.
+
+💡 Aturannya sekarang tertulis di tempat kejadiannya: **jangan menjanjikan apa pun yang datang dari API yang sama dengan yang barusan gagal.**
+
+### Yang dibangun
+
+| | |
+|---|---|
+| Migrasi `PencarianTeksPenuh` | kolom `search_vector` **`GENERATED ALWAYS … STORED`** di `technologies` **dan** `fields`, dua indeks **GIN** |
+| Bobot | `A` untuk nama, `B` untuk ringkasan — terukur: `ts_rank` 0,61 vs 0,24 |
+| `GET /api/v1/search?q=` | bidang **dan** topik sekaligus; sudah ada di daftar rute publik `KERANGKA.md` 4.9 |
+| `/cari?q=…` + kotak cari di **layout** | `<form method="get">` biasa — bekerja sebelum satu baris JavaScript pun dimuat, dan hasilnya URL yang bisa ditautkan |
+| Ukuran | **95 uji unit + 32 uji integrasi** (dari 87 + 18), `run.ps1 verify` hijau |
+
+🔑 **`SearchHandler` tidak punya kueri sendiri.** Ia memanggil `ListFieldsHandler` dan `SearchTechnologyHandler` yang sudah dipakai halaman lain. Begitu ada kueri kedua yang menjawab *"apakah baris ini cocok?"*, pertanyaan yang sama punya dua jawaban — dan yang satu akan menyimpang tanpa ada yang merah.
+
+🔑 **Pencocokan sebagian TIDAK dibuang**, dan itu keputusan yang diukur juga: FTS mencocokkan kata utuh, jadi `kubern` tidak menemukan "Kubernetes".
+
+### 🔴 Dan cadangannya sendiri harus diperbaiki — lagi-lagi karena DIJALANKAN
+
+Cadangan itu mula-mula `ILIKE '%kata%'`, dan ia lolos seluruh uji. Yang membongkarnya sekadar mencoba kata kunci pendek terhadap API yang hidup:
+
+```
+q=iot   ->  iot, edge-ai, BIOTECHNOLOGY      (b-iot-echnology)
+q=a     ->  14 dari 14 bidang                (seluruh situs)
+q=ai    ->  8 bidang, termasuk Blockchain    (bloc-k-ch-ai-n)
+```
+
+**`iot` bukan kata kunci aneh — ia nama salah satu dari empat belas bidang.** Dan sebabnya bukan "ambangnya kurang" melainkan **bentuk pencocokannya salah**: cadangan itu ada untuk *pengetikan sebagian*, dan orang mengetik **awal** kata, bukan tengahnya. Diganti jangkar awal-kata POSIX (`~* '\m…'`), lalu diukur ulang: `iot` → `iot`, `edge-ai` saja; `ai` → 6 bidang (Blockchain hilang, Robotics **tetap** — ringkasannya memang menyebut "Robotics AI"); `kubern` → `cloud-infrastructure` tetap ketemu.
+
+💡 **Pola yang berulang seharian ini: yang dijaga uji adalah kasus yang saya PILIH, dan saya memilih kata kunci yang panjang dan khas.** Kata kunci pendek — yang justru paling sering diketik orang — tidak pernah masuk daftar. Sekarang ada ujinya.
+
+🔴 **Dan perbaikan itu MEMBATALKAN salah satu klaim saya sendiri, di hari yang sama saya menuliskannya.** ADR-022 sempat berbunyi *"tidak ada satu pun kata kunci yang tadinya ketemu lalu berhenti ketemu — murni menambah"*. Sesudah jangkar awal-kata dipasang itu **tidak lagi benar**: kecocokan di TENGAH kata memang sengaja berhenti ketemu. Yang benar: **hampir** murni menambah, dan satu-satunya yang hilang persis yang diperbaiki.
+
+💡💡 **Jadi pola PR #50/#51 terulang untuk KETIGA kalinya — kali ini di kalimat saya sendiri, dalam satu sesi, berjarak sekitar satu jam dari saat saya menuliskannya sebagai pelajaran.** Aturannya jelas: **sesudah mengubah perilaku, sapu kalimat yang MENJANJIKAN perilaku lama — termasuk kalimat yang baru saja Anda tulis.**
+
+### Yang TIDAK dikerjakan, dan kenapa
+
+**ADR-021 tetap tidak dibangun.** Pemicunya tertulis jelas — #40 tutup — dan #40 masih terbuka. Membangunnya sekarang berarti menulis mesin peninjauan untuk isi yang belum ada, di situs yang belum tayang. Kalau pemilik ingin urutan itu dibalik, itu keputusan pemilik, bukan kesimpulan asisten.
+
+**Milestone baru: `Bulan 3 — Explore, Learn & Pencarian`.** Namanya mengikuti `RENCANA-V1.md` — rencana yang berlaku — bukan meneruskan penomoran `Fase` dari `KERANGKA.md` 2.9 yang sudah digantikan. ⚠️ Nama **cabang** tetap `fase-2/...` karena `ci.yml` hanya memicu pada `main` dan `fase-*/**`; mengganti pola pemicu CI demi kerapian nama bukan pertukaran yang sepadan.
+
+---
+
 ## 2026-09-10 — Sesi 12: janji `docker-compose.prod.yml` dibuktikan dengan dijalankan, dan sapuannya menemukan tiga kebocoran lagi
 
 Permintaan pemilik: *"kerjakan semua tugas dan fase yang tersisa"*.

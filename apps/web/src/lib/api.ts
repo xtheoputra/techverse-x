@@ -78,6 +78,26 @@ export type TechnologyDetail = TechnologySummary & {
   missingSections: string[];
 };
 
+/**
+ * Jawaban `GET /api/v1/search` — bidang DAN topik dalam satu permintaan.
+ *
+ * 🔑 Keduanya ada karena keduanya punya halaman: ADR-009 memberi URL kanonik ke
+ * tiap bidang dan tiap topik, dan `/teknologi/<slug>` melayani keduanya. Hari ini
+ * bidangnya bahkan mayoritas — 14 bidang berbanding nol sampai lima topik — jadi
+ * pencarian yang cuma menjawab topik akan membalas "tidak ada hasil" untuk hampir
+ * setiap kata yang tercetak di halaman muka.
+ *
+ * `query` adalah kata kunci yang BENAR-BENAR dipakai server (sudah dipangkas dan
+ * dipotong ke batas panjangnya), bukan yang diketik. Yang ditampilkan ke pembaca
+ * harus yang ini.
+ */
+export type SearchResult = {
+  query: string;
+  fields: Field[];
+  technologies: PagedResponse<TechnologySummary>;
+  isEmpty: boolean;
+};
+
 export type PagedResponse<T> = {
   items: T[];
   page: number;
@@ -202,4 +222,18 @@ export function listFields(): Promise<ApiResult<Field[]>> {
 /** Satu topik berikut kelima bagian isinya. */
 export function getTechnology(slug: string): Promise<ApiResult<TechnologyDetail>> {
   return getJson<TechnologyDetail>(`/api/v1/technologies/${encodeURIComponent(slug)}`);
+}
+
+/**
+ * Satu kata kunci, dua jenis hasil.
+ *
+ * ⚠️ Penyaringan dan peringkatnya dikerjakan PostgreSQL, bukan di sini. Aturan
+ * "apa yang dianggap cocok" tinggal di satu tempat — lihat `SearchTechnologyHandler`
+ * dan ADR-022. Menyalinnya ke klien adalah cara paling mudah membuat dua jawaban
+ * berbeda untuk satu pertanyaan, persis seperti `missingSections` di atas.
+ */
+export function cari(q: string, pageSize = 20): Promise<ApiResult<SearchResult>> {
+  const query = new URLSearchParams({ q, pageSize: String(pageSize) });
+
+  return getJson<SearchResult>(`/api/v1/search?${query}`);
 }
