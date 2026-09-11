@@ -110,6 +110,18 @@ q=ai    ->  8 bidang, termasuk Blockchain    (bloc-k-ch-ai-n)
 
 💡💡 **Jadi pola PR #50/#51 terulang untuk KETIGA kalinya — kali ini di kalimat saya sendiri, dalam satu sesi, berjarak sekitar satu jam dari saat saya menuliskannya sebagai pelajaran.** Aturannya jelas: **sesudah mengubah perilaku, sapu kalimat yang MENJANJIKAN perilaku lama — termasuk kalimat yang baru saja Anda tulis.**
 
+### 🛑 Dan CI-nya sendiri mati — bukan karena kodenya
+
+PR [#56](../../pull/56) dibuka, dan **keenam job merah dalam 2–4 detik dengan daftar langkah KOSONG.** Tidak satu pun pernah dijadwalkan. Anotasi GitHub:
+
+> The job was not started because recent account payments have failed or your spending limit needs to be increased.
+
+**Ini pelajaran repo ini persis, untuk kesekian kali: kalau gerbang merah, curigai alat ukurnya dulu.** Yang membuktikannya bukan tebakan melainkan tiga angka — durasi 2–4 detik (termasuk `Frontend (Next.js)` yang biasanya menit-menitan), `steps: []` kosong, dan **`Pindai rahasia` ikut merah** padahal ia tidak menyentuh kode ini sama sekali. Jalan CI terakhir yang hijau: 2026-09-10 09:05 di `main`.
+
+⚠️ **Lokal hijau BUKAN pengganti, dan di sini bedanya nyata.** `run.ps1 verify` menjalankan gerbang yang sama, tapi empat gerbang CI tidak bisa ditiru lokal — build ketiga citra, **gerbang ADR-020 di tingkat CITRA**, Trivy, gitleaks — dan yang paling relevan hari ini: **`Migrasi bisa dijalankan dari nol`** terhadap PostgreSQL yang benar-benar kosong. PR ini **menambah migrasi**, jadi justru gerbang itulah yang paling ingin dijalankan. Karena itu **#56 sengaja TIDAK di-merge**.
+
+🔴 **Akibatnya lebih besar daripada satu PR: `rilis-citra.yml` juga tidak bisa jalan.** Jadi SHA citra tetap beku di `e1871bb1…`, dan **#39 (Koyeb) ikut tertahan** — tidak ada citra baru untuk ditarik. Ditagih di [#57](../../issues/57), berlabel `blocker`; deskripsi milestone Fase 1 ikut diperbarui, sebab sampai hari ini ia menulis *"yang tersisa cuma dua hal"*.
+
 ### Yang TIDAK dikerjakan, dan kenapa
 
 **ADR-021 tetap tidak dibangun.** Pemicunya tertulis jelas — #40 tutup — dan #40 masih terbuka. Membangunnya sekarang berarti menulis mesin peninjauan untuk isi yang belum ada, di situs yang belum tayang. Kalau pemilik ingin urutan itu dibalik, itu keputusan pemilik, bukan kesimpulan asisten.
