@@ -9,6 +9,7 @@ using TechVerseX.TechnologyService.Features.CreateTool;
 using TechVerseX.TechnologyService.Features.EditContentSections;
 using TechVerseX.TechnologyService.Features.GetTechnology;
 using TechVerseX.TechnologyService.Features.ListFields;
+using TechVerseX.TechnologyService.Features.Search;
 using TechVerseX.TechnologyService.Features.SearchTechnology;
 using TechVerseX.TechnologyService.Infrastructure.Persistence;
 
@@ -44,6 +45,7 @@ public static class TechnologyModule
         services.AddScoped<ListFieldsHandler>();
         services.AddScoped<GetTechnologyHandler>();
         services.AddScoped<SearchTechnologyHandler>();
+        services.AddScoped<SearchHandler>();
         services.AddScoped<EditContentSectionsHandler>();
         services.AddScoped<CreateToolHandler>();
 
@@ -95,6 +97,13 @@ public static class TechnologyModule
         var fields = routes.MapGroup("/api/v1/fields").WithTags("Field");
 
         fields.MapListFields();
+
+        // Pencarian punya grupnya sendiri: jawabannya memuat BIDANG dan TOPIK
+        // sekaligus, jadi menaruhnya di bawah salah satunya akan menyiratkan
+        // kepemilikan yang tidak ada.
+        var search = routes.MapGroup("/api/v1/search").WithTags("Search");
+
+        search.MapSearch();
 
         // ---- Batas antara MEMBACA dan MENULIS -------------------------------
         // Segala yang di atas melayani situsnya; segala yang di bawah mengubah
