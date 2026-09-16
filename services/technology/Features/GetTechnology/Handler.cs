@@ -57,6 +57,11 @@ public sealed class GetTechnologyHandler(TechnologyDbContext db)
                 .ToDictionaryAsync(tool => tool.Id, cancellationToken)
                 .ConfigureAwait(false);
 
-        return TechnologyResponseFactory.From(technology, field, catalog);
+        // Relasi antar-topik (ADR-023) dimuat lewat pemuat yang SAMA dengan jalan
+        // tulis, bukan lewat Include: sisi masuk ("dibutuhkan oleh") milik agregat
+        // topik lain, jadi navigasi topik ini memang tidak bisa memuatnya.
+        var related = await TopikTerhubung.MuatAsync(db, technology.Id, cancellationToken).ConfigureAwait(false);
+
+        return TechnologyResponseFactory.From(technology, field, related, catalog);
     }
 }

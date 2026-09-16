@@ -60,63 +60,39 @@ public static class EditContentSectionsEndpoint
         RoadmapStepRequest request,
         EditContentSectionsHandler handler,
         CancellationToken cancellationToken)
-        => Translate(await handler.SetPrerequisiteAsync(slug, request, cancellationToken).ConfigureAwait(false));
+        => TopicMutation.ToHttpResult(await handler.SetPrerequisiteAsync(slug, request, cancellationToken).ConfigureAwait(false));
 
     private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> AddRoadmapStepAsync(
         string slug,
         RoadmapStepRequest request,
         EditContentSectionsHandler handler,
         CancellationToken cancellationToken)
-        => Translate(await handler.AddRoadmapStepAsync(slug, request, cancellationToken).ConfigureAwait(false));
+        => TopicMutation.ToHttpResult(await handler.AddRoadmapStepAsync(slug, request, cancellationToken).ConfigureAwait(false));
 
     private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> AttachToolAsync(
         string slug,
         AttachToolRequest request,
         EditContentSectionsHandler handler,
         CancellationToken cancellationToken)
-        => Translate(await handler.AttachToolAsync(slug, request, cancellationToken).ConfigureAwait(false));
+        => TopicMutation.ToHttpResult(await handler.AttachToolAsync(slug, request, cancellationToken).ConfigureAwait(false));
 
     private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> AddProjectAsync(
         string slug,
         ProjectRequest request,
         EditContentSectionsHandler handler,
         CancellationToken cancellationToken)
-        => Translate(await handler.AddProjectAsync(slug, request, cancellationToken).ConfigureAwait(false));
+        => TopicMutation.ToHttpResult(await handler.AddProjectAsync(slug, request, cancellationToken).ConfigureAwait(false));
 
     private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> AddResourceAsync(
         string slug,
         ResourceRequest request,
         EditContentSectionsHandler handler,
         CancellationToken cancellationToken)
-        => Translate(await handler.AddResourceAsync(slug, request, cancellationToken).ConfigureAwait(false));
+        => TopicMutation.ToHttpResult(await handler.AddResourceAsync(slug, request, cancellationToken).ConfigureAwait(false));
 
     private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> MarkDraftedAsync(
         string slug,
         EditContentSectionsHandler handler,
         CancellationToken cancellationToken)
-        => Translate(await handler.MarkDraftedAsync(slug, cancellationToken).ConfigureAwait(false));
-
-    /// <summary>
-    /// Satu penerjemah untuk keenam rute. Menaruhnya di satu tempat memastikan
-    /// muatan yang keliru menjadi <b>400, bukan 500</b> secara seragam — pelajaran
-    /// issue #26 yang mahal justru karena hanya berlaku di sebagian jalur.
-    /// </summary>
-    private static Results<Ok<TechnologyResponse>, NotFound, ValidationProblem> Translate(
-        EditContentSectionsHandler.Outcome outcome)
-    {
-        if (outcome.IsNotFound)
-        {
-            return TypedResults.NotFound();
-        }
-
-        if (outcome.IsInvalid)
-        {
-            return TypedResults.ValidationProblem(new Dictionary<string, string[]>(StringComparer.Ordinal)
-            {
-                [outcome.Field ?? "body"] = [outcome.Message!],
-            });
-        }
-
-        return TypedResults.Ok(outcome.Value!);
-    }
+        => TopicMutation.ToHttpResult(await handler.MarkDraftedAsync(slug, cancellationToken).ConfigureAwait(false));
 }
