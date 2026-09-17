@@ -9,6 +9,7 @@ using TechVerseX.TechnologyService.Features.CreateTool;
 using TechVerseX.TechnologyService.Features.EditContentSections;
 using TechVerseX.TechnologyService.Features.GetTechnology;
 using TechVerseX.TechnologyService.Features.ListFields;
+using TechVerseX.TechnologyService.Features.RequireTopic;
 using TechVerseX.TechnologyService.Features.Search;
 using TechVerseX.TechnologyService.Features.SearchTechnology;
 using TechVerseX.TechnologyService.Infrastructure.Persistence;
@@ -47,6 +48,7 @@ public static class TechnologyModule
         services.AddScoped<SearchTechnologyHandler>();
         services.AddScoped<SearchHandler>();
         services.AddScoped<EditContentSectionsHandler>();
+        services.AddScoped<RequireTopicHandler>();
         services.AddScoped<CreateToolHandler>();
 
         services.AddScoped<IValidator<CreateTechnologyCommand>, CreateTechnologyValidator>();
@@ -118,6 +120,13 @@ public static class TechnologyModule
         // Bagian isi halaman bersarang di bawah topiknya — mereka tidak punya
         // hidup di luar topik itu, sama seperti mereka tidak punya DbSet sendiri.
         technologies.MapEditContentSections();
+
+        // Relasi antar-topik juga tulisan REDAKSI, jadi ia ikut hilang di produksi
+        // bersama semua rute di bawah batas ini (ADR-020, ADR-023). Produsen
+        // produksinya kelak alur bergerbang ADR-021, yang memanggil rute yang sama.
+        // SemuaEndpointTulis di PermukaanTulisTests memuatnya: memasang baris ini
+        // di atas batas memerahkan gerbangnya.
+        technologies.MapRequireTopic();
 
         // Katalog alat punya grup sendiri, BUKAN sub-rute topik: satu alat dipakai
         // banyak topik, dan menempatkannya di bawah salah satunya akan menyiratkan

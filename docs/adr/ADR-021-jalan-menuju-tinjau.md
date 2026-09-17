@@ -120,3 +120,18 @@ sudah tidak terbuka lagi**, jadi tidak perlu diperdebatkan ulang tiap sesi.
 - **Cara membalikkan:** hapus ADR ini dan pilih salah satu baris di tabel
   alternatif. Karena belum ada kode yang mendarat, membalikkannya hari ini
   berbiaya nol — dan itu memang salah satu alasan menundanya.
+
+---
+
+## Pembaruan 2026-09-17 - alur ini juga produsen relasi di produksi
+
+Begitu dibangun, workflow ADR ini juga menjadi **satu-satunya produsen PRODUKSI
+untuk relasi antar-topik** ([ADR-023](ADR-023-knowledge-graph-dasar.md)) - lewat
+endpoint yang sudah ada, `POST …/requires`, dipanggil lewat `localhost` di dalam
+runner. Tidak ada mekanisme baru.
+
+- `POST …/tinjau` akan duduk di samping endpoint bagian isi dan `/requires`, dan
+  bisa memakai ulang jalur `TopicMutation` alih-alih menyalinnya.
+- ⚠️ **Yang ikut diputuskan saat alur ini dibangun:** jalan membuang sisi DAN jalan
+  membuang bagian isi. Keduanya belum ada, jadi sisi atau bagian yang keliru di
+  produksi hari ini tidak punya jalan perbaikan sama sekali.

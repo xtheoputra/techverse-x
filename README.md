@@ -35,16 +35,20 @@ Repositori ini punya **kode yang jalan** dan **citra produksi yang sudah terbit*
 > halaman, `/cari?q=…`, dan **bidang ikut dicari** — sebelum ini `quantum`
 > menjawab nol padahal situsnya punya bidang bernama *Quantum Computing*.
 >
-> Sisa Bulan 3 ada di milestone **Bulan 3 — Explore, Learn & Pencarian**:
-> [#55](../../issues/55) (Knowledge Graph — tabel relasinya punya nol produsen
-> dan nol pembaca) dan [#54](../../issues/54) (pencarian belum menjangkau isi
-> halaman).
+> **Knowledge Graph dasar juga sudah dibangun**
+> ([ADR-023](docs/adr/ADR-023-knowledge-graph-dasar.md)): relasi antar-topik
+> dijaga basis data dan tampil sebagai *"Topik terhubung"* di halaman topik —
+> tapi **produksi nol sisi**, sebab produksi nol topik dan jalan masuknya isi
+> adalah ADR-021. Explore dilayani rute yang sudah ada dan `/learn` menunggu
+> pemicunya ([ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md)). Yang masih
+> terbuka di milestone **Bulan 3 — Explore, Learn & Pencarian**:
+> [#54](../../issues/54) (pencarian belum menjangkau isi halaman) dan pemicu Learn.
 
 Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan health check yang benar-benar menyentuh dependensinya. Diverifikasi tiga kali — di mesin pengembang (2026-09-03), **dari dalam peti kemas produksi, tiga kontainer, volume basis data baru** (2026-09-07), dan **terhadap citra yang berlaku hari ini** (2026-09-10, [#48](../../issues/48)) yang sekalian menegaskan bentuk produksi itu **tidak punya permukaan tulis**: 14 bidang, nol topik.
 
 | Sudah jalan | Belum ada |
 |---|---|
-| API .NET 10 + PostgreSQL 17 | Navigasi tujuh bagian aplikasi (taksonomi 14 bidangnya sendiri **sudah** mendarat) |
+| API .NET 10 + PostgreSQL 17 | Navigasi tujuh bagian — **sengaja bertahap**: satu bagian masuk menu hanya kalau halamannya berisi di produksi ([ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md)) |
 | Irisan vertikal Technology (buat · ambil · cari) | Autentikasi |
 | Migrasi EF Core, schema per bounded context | Kode AI apa pun |
 | Health check `live`/`ready` yang menguji dependensi | Vector DB, Neo4j, event bus |
@@ -52,7 +56,8 @@ Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan he
 | **Pencarian teks penuh PostgreSQL** — `tsvector` terhitung di `technologies` dan `fields`, halaman `/cari`, kotak cari di tiap halaman ([ADR-022](docs/adr/ADR-022-pencarian-teks-penuh.md)) | Pencarian ke dalam **isi** halaman ([#54](../../issues/54)) — hari ini yang tercari nama dan ringkasan |
 | CI: **8 dari 9 gerbang** blueprint menyala — Lint · Unit · Integrasi · SAST · Dependency Scan · Secret Scan · Container Scan · Build, plus penjaga "migrasi bisa dijalankan dari nol". Yang belum: **Contract Test** (belum ada kontrak antar-layanan) | **Platform hosting, domain, sertifikat** |
 | **Citra produksi terbit ke GHCR** tiap `main` bergerak — API, web, dan bundel migrasi EF | Terraform, Kubernetes |
-| **Kelima bagian template [ADR-012](docs/adr/ADR-012-template-halaman.md) punya tabelnya sendiri** — roadmap (langkah 0 = prasyarat), tools (m2m), mini project, resources, **berikut halaman `/teknologi/<slug>` dan endpoint isinya** (#41, PR #44) | Relasi antar-topik: tabelnya ada, produsen dan pembacanya **belum** ([#55](../../issues/55)) |
+| **Kelima bagian template [ADR-012](docs/adr/ADR-012-template-halaman.md) punya tabelnya sendiri** — roadmap (langkah 0 = prasyarat), tools (m2m), mini project, resources, **berikut halaman `/teknologi/<slug>` dan endpoint isinya** (#41, PR #44) | `/learn` — **sengaja ditunda** sampai [#42](../../issues/42) dan satu roadmap terisi di produksi ([ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md)) |
+| **Relasi antar-topik (Knowledge Graph dasar)** — dibuat lewat endpoint tulis, tampil sebagai *"Topik terhubung"* di halaman topik, dijaga kunci asing di kedua ujung ([ADR-023](docs/adr/ADR-023-knowledge-graph-dasar.md)). **Di produksi nol sisi, sebab nol topik** | Jalan membuang relasi maupun bagian isi — diputuskan bersama alur [ADR-021](docs/adr/ADR-021-jalan-menuju-tinjau.md) |
 
 > 🐳 **Redis dipakai di pengembangan saja.** [ADR-016](docs/adr/ADR-016-pagu-biaya.md) memutuskan ia **tidak di-provision di V1** — ia harus membuktikan dirinya dulu dengan beban yang benar-benar ada. Kesiapan API sudah tahu cara hidup tanpanya, dan itu diuji ([`tests/integration`](tests/integration)).
 
@@ -77,7 +82,7 @@ Butuh **.NET SDK 10**, **Node 22+**, dan **Docker**.
 .\run.ps1 web                  make web       # http://localhost:3000 - coba /cari?q=quantum
 ```
 
-`.\run.ps1` tanpa argumen menampilkan seluruh perintah. Isi `run.ps1` dan `Makefile` sengaja dijaga sama: yang satu untuk Windows, yang lain untuk CI dan Linux.
+`.\run.ps1` tanpa argumen menampilkan seluruh perintah. Isi `run.ps1` dan `Makefile` sengaja dijaga sama: yang satu untuk Windows, yang lain untuk Linux/WSL/macOS (CI tidak memanggil keduanya). Perintah `seed` di keduanya menjalankan satu berkas yang sama, `database/seeds/seed.mjs` — sampai 2026-09-17 masing-masing punya salinan sendiri, dan salinan untuk `make` sudah menyimpang.
 
 Gerbang yang sama dengan CI, sebelum push:
 
@@ -89,7 +94,7 @@ Gerbang yang sama dengan CI, sebelum push:
 
 ### Isi contoh itu bukan kurikulum
 
-`seed` memasukkan lima entri sekadar supaya layar dan endpoint ada isinya. Isi sungguhan menunggu Issue [#10](../../issues/10) (siapa yang menulis) dan [#18](../../issues/18) — peta teknologinya sendiri masih perlu dikoreksi lebih dulu.
+`seed` memasukkan enam topik contoh, mengisi kelima bagian satu di antaranya, dan mencatat satu relasi antar-topik — sekadar supaya layar dan endpoint ada isinya. Cara isi sungguhan lahir sudah diputuskan di [ADR-012](docs/adr/ADR-012-template-halaman.md) (`kurasi` → `draf` → `tinjau` oleh manusia), dimulai dari tujuh topik AI Agents di [#42](../../issues/42), dan jalan terakhirnya ke produksi ada di [ADR-021](docs/adr/ADR-021-jalan-menuju-tinjau.md). Tidak satu pun lewat `seed`.
 
 ---
 
@@ -105,7 +110,7 @@ Gerbang yang sama dengan CI, sebelum push:
 | **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** | **Ke-22 keputusan dalam satu halaman**, berikut cara membatalkan tiap keputusan. Berlaku di atas `KERANGKA.md` kalau keduanya berbeda. |
 | **[docs/RENCANA-V1.md](docs/RENCANA-V1.md)** | Rencana enam bulan yang menggantikan `KERANGKA.md` 2.9. Deployment naik dari Bulan 6 ke Bulan 1. |
 | **[docs/PENYEBARAN.md](docs/PENYEBARAN.md)** | Runbook penyebaran, **netral platform**. Kredensial menarik citra, urutan `postgres → migrate → api → web`, variabel lingkungan, dan health check mana yang dipakai untuk apa. |
-| **[docs/adr/](docs/adr/)** | Dua puluh dua Architecture Decision Record. Yang menyangkut penyebaran: [ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md) memilih **Vercel + Koyeb + Neon** (gratis, tanpa kartu) dan **menggantikan** [ADR-017](docs/adr/ADR-017-platform-hosting.md); [ADR-018](docs/adr/ADR-018-rilis-citra-dan-reproducibility.md) mengatur kapan citra dibangun ulang. |
+| **[docs/adr/](docs/adr/)** | Dua puluh empat Architecture Decision Record. Yang menyangkut penyebaran: [ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md) memilih **Vercel + Koyeb + Neon** (gratis, tanpa kartu) dan **menggantikan** [ADR-017](docs/adr/ADR-017-platform-hosting.md); [ADR-018](docs/adr/ADR-018-rilis-citra-dan-reproducibility.md) mengatur kapan citra dibangun ulang. |
 | **[docs/SESSION-LOG.md](docs/SESSION-LOG.md)** | Catatan sesi kerja, urutan terbaru di atas. |
 
 ### Kode
@@ -115,8 +120,8 @@ apps/api/            Host ASP.NET Core — health check, correlation id, OpenAPI
 apps/web/            Next.js 16 App Router
 services/technology/ Bounded context pertama — vertical slice + DDD ringan
 packages/contracts/  Kontrak API yang dipakai bersama
-tests/unit/          83 uji domain + infrastruktur
-tests/integration/   6 uji (host sungguhan + PostgreSQL sungguhan)
+tests/unit/          uji domain + infrastruktur
+tests/integration/   uji host sungguhan + PostgreSQL sungguhan
 database/            SQL migrasi hasil generate + skrip isi contoh
 infrastructure/      Init Docker
 ```
@@ -164,7 +169,7 @@ TechVerse X
 └── 🚀 Future           Emerging technologies
 ```
 
-> ✅ Keduanya **sudah bisa hidup berdua**: nav utama berisi fungsi, dan tiap bidang punya URL kanonik `/teknologi/<slug>` — Issue [#1](../../issues/1) ditutup, lihat [ADR-009](docs/adr/ADR-009-tulang-punggung-navigasi.md). Bidangnya kini **empat belas**, bukan dua belas ([ADR-010](docs/adr/ADR-010-taksonomi-bidang.md)). Navigasinya sendiri belum ditulis.
+> ✅ Keduanya **sudah bisa hidup berdua**: nav utama berisi fungsi, dan tiap bidang punya URL kanonik `/teknologi/<slug>` — Issue [#1](../../issues/1) ditutup, lihat [ADR-009](docs/adr/ADR-009-tulang-punggung-navigasi.md). Bidangnya kini **empat belas**, bukan dua belas ([ADR-010](docs/adr/ADR-010-taksonomi-bidang.md)). Navigasinya sengaja bertahap — lihat [ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md) untuk pemicu tiap bagian.
 
 ---
 

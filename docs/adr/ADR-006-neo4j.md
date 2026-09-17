@@ -36,3 +36,27 @@ Yang berubah cuma statusnya - dari "belum sekarang" jadi "tidak untuk V1", denga
 alasan berangka: pada 14 bidang dan 82 topik
 ([ADR-010](ADR-010-taksonomi-bidang.md)), jumlah sisi graf ada di orde ratusan.
 Itu skala yang membutuhkan satu `JOIN`, bukan mesin graf.
+
+---
+
+## Pembaruan 2026-09-17 - daftar penjaganya ternyata separuh, dan kini ada layarnya
+
+Daftar di bagian Keputusan menulis tabelnya *"sudah memuat penjaga"*: kunci unik
+`(From, To, Kind)` dan penjaga domain untuk sisi ke diri sendiri. Diukur saat
+produsen pertamanya dibangun ([ADR-023](ADR-023-knowledge-graph-dasar.md)), daftar
+itu kurang dua hal yang justru paling mendasar:
+
+- **ujung tujuan sama sekali tidak berkunci asing** - `INSERT` ke
+  `ToTechnologyId` acak masuk, dan menghapus topik yang masih dibutuhkan
+  meninggalkan sisi yang menggantung;
+- **penolakan sisi ke diri sendiri hanya hidup di domain**, tidak di basis data.
+
+Penjaganya sekarang: indeks unik `(From, To, Kind)` + **kunci asing di KEDUA
+ujung** (tujuan `RESTRICT`, migrasi `RelasiAntarTopik`) + CHECK sisi ke diri
+sendiri + CHECK `Kind` yang SQL-nya dibangkitkan dari enum + aturan dua topik
+tidak boleh saling mensyaratkan di agregat.
+
+Kalimat Konsekuensi *"belum ada layar yang memintanya"* kini punya layar: blok
+**"Topik terhubung"** di halaman topik. Ia tetap satu lompatan - satu `JOIN` per
+arah - jadi kueri graf yang dalam masih belum dibutuhkan, dan EPIC 10 tetap
+proyeksi satu arah dari tabel ini. Produksi berisi nol sisi.

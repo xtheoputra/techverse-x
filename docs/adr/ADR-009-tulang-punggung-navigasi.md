@@ -80,3 +80,22 @@ menurut definisinya belum ada.
   rencana enam bulan. Alasannya di [RENCANA-V1](../RENCANA-V1.md): ia menuntut
   autentikasi, penyimpanan progres, dan aturan permainan — tiga pekerjaan penuh
   demi lencana, sementara belum ada satu pun halaman yang tuntas.
+
+---
+
+## Pembaruan 2026-09-17 - tabel rutenya tetap, cara menggelarnya diputuskan
+
+Skema URL di atas **tidak berubah**, dan `/teknologi/<slug>` tetap satu-satunya
+URL yang dijanjikan stabil. Yang diputuskan [ADR-024](ADR-024-explore-learn-navigasi-v1.md)
+adalah kapan tiap bagian muncul:
+
+- **Explore V1** dilayani `/`, `/teknologi/<bidang>`, `/cari`, dan tautan
+  antar-topik - diukur dengan penelusuran dari `/`, bukan diklaim. `/explore`
+  menunggu PR pertama yang harus menaruh sesuatu selain peta bidang di `/`.
+- **`/learn`** menunggu [#42](../../../../issues/42) tutup DAN satu roadmap terisi
+  di produksi.
+- **`/graph`** menunggu EPIC 10. Knowledge Graph V1 adalah daftar tautan di
+  halaman `/teknologi/<slug>` ([ADR-023](ADR-023-knowledge-graph-dasar.md)).
+- **Sebuah bagian masuk menu hanya di PR yang membuktikan halamannya berisi**
+  dalam bentuk produksi. Menu tujuh butir yang enam di antaranya kosong adalah
+  persis kegagalan yang ditulis RENCANA-V1.

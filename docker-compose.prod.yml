@@ -18,7 +18,7 @@
 #   3. Postgres tidak membuka port ke host. Di produksi ia tidak boleh terjangkau
 #      dari luar, dan itu ikut diuji di sini.
 #   4. TIDAK ADA PERMUKAAN TULIS. `Editorial__WritesEnabled` tidak diisi, jadi
-#      kedelapan endpoint tulis tidak dipasang (ADR-020) dan tumpukan ini tidak
+#      seluruh endpoint tulis tidak dipasang (ADR-020) dan tumpukan ini tidak
 #      punya satu pun cara memasukkan topik. `run.ps1 seed` terhadapnya berhenti
 #      dengan exit 1. Itu BUKAN kekurangan berkas ini - itu bentuk produksinya.
 #

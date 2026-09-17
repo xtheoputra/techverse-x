@@ -131,3 +131,25 @@ membantahnya tetap menyebarkannya.
 - Ukuran kemajuan proyek berubah dari "berapa halaman ada" menjadi **"berapa
   halaman berstatus `tinjau`"**. Angka pertama mudah dipalsukan mesin; angka
   kedua tidak bisa.
+
+---
+
+## Pembaruan 2026-09-17 - relasi antar-topik bukan bagian keenam
+
+[ADR-023](ADR-023-knowledge-graph-dasar.md) menambah blok **"Topik terhubung"** di
+halaman topik. Supaya bagian 1 ADR ini tetap benar, aturannya ditulis di sini:
+
+- Blok itu dirender **SESUDAH** kelima bagian template dan **tidak pernah**
+  dihitung di `missingSections`. Ia disembunyikan kalau kosong - pengecualian
+  sadar dari *"bagian kosong tetap ditampilkan"*, sebab relasi bukan sesuatu yang
+  wajib diisi, dan baris "belum ada relasi" akan menandai setiap halaman tidak
+  lengkap secara palsu.
+- **Langkah 0 roadmap tetap satu-satunya prasyarat PROSA**: keterampilan yang
+  belum tentu punya halaman di situs ini.
+- **Sisi `Requires` adalah navigasi ke halaman yang ADA.** Topik yang sudah jadi
+  tujuan sisi **tidak diulang** di langkah 0 - itu yang menjaga alasan bagian 1
+  (*"membuat pembaca membacanya dua kali dan penulis menulisnya dua kali"*) tetap
+  berlaku.
+- Setiap judul yang ditautkan membawa **label kematangannya sendiri**. Aturan keras
+  bagian 2 berlaku sampai ke tautan, dan dijamin tipe
+  (`TechnologySummaryResponse`), bukan ketelitian.

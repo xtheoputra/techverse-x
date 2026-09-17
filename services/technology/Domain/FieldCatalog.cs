@@ -27,13 +27,23 @@ public static class FieldCatalog
     /// </summary>
     public const int CoreTopicCount = 42;
 
+    // 🔴 Ringkasan di sini TEKS PEMBACA, bukan catatan redaksi. Ia tercetak di
+    // keempat belas kartu halaman muka, di kepala halaman bidang, dan di hasil
+    // /cari - dan selama produksi nol topik, kartu-kartu inilah isi utama situsnya.
+    // Sampai 2026-09-17 tiga di antaranya menyuruh pengunjung "lihat ADR-010",
+    // dokumen di repositori privat yang tidak bisa mereka buka. Ketahuannya dari
+    // memindai teks yang TERLIHAT di build produksi, bukan dari membaca kode web:
+    // teksnya datang dari basis data (ADR-024). Alasan redaksinya tetap di ADR-010.
+    //
+    // ⚠️ Mengubah ringkasan menuntut migrasi - HasData menyemai tabel dari daftar
+    // ini, dan ModelMigrasiTests memerah kalau migrasinya lupa dibuat.
     private static readonly ReadOnlyCollection<Field> Items = new(
     [
         // Prioritas 1 — ditulis manusia sampai tuntas. 7+7+6+7+7+8 = 42 topik.
         Make("f1e10000-0000-7000-8000-000000000001", "AI & Machine Learning", "Fondasi: ML klasik, deep learning, LLM, computer vision, NLP, reinforcement learning, multimodal.", FieldPriority.Core, 1),
         Make("f1e10000-0000-7000-8000-000000000002", "AI Agents", "Lapisan orkestrasi: tool use, MCP, A2A, memori agen, evals, keamanan agen, human-in-the-loop.", FieldPriority.Core, 2),
         Make("f1e10000-0000-7000-8000-000000000003", "Cybersecurity", "Ethical hacking, SOC, malware, reverse engineering, keamanan awan, dan keamanan AI.", FieldPriority.Core, 3),
-        Make("f1e10000-0000-7000-8000-000000000004", "Cloud & Infrastructure", "Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering. Nama lebar dipertahankan dengan sengaja - lihat ADR-010.", FieldPriority.Core, 4),
+        Make("f1e10000-0000-7000-8000-000000000004", "Cloud & Infrastructure", "Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering.", FieldPriority.Core, 4),
         Make("f1e10000-0000-7000-8000-000000000005", "Data Engineering", "Lapisan yang menentukan proyek AI hidup atau mati: ingestion, orkestrasi, lakehouse, format tabel terbuka, streaming, kontrak data, pemodelan.", FieldPriority.Core, 5),
         Make("f1e10000-0000-7000-8000-000000000006", "IoT", "Konektivitas, firmware & RTOS, Matter/Thread, gateway tepi, keamanan perangkat, IIoT, telemetri deret waktu, dan satu halaman jembatan TinyML.", FieldPriority.Core, 6),
 
@@ -43,11 +53,11 @@ public static class FieldCatalog
         Make("f1e10000-0000-7000-8000-000000000009", "Quantum Computing", "Qubit, Qiskit, algoritma kuantum, kriptografi kuantum. Era qubit logis; keunggulan komersial belum ada.", FieldPriority.Supporting, 9),
         Make("f1e10000-0000-7000-8000-00000000000a", "Biotechnology", "CRISPR, AlphaFold, biologi sintetis, kesehatan digital.", FieldPriority.Supporting, 10),
         Make("f1e10000-0000-7000-8000-00000000000b", "Blockchain", "Smart contract, Ethereum, Solana, Layer 2, DeFi.", FieldPriority.Supporting, 11),
-        Make("f1e10000-0000-7000-8000-00000000000c", "Renewable Energy", "Solar PV, angin, panas bumi, hidro, bioenergi & SAF, hidrogen hijau, integrasi jaringan & penyimpanan, ekonomi & kebijakan. Fusi TIDAK di sini - lihat ADR-010.", FieldPriority.Supporting, 12),
+        Make("f1e10000-0000-7000-8000-00000000000c", "Renewable Energy", "Solar PV, angin, panas bumi, hidro, bioenergi & SAF, hidrogen hijau, integrasi jaringan & penyimpanan, ekonomi & kebijakan. Fusi nuklir tidak termasuk.", FieldPriority.Supporting, 12),
 
         // Prioritas 3 — kurasi tautan saja.
         Make("f1e10000-0000-7000-8000-00000000000d", "Space Technology", "Konektivitas LEO, akses ke orbit, smallsat, segmen darat, observasi Bumi, GNSS/PNT, keselamatan orbit. Irisan terkuatnya: 3GPP NTN.", FieldPriority.Peripheral, 13),
-        Make("f1e10000-0000-7000-8000-00000000000e", "XR (AR/VR/MR)", "Realitas diperluas. Dipertahankan sebagai pintu pencarian, tapi sengaja tidak diinvestasikan - lihat ADR-010.", FieldPriority.Peripheral, 14, slug: "xr"),
+        Make("f1e10000-0000-7000-8000-00000000000e", "XR (AR/VR/MR)", "Realitas diperluas. Dipertahankan sebagai pintu pencarian, tapi sengaja tidak diinvestasikan.", FieldPriority.Peripheral, 14, slug: "xr"),
     ]);
 
     /// <summary>Keempat belas bidang, dalam urutan tampil.</summary>

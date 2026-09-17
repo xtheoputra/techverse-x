@@ -14,16 +14,31 @@ namespace TechVerseX.TechnologyService.Features;
 /// Selama pemetaan ini cuma ada di satu berkas, aturan itu tetap tinggal di
 /// agregat; begitu ia disalin ke tiap handler, salah satunya akan menulis
 /// <c>Count &gt; 0</c> dan diam-diam meluluskan roadmap yang hanya berisi prasyarat.
+/// <para>
+/// 🔴 <b><c>related</c> sengaja TANPA nilai bawaan</b> — idiom yang sama dengan
+/// sakelar <c>editorialWrites</c> di ADR-020. Relasi (ADR-023) dimuat terpisah
+/// lewat <see cref="TopikTerhubung.MuatAsync"/>; pemanggil yang lupa memuatnya
+/// harus gagal dikompilasi (CS7036), bukan diam-diam membalas "topik ini tidak
+/// punya relasi" dari respons tulis. Pemanggil yang memang tahu jawabannya kosong
+/// — topik yang baru dibuat — menuliskannya: <see cref="TopikTerhubung.Kosong"/>.
+/// </para>
+/// <para>
+/// ⚠️ Urutannya ikut dikunci: <c>related</c> harus SEBELUM
+/// <c>toolCatalog</c>. Parameter wajib sesudah parameter opsional tidak
+/// dikompilasi (CS1737).
+/// </para>
 /// </remarks>
 internal static class TechnologyResponseFactory
 {
     public static TechnologyResponse From(
         Technology technology,
         Field field,
+        TopikTerhubung related,
         IReadOnlyDictionary<Guid, Tool>? toolCatalog = null)
     {
         ArgumentNullException.ThrowIfNull(technology);
         ArgumentNullException.ThrowIfNull(field);
+        ArgumentNullException.ThrowIfNull(related);
 
         var catalog = toolCatalog ?? new Dictionary<Guid, Tool>();
 
@@ -57,6 +72,8 @@ internal static class TechnologyResponseFactory
                 .OrderBy(r => r.Type)
                 .ThenBy(r => r.CreatedAt)
                 .Select(r => new ResourceResponse(r.Id, r.Type.ToString(), r.Title, r.Url))],
-            [.. technology.MissingSections]);
+            [.. technology.MissingSections],
+            related.Requires,
+            related.RequiredBy);
     }
 }

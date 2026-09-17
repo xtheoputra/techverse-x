@@ -11,21 +11,29 @@
  * Dan karena hasilnya sebuah URL, hasil pencarian bisa ditautkan, di-bookmark,
  * dan dibuka kembali oleh tombol "kembali" peramban. Kotak berbasis state tidak
  * memberi satu pun dari ketiganya tanpa kerja tambahan.
+ *
+ * ⚠️ **`id` dan `name` sengaja dua hal yang berbeda.** `name` selalu `q`, sebab
+ * itu nama parameter URL-nya. `id` harus unik per halaman: `/cari` memasang dua
+ * kotak — satu di kepala halaman, satu di badannya — dan sampai 2026-09-17
+ * keduanya ber-`id="q"`, jadi `<label htmlFor>` milik kotak kedua menunjuk input
+ * PERTAMA. Diukur di HTML jadinya (dua `id="q"`), bukan ditebak.
  */
 export default function KotakCari({
+  id = 'q',
   defaultValue = '',
   autoFocus = false,
 }: {
+  id?: string;
   defaultValue?: string;
   autoFocus?: boolean;
 }) {
   return (
     <form action="/cari" method="get" role="search" className="flex gap-2">
-      <label htmlFor="q" className="sr-only">
+      <label htmlFor={id} className="sr-only">
         Cari bidang atau topik
       </label>
       <input
-        id="q"
+        id={id}
         name="q"
         type="search"
         defaultValue={defaultValue}

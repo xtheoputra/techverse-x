@@ -144,3 +144,25 @@ Yang **belum** diputuskan, dan sengaja dibiarkan terbuka:
   `tests/integration/PermukaanTulisTests.cs`. Membalikkannya sadar itu murah;
   yang mahal adalah membalikkannya tanpa sadar, dan itu yang dicegah parameter
   tanpa nilai bawaan.
+
+---
+
+## Pembaruan 2026-09-17 - endpoint tulis kesembilan, tanpa satu uji baru
+
+`POST /api/v1/technologies/{slug}/requires` ([ADR-023](ADR-023-knowledge-graph-dasar.md))
+dipasang di bawah cabang `editorialWrites` dan masuk `SemuaEndpointTulis`. Ketiga
+uji ADR ini langsung menjaganya - persis yang dijanjikan bagian Konsekuensi.
+
+- **Dibuktikan merah:** memasang rutenya di ATAS batas membuat
+  `Bawaan_TIDAK_memasang_satu_pun_endpoint_tulis` gagal
+  *".../requires membalas 400"*. Kendali arah berlawanan juga: alamat di daftar uji
+  diubah jadi `/require`, dan uji sakelar-hidup gagal dengan 404.
+- **Tujuannya di BADAN, bukan di alamat**, supaya probe dari luar tetap terbaca:
+  sakelar hidup **400**, sakelar mati **404**. Diukur di `--no-launch-profile` dan
+  di `docker-compose.prod.yml`.
+- Gerbang tingkat citra **tidak berubah**: ia memeriksa satu rute penjaga
+  (`POST /api/v1/technologies` → 405).
+
+Angka *"delapan endpoint"* di Konteks dan Konsekuensi di atas adalah rekaman
+2026-09-09; sejak ADR-023 jumlahnya sembilan. Ringkasan daftar ujinya sengaja
+berhenti menyebut jumlah - angka itu basi di endpoint tulis berikutnya.

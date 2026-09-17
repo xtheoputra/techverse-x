@@ -20,8 +20,6 @@ public sealed class TechnologyDbContext(DbContextOptions<TechnologyDbContext> op
 
     public DbSet<Technology> Technologies => Set<Technology>();
 
-    public DbSet<TechnologyRelationship> Relationships => Set<TechnologyRelationship>();
-
     /// <summary>
     /// Katalog alat. <b>DbSet sendiri, bukan sekadar navigasi dari
     /// <see cref="Technologies"/></b> — satu alat dipakai lintas topik, jadi ia
@@ -33,6 +31,14 @@ public sealed class TechnologyDbContext(DbContextOptions<TechnologyDbContext> op
     /// TIDAK punya <c>DbSet</c>. Mereka hanya berarti di dalam topiknya, dan
     /// memberi mereka pintu masuk sendiri mengundang penulisan yang melewati
     /// agregatnya — persis jalan yang membuat nomor langkah roadmap bisa berlubang.
+    /// <para>
+    /// Aturan yang sama berlaku untuk <see cref="Domain.TechnologyRelationship"/>
+    /// (ADR-023). Ia dulu PUNYA <c>DbSet Relationships</c> publik dengan nol pemanggil
+    /// — pintu tulis kedua, tempat sisi bisa ditambahkan tanpa melewati aturan dua
+    /// topik tidak boleh saling mensyaratkan. Pintu itu dibuang: sisi ditulis hanya lewat
+    /// <see cref="Domain.Technology.RequireTopic"/>, dan dibaca lewat
+    /// <c>db.Technologies.SelectMany(t =&gt; t.Relationships)</c>.
+    /// </para>
     /// </remarks>
     public DbSet<Tool> Tools => Set<Tool>();
 
