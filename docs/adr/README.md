@@ -23,12 +23,13 @@ Satu berkas per keputusan. Nama berkasnya mengikuti daftar yang sudah ditetapkan
 | [016](ADR-016-pagu-biaya.md) | Pagu **USD 60/bulan** + aturan penerbitan ulang | Diterima - Issue [#22](../../../../issues/22) |
 | [017](ADR-017-platform-hosting.md) | Platform hosting: Render berbayar, dan bundel migrasi ikut ke citra `api` | ⛔ **DIGANTIKAN [019](ADR-019-hosting-gratis-tanpa-kartu.md)** - Issue [#33](../../../../issues/33) |
 | [018](ADR-018-rilis-citra-dan-reproducibility.md) | Rilis citra melewati commit dokumen; **reproducibility TIDAK dikejar** | Diterima - Issue [#32](../../../../issues/32) |
-| [019](ADR-019-hosting-gratis-tanpa-kartu.md) | **Vercel + Koyeb + Neon** - gratis, tanpa kartu. Menggantikan 017 | Diterima |
+| [019](ADR-019-hosting-gratis-tanpa-kartu.md) | **Vercel + Koyeb + Neon** - gratis, tanpa kartu. Menggantikan 017 | Diterima - 🔴 **kaki `api` (Koyeb) gugur untuk akun baru** sejak 17 Feb 2026, lihat [025](ADR-025-host-api-pengganti-koyeb.md) |
 | [020](ADR-020-permukaan-tulis-api.md) | **Endpoint tulis tidak dipasang di produksi** - melengkapi 013, yang hanya menimbang login PEMBACA | Diterima |
 | [021](ADR-021-jalan-menuju-tinjau.md) | Jalan sah menuju `tinjau`: **workflow bergerbang**, nama pemeriksa dari `github.actor` | Diterima sebagai pola - **dibangun sesudah [#40](../../../../issues/40)** |
 | [022](ADR-022-pencarian-teks-penuh.md) | **Pencarian teks penuh PostgreSQL**: kolom `tsvector` terhitung di `technologies` DAN `fields`, kamus `english`, `websearch_to_tsquery`, dan cadangan **awal kata** untuk pengetikan sebagian | Diterima - **sudah dibangun** |
 | [023](ADR-023-knowledge-graph-dasar.md) | **Knowledge Graph dasar**: relasi antar-topik `Requires` saja, dijaga basis data (FK kedua ujung, dua CHECK), produsen di grup tulis ADR-020, tampil sebagai "Topik terhubung" di halaman topik | Diterima - **mekanisme sudah dibangun; produksi NOL sisi** sampai topik masuk lewat ADR-021. Menjawab [#55](../../../../issues/55) |
 | [024](ADR-024-explore-learn-navigasi-v1.md) | **Explore dilayani rute yang sudah ada** (diukur dengan penelusuran), `/learn` dan `/graph` menunggu pemicu, satu bagian masuk menu hanya kalau halamannya berisi, dan **aturan teks pembaca** | Diterima - `/explore`, `/learn`, `/graph` **sengaja ditunda** dengan pemicu tertulis |
+| [025](ADR-025-host-api-pengganti-koyeb.md) | **Host API pengganti Koyeb belum dipilih**: diuji berurutan - **Railway Free lebih dulu**, Vercel kontainer kedua - dengan syarat lulus tertulis; Back4App terbantah pemeriksa. Berikut koreksi untuk kaki Neon dan Vercel | **Diusulkan** - menunggu uji pemilik, [#39](../../../../issues/39) |
 
 ⚠️ **ADR-017 dibiarkan utuh meski digantikan**, karena dua bagiannya masih benar
 dan masih dipakai: pemeriksaan empat syarat yang menemukan **bentuk citra
