@@ -113,6 +113,34 @@ GitHub: PR [#62](../../../pull/62) ditumpuk di atas #58. Hasil riset diposting k
 
 💡 *Back4App lolos penyapuan kemarin karena halaman harganya menulis "no credit card required", dan terbantah hari ini karena pemeriksanya membaca kode dasbornya. Membaca halaman pemasaran dengan lebih teliti tidak akan pernah menemukannya.*
 
+### 🐞 #60 dan #61 diperbaiki — dan #61 ternyata punya dua jalan
+
+Permintaan kedua pemilik hari ini: *"lanjutkan semua tugas"*. Yang tidak menunggu akun, merge, atau pemicu tertulis tinggal dua bug di permukaan tulis. PR [#63](../../../pull/63), ditumpuk di atas #62.
+
+**#60 — jenis sumber diurai berdasarkan nama.** Yang diukur lebih dulu adalah yang **tersimpan**, bukan hanya statusnya: `"0"` → `OfficialDocs`, `"3"` → `Repository`, `" 1 "` dan `" video "` → `Video`, dan **gabungan bendera `"Video, Paper"` → `Repository`** (1 | 2) — bentuk yang belum ada di issue. Kelimanya 200 sebelum perbaikan; kendali `video`/`REPOSITORY`/`OfficialDocs` hijau sebelum dan sesudah.
+
+**#61 — diukur ulang sebelum disentuh, di dua lingkungan:**
+
+| | Muatan cacat ke 8 endpoint berbadan | `?pageSize=abc` (permukaan BACA) |
+|---|---|---|
+| `Development` | 500 + baris `fail` | 500 |
+| `Production` | 400 tanpa sebab | 400 tanpa sebab |
+
+`ThrowOnBadRequest` bawaannya hidup hanya di `Development`, dan seluruh uji integrasi berjalan di sana — **jalan produksi tidak pernah dilihat satu uji pun**. Arah perbaikan di badan issue-nya (`StatusCodeSelector`), yang ditulis pagi ini tanpa dicoba, tidak akan menyatukan kedua jalan itu. Dipasang: sakelar hidup di semua lingkungan + `PermintaanCacatHandler`, dengan `detail` berisi pesan kerangka kerja (`Path: $.type`). Sesudahnya, lewat API sungguhan: kedua lingkungan identik, 415 dan 404 kendali tidak berubah, nol baris `fail`.
+
+| Bukti | Development | Production |
+|---|---|---|
+| Kode lama (uji baru) | 🔴 24 + 2 kueri | 🔴 24 + 2 kueri |
+| Sabotase: tanpa sakelar | hijau | 🔴 400 tanpa sebab |
+| Sabotase: tanpa handler | 🔴 500 | 🔴 **500** — sakelar tanpa handler memperburuk produksi |
+| Sabotase: tanpa pesan `JsonException` | 🔴 8 | 🔴 8 |
+
+🐞 **Komentar saya sendiri terbantah sebelum sempat di-commit.** `PermintaanCacatHandler` mengembalikan `true` walau badannya tak bisa ditulis, dan komentarnya semula berbunyi *"mengembalikan false justru menyerahkannya kembali ke jalan 500"*. Diukur dengan klien yang hanya menerima `text/html`: statusnya **tetap 400** — bedanya baris `fail` palsu muncul di log. Komentarnya ditulis ulang sesuai yang terukur.
+
+⚠️ **Satu yang dilihat dan tidak dikejar:** di jalan produksi LAMA, Kestrel sekali per jalan ukur mencatat `Connection processing ended abnormally … Reading is already in progress`. Koneksi keep-alive tetap dipakai ulang dengan benar (400 lalu 200 di koneksi yang sama), dan peringatan itu tidak muncul di jalan ukur yang sama sesudah perbaikan. Tidak diklaim sebagai hasil perbaikan.
+
+**Ukuran:** `run.ps1 verify` hijau — Release 0 peringatan, **102 unit + 61 integrasi** (dari 47: +8 #60, +2 sapuan muatan cacat, +4 parameter kueri), lint dan build web. Basis data pengembang: nol topik atau alat uji tersisa, 6 topik contoh dan 1 sisi utuh. Hasilnya diposting ke [#60](../../../issues/60#issuecomment-5708835301) dan [#61](../../../issues/61#issuecomment-5708834827); keduanya tertutup saat rantainya sampai ke `main`.
+
 ### Ukuran
 
 **102 unit + 47 integrasi** (dari 95 + 32 di ujung #56), build Release 0 peringatan, `run.ps1 verify` hijau. Dev DB ditinggalkan: 6 migrasi, 6 topik contoh, 1 sisi, nol sisa uji; tidak ada basis data `gladi%`, tidak ada proses latar.
