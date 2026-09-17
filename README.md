@@ -77,7 +77,7 @@ Butuh **.NET SDK 10**, **Node 22+**, dan **Docker**.
 .\run.ps1 web                  make web       # http://localhost:3000 - coba /cari?q=quantum
 ```
 
-`.\run.ps1` tanpa argumen menampilkan seluruh perintah. Isi `run.ps1` dan `Makefile` sengaja dijaga sama: yang satu untuk Windows, yang lain untuk CI dan Linux.
+`.\run.ps1` tanpa argumen menampilkan seluruh perintah. Isi `run.ps1` dan `Makefile` sengaja dijaga sama: yang satu untuk Windows, yang lain untuk Linux/WSL/macOS (CI tidak memanggil keduanya). Perintah `seed` di keduanya menjalankan satu berkas yang sama, `database/seeds/seed.mjs` — sampai 2026-09-17 masing-masing punya salinan sendiri, dan salinan untuk `make` sudah menyimpang.
 
 Gerbang yang sama dengan CI, sebelum push:
 
@@ -89,7 +89,7 @@ Gerbang yang sama dengan CI, sebelum push:
 
 ### Isi contoh itu bukan kurikulum
 
-`seed` memasukkan lima entri sekadar supaya layar dan endpoint ada isinya. Isi sungguhan menunggu Issue [#10](../../issues/10) (siapa yang menulis) dan [#18](../../issues/18) — peta teknologinya sendiri masih perlu dikoreksi lebih dulu.
+`seed` memasukkan enam topik contoh, mengisi kelima bagian satu di antaranya, dan mencatat satu relasi antar-topik — sekadar supaya layar dan endpoint ada isinya. Cara isi sungguhan lahir sudah diputuskan di [ADR-012](docs/adr/ADR-012-template-halaman.md) (`kurasi` → `draf` → `tinjau` oleh manusia), dimulai dari tujuh topik AI Agents di [#42](../../issues/42), dan jalan terakhirnya ke produksi ada di [ADR-021](docs/adr/ADR-021-jalan-menuju-tinjau.md). Tidak satu pun lewat `seed`.
 
 ---
 

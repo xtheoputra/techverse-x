@@ -42,7 +42,7 @@ db-script: ## Menulis SQL migrasi idempoten ke database/migrations/
 
 .PHONY: seed
 seed: ## Mengisi contoh isi lewat API (API harus sudah jalan)
-	@sh database/seeds/seed.sh
+	@node database/seeds/seed.mjs
 
 .PHONY: api
 api: ## Menjalankan API di http://localhost:5080
