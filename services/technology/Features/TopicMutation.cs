@@ -88,6 +88,14 @@ internal static class TopicMutation
             // Bukan muatan yang cacat melainkan URUTAN yang salah - menambah
             // langkah roadmap sebelum ada prasyarat, atau menaikkan ke draf saat
             // bagiannya belum lengkap. Tetap 400: yang keliru permintaannya.
+            //
+            // ⚠️ Tangkapan ini tidak bisa membedakan galat AGREGAT dari galat
+            // pemrograman di dalam lambda. Diukur saat RequireTopicHandler
+            // disabotase (cabang tujuan-tak-ada dibuang, topicId!.Value dipanggil
+            // di dalam lambda): jawabannya bukan 500, melainkan 400
+            // {"body":["Nullable object must have a value."]}. Karena itu setiap
+            // pencarian diselesaikan SEBELUM RunAsync, dan lambda cukup satu
+            // panggilan metode agregat.
             return TopicMutationOutcome.Invalid("body", ex.Message);
         }
 
