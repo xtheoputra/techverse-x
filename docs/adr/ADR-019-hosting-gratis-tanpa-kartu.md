@@ -1,7 +1,14 @@
 # ADR-019 — Hosting gratis tanpa kartu: Vercel + Koyeb + Neon
 
 **Status:** Diterima. **Menggantikan [ADR-017](ADR-017-platform-hosting.md).**
+🔴 **Kaki `api` (Koyeb) gugur untuk akun baru** — lihat *Pembaruan 2026-09-17* di
+bawah dan [ADR-025](ADR-025-host-api-pengganti-koyeb.md).
 **Tanggal:** 2026-09-08
+
+> 🔴 **Jangan mendaftar Koyeb dari ADR ini.** Sejak 17 Februari 2026 akun baru
+> Koyeb wajib memilih paket berbayar dan memasukkan metode pembayaran. Kaki web
+> (Vercel) dan PostgreSQL (Neon) tetap berlaku, dengan koreksi yang dirinci di
+> ADR-025. Isi di bawah dibiarkan sebagai rekaman keputusan 8 September.
 
 ## Konteks
 
@@ -129,3 +136,43 @@ Ketiganya bisa dilepas satu per satu, dan itu disengaja:
 - **Kembali ke ADR-017 (Render berbayar):** seluruh pekerjaannya masih ada —
   `preDeployCommand` tetap bisa memanggil `/app/efbundle`, dan alasan
   penolakannya tercatat di sana apa adanya.
+
+---
+
+## Pembaruan 2026-09-17 — kaki `api` gugur untuk akun baru, dan tabel survei keliru di dua baris sejak hari ditulis
+
+🔴 **Koyeb Free tidak ada lagi untuk akun baru sejak 17 Februari 2026** — tujuh
+bulan sebelum ADR ini ditulis. Pengumuman Koyeb: *"You'll need a valid payment
+method and must subscribe to one of our paid plans to get started."* Harga per
+2026-09-17: Pro $29/bulan + pemakaian. Kecuali pemilik sudah punya organisasi
+Koyeb dari sebelum tanggal itu, keputusan `api` di atas **tidak bisa dijalankan
+tanpa kartu**. Penggantinya belum dipilih; ia diuji menurut
+[ADR-025](ADR-025-host-api-pengganti-koyeb.md) — Railway Free lebih dulu.
+
+Koreksi tabel survei, ke sumber primer 2026-09-16 dan 17:
+
+| Baris | Tertulis | Kenyataannya |
+|---|---|---|
+| **Koyeb** | kartu *"biasanya tidak"*, 1 instance gratis | akun baru wajib paket berbayar dan metode pembayaran sejak 2026-02-17 |
+| **Fly.io · Railway** | *"tak ada tier gratis untuk pendaftar baru"* | **benar untuk Fly.io, keliru untuk Railway.** Paket Free $0 berkredit $1/bulan, tanpa kartu, diluncurkan ulang 29 Agustus 2025 — bersyarat verifikasi akun otomatis (ADR-025) |
+| **Hugging Face Docker Space** | berbayar | benar, dan lebih buruk dari yang tertulis: lalu lintas keluar hanya lewat port 80, 443, dan 8080, jadi Postgres di 5432 terblokir |
+
+**Dua kaki lain masih berlaku** — Neon dan Vercel Hobby tetap gratis dan tanpa
+kartu — dengan koreksi yang dirinci di ADR-025: migrasi ke Neon wajib memakai
+string *direct* (sakelar pooling menyala secara bawaan), region Neon terkunci saat
+proyek dibuat, CU-jam yang habis menangguhkan basis data sampai bulan berikutnya,
+dan log fungsi Vercel Hobby hanya disimpan satu jam.
+
+⚠️ **Butir *Koyeb → host lain* di bagian sebelumnya terlalu optimis.** *"Citranya
+tetap di GHCR"* benar tentang citranya, tapi kedua kandidat gratis yang bertahan
+**tidak bisa menarik citra GHCR privat**: Railway Free (*"Private registry
+credentials are available on the Pro plan"*) maupun Vercel, yang membangun citranya
+sendiri. Melepas Koyeb tanpa biaya berarti membangun dari sumber.
+
+💡 **Peringatan di bagian survei — *"ADR ini punya umur simpan lebih pendek"* —
+terbukti, tapi tidak dengan cara yang dibayangkannya.** Yang dibayangkan: tier
+gratis berubah **sesudah** ADR ini ditulis. Yang terjadi: dua barisnya sudah basi
+**pada hari** ditulis, ke arah yang berlawanan — tier yang sudah hilang tercatat
+ada, dan tier yang sudah kembali tercatat tidak ada. Aturan survei yang dipakai
+penggantinya — kutipan primer bertanggal, pemeriksa yang membantah, dan pencocokan
+ulang ke halaman yang hidup — tertulis di ADR-025.
