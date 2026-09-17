@@ -1,6 +1,8 @@
 using System.Data.Common;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -200,6 +202,50 @@ public sealed class PencarianTests : IAsyncLifetime
             new Uri($"/api/v1/search?q={Uri.EscapeDataString(q)}", UriKind.Relative));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    /// <summary>
+    /// Parameter kueri yang tidak bisa diikat membalas 400 yang menyebut
+    /// parameternya — di kedua lingkungan (issue #61).
+    /// </summary>
+    /// <remarks>
+    /// 🔴 Ini permukaan BACA, yang TAYANG di produksi (ADR-020 hanya menutup yang
+    /// menulis). Terukur 2026-09-17 sebelum perbaikan: <c>?pageSize=abc</c> membalas
+    /// 500 di <c>Development</c>, dan 400 tanpa satu kata pun tentang sebabnya di
+    /// <c>Production</c> — dua jalan ASP.NET yang berbeda untuk permintaan yang sama.
+    /// Sakelar tulis sengaja tidak dinyalakan: bentuk produksi.
+    /// </remarks>
+    [Theory]
+    [InlineData("Development", "/api/v1/technologies?pageSize=abc", "pageSize")]
+    [InlineData("Production", "/api/v1/technologies?pageSize=abc", "pageSize")]
+    [InlineData("Development", "/api/v1/search?q=zarqun&page=abc", "page")]
+    [InlineData("Production", "/api/v1/search?q=zarqun&page=abc", "page")]
+    public async Task Parameter_kueri_yang_tidak_bisa_diikat_membalas_400_yang_menyebut_parameternya(
+        string lingkungan,
+        string alamat,
+        string parameter)
+    {
+        using var host = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment(lingkungan);
+            builder.UseSetting("ConnectionStrings:Postgres", Postgres);
+            builder.UseSetting("ConnectionStrings:Redis", string.Empty);
+        });
+        using var client = host.CreateClient();
+
+        var response = await client.GetAsync(new Uri(alamat, UriKind.Relative));
+        var teks = await response.Content.ReadAsStringAsync();
+
+        Assert.True(response.StatusCode == HttpStatusCode.BadRequest, $"{lingkungan} {alamat} -> {(int)response.StatusCode} {teks}");
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        using var dokumen = JsonDocument.Parse(teks);
+        var detail = dokumen.RootElement.TryGetProperty("detail", out var d) ? d.GetString() : null;
+        Assert.True(
+            detail is not null
+            && detail.Contains(parameter, StringComparison.Ordinal)
+            && detail.Contains("abc", StringComparison.Ordinal),
+            $"detail harus menyebut parameter '{parameter}' dan nilainya. Badan: {teks}");
     }
 
     [Fact]

@@ -198,6 +198,11 @@ melainkan kelas yang berlaku di **semua** endpoint tulis: `BadHttpRequestExcepti
 ditangkap `UseExceptionHandler()` sebelum statusnya terbaca. Terukur 2026-09-17,
 ditagih di [#61](../../../../issues/61).
 
+> ✅ **Diperbaiki hari yang sama:** kini **400** yang menyebut sebabnya
+> (`Path: $.topicSlug`), di `Development` maupun `Production` — lihat Pembaruan
+> kedua [ADR-020](ADR-020-permukaan-tulis-api.md). Paragraf di atas dibiarkan
+> sebagai rekaman.
+
 🔑 **Tujuannya di MUATAN, bukan di alamat** — meniru `AttachTool`. Dengan begitu
 gerbang ADR-020 tetap terbaca dari luar: sakelar hidup → handler membaca muatan
 → **400**; sakelar mati → tidak ada rute → **404**. `PUT /requires/{topicSlug}`
@@ -207,7 +212,8 @@ tidak dipasang.
 🔑 **Satu rute per jenis**, bukan `/relationships` bermedan jenis: tidak ada teks
 jenis yang diurai, jadi celah `Enum.TryParse` yang meluluskan angka tidak punya
 jalan masuk. Celah itu **nyata di tempat lain** — terukur, `POST …/resources`
-dengan `"type":"0"` tersimpan sebagai `OfficialDocs` ([#60](../../../../issues/60)).
+dengan `"type":"0"` tersimpan sebagai `OfficialDocs` ([#60](../../../../issues/60);
+diperbaiki 2026-09-17 — jenis sumber kini diurai berdasarkan nama saja).
 
 ⚠️ **Balapan yang diterima:** pencarian tujuan, pembacaan sisi milik tujuan, dan
 `SaveChanges` bukan satu transaksi. Dua penulis serentak bisa menyelipkan

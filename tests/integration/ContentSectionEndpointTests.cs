@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -210,6 +211,75 @@ public sealed class ContentSectionEndpointTests : IAsyncLifetime
             new ResourceRequest(type, "Sumber cacat", url));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    /// <summary>
+    /// Jenis sumber diurai berdasarkan NAMA saja — issue #60.
+    /// </summary>
+    /// <remarks>
+    /// 🔴 Dibuktikan merah lebih dulu (2026-09-17): dengan <c>Enum.TryParse</c>
+    /// kelimanya membalas 200 dan TERSIMPAN — <c>"0"</c> sebagai
+    /// <c>OfficialDocs</c>, <c>"3"</c> sebagai <c>Repository</c>, <c>" 1 "</c> dan
+    /// <c>" video "</c> sebagai <c>Video</c>, dan gabungan bendera
+    /// <c>"Video, Paper"</c> sebagai <c>Repository</c> (1 | 2). Empat dari lima tidak
+    /// menyebut nama anggota yang tersimpan, dan tak satu pun berbunyi.
+    /// </remarks>
+    [Theory]
+    [InlineData("0")]
+    [InlineData("3")]
+    [InlineData(" 1 ")]
+    [InlineData("Video, Paper")]
+    // Spasi bukan bagian dari nama. Pesannya menyebut nama yang sah, jadi
+    // penolakannya tidak membingungkan pemanggil.
+    [InlineData(" video ")]
+    public async Task Jenis_sumber_yang_bukan_nama_ditolak_400_bermedan_type_dan_tidak_tersimpan(string type)
+    {
+        using var host = Host();
+        using var client = host.CreateClient();
+
+        var slug = await BuatTopikAsync(client);
+
+        var response = await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/resources", UriKind.Relative),
+            new ResourceRequest(type, "Sumber berjenis angka", "https://example.com/angka"));
+
+        var isi = await response.Content.ReadAsStringAsync();
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        // Medan `type` di dalam `errors` - bukan `"type"` di mana saja, sebab setiap
+        // ProblemDetails membawa medan `type` di akarnya sendiri.
+        using var dokumen = JsonDocument.Parse(isi);
+        Assert.True(
+            dokumen.RootElement.TryGetProperty("errors", out var errors) && errors.TryGetProperty("type", out _),
+            $"400-nya harus bermedan 'type'. Badan: {isi}");
+
+        var topik = await client.GetFromJsonAsync<TechnologyResponse>(
+            new Uri($"/api/v1/technologies/{slug}", UriKind.Relative));
+        Assert.Empty(topik!.Resources);
+    }
+
+    /// <summary>
+    /// Kendali #60: nama tanpa peka huruf besar-kecil TETAP diterima. Tanpa ini,
+    /// perbaikan yang menolak segalanya ikut hijau.
+    /// </summary>
+    [Theory]
+    [InlineData("video", "Video")]
+    [InlineData("REPOSITORY", "Repository")]
+    [InlineData("OfficialDocs", "OfficialDocs")]
+    public async Task Nama_jenis_sumber_diterima_tanpa_peka_huruf_besar_kecil(string type, string tersimpan)
+    {
+        using var host = Host();
+        using var client = host.CreateClient();
+
+        var slug = await BuatTopikAsync(client);
+
+        var response = await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/resources", UriKind.Relative),
+            new ResourceRequest(type, "Sumber bernama", "https://example.com/nama"));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var sumber = Assert.Single((await response.Content.ReadFromJsonAsync<TechnologyResponse>())!.Resources);
+        Assert.Equal(tersimpan, sumber.Type);
     }
 
     [Fact]

@@ -166,3 +166,50 @@ uji ADR ini langsung menjaganya - persis yang dijanjikan bagian Konsekuensi.
 Angka *"delapan endpoint"* di Konteks dan Konsekuensi di atas adalah rekaman
 2026-09-09; sejak ADR-023 jumlahnya sembilan. Ringkasan daftar ujinya sengaja
 berhenti menyebut jumlah - angka itu basi di endpoint tulis berikutnya.
+
+---
+
+## Pembaruan 2026-09-17 (kedua) - muatan yang tidak bisa diikat: dua jalan ASP.NET jadi satu
+
+[#61](../../../../issues/61): JSON yang terpotong, kosong, atau bertipe salah
+(`{"type":0}`, `{"name":123}`) membalas **500** di endpoint tulis. Diukur ulang
+sebelum diperbaiki, dan ternyata separuh ceritanya belum tertulis di issue itu:
+
+| Lingkungan | Muatan cacat ke 8 endpoint berbadan | `GET /api/v1/technologies?pageSize=abc` |
+|---|---|---|
+| `Development` | **500** dan baris log `fail` | **500** |
+| `Production` | 400 **tanpa satu kata pun tentang sebabnya** | 400 tanpa sebab |
+
+Sebabnya satu sakelar. `RouteHandlerOptions.ThrowOnBadRequest` bawaannya hidup
+**hanya** di `Development`: di sana pengikatan melempar `BadHttpRequestException`
+yang ditelan `UseExceptionHandler()` jadi 500, sedangkan di lingkungan lain ia
+diam-diam menulis 400 dan menaruh sebabnya di log tingkat `Debug`. 🔴 **Seluruh
+uji integrasi berjalan di `Development`, jadi jalan yang dipakai produksi tidak
+pernah dilihat satu uji pun.** Kolom kedua juga berarti permukaan BACA — yang
+tayang — ikut terkena.
+
+**Diputuskan:** `ThrowOnBadRequest` dinyalakan di semua lingkungan, dan
+`PermintaanCacatHandler` (`apps/api/Platform`) memetakan exception itu ke statusnya
+sendiri, dengan `detail` berisi pesan kerangka kerja apa adanya — yang menyebut
+parameter dan jalur JSON-nya (`Path: $.type`). Karena exception itu ditangani
+`IExceptionHandler`, baris `fail` palsu hilang dari log.
+
+- **Daftar `SemuaEndpointTulis` kini menjaga sifat keempat.** Tiap entri berbadan
+  menerima tiga muatan cacat yang **diturunkan** dari muatannya yang sah, di kedua
+  lingkungan, dan harus menjawab 400 yang menyebut sebabnya. `Body` `null` kini
+  berarti *"endpoint ini tidak menerima badan"* (`/draf`), bukan jalan pintas.
+- **Dibuktikan merah:** kode lama → 24 jawaban keliru di tiap lingkungan
+  (Development 500, Production 400 tanpa sebab), plus keempat baris
+  `?page=`/`?pageSize=`.
+- **Sabotase, masing-masing dipulihkan identik (sha256):**
+
+  | Yang dibuang | Development | Production |
+  |---|---|---|
+  | baris `ThrowOnBadRequest` | hijau | 🔴 400 tanpa sebab (24 + 2) |
+  | pendaftaran handler | 🔴 500 | 🔴 **500** - sakelar tanpa handler memperburuk produksi |
+  | pesan `JsonException` di `detail` | 🔴 8 (bertipe salah) | 🔴 8 |
+
+  Baris kedua yang membuat kedua baris di `Program.cs` dicatat sebagai **satu
+  kesatuan**.
+- Gerbang tingkat citra **tidak berubah**: probenya mengirim JSON yang bentuknya
+  sah (`{"name":"",…}`), jadi validator tetap yang menjawab 400.

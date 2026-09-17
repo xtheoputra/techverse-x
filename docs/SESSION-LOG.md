@@ -113,6 +113,34 @@ GitHub: PR [#62](../../../pull/62) ditumpuk di atas #58. Hasil riset diposting k
 
 💡 *Back4App lolos penyapuan kemarin karena halaman harganya menulis "no credit card required", dan terbantah hari ini karena pemeriksanya membaca kode dasbornya. Membaca halaman pemasaran dengan lebih teliti tidak akan pernah menemukannya.*
 
+### 🐞 #60 dan #61 diperbaiki — dan #61 ternyata punya dua jalan
+
+Permintaan kedua pemilik hari ini: *"lanjutkan semua tugas"*. Yang tidak menunggu akun, merge, atau pemicu tertulis tinggal dua bug di permukaan tulis. PR [#63](../../../pull/63), ditumpuk di atas #62.
+
+**#60 — jenis sumber diurai berdasarkan nama.** Yang diukur lebih dulu adalah yang **tersimpan**, bukan hanya statusnya: `"0"` → `OfficialDocs`, `"3"` → `Repository`, `" 1 "` dan `" video "` → `Video`, dan **gabungan bendera `"Video, Paper"` → `Repository`** (1 | 2) — bentuk yang belum ada di issue. Kelimanya 200 sebelum perbaikan; kendali `video`/`REPOSITORY`/`OfficialDocs` hijau sebelum dan sesudah.
+
+**#61 — diukur ulang sebelum disentuh, di dua lingkungan:**
+
+| | Muatan cacat ke 8 endpoint berbadan | `?pageSize=abc` (permukaan BACA) |
+|---|---|---|
+| `Development` | 500 + baris `fail` | 500 |
+| `Production` | 400 tanpa sebab | 400 tanpa sebab |
+
+`ThrowOnBadRequest` bawaannya hidup hanya di `Development`, dan seluruh uji integrasi berjalan di sana — **jalan produksi tidak pernah dilihat satu uji pun**. Arah perbaikan di badan issue-nya (`StatusCodeSelector`), yang ditulis pagi ini tanpa dicoba, tidak akan menyatukan kedua jalan itu. Dipasang: sakelar hidup di semua lingkungan + `PermintaanCacatHandler`, dengan `detail` berisi pesan kerangka kerja (`Path: $.type`). Sesudahnya, lewat API sungguhan: kedua lingkungan identik, 415 dan 404 kendali tidak berubah, nol baris `fail`.
+
+| Bukti | Development | Production |
+|---|---|---|
+| Kode lama (uji baru) | 🔴 24 + 2 kueri | 🔴 24 + 2 kueri |
+| Sabotase: tanpa sakelar | hijau | 🔴 400 tanpa sebab |
+| Sabotase: tanpa handler | 🔴 500 | 🔴 **500** — sakelar tanpa handler memperburuk produksi |
+| Sabotase: tanpa pesan `JsonException` | 🔴 8 | 🔴 8 |
+
+🐞 **Komentar saya sendiri terbantah sebelum sempat di-commit.** `PermintaanCacatHandler` mengembalikan `true` walau badannya tak bisa ditulis, dan komentarnya semula berbunyi *"mengembalikan false justru menyerahkannya kembali ke jalan 500"*. Diukur dengan klien yang hanya menerima `text/html`: statusnya **tetap 400** — bedanya baris `fail` palsu muncul di log. Komentarnya ditulis ulang sesuai yang terukur.
+
+⚠️ **Satu yang dilihat dan tidak dikejar:** di jalan produksi LAMA, Kestrel sekali per jalan ukur mencatat `Connection processing ended abnormally … Reading is already in progress`. Koneksi keep-alive tetap dipakai ulang dengan benar (400 lalu 200 di koneksi yang sama), dan peringatan itu tidak muncul di jalan ukur yang sama sesudah perbaikan. Tidak diklaim sebagai hasil perbaikan.
+
+**Ukuran:** `run.ps1 verify` hijau — Release 0 peringatan, **102 unit + 61 integrasi** (dari 47: +8 #60, +2 sapuan muatan cacat, +4 parameter kueri), lint dan build web. Basis data pengembang: nol topik atau alat uji tersisa, 6 topik contoh dan 1 sisi utuh. Hasilnya diposting ke [#60](../../../issues/60#issuecomment-5708835301) dan [#61](../../../issues/61#issuecomment-5708834827); keduanya tertutup saat rantainya sampai ke `main`.
+
 ### Ukuran
 
 **102 unit + 47 integrasi** (dari 95 + 32 di ujung #56), build Release 0 peringatan, `run.ps1 verify` hijau. Dev DB ditinggalkan: 6 migrasi, 6 topik contoh, 1 sisi, nol sisa uji; tidak ada basis data `gladi%`, tidak ada proses latar.
@@ -124,6 +152,31 @@ GitHub: PR [#62](../../../pull/62) ditumpuk di atas #58. Hasil riset diposting k
 - **Riset Bulan 4 (arus arXiv)** selesai sebagai riset kemarin, tapi **tidak dituangkan ke ADR**: kritiknya sendiri membantah klaim terkuat rancangannya — jalur produksi pertamanya tetap butuh *Rilis citra* dan *Migrasi produksi*, dua workflow Actions yang mati di bawah #57.
 - **Uji Railway (R1–R7) tidak dijalankan, dan tidak satu akun pun dibuat.** Pendaftarannya atas nama pemilik — dan R1 justru menguji akun GitHub pemilik sendiri.
 - **Komentar kode dan teks workflow yang menyebut Koyeb dibiarkan**, begitu pula `Dockerfile.vercel` yang tidak dibuat. Yang pertama menunggu host dipilih, yang kedua hanya berguna kalau Railway gagal (ADR-025, *Konsekuensi*).
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+Pemilik menutup sesi: *"simpan, commit dan push akan saya akhiri sesi hari ini"*. Semua cabang sudah di-push dan sama dengan `origin`; pohon kerja bersih, nol stash.
+
+**Rantai PR, belum satu pun di-merge — urutan merge wajib dari bawah:**
+
+| PR | Cabang | Isi | Base |
+|---|---|---|---|
+| [#56](../../../pull/56) | `fase-2/pencarian-teks-penuh` | pencarian teks penuh (ADR-022) | `main` |
+| [#58](../../../pull/58) | `fase-2/knowledge-graph-dasar` | Knowledge Graph dasar + navigasi V1 (ADR-023/024) | #56 |
+| [#62](../../../pull/62) | `fase-1/adr-025-host-api` | pengganti Koyeb (ADR-025, Diusulkan) — dokumen saja | #58 |
+| [#63](../../../pull/63) | `fase-1/muatan-cacat-60-61` | perbaikan #60 dan #61 | #62 |
+
+CI keempatnya merah dalam 2–4 detik dengan **nol langkah** — #57, bukan isinya.
+
+**Menunggu pemilik:** #57 (kuota menit Actions se-akun); uji Railway R1–R6 menurut ADR-025 (#39) → proyek Neon sungguhan di region yang mengikutinya (#38) → Vercel (#40); merge rantai di atas.
+
+**Menunggu pemicu tertulis, bukan macet:** #42 (jalan `tinjau` ADR-021, dibangun sesudah #40) · #54 (isi halaman sungguhan) · #59 (#42 tutup dan satu roadmap terisi di produksi) · #55 tutup saat #58 masuk · #60 dan #61 tutup saat #63 sampai `main`.
+
+**Sengaja ditunda, dengan syaratnya:** mengulang sekali di `getJson` untuk 502 sesudah tidur (hanya kalau R6 melihat 502) · komentar kode Koyeb (sesudah host dipilih) · `Dockerfile.vercel` (hanya kalau Railway gagal).
+
+**Belum terverifikasi:** tautan issue di `docs/*.md` ditulis `../../issues/N`. Menurut resolusi URL biasa, dari `blob/<cabang>/docs/` tautan itu jatuh ke `blob/issues/N`, bukan ke issue. Tautan baru sesi ini memakai `../../../`. Peramban mesin ini belum masuk GitHub, jadi belum diklik — satu klik di GitHub menjawabnya.
+
+**Lingkungan pengembangan:** `techversex-postgres` dan `techversex-redis` tetap menyala seperti saat sesi mulai; basis data berisi 6 topik contoh dan 1 sisi, nol sisa uji. Tidak ada proses API yang ditinggalkan sesi ini. Satu `npx next start -p 3311` yang menyala sejak 12:14 **bukan** dari sesi ini — commit terakhir sesi ini 11:54, dan proses itu tidak menjawab di portnya — jadi sengaja tidak dihentikan.
 
 ---
 

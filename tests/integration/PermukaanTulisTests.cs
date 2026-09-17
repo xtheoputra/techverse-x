@@ -1,5 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -61,6 +65,25 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
             builder.UseSetting("Editorial:WritesEnabled", "true");
         });
 
+    /// <summary>
+    /// Host bersakelar tulis hidup, di lingkungan yang diminta.
+    /// </summary>
+    /// <remarks>
+    /// 🔴 Lingkungannya jadi parameter karena ASP.NET punya DUA jalan untuk permintaan
+    /// yang tidak bisa diikat: di <c>Development</c> ia melempar
+    /// <c>BadHttpRequestException</c>, di lingkungan lain ia hanya menulis 400.
+    /// WebApplicationFactory berjalan di <c>Development</c>, jadi sampai #61 tidak ada
+    /// satu uji pun yang pernah melihat jalan yang dipakai produksi.
+    /// </remarks>
+    private static WebApplicationFactory<Program> HostTerbuka(string lingkungan) =>
+        new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        {
+            builder.UseEnvironment(lingkungan);
+            builder.UseSetting("ConnectionStrings:Postgres", Postgres);
+            builder.UseSetting("ConnectionStrings:Redis", string.Empty);
+            builder.UseSetting("Editorial:WritesEnabled", "true");
+        });
+
     public Task InitializeAsync() => Task.CompletedTask;
 
     public async Task DisposeAsync()
@@ -93,9 +116,15 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
     /// <remarks>
     /// ⚠️ Sengaja tanpa hitungan. Ringkasan ini dulu menyebut jumlahnya, dan angka
     /// itu basi di endpoint tulis berikutnya. Endpoint tulis baru cukup masuk
-    /// DAFTAR ini; ketiga uji di bawah langsung menjaganya.
+    /// DAFTAR ini; uji-uji di bawah langsung menjaganya.
+    /// <para>
+    /// <c>Body</c> <c>null</c> berarti endpoint itu memang TIDAK menerima badan —
+    /// satu-satunya tempat yang dilewati uji muatan cacat. Endpoint berbadan yang
+    /// ditulis <c>null</c> di sini akan lolos dari uji itu, jadi <c>null</c> harus
+    /// benar, bukan jalan pintas.
+    /// </para>
     /// </remarks>
-    private static (HttpMethod Method, string Path, object Body)[] SemuaEndpointTulis(string slug) =>
+    private static (HttpMethod Method, string Path, object? Body)[] SemuaEndpointTulis(string slug) =>
     [
         (HttpMethod.Post, "/api/v1/technologies",
             new CreateTechnologyRequest("Uji Permukaan Tulis", "Ringkasan untuk uji.", "ai-agents", $"{slug}-lain")),
@@ -111,7 +140,7 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
             new ProjectRequest("Proyek uji", "Ringkasan proyek uji.")),
         (HttpMethod.Post, $"/api/v1/technologies/{slug}/resources",
             new ResourceRequest("OfficialDocs", "Sumber uji", "https://contoh.test/spesifikasi")),
-        (HttpMethod.Post, $"/api/v1/technologies/{slug}/draf", new { }),
+        (HttpMethod.Post, $"/api/v1/technologies/{slug}/draf", null),
 
         // Tujuannya sengaja tidak pernah ada: dengan sakelar hidup handlernya
         // membaca muatan dan membalas 400 (bukan 404, lihat RequireTopicHandler),
@@ -158,7 +187,7 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
 
         foreach (var (method, path, body) in SemuaEndpointTulis(slug))
         {
-            using var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
+            using var request = new HttpRequestMessage(method, path) { Content = Badan(body) };
             using var response = await client.SendAsync(request);
 
             // 404 kalau tidak ada rute yang cocok sama sekali; 405 untuk
@@ -210,7 +239,7 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
 
         foreach (var (method, path, body) in SemuaEndpointTulis(slug))
         {
-            using var request = new HttpRequestMessage(method, path) { Content = JsonContent.Create(body) };
+            using var request = new HttpRequestMessage(method, path) { Content = Badan(body) };
             using var response = await client.SendAsync(request);
 
             // Sebagian memang gagal karena alasan LAIN - menautkan alat yang tak
@@ -222,5 +251,109 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
                 $"{method} {path} membalas {(int)response.StatusCode} padahal sakelarnya hidup. "
                 + "Alamat di daftar uji ini tidak cocok dengan rute yang sebenarnya dipasang.");
         }
+    }
+
+    /// <summary>
+    /// Muatan yang tidak bisa diikat membalas 400 yang MENYEBUT sebabnya — bukan 500
+    /// — di setiap endpoint tulis berbadan, di kedua lingkungan (issue #61).
+    /// </summary>
+    /// <remarks>
+    /// 🔴 Kelas cacat #26 yang kembali lewat BENTUK muatan, bukan nilainya. Uji #26
+    /// hanya mengirim nilai yang keliru; muatan yang bentuknya keliru tidak pernah
+    /// sampai ke validator, dan tidak ada yang mengirimnya.
+    /// <para>
+    /// 🔑 Kedua lingkungan diuji karena jalannya berbeda (lihat
+    /// <see cref="HostTerbuka(string)"/>). Menuntut <c>detail</c> — bukan cuma 400 —
+    /// yang membuat baris <c>Production</c> berarti: di sana 400-nya sudah ada, tapi
+    /// tanpa satu kata pun tentang sebabnya, jadi pemanggil tidak tahu medan mana
+    /// yang keliru.
+    /// </para>
+    /// </remarks>
+    [Theory]
+    [InlineData("Development")]
+    [InlineData("Production")]
+    public async Task Muatan_yang_tidak_bisa_diikat_membalas_400_yang_menyebut_sebabnya(string lingkungan)
+    {
+        var slug = $"uji-muatan-cacat-{Guid.NewGuid():N}";
+
+        // Tidak ada yang seharusnya tercipta. Kalau ternyata ada, ia tetap dibersihkan -
+        // alasan yang sama dengan BuatTopikLewatHostTerbukaAsync.
+        _topikDibuat.Add($"{slug}-lain");
+        _alatDibuat.Add($"{slug}-alat");
+
+        using var host = HostTerbuka(lingkungan);
+        using var client = host.CreateClient();
+
+        var keliru = new List<string>();
+
+        foreach (var (method, path, body) in SemuaEndpointTulis(slug))
+        {
+            if (body is null)
+            {
+                continue;
+            }
+
+            foreach (var (nama, isi, jejakJson) in MuatanCacat(body))
+            {
+                using var request = new HttpRequestMessage(method, path)
+                {
+                    Content = new StringContent(isi, Encoding.UTF8, "application/json"),
+                };
+                using var response = await client.SendAsync(request);
+                var teks = await response.Content.ReadAsStringAsync();
+                var detail = DetailMasalah(response, teks);
+
+                if (response.StatusCode != HttpStatusCode.BadRequest
+                    || string.IsNullOrWhiteSpace(detail)
+                    || (jejakJson is not null && !detail.Contains(jejakJson, StringComparison.Ordinal)))
+                {
+                    keliru.Add($"{method} {path} [{nama}] -> {(int)response.StatusCode} {teks}");
+                }
+            }
+        }
+
+        Assert.True(
+            keliru.Count == 0,
+            $"{keliru.Count} jawaban keliru di {lingkungan}:{Environment.NewLine}{string.Join(Environment.NewLine, keliru)}");
+    }
+
+    /// <summary>Badan JSON untuk entri <see cref="SemuaEndpointTulis"/>; tanpa badan untuk <c>null</c>.</summary>
+    private static JsonContent? Badan(object? body) => body is null ? null : JsonContent.Create(body);
+
+    /// <summary>
+    /// Tiga muatan yang TIDAK bisa diikat, diturunkan dari muatan sah sebuah endpoint.
+    /// </summary>
+    /// <remarks>
+    /// Diturunkan, bukan ditulis per endpoint: endpoint berbadan yang masuk
+    /// <see cref="SemuaEndpointTulis"/> langsung ikut diuji tanpa satu baris pun di
+    /// sini. <c>JejakJson</c> — jalur yang harus disebut balasannya — hanya diisi
+    /// untuk muatan bertipe salah, yang letak cacatnya pasti.
+    /// </remarks>
+    private static IEnumerable<(string Nama, string Isi, string? JejakJson)> MuatanCacat(object sah)
+    {
+        var json = JsonSerializer.SerializeToNode(sah, JsonSerializerOptions.Web)!.AsObject();
+
+        // Medan teks pertama diganti ANGKA - bentuk persis #61: {"type":0}, {"name":123}.
+        var medan = json.First(p => p.Value?.GetValueKind() == JsonValueKind.String).Key;
+        var salahTipe = json.DeepClone().AsObject();
+        salahTipe[medan] = 12345;
+        yield return ("bertipe salah", salahTipe.ToJsonString(), $"$.{medan}");
+
+        // Kurung kurawal penutupnya dibuang.
+        yield return ("terpotong", json.ToJsonString()[..^1], null);
+
+        yield return ("kosong", string.Empty, null);
+    }
+
+    /// <summary><c>detail</c> sebuah ProblemDetails, atau <c>null</c> kalau balasannya bukan ProblemDetails.</summary>
+    private static string? DetailMasalah(HttpResponseMessage response, string teks)
+    {
+        if (response.Content.Headers.ContentType?.MediaType != "application/problem+json")
+        {
+            return null;
+        }
+
+        using var dokumen = JsonDocument.Parse(teks);
+        return dokumen.RootElement.TryGetProperty("detail", out var detail) ? detail.GetString() : null;
     }
 }
