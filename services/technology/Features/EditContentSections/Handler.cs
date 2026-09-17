@@ -71,13 +71,23 @@ public sealed class EditContentSectionsHandler(TechnologyDbContext db)
         // Jenis sumber enum, bukan teks bebas (ADR-012). Diurai DI SINI supaya
         // "Vidio" membalas 400 yang menyebutkan pilihan yang sah - bukan 500, dan
         // bukan pula diam-diam jatuh ke anggota pertama enum.
-        if (!Enum.TryParse<ResourceType>(request.Type, ignoreCase: true, out var type)
-            || !Enum.IsDefined(type))
+        //
+        // 🔴 BERDASARKAN NAMA SAJA (#60), tanpa peka huruf besar-kecil. Enum.TryParse
+        // tidak bisa dipakai di sini: ia juga menerima teks ANGKA ("0" tersimpan
+        // sebagai OfficialDocs, " 1 " sebagai Video) dan gabungan BENDERA
+        // ("Video, Paper" tersimpan sebagai Repository, 1 | 2). Enum.IsDefined
+        // tidak menolak keduanya, sebab hasilnya memang anggota yang sah.
+        var nama = Enum.GetNames<ResourceType>()
+            .FirstOrDefault(n => string.Equals(n, request.Type, StringComparison.OrdinalIgnoreCase));
+
+        if (nama is null)
         {
             return Task.FromResult(TopicMutationOutcome.Invalid(
                 "type",
                 $"Jenis sumber '{request.Type}' tidak dikenal. Yang sah: {string.Join(", ", Enum.GetNames<ResourceType>())}."));
         }
+
+        var type = Enum.Parse<ResourceType>(nama);
 
         return TopicMutation.RunAsync(
             db,
