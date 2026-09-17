@@ -28,7 +28,7 @@ Sesi kemarin berakhir **di tengah tahap**. Transkrip dan catatan kerjanya memper
 | `3ef78ce` | Langkah 5: `database/seeds/seed.mjs` jadi satu-satunya seed; contoh keenam Tool Use dan sisi pertama |
 | `5bf0b07` | Tiga ringkasan bidang berhenti menyebut ADR — **temuan garis dasar web**, migrasi `RingkasanBidangTanpaRujukanADR` |
 | `ae74e68` | Langkah 6: blok "Topik terhubung", fallback selisih versi, aturan teks pembaca, `not-found.tsx`, `typedRoutes` |
-| (commit ini) | Langkah 8: [ADR-023](adr/ADR-023-knowledge-graph-dasar.md), [ADR-024](adr/ADR-024-explore-learn-navigasi-v1.md), Pembaruan bertanggal di ADR-006/009/012/015/020/021/022, README, RENCANA-V1 |
+| `84eb82e` | Langkah 8: [ADR-023](adr/ADR-023-knowledge-graph-dasar.md), [ADR-024](adr/ADR-024-explore-learn-navigasi-v1.md), Pembaruan bertanggal di ADR-006/009/012/015/020/021/022, README, RENCANA-V1 |
 
 ### 🔴 Garis dasar merah menemukan DATA, bukan kode
 
@@ -83,13 +83,23 @@ Bukti merah web, masing-masing dipulihkan dan diff-nya dicek sama dengan referen
 
 ⚠️ **Satu yang diukur dan SENGAJA tidak diperbaiki:** `notFound()` dari `/teknologi/[slug]` tetap **404 + `noindex`**, tapi HTML-nya kerangka galat Next berbadan kosong; halaman 404-nya baru tergambar sesudah JavaScript. **Garis dasar sama persis** (dulu teks bawaan Inggris). Itu harga status 404 sungguhan — Next hanya bisa mengirim status sebelum badan dialirkan — dan dicatat di `not-found.tsx` serta ADR-024.
 
+### 🧹 GitHub: PR bertumpuk, dan satu kelas cacat yang ketahuan saat menulis issue
+
+- **PR [#58](../../pull/58)** dibuka dengan base `fase-2/pencarian-teks-penuh`, berlabel dan bermilestone. CI-nya merah dalam **3–4 detik** dengan **`steps: 0`** dan anotasi billing yang sama — #57, bukan kodenya; diperiksa per job, bukan dianggap.
+- Komentar: [#55](../../issues/55) — keempat pertanyaannya dipetakan ke ADR-023, ditutup saat #58 di-merge, bukan sebelumnya; [#56](../../pull/56) — badan #40 wajib disunting **sesudah** #56 masuk, sebab `main` hari ini **masih** mencetak *"Keempat belas bidang di bawah tetap bisa dibuka"* (diperiksa ke `git show main:`), jadi menyuntingnya sekarang adalah klaim yang mendahului kenyataan; [#54](../../issues/54) — kalimat batas di `/cari` wajib diubah bersamanya.
+- Issue baru: [#59](../../issues/59) pemicu Learn; [#60](../../issues/60) jenis sumber ber-angka.
+- 🔴 **Dan [#61](../../issues/61) lahir dari memeriksa klaim #60 sebelum menulisnya.** Kemarin yang diukur hanya `"type":"0"`; issue-nya mau menyebut `"1"`–`"3"` juga. Diukur dulu: `"3"` → `Repository`, `" 1 "` → `Video`, `"5"` → 400 — dan **`"type": 0` sebagai angka JSON → 500**. Menyusul lima permintaan lain: `name` berupa angka, `topicSlug` berupa angka, JSON terpotong, `title` boolean, `name` larik — **keenamnya 500** di lima endpoint tulis berbeda. `BadHttpRequestException` membawa status 400, tapi `UseExceptionHandler()` menangkapnya lebih dulu. Ini kelas cacat #26 (*"500 untuk muatan yang salah"*) yang kembali lewat **bentuk** muatan, bukan nilainya. Produksi tidak terdampak (tidak ada rute berbadan JSON di sana); alur ADR-021 kelak terdampak. Tabel status ADR-023 diberi catatan supaya tidak mengklaim lebih dari yang benar.
+- Deskripsi milestone Bulan 3 diperbarui: yang sudah dibangun, produksi nol sisi, dan kenapa ia **sengaja tetap terbuka** (#54, #59). Audit akhir: **issue tanpa label 0 · issue tanpa milestone 0 · PR tanpa label 0 · PR tanpa milestone 0**.
+
+💡 *Klaim di badan issue diperiksa seperti klaim di kode: mengukur satu kasus lagi sebelum menulisnya menemukan cacat yang lebih besar daripada yang sedang ditulis.*
+
 ### Ukuran
 
 **102 unit + 47 integrasi** (dari 95 + 32 di ujung #56), build Release 0 peringatan, `run.ps1 verify` hijau. Dev DB ditinggalkan: 6 migrasi, 6 topik contoh, 1 sisi, nol sisa uji; tidak ada basis data `gladi%`, tidak ada proses latar.
 
 ### Yang TIDAK dikerjakan, dan kenapa
 
-- **Tidak ada yang di-merge**, dan cabang ini tetap ditumpuk di atas #56. Syarat merge-nya tertulis: #57 selesai, #56 masuk, CI hijau di PR ini — termasuk *"Migrasi bisa dijalankan dari nol"* yang kini menghadapi **tiga** migrasi baru di atas `main`.
+- **Tidak ada yang di-merge**, dan PR #58 tetap ditumpuk di atas #56. Syarat merge-nya tertulis: #57 selesai, #56 masuk, CI hijau di PR ini — termasuk *"Migrasi bisa dijalankan dari nol"* yang kini menghadapi **tiga** migrasi baru di atas `main`.
 - **Harness JS untuk `apps/web`.** Aturan teks pembaca dan tampilan relasi hanya bertahan selama pemindaiannya diulang tangan (ADR-024). Itu keputusan tersendiri.
 - **Riset Bulan 4 (arus arXiv)** selesai sebagai riset kemarin, tapi **tidak dituangkan ke ADR**: kritiknya sendiri membantah klaim terkuat rancangannya — jalur produksi pertamanya tetap butuh *Rilis citra* dan *Migrasi produksi*, dua workflow Actions yang mati di bawah #57.
 

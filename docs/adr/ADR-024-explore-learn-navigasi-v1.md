@@ -86,7 +86,8 @@ plus tautan *"Pelajari lebih dulu"*.**
 berstatus `tinjau`, yang sekaligus mengunci bentuk roadmap (ADR-012 bagian 4) —
 **DAN** produksi menampilkan setidaknya satu roadmap yang terisi. Pada titik itu
 jalur belajar boleh mengurutkan topik lewat sisi `Requires`, dan **pemeriksaan
-siklus transitif ADR-023 wajib mendarat lebih dulu**.
+siklus transitif ADR-023 wajib mendarat lebih dulu**. Ditagih di
+[#59](../../../../issues/59).
 
 Alasannya: produksi nol topik berarti nol roadmap. ADR-009 menaruh Career Mode
 (`/learn/karier`) dan AI Roadmap Generator di V1.1. Indeks `/learn` sekarang

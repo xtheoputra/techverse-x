@@ -192,6 +192,12 @@ alasannya tertulis.
 | **400** `topicSlug` | slug tidak sah · slug milik **bidang** (pesannya menyebut "bidang") · topik tujuan tidak ada · ke diri sendiri |
 | **400** `body` | kebalikan yang bertentangan |
 
+⚠️ Tabel di atas berlaku untuk muatan yang BENTUKNYA sah. JSON yang terpotong,
+atau `topicSlug` berupa angka, hari ini menjawab **500** — bukan cacat irisan ini,
+melainkan kelas yang berlaku di **semua** endpoint tulis: `BadHttpRequestException`
+ditangkap `UseExceptionHandler()` sebelum statusnya terbaca. Terukur 2026-09-17,
+ditagih di [#61](../../../../issues/61).
+
 🔑 **Tujuannya di MUATAN, bukan di alamat** — meniru `AttachTool`. Dengan begitu
 gerbang ADR-020 tetap terbaca dari luar: sakelar hidup → handler membaca muatan
 → **400**; sakelar mati → tidak ada rute → **404**. `PUT /requires/{topicSlug}`
@@ -201,7 +207,7 @@ tidak dipasang.
 🔑 **Satu rute per jenis**, bukan `/relationships` bermedan jenis: tidak ada teks
 jenis yang diurai, jadi celah `Enum.TryParse` yang meluluskan angka tidak punya
 jalan masuk. Celah itu **nyata di tempat lain** — terukur, `POST …/resources`
-dengan `"type":"0"` tersimpan sebagai `OfficialDocs`.
+dengan `"type":"0"` tersimpan sebagai `OfficialDocs` ([#60](../../../../issues/60)).
 
 ⚠️ **Balapan yang diterima:** pencarian tujuan, pembacaan sisi milik tujuan, dan
 `SaveChanges` bukan satu transaksi. Dua penulis serentak bisa menyelipkan
