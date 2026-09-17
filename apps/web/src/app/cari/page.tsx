@@ -49,7 +49,8 @@ export default async function CariPage({ searchParams }: Params) {
       </p>
 
       <div className="mt-4">
-        <KotakCari defaultValue={q} autoFocus />
+        {/* id sendiri: kotak di kepala halaman (layout) sudah memakai id "q". */}
+        <KotakCari id="q-halaman" defaultValue={q} autoFocus />
       </div>
 
       <div className="mt-8">
@@ -91,8 +92,16 @@ async function Hasil({ q }: { q: string }) {
       <div className="rounded-lg border border-neutral-300 bg-white p-4 text-sm dark:border-neutral-700 dark:bg-neutral-900">
         <p className="font-medium">Tidak ada yang cocok dengan “{q}”.</p>
         <p className="mt-1 text-neutral-600 dark:text-neutral-400">
-          Isi TechVerse X masih dibangun bidang per bidang. Kalau kata kuncinya bidang yang sudah ada
-          tapi belum punya topik, halaman bidangnya tetap bisa dibuka dari{' '}
+          {/*
+            🔴 Kalimat ini menyebut BATAS pencarian hari ini, dan #54 wajib
+            mengubahnya di PR yang sama begitu isi halaman ikut dicari.
+
+            Kalimat sebelumnya ("Isi TechVerse X masih dibangun bidang per bidang")
+            mengundang pembaca percaya isi halaman ikut tercari - justru yang #54
+            larang dijanjikan - dan ia janji tanpa tanggal (ADR-024).
+          */}
+          Pencarian mencocokkan nama dan ringkasan bidang serta topik, belum isi halamannya. Semua bidang
+          bisa ditelusuri dari{' '}
           <Link href="/" className="underline underline-offset-2">
             halaman muka
           </Link>

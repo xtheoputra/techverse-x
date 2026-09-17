@@ -4,6 +4,7 @@ import { connection } from 'next/server';
 import type { Metadata } from 'next';
 import MaturityBadge from '@/components/MaturityBadge';
 import TopicSections from '@/components/TopicSections';
+import TopikTerhubung from '@/components/TopikTerhubung';
 import {
   getTechnology,
   listFields,
@@ -136,28 +137,39 @@ async function FieldView({ field }: { field: Field }) {
         </p>
       ) : topics.data.items.length === 0 ? (
         <p className="rounded-lg border border-neutral-200 bg-white p-4 text-sm text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
-          Bidang ini belum punya satu topik pun. Itu keadaan yang jujur, bukan galat — Bulan 1 mengejar
-          taksonominya lebih dulu.
+          {/* Teks pembaca ADR-024: kalimat ini dulu ditutup "Bulan 1 mengejar
+              taksonominya lebih dulu" - nama bulan rencana yang basi sendiri. */}
+          Bidang ini belum punya satu topik pun. Itu keadaan yang jujur, bukan galat.
         </p>
       ) : (
-        <ul className="space-y-3">
-          {topics.data.items.map((topic: TechnologySummary) => (
-            <li
-              key={topic.id}
-              className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="font-semibold">
-                  <Link href={`/teknologi/${topic.slug}`} className="underline underline-offset-2">
-                    {topic.name}
-                  </Link>
-                </h2>
-                <MaturityBadge maturity={topic.maturity} />
-              </div>
-              <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{topic.summary}</p>
-            </li>
-          ))}
-        </ul>
+        <>
+          {/* pageSize 50 memotong DIAM-DIAM tanpa kalimat ini - dan penelusuran di
+              skala pengembangan tidak akan pernah melihatnya. */}
+          {topics.data.totalItems > topics.data.items.length ? (
+            <p className="mb-3 text-sm text-neutral-500">
+              Menampilkan {topics.data.items.length} dari {topics.data.totalItems} topik.
+            </p>
+          ) : null}
+
+          <ul className="space-y-3">
+            {topics.data.items.map((topic: TechnologySummary) => (
+              <li
+                key={topic.id}
+                className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
+              >
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 className="font-semibold">
+                    <Link href={`/teknologi/${topic.slug}`} className="underline underline-offset-2">
+                      {topic.name}
+                    </Link>
+                  </h2>
+                  <MaturityBadge maturity={topic.maturity} />
+                </div>
+                <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{topic.summary}</p>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </main>
   );
@@ -183,6 +195,9 @@ function TopicView({ topic }: { topic: TechnologyDetail }) {
       </header>
 
       <TopicSections topic={topic} />
+
+      {/* SESUDAH template, bukan di dalamnya: relasi bukan bagian ADR-012. */}
+      <TopikTerhubung topic={topic} />
     </main>
   );
 }

@@ -79,7 +79,10 @@ export default async function TechnologyList() {
               Isi contoh: <code className="rounded bg-neutral-200 px-1 py-0.5 dark:bg-neutral-800">run.ps1 seed</code>
             </>
           ) : (
-            <>Itu keadaan yang jujur, bukan galat — Bulan 1 mengejar taksonominya lebih dulu.</>
+            // Teks pembaca ADR-024: kalimat ini dulu ditutup "Bulan 1 mengejar
+            // taksonominya lebih dulu" - nama bulan rencana, di keadaan yang
+            // justru NORMAL untuk produksi hari ini.
+            <>Itu keadaan yang jujur, bukan galat.</>
           )}
         </p>
       </div>
@@ -88,7 +91,16 @@ export default async function TechnologyList() {
 
   return (
     <section>
-      <h2 className="mb-3 text-lg font-semibold">{totalItems} topik tercatat</h2>
+      <h2 className="mb-3 text-lg font-semibold">
+        {totalItems} topik tercatat
+        {/* pageSize 24 memotong DIAM-DIAM tanpa keterangan ini. Markah yang sama
+            dengan TopikCocok di cari/page.tsx. */}
+        {totalItems > items.length ? (
+          <span className="ml-2 text-sm font-normal text-neutral-500">
+            menampilkan {items.length} teratas
+          </span>
+        ) : null}
+      </h2>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((technology) => (
           <li

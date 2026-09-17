@@ -14,6 +14,11 @@ import type { TechnologyDetail } from '@/lib/api';
  *
  * `missingSections` datang dari server apa adanya; halaman ini tidak
  * menghitungnya sendiri.
+ *
+ * ⚠️ Relasi antar-topik BUKAN salah satu bagian ini (ADR-023). Ia dirender
+ * `TopikTerhubung` sesudah komponen ini, disembunyikan kalau kosong, dan tidak
+ * pernah masuk `missingSections` — aturan "bagian kosong tetap ditampilkan" di
+ * atas berlaku untuk kelima bagian template saja.
  */
 export default function TopicSections({ topic }: { topic: TechnologyDetail }) {
   const missing = new Set(topic.missingSections);

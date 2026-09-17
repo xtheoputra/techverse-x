@@ -76,14 +76,26 @@ export type TechnologyDetail = TechnologySummary & {
   projects: Project[];
   resources: Resource[];
   missingSections: string[];
+
+  /**
+   * Relasi antar-topik (ADR-023): yang harus dipelajari lebih dulu, dan yang
+   * membutuhkan topik ini. Keduanya dari server — `requiredBy` DITURUNKAN saat
+   * dibaca, tidak pernah disimpan sebagai baris kedua, dan klien tidak
+   * menghitungnya ulang, persis seperti `missingSections`.
+   *
+   * Itemnya `TechnologySummary`, jadi judul yang ditautkan selalu membawa label
+   * kematangannya sendiri — dijamin tipe, bukan ketelitian (ADR-012).
+   */
+  requires: TechnologySummary[];
+  requiredBy: TechnologySummary[];
 };
 
 /**
  * Jawaban `GET /api/v1/search` — bidang DAN topik dalam satu permintaan.
  *
  * 🔑 Keduanya ada karena keduanya punya halaman: ADR-009 memberi URL kanonik ke
- * tiap bidang dan tiap topik, dan `/teknologi/<slug>` melayani keduanya. Hari ini
- * bidangnya bahkan mayoritas — 14 bidang berbanding nol sampai lima topik — jadi
+ * tiap bidang dan tiap topik, dan `/teknologi/<slug>` melayani keduanya. Selama
+ * isinya masih sedikit, bidangnya jauh lebih banyak daripada topiknya — jadi
  * pencarian yang cuma menjawab topik akan membalas "tidak ada hasil" untuk hampir
  * setiap kata yang tercetak di halaman muka.
  *
@@ -219,9 +231,34 @@ export function listFields(): Promise<ApiResult<Field[]>> {
   return getJson<Field[]>('/api/v1/fields');
 }
 
-/** Satu topik berikut kelima bagian isinya. */
-export function getTechnology(slug: string): Promise<ApiResult<TechnologyDetail>> {
-  return getJson<TechnologyDetail>(`/api/v1/technologies/${encodeURIComponent(slug)}`);
+/**
+ * Bentuk jawaban topik dari API yang MUNGKIN lebih tua daripada web ini: kedua
+ * larik relasi boleh tidak ada. Hanya dipakai di sini — di luar berkas ini
+ * `TechnologyDetail` selalu membawa keduanya.
+ */
+type TechnologyDetailDariApi = Omit<TechnologyDetail, 'requires' | 'requiredBy'> & {
+  requires?: TechnologySummary[];
+  requiredBy?: TechnologySummary[];
+};
+
+/** Satu topik berikut kelima bagian isinya dan relasinya. */
+export async function getTechnology(slug: string): Promise<ApiResult<TechnologyDetail>> {
+  const result = await getJson<TechnologyDetailDariApi>(`/api/v1/technologies/${encodeURIComponent(slug)}`);
+
+  if (!result.ok) {
+    return result;
+  }
+
+  // 🔴 Web dan API TIDAK tayang bersamaan. Web dibangun ulang dari sumber tiap
+  // kali `main` bergerak, sedangkan API berjalan dari citra ber-SHA yang dipasang
+  // tangan (ADR-018/019) — dan selama CI mati (#57) citra baru bahkan tidak bisa
+  // dibangun. Web yang membaca `topic.requires.length` dari API lama akan
+  // meledakkan SETIAP halaman topik. Dengan dua `?? []` ini, halaman dari API lama
+  // sekadar tidak menampilkan blok relasi, dan itu memang benar untuk API itu.
+  return {
+    ok: true,
+    data: { ...result.data, requires: result.data.requires ?? [], requiredBy: result.data.requiredBy ?? [] },
+  };
 }
 
 /**

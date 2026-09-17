@@ -23,6 +23,14 @@ export default function RootLayout({
           semuanya mendarat langsung di halaman topik. Kotak yang cuma ada di
           beranda menuntut pengunjung kembali ke sana lebih dulu, yaitu persis
           menebak-nebak yang mau dihilangkan.
+
+          ⚠️ Kepala halaman SENGAJA cuma merek + kotak cari (ADR-024). Tautan ke
+          salah satu bagian ADR-009 (/explore, /learn, /labs, ...) masuk ke sini
+          HANYA di PR yang membuktikan halamannya punya isi sungguhan dalam bentuk
+          produksi - docker-compose.prod.yml, tulis tertutup. Menu yang lengkap
+          tapi kosong tidak bisa dipakai siapa pun (RENCANA-V1). typedRoutes di
+          next.config.ts menjaga separuhnya: tautan ke rute yang tidak ada gagal
+          `next build`. Separuh "halamannya berisi" tidak dijaga kode apa pun.
         */}
         <header className="border-b border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/80">
           <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
