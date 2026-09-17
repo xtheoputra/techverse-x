@@ -30,10 +30,11 @@ internal sealed class FieldConfiguration : IEntityTypeConfiguration<Field>
 
         // Bidang ikut dicari, dan itu BUKAN kelengkapan.
         //
-        // Hari ini ada 14 bidang dan nol sampai lima topik, jadi hampir semua
-        // yang bisa ditemukan orang di situs ini adalah BIDANG. Pencarian yang
-        // cuma menjawab topik akan mengembalikan daftar kosong untuk hampir
-        // setiap kata — termasuk kata yang jelas-jelas ada di halaman muka.
+        // Selama isinya masih sedikit, bidangnya jauh lebih banyak daripada
+        // topiknya, jadi hampir semua yang bisa ditemukan orang di situs ini
+        // adalah BIDANG. Pencarian yang cuma menjawab topik akan mengembalikan
+        // daftar kosong untuk hampir setiap kata — termasuk kata yang
+        // jelas-jelas ada di halaman muka.
         // Terukur: "quantum" tidak menemukan apa pun lewat topik, padahal ada
         // bidang bernama Quantum Computing.
         //

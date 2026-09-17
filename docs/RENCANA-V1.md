@@ -123,7 +123,7 @@ bentuk produksi yang **tidak punya permukaan tulis sama sekali**
 dibuka orang lain**. Tiga dari empat butir selesai tidak membuat ukuran itu
 tercapai — ia hanya tercapai kalau butir keempat tercapai.
 
-### Keadaan Bulan 3 per 11 September 2026 — dikerjakan mendahului Bulan 1
+### Keadaan Bulan 3 per 17 September 2026 — dikerjakan mendahului Bulan 1
 
 Bulan 2 ([#42](../../issues/42)) terkunci di belakang [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md),
 yang sengaja menunggu #40 tutup. Ketiga pendaftaran akun menunggu pemilik.
@@ -135,7 +135,9 @@ mendahulukan yang tidak terhalang jelas lebih baik daripada menunggu.
 | Butir Bulan 3 | Keadaan |
 |---|---|
 | **Pencarian teks penuh PostgreSQL** | ✅ **mendarat** — [ADR-022](adr/ADR-022-pencarian-teks-penuh.md). Kolom `tsvector` terhitung di `technologies` **dan** `fields`, indeks GIN, `websearch_to_tsquery`, peringkat berbobot, halaman `/cari`, kotak cari di layout. 14 uji integrasi + 8 uji unit baru. |
-| **Knowledge Graph dasar** | 🛑 **belum, dan lebih besar dari yang tertulis** — lihat di bawah |
+| **Knowledge Graph dasar** | 🟡 **mekanisme lengkap** — produsen pengembangan, pembaca, tampilan "Topik terhubung", dan penjaga basis data ([ADR-023](adr/ADR-023-knowledge-graph-dasar.md)). **Produksi NOL sisi** sampai topik masuk lewat jalan [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md). |
+| **Explore** | ✅ **dipenuhi rute yang sudah ada** — `/`, `/teknologi/<bidang>`, `/cari`, tautan antar-topik ([ADR-024](adr/ADR-024-explore-learn-navigasi-v1.md)). Diukur dengan penelusuran dari `/`: **20 dari 20** halaman yang dikenal API di pengembangan (14 bidang + 6 topik), **14 dari 14** di bentuk produksi (14 + 0). |
+| **Learn** | ⏸ **sengaja ditunda** — pemicunya [#42](../../issues/42) tutup DAN satu roadmap terisi di produksi ([ADR-024](adr/ADR-024-explore-learn-navigasi-v1.md)). Sampai itu, Learn V1 = bagian Learning Roadmap di tiap halaman topik plus tautan *"Pelajari lebih dulu"*. |
 
 🔴 **Satu frasa di tabel Bulan 3 ternyata menyesatkan: *"relasi sudah ada di
 skema"*.** Benar tentang skemanya, dan itulah yang membuatnya menyesatkan.
@@ -146,6 +148,12 @@ relasi** sama sekali, tidak ada endpoint, tidak ada medan di
 basis data. Yang ada baru tabelnya. Ditagih di
 [#55](../../issues/55), berikut empat keputusan yang harus diambil lebih dulu.
 
+> ✅ **Dijawab 2026-09-17 — [ADR-023](adr/ADR-023-knowledge-graph-dasar.md).**
+> Keempat keputusannya diambil dan mekanismenya dibangun. Membangunnya membongkar
+> bahwa tabel yang "sudah ada" itu pun tidak utuh: ujung tujuannya tanpa kunci
+> asing, dan tulis pertamanya akan membalas 500. Paragraf di atas dibiarkan
+> sebagai rekaman keadaan 11 September.
+
 💡 Ini **pengulangan ketiga** pola yang sama di repo ini — sesudah `MarkReviewed()`
 dan `Publish()` di Sesi 11. Sapuan yang menemukan ketiganya sama dan murah:
 *"penegak/entitas ini punya berapa pemanggil di kode produksi?"*
@@ -154,6 +162,12 @@ dan `Publish()` di Sesi 11. Sapuan yang menemukan ketiganya sama dan murah:
 menebak URL"* — **sudah tercapai untuk bidang dan topik**. Yang belum tercakup
 pencarian: kelima bagian isi halaman ([#54](../../issues/54)); teks yang
 benar-benar tercetak di situs — *"Dasar HTTP dan JSON-RPC"* — masih menjawab nol.
+
+Sejak 2026-09-17 ukuran itu **diukur, bukan diklaim**: penelusuran dari `/` yang
+mengikuti setiap tautan mencapai **20 dari 20** halaman `/teknologi/*` yang dikenal
+API di pengembangan dan **14 dari 14** di bentuk produksi — dan kendalinya
+dibuktikan merah (tautan topik dibuang → keenam topik tak tercapai). Di produksi
+angka itu **14 karena produksi nol topik**, bukan karena ada yang tersembunyi.
 
 ---
 

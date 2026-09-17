@@ -285,3 +285,30 @@ mencakup isi halaman".** Ia mencakup nama dan ringkasan — topik maupun bidang.
   `Where` di `SearchTechnologyHandler` ke `ILIKE` saja, hapus `Features/Search`,
   `apps/web/src/app/cari`, dan `KotakCari`. Tidak ada data yang hilang — kolomnya
   turunan, bukan sumber.
+
+---
+
+## Pembaruan 2026-09-17 - contoh keenam menggeser dua hitungan, dan relasi tidak ikut dicari
+
+Tabel pengukuran di Konteks diambil dengan **lima** contoh seed.
+[ADR-023](ADR-023-knowledge-graph-dasar.md) menambah contoh keenam, **Tool Use**
+(bidang AI Agents), sebagai tujuan relasi contoh. Kelima belas kata kunci yang
+dipakai saat itu diukur ulang di kedua endpoint, dan **hanya dua yang bergeser**:
+
+| Kata kunci | Topik sebelum | Sesudah |
+|---|---|---|
+| `ai` | 3 | **4** (+`tool-use`) |
+| `agent` | 1 | **2** (+`tool-use`) |
+
+Sebabnya diperiksa lewat SQL, bukan diduga: `tool-use` cocok **hanya lewat
+bidangnya** - FTS dan pola awal-kata atas teksnya sendiri `false`, atas teks
+bidangnya `true`. Itu persis perilaku bagian 5. Kesepuluh baris tabel di Konteks
+tidak memuat kedua kata kunci itu, dan tidak berubah.
+
+Ringkasan tiga bidang ikut berubah pada hari yang sama (migrasi
+`RingkasanBidangTanpaRujukanADR`, [ADR-024](ADR-024-explore-learn-navigasi-v1.md));
+kelima belas kata kunci diukur lagi sesudahnya dan **identik**.
+
+**Relasi antar-topik tidak ikut dicari.** Dan batas *"yang tercari nama dan
+ringkasan"* di bagian *Yang TIDAK dicakup* kini juga tercetak untuk pembaca, di
+halaman `/cari` yang nol hasil - kalimat yang wajib diubah #54.
