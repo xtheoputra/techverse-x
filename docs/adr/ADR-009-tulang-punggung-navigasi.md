@@ -1,6 +1,6 @@
 # ADR-009 — Tulang punggung navigasi: fungsi, dengan URL kanonik untuk tiap bidang
 
-**Status:** Diterima. Menutup Issue [#1](../../../../issues/1) dan [#9](../../../../issues/9).
+**Status:** Diterima. Menutup Issue [#1](https://github.com/xtheoputra/techverse-x/issues/1) dan [#9](https://github.com/xtheoputra/techverse-x/issues/9).
 **Tanggal:** 2026-09-04
 
 ## Konteks
@@ -92,7 +92,7 @@ adalah kapan tiap bagian muncul:
 - **Explore V1** dilayani `/`, `/teknologi/<bidang>`, `/cari`, dan tautan
   antar-topik - diukur dengan penelusuran dari `/`, bukan diklaim. `/explore`
   menunggu PR pertama yang harus menaruh sesuatu selain peta bidang di `/`.
-- **`/learn`** menunggu [#42](../../../../issues/42) tutup DAN satu roadmap terisi
+- **`/learn`** menunggu [#42](https://github.com/xtheoputra/techverse-x/issues/42) tutup DAN satu roadmap terisi
   di produksi.
 - **`/graph`** menunggu EPIC 10. Knowledge Graph V1 adalah daftar tautan di
   halaman `/teknologi/<slug>` ([ADR-023](ADR-023-knowledge-graph-dasar.md)).

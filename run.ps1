@@ -15,7 +15,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'api', 'web', 'build', 'test', 'verify')]
+    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'api', 'web', 'build', 'test', 'tautan', 'verify')]
     [string]$Command = 'help',
 
     [Parameter(Position = 1)]
@@ -69,6 +69,7 @@ switch ($Command) {
             @{ n = 'web';       d = 'Menjalankan web di http://localhost:3000' }
             @{ n = 'build';     d = 'Build solusi .NET' }
             @{ n = 'test';      d = 'Menjalankan uji .NET (uji integrasi butuh up + migrate)' }
+            @{ n = 'tautan';    d = 'Memeriksa tautan di berkas Markdown (tanpa jaringan)' }
             @{ n = 'verify';    d = 'Gerbang yang sama dengan CI (butuh up + migrate)' }
         ) | ForEach-Object { Write-Host ('  {0,-12} {1}' -f $_.n, $_.d) }
         Write-Host ''
@@ -125,12 +126,21 @@ switch ($Command) {
     'build' { Invoke-Step 'Build' { dotnet build TechVerseX.slnx } }
     'test'  { Invoke-Step 'Uji' { dotnet test TechVerseX.slnx } }
 
+    'tautan' {
+        # Satu implementasi untuk Windows DAN Linux/WSL/macOS, alasan yang sama
+        # dengan `seed`: berkas .mjs yang sama dipanggil run.ps1, Makefile, dan
+        # ci.yml, jadi ketiganya tidak bisa menyimpang diam-diam.
+        node .github/scripts/cek-tautan-markdown.mjs
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+
     'verify' {
         # BUKAN lewat Invoke-Step: pemeriksa ini fungsi PowerShell murni yang tidak
         # menyentuh $LASTEXITCODE, dan $LASTEXITCODE masih kosong di langkah pertama.
         Write-Host 'Periksa global.json' -ForegroundColor Cyan
         Test-GlobalJson
 
+        Invoke-Step 'Cek tautan Markdown' { node .github/scripts/cek-tautan-markdown.mjs }
         Invoke-Step 'Build ketat (Release)' { dotnet build TechVerseX.slnx --configuration Release }
         Invoke-Step 'Uji .NET' { dotnet test TechVerseX.slnx --no-build --configuration Release }
         Invoke-Step 'Lint web' { npm run lint:web }

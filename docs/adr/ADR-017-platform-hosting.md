@@ -1,7 +1,7 @@
 # ADR-017 — Platform hosting V1, dan kenapa bentuk citra `migrate` ikut diputuskan di sini
 
 **Status:** ⛔ **DIGANTIKAN [ADR-019](ADR-019-hosting-gratis-tanpa-kartu.md)** pada hari yang sama.
-Menutup Issue [#33](../../../../issues/33).
+Menutup Issue [#33](https://github.com/xtheoputra/techverse-x/issues/33).
 **Tanggal:** 2026-09-08
 
 > 🔴 **JANGAN pakai ADR ini sebagai keputusan yang berlaku.** Pemilik membatalkan

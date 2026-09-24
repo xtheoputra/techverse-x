@@ -5,7 +5,7 @@ urutan uji dan syarat lulusnya; pilihannya diambil pemilik sesudah uji dan dicat
 sebagai Pembaruan di sini. Yang **bukan** usulan melainkan temuan: kaki `api`
 [ADR-019](ADR-019-hosting-gratis-tanpa-kartu.md) (Koyeb Free) sudah gugur untuk
 akun baru. Kaki web (Vercel Hobby) dan PostgreSQL (Neon Free) tetap, dengan
-koreksi di bawah. Issue [#39](../../../../issues/39).
+koreksi di bawah. Issue [#39](https://github.com/xtheoputra/techverse-x/issues/39).
 **Tanggal:** 2026-09-17 (riset 2026-09-16 dan 17)
 
 ## Konteks
@@ -26,7 +26,7 @@ Pengumuman Koyeb bertanggal **17 Februari 2026**
 
 [Halaman harganya](https://www.koyeb.com/pricing), diambil ulang 2026-09-17:
 **Pro $29/bulan + pemakaian**, Scale $299, Enterprise. Tidak ada paket gratis untuk
-layanan web. Temuan ini sudah diposting ke [#39](../../../../issues/39) pada
+layanan web. Temuan ini sudah diposting ke [#39](https://github.com/xtheoputra/techverse-x/issues/39) pada
 2026-09-16, berikut larangan mendaftar dan memasukkan kartu.
 
 ADR-019 ditulis 8 September 2026, dan tabel surveinya mencatat Koyeb *"biasanya
@@ -42,7 +42,7 @@ tidak"* menuntut kartu. Klaim itu basi sejak hari ditulis.
   ([ADR-020](ADR-020-permukaan-tulis-api.md)), dan `/app/efbundle` wajib selesai
   sebelum API menyala. Web di Vercel meng-cache panggilan API lima menit.
 - 🔴 **GitHub Actions menolak menjalankan job** karena urusan tagihan akun
-  ([#57](../../../../issues/57)): `rilis-citra.yml` dan `migrasi-produksi.yml`
+  ([#57](https://github.com/xtheoputra/techverse-x/issues/57)): `rilis-citra.yml` dan `migrasi-produksi.yml`
   tidak bisa jalan. Host yang hanya
   bisa menarik citra GHCR yang sudah terbit terkunci di SHA lama sampai itu
   selesai.
@@ -234,14 +234,14 @@ berbayar, BERHENTI.** Itu hasil uji — gagal — bukan rintangan untuk dilewati
 | R4 | Tiga `curl` di [`PENYEBARAN.md`](../PENYEBARAN.md#variabel-lingkungan) terhadap domain Railway | **405**, **200**, dan pencarian `quantum` memuat `quantum-computing` |
 | R5 | **Pindah ke paket Free sekarang, jangan menunggu hari ke-30.** Nyalakan *serverless*, sebarkan ulang | Free aktif **tanpa kartu**, dan penyebaran ulang dari repo privat berhasil. Catat **region** tempat layanannya berakhir, dan apakah penyebarannya kena larangan jam sibuk |
 | R6 | Biarkan menganggur ≥ 15 menit, lalu minta `/api/v1/fields`. Ulangi sepuluh kali sepanjang hari | selalu bangun. Catat status dan lama permintaan pertama. **Satu 502 saja sudah berarti** `getJson` wajib mengulang sekali sebelum tayang |
-| R7 | Tujuh hari di Free, dengan web ([#40](../../../../issues/40)) menunjuk ke layanan ini | proyeksi tagihan sebulan **≤ $0,70** — sisa 30% untuk lalu lintas yang tumbuh |
+| R7 | Tujuh hari di Free, dengan web ([#40](https://github.com/xtheoputra/techverse-x/issues/40)) menunjuk ke layanan ini | proyeksi tagihan sebulan **≤ $0,70** — sisa 30% untuk lalu lintas yang tumbuh |
 
 **Kenapa R5 tidak ditunda:** batas uji coba lebih longgar daripada Free — RAM 1 GB
 lawan 0,5 GB, build 20 menit lawan 10, pilihan region. Lulus di uji coba **belum**
 berarti lulus di Free. Dan kalau pindah paketnya ternyata menuntut kartu, itu harus
 ketahuan di hari pertama, bukan di hari ke-30 saat situsnya sudah tayang.
 
-**Region dan Neon:** proyek Neon yang sungguhan ([#38](../../../../issues/38))
+**Region dan Neon:** proyek Neon yang sungguhan ([#38](https://github.com/xtheoputra/techverse-x/issues/38))
 dibuat **sesudah R5**, di region AWS terdekat dengan layanan Railway — region Neon
 tidak bisa diubah sesudah proyeknya ada. Proyek uji dari R2 boleh langsung dipakai
 kalau kebetulan regionnya sudah benar.
@@ -337,7 +337,7 @@ gratis dan tanpa kartu** — tapi ADR-019 dan langkah-langkahnya melewatkan ini.
 - 🛑 **Bulan 1 menunggu satu langkah lagi:** uji Railway R1–R6, satu duduk, oleh
   pemilik. Urutan akun berubah dari *Neon → Koyeb → Vercel* menjadi *Railway (uji,
   dengan proyek Neon uji) → Neon sungguhan di region yang mengikutinya → Vercel*.
-- ✅ **Jalur Railway tidak tertahan [#57](../../../../issues/57).** Railway membangun
+- ✅ **Jalur Railway tidak tertahan [#57](https://github.com/xtheoputra/techverse-x/issues/57).** Railway membangun
   lewat aplikasi GitHub-nya sendiri, dan migrasinya lewat *pre-deploy*. Jalur Koyeb
   tertahan justru karena ia hanya bisa menarik citra yang diterbitkan Actions.
 - **Kalau Railway dipilih, *"pasang citra GHCR per SHA"*

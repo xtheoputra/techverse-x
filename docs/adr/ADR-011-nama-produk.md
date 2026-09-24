@@ -1,6 +1,6 @@
 # ADR-011 — Nama produk: TechVerse X
 
-**Status:** Diterima. Menutup Issue [#2](../../../../issues/2).
+**Status:** Diterima. Menutup Issue [#2](https://github.com/xtheoputra/techverse-x/issues/2).
 **Tanggal:** 2026-09-04
 
 ## Konteks

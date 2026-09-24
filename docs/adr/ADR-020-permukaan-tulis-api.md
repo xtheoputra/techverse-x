@@ -31,8 +31,8 @@ apa pun:
 | `POST …/draf` | menaikkan halaman ke `draf` tanpa ada yang memintanya |
 
 Ini bukan risiko teoretis yang menunggu fitur berikutnya. Ia menyala **tepat pada
-langkah yang sedang dikerjakan**: issue [#39](../../../../issues/39) memasang API
-di Koyeb dan [#40](../../../../issues/40) memberi situsnya URL publik. Sejak menit
+langkah yang sedang dikerjakan**: issue [#39](https://github.com/xtheoputra/techverse-x/issues/39) memasang API
+di Koyeb dan [#40](https://github.com/xtheoputra/techverse-x/issues/40) memberi situsnya URL publik. Sejak menit
 itu, `https://….koyeb.app` menerima kedelapan permintaan di atas dari siapa pun.
 Alamatnya tidak rahasia — ia tercatat di log Certificate Transparency, dan
 `PENYEBARAN.md` sendiri menyuruh menaruhnya di `API_BASE_URL`.
@@ -101,7 +101,7 @@ Yang **belum** diputuskan, dan sengaja dibiarkan terbuka:
 - **`MarkReviewed()` dan `Publish()` sampai hari ini nol pemanggil di kode
   produksi** — bukan endpoint, bukan skrip, bukan UI; hanya uji unit. Artinya
   target Bulan 2 ("tujuh topik AI Agents berstatus `tinjau`",
-  issue [#42](../../../../issues/42)) hari ini **tidak bisa dicapai siapa pun**,
+  issue [#42](https://github.com/xtheoputra/techverse-x/issues/42)) hari ini **tidak bisa dicapai siapa pun**,
   bukan hanya oleh asisten. Itu soal terpisah, dan keputusan ini tidak
   memperburuknya: jalan yang ditutup di sini memang tidak pernah ada.
 
@@ -171,7 +171,7 @@ berhenti menyebut jumlah - angka itu basi di endpoint tulis berikutnya.
 
 ## Pembaruan 2026-09-17 (kedua) - muatan yang tidak bisa diikat: dua jalan ASP.NET jadi satu
 
-[#61](../../../../issues/61): JSON yang terpotong, kosong, atau bertipe salah
+[#61](https://github.com/xtheoputra/techverse-x/issues/61): JSON yang terpotong, kosong, atau bertipe salah
 (`{"type":0}`, `{"name":123}`) membalas **500** di endpoint tulis. Diukur ulang
 sebelum diperbaiki, dan ternyata separuh ceritanya belum tertulis di issue itu:
 

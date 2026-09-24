@@ -16,11 +16,11 @@ Repositori ini punya **kode yang jalan** dan **citra produksi yang sudah terbit*
 >
 > Semua yang bisa dikerjakan tanpa akun **sudah selesai.** Yang menahan situs tayang tinggal tiga pendaftaran ([ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md)) — dan **satu di antaranya berubah**:
 >
-> 1. **[#38](../../issues/38)** — Neon (PostgreSQL) → simpan URI **direct** (sakelar pooling mati) sebagai secret `NEON_DATABASE_URL`. ⚠️ Proyek sungguhannya dibuat **sesudah** region host API diketahui — region Neon tidak bisa diubah.
-> 2. **[#39](../../issues/39)** — host API. 🔴 **Koyeb tidak lagi gratis untuk akun baru** (sejak 17 Februari 2026) — jangan mendaftar ke sana. Penggantinya diuji menurut **[ADR-025](docs/adr/ADR-025-host-api-pengganti-koyeb.md)**: Railway Free lebih dulu, dengan syarat lulus tertulis di tiap langkah.
-> 3. **[#40](../../issues/40)** — Vercel (web) → **ini yang memberi URL publiknya**
+> 1. **[#38](https://github.com/xtheoputra/techverse-x/issues/38)** — Neon (PostgreSQL) → simpan URI **direct** (sakelar pooling mati) sebagai secret `NEON_DATABASE_URL`. ⚠️ Proyek sungguhannya dibuat **sesudah** region host API diketahui — region Neon tidak bisa diubah.
+> 2. **[#39](https://github.com/xtheoputra/techverse-x/issues/39)** — host API. 🔴 **Koyeb tidak lagi gratis untuk akun baru** (sejak 17 Februari 2026) — jangan mendaftar ke sana. Penggantinya diuji menurut **[ADR-025](docs/adr/ADR-025-host-api-pengganti-koyeb.md)**: Railway Free lebih dulu, dengan syarat lulus tertulis di tiap langkah.
+> 3. **[#40](https://github.com/xtheoputra/techverse-x/issues/40)** — Vercel (web) → **ini yang memberi URL publiknya**
 >
-> Sesudah tayang: **[#42](../../issues/42)** — isi AI Agents menuju Bulan 2. [#41](../../issues/41) (endpoint isi halaman + `/teknologi/<slug>`) **sudah selesai**, mendarat lewat PR #44.
+> Sesudah tayang: **[#42](https://github.com/xtheoputra/techverse-x/issues/42)** — isi AI Agents menuju Bulan 2. [#41](https://github.com/xtheoputra/techverse-x/issues/41) (endpoint isi halaman + `/teknologi/<slug>`) **sudah selesai**, mendarat lewat PR #44.
 >
 > 🔴 **Tapi #42 belum bisa dikerjakan siapa pun — termasuk pemilik.** `MarkReviewed()` nol pemanggil di kode produksi, jadi tidak ada satu jalan pun untuk menaikkan halaman ke `tinjau`. Jalannya sudah diputuskan di [ADR-021](docs/adr/ADR-021-jalan-menuju-tinjau.md) — workflow bergerbang, nama pemeriksa dari `github.actor` — dan **sengaja belum dibangun sampai #40 tutup**, sebab Bulan 1 mengejar URL, bukan fitur.
 >
@@ -42,9 +42,9 @@ Repositori ini punya **kode yang jalan** dan **citra produksi yang sudah terbit*
 > adalah ADR-021. Explore dilayani rute yang sudah ada dan `/learn` menunggu
 > pemicunya ([ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md)). Yang masih
 > terbuka di milestone **Bulan 3 — Explore, Learn & Pencarian**:
-> [#54](../../issues/54) (pencarian belum menjangkau isi halaman) dan pemicu Learn.
+> [#54](https://github.com/xtheoputra/techverse-x/issues/54) (pencarian belum menjangkau isi halaman) dan pemicu Learn.
 
-Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan health check yang benar-benar menyentuh dependensinya. Diverifikasi tiga kali — di mesin pengembang (2026-09-03), **dari dalam peti kemas produksi, tiga kontainer, volume basis data baru** (2026-09-07), dan **terhadap citra yang berlaku hari ini** (2026-09-10, [#48](../../issues/48)) yang sekalian menegaskan bentuk produksi itu **tidak punya permukaan tulis**: 14 bidang, nol topik.
+Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan health check yang benar-benar menyentuh dependensinya. Diverifikasi tiga kali — di mesin pengembang (2026-09-03), **dari dalam peti kemas produksi, tiga kontainer, volume basis data baru** (2026-09-07), dan **terhadap citra yang berlaku hari ini** (2026-09-10, [#48](https://github.com/xtheoputra/techverse-x/issues/48)) yang sekalian menegaskan bentuk produksi itu **tidak punya permukaan tulis**: 14 bidang, nol topik.
 
 | Sudah jalan | Belum ada |
 |---|---|
@@ -53,17 +53,17 @@ Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan he
 | Migrasi EF Core, schema per bounded context | Kode AI apa pun |
 | Health check `live`/`ready` yang menguji dependensi | Vector DB, Neo4j, event bus |
 | Halaman web yang membaca API sungguhan | Pengambilan berita |
-| **Pencarian teks penuh PostgreSQL** — `tsvector` terhitung di `technologies` dan `fields`, halaman `/cari`, kotak cari di tiap halaman ([ADR-022](docs/adr/ADR-022-pencarian-teks-penuh.md)) | Pencarian ke dalam **isi** halaman ([#54](../../issues/54)) — hari ini yang tercari nama dan ringkasan |
+| **Pencarian teks penuh PostgreSQL** — `tsvector` terhitung di `technologies` dan `fields`, halaman `/cari`, kotak cari di tiap halaman ([ADR-022](docs/adr/ADR-022-pencarian-teks-penuh.md)) | Pencarian ke dalam **isi** halaman ([#54](https://github.com/xtheoputra/techverse-x/issues/54)) — hari ini yang tercari nama dan ringkasan |
 | CI: **8 dari 9 gerbang** blueprint menyala — Lint · Unit · Integrasi · SAST · Dependency Scan · Secret Scan · Container Scan · Build, plus penjaga "migrasi bisa dijalankan dari nol". Yang belum: **Contract Test** (belum ada kontrak antar-layanan) | **Platform hosting, domain, sertifikat** |
 | **Citra produksi terbit ke GHCR** tiap `main` bergerak — API, web, dan bundel migrasi EF | Terraform, Kubernetes |
-| **Kelima bagian template [ADR-012](docs/adr/ADR-012-template-halaman.md) punya tabelnya sendiri** — roadmap (langkah 0 = prasyarat), tools (m2m), mini project, resources, **berikut halaman `/teknologi/<slug>` dan endpoint isinya** (#41, PR #44) | `/learn` — **sengaja ditunda** sampai [#42](../../issues/42) dan satu roadmap terisi di produksi ([ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md)) |
+| **Kelima bagian template [ADR-012](docs/adr/ADR-012-template-halaman.md) punya tabelnya sendiri** — roadmap (langkah 0 = prasyarat), tools (m2m), mini project, resources, **berikut halaman `/teknologi/<slug>` dan endpoint isinya** (#41, PR #44) | `/learn` — **sengaja ditunda** sampai [#42](https://github.com/xtheoputra/techverse-x/issues/42) dan satu roadmap terisi di produksi ([ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md)) |
 | **Relasi antar-topik (Knowledge Graph dasar)** — dibuat lewat endpoint tulis, tampil sebagai *"Topik terhubung"* di halaman topik, dijaga kunci asing di kedua ujung ([ADR-023](docs/adr/ADR-023-knowledge-graph-dasar.md)). **Di produksi nol sisi, sebab nol topik** | Jalan membuang relasi maupun bagian isi — diputuskan bersama alur [ADR-021](docs/adr/ADR-021-jalan-menuju-tinjau.md) |
 
 > 🐳 **Redis dipakai di pengembangan saja.** [ADR-016](docs/adr/ADR-016-pagu-biaya.md) memutuskan ia **tidak di-provision di V1** — ia harus membuktikan dirinya dulu dengan beban yang benar-benar ada. Kesiapan API sudah tahu cara hidup tanpanya, dan itu diuji ([`tests/integration`](tests/integration)).
 
 > ✅ **Ke-22 keputusan Fase 0 dan Fase 1 sudah diambil pada 2026-09-04** dan tercatat di **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** — baca itu lebih dulu. Kolom "Belum ada" di tabel atas sekarang berarti *belum dibangun*, bukan lagi *belum diputuskan*.
 >
-> ⚖️ **Sisi hukum sudah tuntas untuk V1** (Issue [#17](../../issues/17), ditutup 8 Sep 2026). Keempat dokumen ketentuan layanan dibaca di peramban sungguhan, dan batas kutipan ditetapkan: **arXiv boleh metadata penuh (CC0); sumber lain hanya judul, tautan, nama sumber, dan tanggal — nol kutipan.** Rekamannya di [AUDIT-KELAYAKAN.md](AUDIT-KELAYAKAN.md#pembaruan-8-september-2026--dua-dokumen-terakhir-issue-17-sudah-dibaca).
+> ⚖️ **Sisi hukum sudah tuntas untuk V1** (Issue [#17](https://github.com/xtheoputra/techverse-x/issues/17), ditutup 8 Sep 2026). Keempat dokumen ketentuan layanan dibaca di peramban sungguhan, dan batas kutipan ditetapkan: **arXiv boleh metadata penuh (CC0); sumber lain hanya judul, tautan, nama sumber, dan tanggal — nol kutipan.** Rekamannya di [AUDIT-KELAYAKAN.md](AUDIT-KELAYAKAN.md#pembaruan-8-september-2026--dua-dokumen-terakhir-issue-17-sudah-dibaca).
 >
 > ⚠️ Dua hal yang mengikat begitu AI dinyalakan: **OpenAI §10 melarang memasang nama/logo mereka** di situs tanpa izin tertulis (*"Powered by OpenAI"* melanggarnya), dan *Sharing & Publication Policy* menuntut **manusia memikul tanggung jawab akhir** atas isi terbit — yang berbenturan dengan tingkat `draf`. Belum menyala: V1 tidak memanggil model sama sekali.
 
@@ -92,9 +92,19 @@ Gerbang yang sama dengan CI, sebelum push:
 
 ⚠️ **`verify` dan `test` menuntut `up` LALU `migrate` lebih dulu.** Uji integrasi menulis baris ke PostgreSQL sungguhan — kesiapan yang diuji tanpa dependensi sungguhan tidak mengukur apa pun. Tanpa `migrate`, galatnya `relation "technology.technologies" does not exist`.
 
+### Tautan di dokumen: issue dan PR ditulis ABSOLUT
+
+Satu aturan, dan sengaja tanpa hitungan `../`:
+
+> Tautan relatif hanya boleh menunjuk berkas **di dalam** repo. Issue, PR, milestone, dan label ditulis URL penuh `https://github.com/xtheoputra/techverse-x/...`.
+
+Sebabnya bisa diukur: halaman blob GitHub meresolusi tautan relatif dengan aturan URL biasa, jadi jumlah `../` yang benar bergantung pada kedalaman berkasnya **dan** berapa segmen yang dimakan nama ref-nya. Cabang di repo ini bernama `fase-1/...` — satu garis miring, dua segmen — sementara `main` satu. Tidak ada satu angka yang benar di keduanya: sebelum aturan ini dipasang, **71 dari 222** tautan issue rusak dibaca di `main`, dan **221 dari 222** dibaca di cabang. Gerbangnya `.\run.ps1 tautan` / `make cek-tautan`, ikut di `verify` dan di CI, dan kepala [skripnya](.github/scripts/cek-tautan-markdown.mjs) memuat ketiga pengukuran yang melahirkan aturan itu.
+
+Komentar kode ikut diperiksa, sebab dokumentasi XML C# dan JSDoc di repo ini ditulis dalam Markdown — dan dua tautan issue di `apps/web/src/lib/lingkungan.ts` memang rusak. Keduanya juga memperlihatkan kenapa aturannya **bukan** sekadar "jangan keluar dari pohon repo": dari berkas empat tingkat dalam, empat `../` mendarat tepat di akar repo, jadi ia tidak keluar dari pohon — ia menunjuk berkas bernama `issues/42` yang tidak ada.
+
 ### Isi contoh itu bukan kurikulum
 
-`seed` memasukkan enam topik contoh, mengisi kelima bagian satu di antaranya, dan mencatat satu relasi antar-topik — sekadar supaya layar dan endpoint ada isinya. Cara isi sungguhan lahir sudah diputuskan di [ADR-012](docs/adr/ADR-012-template-halaman.md) (`kurasi` → `draf` → `tinjau` oleh manusia), dimulai dari tujuh topik AI Agents di [#42](../../issues/42), dan jalan terakhirnya ke produksi ada di [ADR-021](docs/adr/ADR-021-jalan-menuju-tinjau.md). Tidak satu pun lewat `seed`.
+`seed` memasukkan enam topik contoh, mengisi kelima bagian satu di antaranya, dan mencatat satu relasi antar-topik — sekadar supaya layar dan endpoint ada isinya. Cara isi sungguhan lahir sudah diputuskan di [ADR-012](docs/adr/ADR-012-template-halaman.md) (`kurasi` → `draf` → `tinjau` oleh manusia), dimulai dari tujuh topik AI Agents di [#42](https://github.com/xtheoputra/techverse-x/issues/42), dan jalan terakhirnya ke produksi ada di [ADR-021](docs/adr/ADR-021-jalan-menuju-tinjau.md). Tidak satu pun lewat `seed`.
 
 ---
 
@@ -169,7 +179,7 @@ TechVerse X
 └── 🚀 Future           Emerging technologies
 ```
 
-> ✅ Keduanya **sudah bisa hidup berdua**: nav utama berisi fungsi, dan tiap bidang punya URL kanonik `/teknologi/<slug>` — Issue [#1](../../issues/1) ditutup, lihat [ADR-009](docs/adr/ADR-009-tulang-punggung-navigasi.md). Bidangnya kini **empat belas**, bukan dua belas ([ADR-010](docs/adr/ADR-010-taksonomi-bidang.md)). Navigasinya sengaja bertahap — lihat [ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md) untuk pemicu tiap bagian.
+> ✅ Keduanya **sudah bisa hidup berdua**: nav utama berisi fungsi, dan tiap bidang punya URL kanonik `/teknologi/<slug>` — Issue [#1](https://github.com/xtheoputra/techverse-x/issues/1) ditutup, lihat [ADR-009](docs/adr/ADR-009-tulang-punggung-navigasi.md). Bidangnya kini **empat belas**, bukan dua belas ([ADR-010](docs/adr/ADR-010-taksonomi-bidang.md)). Navigasinya sengaja bertahap — lihat [ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md) untuk pemicu tiap bagian.
 
 ---
 

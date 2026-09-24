@@ -1,6 +1,6 @@
 # ADR-014 — Peran MCP ke dalam dulu, dan penyedia AI tidak dikunci
 
-**Status:** Diterima. Menutup Issue [#16](../../../../issues/16).
+**Status:** Diterima. Menutup Issue [#16](https://github.com/xtheoputra/techverse-x/issues/16).
 **Tanggal:** 2026-09-04
 
 ## Konteks

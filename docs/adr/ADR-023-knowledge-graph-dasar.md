@@ -3,7 +3,7 @@
 **Status:** Diterima, **mekanismenya sudah dibangun**. **Produksi berisi NOL
 sisi**, dan tetap nol sampai topik masuk lewat jalan
 [ADR-021](ADR-021-jalan-menuju-tinjau.md). Menjawab
-[#55](../../../../issues/55). Sasaran Bulan 3 di [RENCANA-V1.md](../RENCANA-V1.md).
+[#55](https://github.com/xtheoputra/techverse-x/issues/55). Sasaran Bulan 3 di [RENCANA-V1.md](../RENCANA-V1.md).
 **Tanggal:** 2026-09-16 (diputuskan), dibangun sampai 2026-09-17
 
 ## Konteks
@@ -69,7 +69,7 @@ bahkan mengarahkan `REQUIRES` ke `(:Skill)`, entitas yang tidak ada di V1.
 
 ### Ketegangan yang harus dinyatakan terbuka
 
-[#54](../../../../issues/54) dan [ADR-021](ADR-021-jalan-menuju-tinjau.md)
+[#54](https://github.com/xtheoputra/techverse-x/issues/54) dan [ADR-021](ADR-021-jalan-menuju-tinjau.md)
 sama-sama menolak **membangun untuk isi yang belum ada**. Produksi hari ini nol
 topik, jadi produsen relasi yang dibangun sekarang adalah — sekilas — pelanggaran
 aturan yang sama. Kenapa bukan, dijawab di bagian tersendiri di bawah.
@@ -85,7 +85,7 @@ begitu alamatnya masuk `SemuaEndpointTulis`.
 
 - **Pemanggil pengembangan:** `database/seeds/seed.mjs` dan uji integrasi.
 - **Pemanggil produksi:** hanya workflow bergerbang ADR-021 begitu dibangun
-  (pemicunya tetap [#40](../../../../issues/40)), yang memanggil endpoint yang sama
+  (pemicunya tetap [#40](https://github.com/xtheoputra/techverse-x/issues/40)), yang memanggil endpoint yang sama
   lewat `localhost` di dalam runner.
 - **Tidak ada satu sisi pun yang mencapai produksi di Bulan 3.** Setiap dokumen
   wajib mengatakannya.
@@ -109,7 +109,7 @@ begitu alamatnya masuk `SemuaEndpointTulis`.
   anggota enum + migrasi CHECK + label tampilan (+ ADR). Membuang jenis setelah
   ada baris = migrasi data, dan sampai migrasi itu ada setiap halaman yang
   memuat sisi tersebut membalas 500.
-- **Pemicu evaluasi ulang:** begitu ketujuh topik AI Agents [#42](../../../../issues/42)
+- **Pemicu evaluasi ulang:** begitu ketujuh topik AI Agents [#42](https://github.com/xtheoputra/techverse-x/issues/42)
   ditulis, daftar setiap relasi yang ingin dinyatakan penulisnya tapi tidak bisa.
 
 ### 3. Arah, kebalikan, dan siklus
@@ -196,7 +196,7 @@ alasannya tertulis.
 atau `topicSlug` berupa angka, hari ini menjawab **500** — bukan cacat irisan ini,
 melainkan kelas yang berlaku di **semua** endpoint tulis: `BadHttpRequestException`
 ditangkap `UseExceptionHandler()` sebelum statusnya terbaca. Terukur 2026-09-17,
-ditagih di [#61](../../../../issues/61).
+ditagih di [#61](https://github.com/xtheoputra/techverse-x/issues/61).
 
 > ✅ **Diperbaiki hari yang sama:** kini **400** yang menyebut sebabnya
 > (`Path: $.topicSlug`), di `Development` maupun `Production` — lihat Pembaruan
@@ -212,7 +212,7 @@ tidak dipasang.
 🔑 **Satu rute per jenis**, bukan `/relationships` bermedan jenis: tidak ada teks
 jenis yang diurai, jadi celah `Enum.TryParse` yang meluluskan angka tidak punya
 jalan masuk. Celah itu **nyata di tempat lain** — terukur, `POST …/resources`
-dengan `"type":"0"` tersimpan sebagai `OfficialDocs` ([#60](../../../../issues/60);
+dengan `"type":"0"` tersimpan sebagai `OfficialDocs` ([#60](https://github.com/xtheoputra/techverse-x/issues/60);
 diperbaiki 2026-09-17 — jenis sumber kini diurai berdasarkan nama saja).
 
 ⚠️ **Balapan yang diterima:** pencarian tujuan, pembacaan sisi milik tujuan, dan
@@ -288,7 +288,7 @@ tidak menampilkan apa pun yang baru.
 ### 10. Selisih versi web ↔ API
 
 Web dibangun dari sumber tiap kali `main` bergerak; API berjalan dari citra
-ber-SHA yang dipasang tangan (ADR-018/019), dan selama [#57](../../../../issues/57)
+ber-SHA yang dipasang tangan (ADR-018/019), dan selama [#57](https://github.com/xtheoputra/techverse-x/issues/57)
 citra baru bahkan tidak bisa dibangun. `getTechnology()` karena itu mengisi `[]`
 untuk kedua larik yang tidak ada. Terukur: tanpa pengisian itu, API lama membuat
 halaman topik **HTTP 500** (`Cannot read properties of undefined (reading

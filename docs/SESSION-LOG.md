@@ -85,10 +85,10 @@ Bukti merah web, masing-masing dipulihkan dan diff-nya dicek sama dengan referen
 
 ### 🧹 GitHub: PR bertumpuk, dan satu kelas cacat yang ketahuan saat menulis issue
 
-- **PR [#58](../../pull/58)** dibuka dengan base `fase-2/pencarian-teks-penuh`, berlabel dan bermilestone. CI-nya merah dalam **3–4 detik** dengan **`steps: 0`** dan anotasi billing yang sama — #57, bukan kodenya; diperiksa per job, bukan dianggap.
-- Komentar: [#55](../../issues/55) — keempat pertanyaannya dipetakan ke ADR-023, ditutup saat #58 di-merge, bukan sebelumnya; [#56](../../pull/56) — badan #40 wajib disunting **sesudah** #56 masuk, sebab `main` hari ini **masih** mencetak *"Keempat belas bidang di bawah tetap bisa dibuka"* (diperiksa ke `git show main:`), jadi menyuntingnya sekarang adalah klaim yang mendahului kenyataan; [#54](../../issues/54) — kalimat batas di `/cari` wajib diubah bersamanya.
-- Issue baru: [#59](../../issues/59) pemicu Learn; [#60](../../issues/60) jenis sumber ber-angka.
-- 🔴 **Dan [#61](../../issues/61) lahir dari memeriksa klaim #60 sebelum menulisnya.** Kemarin yang diukur hanya `"type":"0"`; issue-nya mau menyebut `"1"`–`"3"` juga. Diukur dulu: `"3"` → `Repository`, `" 1 "` → `Video`, `"5"` → 400 — dan **`"type": 0` sebagai angka JSON → 500**. Menyusul lima permintaan lain: `name` berupa angka, `topicSlug` berupa angka, JSON terpotong, `title` boolean, `name` larik — **keenamnya 500** di lima endpoint tulis berbeda. `BadHttpRequestException` membawa status 400, tapi `UseExceptionHandler()` menangkapnya lebih dulu. Ini kelas cacat #26 (*"500 untuk muatan yang salah"*) yang kembali lewat **bentuk** muatan, bukan nilainya. Produksi tidak terdampak (tidak ada rute berbadan JSON di sana); alur ADR-021 kelak terdampak. Tabel status ADR-023 diberi catatan supaya tidak mengklaim lebih dari yang benar.
+- **PR [#58](https://github.com/xtheoputra/techverse-x/pull/58)** dibuka dengan base `fase-2/pencarian-teks-penuh`, berlabel dan bermilestone. CI-nya merah dalam **3–4 detik** dengan **`steps: 0`** dan anotasi billing yang sama — #57, bukan kodenya; diperiksa per job, bukan dianggap.
+- Komentar: [#55](https://github.com/xtheoputra/techverse-x/issues/55) — keempat pertanyaannya dipetakan ke ADR-023, ditutup saat #58 di-merge, bukan sebelumnya; [#56](https://github.com/xtheoputra/techverse-x/pull/56) — badan #40 wajib disunting **sesudah** #56 masuk, sebab `main` hari ini **masih** mencetak *"Keempat belas bidang di bawah tetap bisa dibuka"* (diperiksa ke `git show main:`), jadi menyuntingnya sekarang adalah klaim yang mendahului kenyataan; [#54](https://github.com/xtheoputra/techverse-x/issues/54) — kalimat batas di `/cari` wajib diubah bersamanya.
+- Issue baru: [#59](https://github.com/xtheoputra/techverse-x/issues/59) pemicu Learn; [#60](https://github.com/xtheoputra/techverse-x/issues/60) jenis sumber ber-angka.
+- 🔴 **Dan [#61](https://github.com/xtheoputra/techverse-x/issues/61) lahir dari memeriksa klaim #60 sebelum menulisnya.** Kemarin yang diukur hanya `"type":"0"`; issue-nya mau menyebut `"1"`–`"3"` juga. Diukur dulu: `"3"` → `Repository`, `" 1 "` → `Video`, `"5"` → 400 — dan **`"type": 0` sebagai angka JSON → 500**. Menyusul lima permintaan lain: `name` berupa angka, `topicSlug` berupa angka, JSON terpotong, `title` boolean, `name` larik — **keenamnya 500** di lima endpoint tulis berbeda. `BadHttpRequestException` membawa status 400, tapi `UseExceptionHandler()` menangkapnya lebih dulu. Ini kelas cacat #26 (*"500 untuk muatan yang salah"*) yang kembali lewat **bentuk** muatan, bukan nilainya. Produksi tidak terdampak (tidak ada rute berbadan JSON di sana); alur ADR-021 kelak terdampak. Tabel status ADR-023 diberi catatan supaya tidak mengklaim lebih dari yang benar.
 - Deskripsi milestone Bulan 3 diperbarui: yang sudah dibangun, produksi nol sisi, dan kenapa ia **sengaja tetap terbuka** (#54, #59). Audit akhir: **issue tanpa label 0 · issue tanpa milestone 0 · PR tanpa label 0 · PR tanpa milestone 0**.
 
 💡 *Klaim di badan issue diperiksa seperti klaim di kode: mengukur satu kasus lagi sebelum menulisnya menemukan cacat yang lebih besar daripada yang sedang ditulis.*
@@ -109,13 +109,13 @@ Tiga pemeriksa yang kemarin tidak pernah kembali dijalankan ulang, satu per kand
 
 Dituangkan sebagai [ADR-025](adr/ADR-025-host-api-pengganti-koyeb.md), berstatus **Diusulkan**. Host API belum dipilih; yang diusulkan uji Railway lebih dulu (R1–R7) lalu Vercel (V1–V5), dengan syarat lulus per langkah, dan berhenti begitu ada layar yang meminta kartu. Koreksi kaki Neon (string *direct*, region terkunci, 100 CU-jam) dan Vercel (log satu jam) masuk ke ADR-019, PENYEBARAN, README, dan RENCANA-V1.
 
-GitHub: PR [#62](../../../pull/62) ditumpuk di atas #58. Hasil riset diposting ke [#39](../../../issues/39#issuecomment-5708360833) — janji kemarin ditepati — dan koreksinya ke [#38](../../../issues/38#issuecomment-5708361264) serta [#40](../../../issues/40#issuecomment-5708361549). #39 berganti judul dan berlabel `keputusan`; deskripsi milestone Fase 1 diperbarui, termasuk bahwa #57 **tidak** menahan jalur Railway.
+GitHub: PR [#62](https://github.com/xtheoputra/techverse-x/pull/62) ditumpuk di atas #58. Hasil riset diposting ke [#39](https://github.com/xtheoputra/techverse-x/issues/39#issuecomment-5708360833) — janji kemarin ditepati — dan koreksinya ke [#38](https://github.com/xtheoputra/techverse-x/issues/38#issuecomment-5708361264) serta [#40](https://github.com/xtheoputra/techverse-x/issues/40#issuecomment-5708361549). #39 berganti judul dan berlabel `keputusan`; deskripsi milestone Fase 1 diperbarui, termasuk bahwa #57 **tidak** menahan jalur Railway.
 
 💡 *Back4App lolos penyapuan kemarin karena halaman harganya menulis "no credit card required", dan terbantah hari ini karena pemeriksanya membaca kode dasbornya. Membaca halaman pemasaran dengan lebih teliti tidak akan pernah menemukannya.*
 
 ### 🐞 #60 dan #61 diperbaiki — dan #61 ternyata punya dua jalan
 
-Permintaan kedua pemilik hari ini: *"lanjutkan semua tugas"*. Yang tidak menunggu akun, merge, atau pemicu tertulis tinggal dua bug di permukaan tulis. PR [#63](../../../pull/63), ditumpuk di atas #62.
+Permintaan kedua pemilik hari ini: *"lanjutkan semua tugas"*. Yang tidak menunggu akun, merge, atau pemicu tertulis tinggal dua bug di permukaan tulis. PR [#63](https://github.com/xtheoputra/techverse-x/pull/63), ditumpuk di atas #62.
 
 **#60 — jenis sumber diurai berdasarkan nama.** Yang diukur lebih dulu adalah yang **tersimpan**, bukan hanya statusnya: `"0"` → `OfficialDocs`, `"3"` → `Repository`, `" 1 "` dan `" video "` → `Video`, dan **gabungan bendera `"Video, Paper"` → `Repository`** (1 | 2) — bentuk yang belum ada di issue. Kelimanya 200 sebelum perbaikan; kendali `video`/`REPOSITORY`/`OfficialDocs` hijau sebelum dan sesudah.
 
@@ -139,7 +139,7 @@ Permintaan kedua pemilik hari ini: *"lanjutkan semua tugas"*. Yang tidak menungg
 
 ⚠️ **Satu yang dilihat dan tidak dikejar:** di jalan produksi LAMA, Kestrel sekali per jalan ukur mencatat `Connection processing ended abnormally … Reading is already in progress`. Koneksi keep-alive tetap dipakai ulang dengan benar (400 lalu 200 di koneksi yang sama), dan peringatan itu tidak muncul di jalan ukur yang sama sesudah perbaikan. Tidak diklaim sebagai hasil perbaikan.
 
-**Ukuran:** `run.ps1 verify` hijau — Release 0 peringatan, **102 unit + 61 integrasi** (dari 47: +8 #60, +2 sapuan muatan cacat, +4 parameter kueri), lint dan build web. Basis data pengembang: nol topik atau alat uji tersisa, 6 topik contoh dan 1 sisi utuh. Hasilnya diposting ke [#60](../../../issues/60#issuecomment-5708835301) dan [#61](../../../issues/61#issuecomment-5708834827); keduanya tertutup saat rantainya sampai ke `main`.
+**Ukuran:** `run.ps1 verify` hijau — Release 0 peringatan, **102 unit + 61 integrasi** (dari 47: +8 #60, +2 sapuan muatan cacat, +4 parameter kueri), lint dan build web. Basis data pengembang: nol topik atau alat uji tersisa, 6 topik contoh dan 1 sisi utuh. Hasilnya diposting ke [#60](https://github.com/xtheoputra/techverse-x/issues/60#issuecomment-5708835301) dan [#61](https://github.com/xtheoputra/techverse-x/issues/61#issuecomment-5708834827); keduanya tertutup saat rantainya sampai ke `main`.
 
 ### Ukuran
 
@@ -161,10 +161,10 @@ Pemilik menutup sesi: *"simpan, commit dan push akan saya akhiri sesi hari ini"*
 
 | PR | Cabang | Isi | Base |
 |---|---|---|---|
-| [#56](../../../pull/56) | `fase-2/pencarian-teks-penuh` | pencarian teks penuh (ADR-022) | `main` |
-| [#58](../../../pull/58) | `fase-2/knowledge-graph-dasar` | Knowledge Graph dasar + navigasi V1 (ADR-023/024) | #56 |
-| [#62](../../../pull/62) | `fase-1/adr-025-host-api` | pengganti Koyeb (ADR-025, Diusulkan) — dokumen saja | #58 |
-| [#63](../../../pull/63) | `fase-1/muatan-cacat-60-61` | perbaikan #60 dan #61 | #62 |
+| [#56](https://github.com/xtheoputra/techverse-x/pull/56) | `fase-2/pencarian-teks-penuh` | pencarian teks penuh (ADR-022) | `main` |
+| [#58](https://github.com/xtheoputra/techverse-x/pull/58) | `fase-2/knowledge-graph-dasar` | Knowledge Graph dasar + navigasi V1 (ADR-023/024) | #56 |
+| [#62](https://github.com/xtheoputra/techverse-x/pull/62) | `fase-1/adr-025-host-api` | pengganti Koyeb (ADR-025, Diusulkan) — dokumen saja | #58 |
+| [#63](https://github.com/xtheoputra/techverse-x/pull/63) | `fase-1/muatan-cacat-60-61` | perbaikan #60 dan #61 | #62 |
 
 CI keempatnya merah dalam 2–4 detik dengan **nol langkah** — #57, bukan isinya.
 
@@ -186,7 +186,7 @@ Permintaan pemilik: *"lanjutkan semua fase dan tugas yang belum selesai sesuai d
 
 ### 📏 CI masih mati — dan sebabnya kini terukur, bukan ditebak dari anotasinya
 
-Jalan-ulang run `34582888286` (PR #56): merah dalam **3 detik**, `steps: []`. Sebabnya diambil dari API billing ([komentar #57](../../issues/57#issuecomment-5695424090)):
+Jalan-ulang run `34582888286` (PR #56): merah dalam **3 detik**, `steps: []`. Sebabnya diambil dari API billing ([komentar #57](https://github.com/xtheoputra/techverse-x/issues/57#issuecomment-5695424090)):
 
 | Repo (privat kecuali disebut) | Menit Actions September |
 |---|---|
@@ -200,7 +200,7 @@ Jalan-ulang run `34582888286` (PR #56): merah dalam **3 detik**, `steps: []`. Se
 
 ### 🧪 Premis Sesi 13 keliru: kelima gerbang "yang tidak bisa ditiru lokal" cuma butuh Docker
 
-Keenam job `ci.yml` **dijalankan** terhadap `739bbd8` ([komentar PR #56](../../pull/56#issuecomment-5695423679)):
+Keenam job `ci.yml` **dijalankan** terhadap `739bbd8` ([komentar PR #56](https://github.com/xtheoputra/techverse-x/pull/56#issuecomment-5695423679)):
 
 | Job | Hasil |
 |---|---|
@@ -219,7 +219,7 @@ Dua basis data kosong, dua API tulis hidup. `seed.sh` → `ada AI Agents`, `ada 
 
 ### 🔴 Koyeb berhenti gratis untuk akun BARU — tujuh bulan sebelum ADR-019 ditulis
 
-Ditemukan saat meriset Bulan 4, lalu diperiksa ke sumber primer: pengumuman Koyeb **17 Februari 2026** — *"new users will only be able to sign up for those plans"* (Pro USD 29/bulan ke atas), sedangkan organisasi lama tidak berubah. Tabel survei ADR-019 dan badan #39 (*"gratis, biasanya tanpa kartu"*) ditulis 8 September — **klaimnya basi sejak hari ditulis**. Diposting ke [#39](../../issues/39#issuecomment-5695998488): **jangan mendaftar dan jangan memasukkan kartu dulu**. Riset penggantinya dijalankan hari itu juga, tapi **belum selesai** saat sesi berakhir.
+Ditemukan saat meriset Bulan 4, lalu diperiksa ke sumber primer: pengumuman Koyeb **17 Februari 2026** — *"new users will only be able to sign up for those plans"* (Pro USD 29/bulan ke atas), sedangkan organisasi lama tidak berubah. Tabel survei ADR-019 dan badan #39 (*"gratis, biasanya tanpa kartu"*) ditulis 8 September — **klaimnya basi sejak hari ditulis**. Diposting ke [#39](https://github.com/xtheoputra/techverse-x/issues/39#issuecomment-5695998488): **jangan mendaftar dan jangan memasukkan kartu dulu**. Riset penggantinya dijalankan hari itu juga, tapi **belum selesai** saat sesi berakhir.
 
 ### Knowledge Graph (#55): tiga rancangan, tiga penilai, satu sintesis
 
@@ -295,7 +295,7 @@ Di kotak pencarian publik itu **HTTP 500 yang dipicu satu karakter yang diketik 
 Dari sepuluh kata kunci percobaan, dua menjawab nol di **ketiga** kolom. Keduanya membongkar batas yang lebih besar daripada pilihan fungsi mana pun:
 
 - **`quantum` → nol.** Padahal situs ini punya bidang bernama **Quantum Computing**; ringkasan Qiskit menulis "kuantum", ejaan Indonesia. **Pencarian tidak menyentuh bidang sama sekali** — dan hari ini ada 14 bidang berbanding nol sampai lima topik, jadi pencarian yang cuma menjawab topik akan membalas "tidak ada hasil" untuk hampir setiap kata yang tercetak di halaman muka. Diperbaiki: `fields` punya `tsvector`-nya sendiri, dan sebuah topik **ikut terjaring oleh bidangnya**.
-- **`json-rpc` → nol, dan tetap nol sesudahnya.** Frasa *"Dasar HTTP dan JSON-RPC"* benar-benar tercetak di situs ini, sebagai prasyarat roadmap Model Context Protocol. **Kolom terhitung hanya boleh menyebut kolom di barisnya sendiri**, jadi keempat tabel anak tidak bisa ikut tanpa mengembalikan sifat yang justru dibuang (sesuatu yang bisa lupa diperbarui). Ditagih di [#54](../../issues/54), lengkap dengan kenapa keputusannya belum layak diambil: hari ini baru **satu** topik yang kelima bagiannya terisi, dan itu pun isi contoh.
+- **`json-rpc` → nol, dan tetap nol sesudahnya.** Frasa *"Dasar HTTP dan JSON-RPC"* benar-benar tercetak di situs ini, sebagai prasyarat roadmap Model Context Protocol. **Kolom terhitung hanya boleh menyebut kolom di barisnya sendiri**, jadi keempat tabel anak tidak bisa ikut tanpa mengembalikan sifat yang justru dibuang (sesuatu yang bisa lupa diperbarui). Ditagih di [#54](https://github.com/xtheoputra/techverse-x/issues/54), lengkap dengan kenapa keputusannya belum layak diambil: hari ini baru **satu** topik yang kelima bagiannya terisi, dan itu pun isi contoh.
 
 💡💡 **Pola yang berulang: kolom "sesudah" di tabel pengukuran berguna, tapi baris yang tetap NOL di kedua kolom jauh lebih berguna.** Ia menunjuk batas yang tidak akan pernah muncul dari memperbaiki yang sudah hampir benar.
 
@@ -310,7 +310,7 @@ Sasaran Bulan 3 yang lain berbunyi *"Knowledge Graph dasar **(relasi sudah ada d
 | Metode di agregat untuk menambah relasi | 🛑 **tidak ada sama sekali** |
 | Endpoint · medan di kontrak · tempat menampilkannya · baris di DB | 🛑 tidak ada · tidak ada · tidak ada · **0** |
 
-Bentuknya: **tabel tanpa produsen, tanpa pembaca, dan tanpa isi.** Ini kembaran persis `MarkReviewed()` dan `Publish()` di Sesi 11 — pola **ketiga**. Ditagih di [#55](../../issues/55) berikut empat keputusan yang harus diambil lebih dulu.
+Bentuknya: **tabel tanpa produsen, tanpa pembaca, dan tanpa isi.** Ini kembaran persis `MarkReviewed()` dan `Publish()` di Sesi 11 — pola **ketiga**. Ditagih di [#55](https://github.com/xtheoputra/techverse-x/issues/55) berikut empat keputusan yang harus diambil lebih dulu.
 
 💡 Sapuan yang menemukan ketiganya sama dan murah: **"penegak/entitas ini punya berapa pemanggil di kode produksi?"** Layak dijalankan tiap sesi.
 
@@ -364,7 +364,7 @@ q=ai    ->  8 bidang, termasuk Blockchain    (bloc-k-ch-ai-n)
 
 ### 🛑 Dan CI-nya sendiri mati — bukan karena kodenya
 
-PR [#56](../../pull/56) dibuka, dan **keenam job merah dalam 2–4 detik dengan daftar langkah KOSONG.** Tidak satu pun pernah dijadwalkan. Anotasi GitHub:
+PR [#56](https://github.com/xtheoputra/techverse-x/pull/56) dibuka, dan **keenam job merah dalam 2–4 detik dengan daftar langkah KOSONG.** Tidak satu pun pernah dijadwalkan. Anotasi GitHub:
 
 > The job was not started because recent account payments have failed or your spending limit needs to be increased.
 
@@ -372,7 +372,7 @@ PR [#56](../../pull/56) dibuka, dan **keenam job merah dalam 2–4 detik dengan 
 
 ⚠️ **Lokal hijau BUKAN pengganti, dan di sini bedanya nyata.** `run.ps1 verify` menjalankan gerbang yang sama, tapi empat gerbang CI tidak bisa ditiru lokal — build ketiga citra, **gerbang ADR-020 di tingkat CITRA**, Trivy, gitleaks — dan yang paling relevan hari ini: **`Migrasi bisa dijalankan dari nol`** terhadap PostgreSQL yang benar-benar kosong. PR ini **menambah migrasi**, jadi justru gerbang itulah yang paling ingin dijalankan. Karena itu **#56 sengaja TIDAK di-merge**.
 
-🔴 **Akibatnya lebih besar daripada satu PR: `rilis-citra.yml` juga tidak bisa jalan.** Jadi SHA citra tetap beku di `e1871bb1…`, dan **#39 (Koyeb) ikut tertahan** — tidak ada citra baru untuk ditarik. Ditagih di [#57](../../issues/57), berlabel `blocker`; deskripsi milestone Fase 1 ikut diperbarui, sebab sampai hari ini ia menulis *"yang tersisa cuma dua hal"*.
+🔴 **Akibatnya lebih besar daripada satu PR: `rilis-citra.yml` juga tidak bisa jalan.** Jadi SHA citra tetap beku di `e1871bb1…`, dan **#39 (Koyeb) ikut tertahan** — tidak ada citra baru untuk ditarik. Ditagih di [#57](https://github.com/xtheoputra/techverse-x/issues/57), berlabel `blocker`; deskripsi milestone Fase 1 ikut diperbarui, sebab sampai hari ini ia menulis *"yang tersisa cuma dua hal"*.
 
 ### 🧹 Higiene GitHub: audit Sesi 12 sendiri punya kolom yang tak pernah diukur
 
@@ -569,7 +569,7 @@ Workflow ini ditulis di Sesi 9 dan **tidak pernah sekali pun dijalankan**. Aman 
 
 **Sesudah #40 tutup, urutannya sudah tetap:** bangun jalan [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md) → isi tujuh topik AI Agents sampai `draf` → pemilik menaikkannya ke `tinjau` (#42).
 
-🔴 **Satu temuan ditinggalkan sebagai [#48](../../../../issues/48), dan ia drift yang disebabkan perubahan sesi ini sendiri.** ADR-020 menutup permukaan tulis; `docker-compose.prod.yml` karenanya tidak punya lagi cara memasukkan data — sementara `PENYEBARAN.md` masih menjanjikan tumpukan itu membuktikan *"halaman yang benar-benar menampilkan datanya"*. ⚠️ Ditulis apa adanya di issue-nya: **disimpulkan dari membaca compose-nya, BELUM dijalankan** — langkah pertamanya membuktikan dulu, bukan langsung menyunting dokumen. Sekalian di sana: gladi bersih tujuh langkah yang lengkap terakhir dijalankan **sebelum** #41, ADR-020, dan gerbang citra, jadi `/app/efbundle` dari basis data kosong belum diuji ulang terhadap citra yang tayang hari ini.
+🔴 **Satu temuan ditinggalkan sebagai [#48](https://github.com/xtheoputra/techverse-x/issues/48), dan ia drift yang disebabkan perubahan sesi ini sendiri.** ADR-020 menutup permukaan tulis; `docker-compose.prod.yml` karenanya tidak punya lagi cara memasukkan data — sementara `PENYEBARAN.md` masih menjanjikan tumpukan itu membuktikan *"halaman yang benar-benar menampilkan datanya"*. ⚠️ Ditulis apa adanya di issue-nya: **disimpulkan dari membaca compose-nya, BELUM dijalankan** — langkah pertamanya membuktikan dulu, bukan langsung menyunting dokumen. Sekalian di sana: gladi bersih tujuh langkah yang lengkap terakhir dijalankan **sebelum** #41, ADR-020, dan gerbang citra, jadi `/app/efbundle` dari basis data kosong belum diuji ulang terhadap citra yang tayang hari ini.
 
 💡 **Pola yang berulang tiga kali hari ini, dan layak dicari lagi besok: klaim berhenti benar tanpa ada yang memberi tahu pembacanya.** Komentar gerbang citra yang melebih-lebihkan kendalinya · badan #38/#39 yang mengunci SHA mati · dan sekarang `PENYEBARAN.md` soal compose. Ketiganya ditulis oleh orang yang sama yang mengubah keadaannya.
 
@@ -646,11 +646,11 @@ Keadaan akhir: `main` = `8be066d`, **nol PR dan nol issue terbuka**, 83 uji unit
 
 | Menunggu | Butuh apa |
 |---|---|
-| [#38](../../issues/38) | Buat akun **Neon**, salin URI-nya ke secret `NEON_DATABASE_URL` |
-| [#39](../../issues/39) | Buat akun **Koyeb**, service dari `…/api:8be066d`, token GHCR `read:packages` |
-| [#40](../../issues/40) | Buat akun **Vercel**, impor repo, root `apps/web`, isi `API_BASE_URL` |
+| [#38](https://github.com/xtheoputra/techverse-x/issues/38) | Buat akun **Neon**, salin URI-nya ke secret `NEON_DATABASE_URL` |
+| [#39](https://github.com/xtheoputra/techverse-x/issues/39) | Buat akun **Koyeb**, service dari `…/api:8be066d`, token GHCR `read:packages` |
+| [#40](https://github.com/xtheoputra/techverse-x/issues/40) | Buat akun **Vercel**, impor repo, root `apps/web`, isi `API_BASE_URL` |
 
-Sesudah tayang, pekerjaan berikutnya sudah tercatat sebagai issue juga: endpoint isi halaman + `/teknologi/<slug>` ([#41](../../issues/41)), dan isi AI Agents menuju Bulan 2 ([#42](../../issues/42)).
+Sesudah tayang, pekerjaan berikutnya sudah tercatat sebagai issue juga: endpoint isi halaman + `/teknologi/<slug>` ([#41](https://github.com/xtheoputra/techverse-x/issues/41)), dan isi AI Agents menuju Bulan 2 ([#42](https://github.com/xtheoputra/techverse-x/issues/42)).
 
 ⚠️ **Ukuran Bulan 2 tidak bisa dicapai asisten sendiri.** Targetnya "7 topik berstatus `tinjau`", dan satu-satunya jalan ke `tinjau` adalah `MarkReviewed(reviewer)` yang menuntut nama pemeriksanya — ADR-012 sengaja menjadikannya pekerjaan manusia.
 
@@ -948,9 +948,9 @@ Diperbaiki jadi `branches: [main, "fase-*/**"]`, dan run `pull_request` pertaman
 
 | Ditunggu waktu itu | Catatan hari itu |
 |---|---|
-| **Review PR [#23](../../pull/23)** | Kerangka Fase 1. 3/3 gerbang hijau. |
-| **Review PR [#25](../../pull/25)** | Bidang + kematangan konten, ditumpuk di atas #23. 6/6 gerbang hijau. |
-| **Issue [#17](../../issues/17)** | Baca ToS OpenAI dan Microsoft di peramban sungguhan. Tidak bisa diwakilkan ke agen mana pun — halaman OpenAI membalas 403 ke pengambil otomatis. |
+| **Review PR [#23](https://github.com/xtheoputra/techverse-x/pull/23)** | Kerangka Fase 1. 3/3 gerbang hijau. |
+| **Review PR [#25](https://github.com/xtheoputra/techverse-x/pull/25)** | Bidang + kematangan konten, ditumpuk di atas #23. 6/6 gerbang hijau. |
+| **Issue [#17](https://github.com/xtheoputra/techverse-x/issues/17)** | Baca ToS OpenAI dan Microsoft di peramban sungguhan. Tidak bisa diwakilkan ke agen mana pun — halaman OpenAI membalas 403 ke pengambil otomatis. |
 
 **Begitu #23 dan #25 masuk, urutan kerjanya sudah ditetapkan** [`RENCANA-V1.md`](RENCANA-V1.md):
 
@@ -975,7 +975,7 @@ Jadi keputusannya diambil, bukan ditanyakan balik. Semuanya tercatat di [`KEPUTU
 Ke-22 jawaban dipilih supaya konsekuensinya menuju satu arah: sedikit yang tuntas, bukan banyak yang menggantung. Empat keputusan yang paling menentukan, dan alasannya:
 
 1. **Deployment naik dari Bulan 6 ke Bulan 1.** Ini perubahan paling penting di seluruh sesi. Rencana lama menaruh deployment di bulan terakhir — artinya sertifikat, variabel lingkungan, migrasi di lingkungan asing, CORS, dan tagihan pertama semuanya menunggu di garis finis, setelah seluruh biaya dikeluarkan.
-2. **Template Versi B menang bukan karena lebih ringkas, tapi karena melepas kelengkapan halaman dari pipeline berita.** Versi A mewajibkan "Berita terbaru" dan "Paper terbaru" di tiap halaman — artinya satu blocker hukum ([#17](../../issues/17)) akan membuat 82 halaman berstatus "belum lengkap" selamanya.
+2. **Template Versi B menang bukan karena lebih ringkas, tapi karena melepas kelengkapan halaman dari pipeline berita.** Versi A mewajibkan "Berita terbaru" dan "Paper terbaru" di tiap halaman — artinya satu blocker hukum ([#17](https://github.com/xtheoputra/techverse-x/issues/17)) akan membuat 82 halaman berstatus "belum lengkap" selamanya.
 3. **Tiga tingkat kematangan (`kurasi` · `draf` · `tinjau`) menjawab "siapa menulis 287 blok" dengan ketiga opsinya sekaligus, berurutan.** Yang ditolak bukan salah satu opsinya, melainkan memilih satu opsi untuk semua halaman sekaligus.
 4. **LangGraph dibuang.** Untuk pengembang tunggal, dua runtime adalah kesalahan termahal yang bisa diambil tanpa terasa. Keputusan ini juga yang membuat tiga pos biaya jadi nol dan abstraksi penyedia AI jadi gratis.
 
@@ -999,7 +999,7 @@ Angka Bulan 6 sengaja **tidak** dinaikkan ke 42. Enam bulan hanya sanggup menunt
 
 ### Yang TIDAK diputuskan, dan kenapa
 
-[Issue #17](../../issues/17) dibiarkan terbuka. Ketentuan layanan OpenAI membalas **403** ke pengambil otomatis — sampai sekarang belum dibaca siapa pun, termasuk saya. Yang bisa dikerjakan hanya **memundurkan blocker-nya**: V1 hanya menerbitkan ulang arXiv (metadata CC0, satu-satunya yang jelas boleh), dan sumber lain hanya ditampilkan judul + tautan + sumber. Dengan itu #17 berhenti menghalangi V1 dan tetap menghalangi yang lain — sebagaimana mestinya.
+[Issue #17](https://github.com/xtheoputra/techverse-x/issues/17) dibiarkan terbuka. Ketentuan layanan OpenAI membalas **403** ke pengambil otomatis — sampai sekarang belum dibaca siapa pun, termasuk saya. Yang bisa dikerjakan hanya **memundurkan blocker-nya**: V1 hanya menerbitkan ulang arXiv (metadata CC0, satu-satunya yang jelas boleh), dan sumber lain hanya ditampilkan judul + tautan + sumber. Dengan itu #17 berhenti menghalangi V1 dan tetap menghalangi yang lain — sebagaimana mestinya.
 
 Ini pengurang paparan, bukan nasihat hukum.
 
@@ -1015,7 +1015,7 @@ Ini pengurang paparan, bukan nasihat hukum.
 
 ## 2026-09-04 — Sesi 4: CI dari merah jadi hijau
 
-Permintaan pemilik: *"lanjutkan kerjakan proyek."* Dari 23 issue terbuka, hanya [#24](../../issues/24) yang bisa dikerjakan tanpa keputusan pemilik lebih dulu — 22 sisanya memang meminta pemilik memutuskan. Jadi itu yang dikerjakan.
+Permintaan pemilik: *"lanjutkan kerjakan proyek."* Dari 23 issue terbuka, hanya [#24](https://github.com/xtheoputra/techverse-x/issues/24) yang bisa dikerjakan tanpa keputusan pemilik lebih dulu — 22 sisanya memang meminta pemilik memutuskan. Jadi itu yang dikerjakan.
 
 ### Dua sebab, dua-duanya tidak terlihat dari mesin pemilik
 
@@ -1095,7 +1095,7 @@ Peringatan diperlakukan sebagai galat sejak commit pertama. Hasilnya langsung te
 
 Autentikasi, kode AI, vector DB, Neo4j, event bus, pengambilan berita, Dockerfile, Terraform, dan isi kurikulum. Semuanya bergantung pada issue yang masih terbuka. Daftar lengkap berikut alasan per butir ada di [ADR-008](adr/ADR-008-batas-fase-1.md).
 
-**Satu-satunya keputusan Fase 0 yang praktis ikut terambil: `.NET 10`** (Issue [#12](../../issues/12)) — butir yang tenggatnya nyata dan vonis auditnya berkeyakinan tinggi.
+**Satu-satunya keputusan Fase 0 yang praktis ikut terambil: `.NET 10`** (Issue [#12](https://github.com/xtheoputra/techverse-x/issues/12)) — butir yang tenggatnya nyata dan vonis auditnya berkeyakinan tinggi.
 
 ---
 
@@ -1170,7 +1170,7 @@ Asisten sempat menduga **Edge AI wajar ditempatkan di bawah IoT**. Audit menolak
 
 - **Kuota WebSearch keempat agen audit ketiga habis** sebelum sempat dipakai, sehingga verifikasi terpaksa lewat WebFetch ke URL tebakan. Bagian taksonominya tetap kuat; bagian "pemain terkini" lemah dan sebagian bersandar Wikipedia.
 - Beberapa klaim luar biasa **belum diverifikasi independen** — sudah ditandai di kaki berkas audit.
-- **Ketentuan layanan OpenAI dan Microsoft belum dibaca siapa pun** — halamannya memblokir bot. Ini pekerjaan manusia dan harus selesai sebelum tayang (Issue [#17](../../issues/17)).
+- **Ketentuan layanan OpenAI dan Microsoft belum dibaca siapa pun** — halamannya memblokir bot. Ini pekerjaan manusia dan harus selesai sebelum tayang (Issue [#17](https://github.com/xtheoputra/techverse-x/issues/17)).
 
 ### Keadaan akhir sesi
 

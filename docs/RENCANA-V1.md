@@ -1,6 +1,6 @@
 # Rencana V1 — enam bulan yang disusun ulang
 
-**Status:** Menggantikan `KERANGKA.md` 2.9. Menutup Issue [#21](../../issues/21).
+**Status:** Menggantikan `KERANGKA.md` 2.9. Menutup Issue [#21](https://github.com/xtheoputra/techverse-x/issues/21).
 **Tanggal:** 2026-09-04
 
 `KERANGKA.md` 2.9 tetap disimpan apa adanya sebagai rekaman rencana awal. Berkas
@@ -65,14 +65,14 @@ baris diperiksa ke kode atau ke GitHub — bukan ke dokumen lain.
 
 | Butir Bulan 1 | Keadaan |
 |---|---|
-| Merge PR [#23](../../issues/23) | ✅ **selesai** — ter-merge, bersama [#25](../../issues/25) dan [#27](../../issues/27) |
+| Merge PR [#23](https://github.com/xtheoputra/techverse-x/issues/23) | ✅ **selesai** — ter-merge, bersama [#25](https://github.com/xtheoputra/techverse-x/issues/25) dan [#27](https://github.com/xtheoputra/techverse-x/issues/27) |
 | Skema data [ADR-015](adr/ADR-015-skema-data-v1.md) | ✅ **selesai** — mendarat lewat #25 |
 | 14 bidang tayang berstatus `kurasi` | ✅ **terbukti** — `FieldCatalog` disemai migrasi, `FieldCatalogTests` menuntut 14, dan halaman menampilkannya berikut label `MaturityBadge` |
 | **Deploy `main` ke produksi** | 🛑 **belum** — lihat di bawah |
 
 **Yang menahan hanya butir terakhir, dan penahannya bukan teknis.** Citra
 produksi sudah ada dan terbukti melayani situsnya (PR
-[#31](../../issues/31)), berikut bundel migrasi dan gerbang pemindaian citra.
+[#31](https://github.com/xtheoputra/techverse-x/issues/31)), berikut bundel migrasi dan gerbang pemindaian citra.
 
 ⚠️ **Satu kata di kalimat itu dulu berlebihan.** Sampai 2026-09-10 ia berbunyi
 *"dari basis data kosong"* — padahal `docker-compose.prod.yml` memasang skrip init
@@ -91,7 +91,7 @@ platform apa pun tinggal menariknya, dan syarat menariknya kini tertulis di
 
 📋 **Keputusan platform SUDAH DIAMBIL — dan bukan yang diusulkan semula.**
 [ADR-017](adr/ADR-017-platform-hosting.md) memeriksa lima kandidat dan
-mengusulkan **Render** ([#33](../../issues/33)); usul itu **ditolak pemilik
+mengusulkan **Render** ([#33](https://github.com/xtheoputra/techverse-x/issues/33)); usul itu **ditolak pemilik
 beberapa jam kemudian** karena berbayar, dan digantikan
 [ADR-019](adr/ADR-019-hosting-gratis-tanpa-kartu.md): **Vercel (web) + Koyeb
 (api) + Neon (Postgres) — gratis, tanpa kartu.**
@@ -129,7 +129,7 @@ pendek) ditemukan begitu, bukan dari uji. Per 2026-09-10 yang sudah terbukti:
 tarikan citra privat dari Actions, bentuk *Root Directory* `apps/web` di kedua
 setelan lockfile, `/app/efbundle` dari basis data yang benar-benar kosong, dan
 bentuk produksi yang **tidak punya permukaan tulis sama sekali**
-([#48](../../issues/48)).
+([#48](https://github.com/xtheoputra/techverse-x/issues/48)).
 
 ⚠️ Ukuran keberhasilan Bulan 1 di tabel di atas adalah **URL publik yang bisa
 dibuka orang lain**. Tiga dari empat butir selesai tidak membuat ukuran itu
@@ -137,7 +137,7 @@ tercapai — ia hanya tercapai kalau butir keempat tercapai.
 
 ### Keadaan Bulan 3 per 17 September 2026 — dikerjakan mendahului Bulan 1
 
-Bulan 2 ([#42](../../issues/42)) terkunci di belakang [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md),
+Bulan 2 ([#42](https://github.com/xtheoputra/techverse-x/issues/42)) terkunci di belakang [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md),
 yang sengaja menunggu #40 tutup. Ketiga pendaftaran akun menunggu pemilik.
 **Yang tidak menunggu siapa pun adalah Bulan 3**, jadi ia dikerjakan lebih dulu.
 
@@ -149,7 +149,7 @@ mendahulukan yang tidak terhalang jelas lebih baik daripada menunggu.
 | **Pencarian teks penuh PostgreSQL** | ✅ **mendarat** — [ADR-022](adr/ADR-022-pencarian-teks-penuh.md). Kolom `tsvector` terhitung di `technologies` **dan** `fields`, indeks GIN, `websearch_to_tsquery`, peringkat berbobot, halaman `/cari`, kotak cari di layout. 14 uji integrasi + 8 uji unit baru. |
 | **Knowledge Graph dasar** | 🟡 **mekanisme lengkap** — produsen pengembangan, pembaca, tampilan "Topik terhubung", dan penjaga basis data ([ADR-023](adr/ADR-023-knowledge-graph-dasar.md)). **Produksi NOL sisi** sampai topik masuk lewat jalan [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md). |
 | **Explore** | ✅ **dipenuhi rute yang sudah ada** — `/`, `/teknologi/<bidang>`, `/cari`, tautan antar-topik ([ADR-024](adr/ADR-024-explore-learn-navigasi-v1.md)). Diukur dengan penelusuran dari `/`: **20 dari 20** halaman yang dikenal API di pengembangan (14 bidang + 6 topik), **14 dari 14** di bentuk produksi (14 + 0). |
-| **Learn** | ⏸ **sengaja ditunda** — pemicunya [#42](../../issues/42) tutup DAN satu roadmap terisi di produksi ([ADR-024](adr/ADR-024-explore-learn-navigasi-v1.md), ditagih di [#59](../../issues/59)). Sampai itu, Learn V1 = bagian Learning Roadmap di tiap halaman topik plus tautan *"Pelajari lebih dulu"*. |
+| **Learn** | ⏸ **sengaja ditunda** — pemicunya [#42](https://github.com/xtheoputra/techverse-x/issues/42) tutup DAN satu roadmap terisi di produksi ([ADR-024](adr/ADR-024-explore-learn-navigasi-v1.md), ditagih di [#59](https://github.com/xtheoputra/techverse-x/issues/59)). Sampai itu, Learn V1 = bagian Learning Roadmap di tiap halaman topik plus tautan *"Pelajari lebih dulu"*. |
 
 🔴 **Satu frasa di tabel Bulan 3 ternyata menyesatkan: *"relasi sudah ada di
 skema"*.** Benar tentang skemanya, dan itulah yang membuatnya menyesatkan.
@@ -158,7 +158,7 @@ kode produksi**, agregat `Technology` **tidak punya metode untuk menambah
 relasi** sama sekali, tidak ada endpoint, tidak ada medan di
 `TechnologyResponse`, tidak ada tempat menampilkannya, dan **nol baris** di
 basis data. Yang ada baru tabelnya. Ditagih di
-[#55](../../issues/55), berikut empat keputusan yang harus diambil lebih dulu.
+[#55](https://github.com/xtheoputra/techverse-x/issues/55), berikut empat keputusan yang harus diambil lebih dulu.
 
 > ✅ **Dijawab 2026-09-17 — [ADR-023](adr/ADR-023-knowledge-graph-dasar.md).**
 > Keempat keputusannya diambil dan mekanismenya dibangun. Membangunnya membongkar
@@ -172,7 +172,7 @@ dan `Publish()` di Sesi 11. Sapuan yang menemukan ketiganya sama dan murah:
 
 ⚠️ Ukuran selesai Bulan 3 di tabel atas — *"orang bisa menemukan halaman tanpa
 menebak URL"* — **sudah tercapai untuk bidang dan topik**. Yang belum tercakup
-pencarian: kelima bagian isi halaman ([#54](../../issues/54)); teks yang
+pencarian: kelima bagian isi halaman ([#54](https://github.com/xtheoputra/techverse-x/issues/54)); teks yang
 benar-benar tercetak di situs — *"Dasar HTTP dan JSON-RPC"* — masih menjawab nol.
 
 Sejak 2026-09-17 ukuran itu **diukur, bukan diklaim**: penelusuran dari `/` yang
@@ -207,7 +207,7 @@ angka itu **14 karena produksi nol topik**, bukan karena ada yang tersembunyi.
 | **Badge & Achievement** | Menuntut autentikasi + penyimpanan progres + aturan permainan. Tiga pekerjaan demi lencana, sementara belum ada satu halaman pun yang tuntas. |
 | **GitHub Trending** | Tidak ada API-nya. Dibangun dari nol berikut riwayat bintang harian. |
 | **Progress Tracker** | Butuh login; login tidak dipasang di V1 ([ADR-013](adr/ADR-013-autentikasi.md)). |
-| **Berita non-arXiv** | Terganjal [#17](../../issues/17), yang hanya bisa dijawab pemilik. |
+| **Berita non-arXiv** | Terganjal [#17](https://github.com/xtheoputra/techverse-x/issues/17), yang hanya bisa dijawab pemilik. |
 | **Ringkasan AI untuk berita** | Biaya token **berulang tiap hari**. Menyusul setelah pagu terbukti aman sebulan penuh. |
 
 Semuanya masuk **V1.1**, bukan hilang. Yang dicoret permanen hanya GitHub
