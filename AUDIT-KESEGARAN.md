@@ -295,6 +295,6 @@ Yang wajar tinggal di IoT hanyalah **satu halaman jembatan TinyML**; sisanya mil
 - **Jangan kutip angka pengapalan kacamata pintar dari berkas ini** — agen AR/VR tidak berhasil memverifikasi satu pun (IDC membalas 403, Counterpoint tidak memuat data yang bisa diambil).
 - Halaman Wikipedia "Renewable energy in Indonesia" **masih memuat data basi** (klaim panas bumi 1,3 GW dan peringkat ke-3 dunia) — jangan dipakai.
 
-**6. Berkas ini temuan audit, bukan keputusan.** Isi Bagian 1 `KERANGKA.md` — dua belas entri teknologi itu — **belum disentuh satu koreksi pun**; kata-kata Anda dibiarkan utuh sampai Anda memutuskan mana yang dipakai (Issue [#18](../../issues/18)). Dua hal berikut memang sudah berubah di `KERANGKA.md`, dan keduanya **bukan** penerapan audit ini:
+**6. Berkas ini temuan audit, bukan keputusan.** Isi Bagian 1 `KERANGKA.md` — dua belas entri teknologi itu — **belum disentuh satu koreksi pun**; kata-kata Anda dibiarkan utuh sampai Anda memutuskan mana yang dipakai (Issue [#18](https://github.com/xtheoputra/techverse-x/issues/18)). Dua hal berikut memang sudah berubah di `KERANGKA.md`, dan keduanya **bukan** penerapan audit ini:
 - **Tabel arsitektur 2.6** ditulis ulang mengikuti Bagian 4 (Engineering Blueprint v1) milik pemilik sendiri. Hasilnya kebetulan sejalan dengan `AUDIT-KELAYAKAN.md`; rekonsiliasinya ada di 4.20.
 - **Butir E5 dan E11** di daftar keputusan memuat penunjuk ✅ ke vonis berkas ini, sebagai rujukan — bukan sebagai koreksi yang sudah diterapkan.

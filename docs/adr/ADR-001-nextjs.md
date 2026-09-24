@@ -21,4 +21,4 @@ Dua hal khas Next.js 16 yang wajib diketahui sebelum menyunting halaman:
 ## Konsekuensi
 
 - `apps/web/AGENTS.md` ditulis ulang oleh `next dev` setiap kali dijalankan. Ia sengaja ikut di-commit; menghapusnya hanya membuat pohon kerja kotor lagi.
-- Layar sengaja **minim**: satu halaman yang membuktikan jalur Web → API → PostgreSQL hidup. Navigasi sungguhan menunggu Issue [#1](../../../../issues/1).
+- Layar sengaja **minim**: satu halaman yang membuktikan jalur Web → API → PostgreSQL hidup. Navigasi sungguhan menunggu Issue [#1](https://github.com/xtheoputra/techverse-x/issues/1).

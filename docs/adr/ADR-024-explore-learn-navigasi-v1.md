@@ -33,7 +33,7 @@ didekode — dengan pola
 |---|---|
 | **9 kena di halaman muka** | *"Tahap: Bulan 1 — taksonomi mendarat."*, *"Navigasi tujuh bagian aplikasi menyusul; halaman ini masih beranda sementara."*, ADR-009/010/012 di spanduk — **dan tiga "lihat ADR-010" di ringkasan BIDANG** |
 | `id="q"` **dua kali** di `/cari` | kotak di kepala halaman dan di badan; `<label>` kotak kedua menunjuk input pertama |
-| Kalimat nol-hasil `/cari` | *"Isi TechVerse X masih dibangun bidang per bidang…"* — mengundang pembaca percaya isi halaman ikut tercari, yang justru [#54](../../../../issues/54) larang dijanjikan |
+| Kalimat nol-hasil `/cari` | *"Isi TechVerse X masih dibangun bidang per bidang…"* — mengundang pembaca percaya isi halaman ikut tercari, yang justru [#54](https://github.com/xtheoputra/techverse-x/issues/54) larang dijanjikan |
 | URL tebakan (`/learn`) | halaman 404 bawaan Next berbahasa Inggris |
 
 🔴 **Tiga dari sembilan kena datang dari DATA, bukan dari kode web.** Ringkasan
@@ -68,7 +68,7 @@ daftar halaman muka → **14 tercapai, keenam topik hilang**.
 **Pemicu `/explore`:** PR pertama yang harus menaruh sesuatu SELAIN peta bidang di
 `/` (kandidat terdekat: arus arXiv Bulan 4). PR itu yang memindahkan peta ke
 `/explore`, menambah butir menunya, dan memperbarui langkah verifikasi
-[#40](../../../../issues/40) dalam perubahan yang sama.
+[#40](https://github.com/xtheoputra/techverse-x/issues/40) dalam perubahan yang sama.
 
 Alasannya: ADR-009 mendefinisikan `/explore` sebagai *"peta 14 bidang, filter per
 bidang"* — dan `/` beserta halaman bidang kanonik sudah memberi persis itu di
@@ -82,12 +82,12 @@ runbook #40 yang sebentar lagi diikuti pemilik, tanpa kemampuan baru.
 Tidak ada `/learn`. **Learn V1 = bagian Learning Roadmap di tiap halaman topik,
 plus tautan *"Pelajari lebih dulu"*.**
 
-**Pemicu `/learn`:** [#42](../../../../issues/42) tutup — tujuh topik AI Agents
+**Pemicu `/learn`:** [#42](https://github.com/xtheoputra/techverse-x/issues/42) tutup — tujuh topik AI Agents
 berstatus `tinjau`, yang sekaligus mengunci bentuk roadmap (ADR-012 bagian 4) —
 **DAN** produksi menampilkan setidaknya satu roadmap yang terisi. Pada titik itu
 jalur belajar boleh mengurutkan topik lewat sisi `Requires`, dan **pemeriksaan
 siklus transitif ADR-023 wajib mendarat lebih dulu**. Ditagih di
-[#59](../../../../issues/59).
+[#59](https://github.com/xtheoputra/techverse-x/issues/59).
 
 Alasannya: produksi nol topik berarti nol roadmap. ADR-009 menaruh Career Mode
 (`/learn/karier`) dan AI Roadmap Generator di V1.1. Indeks `/learn` sekarang

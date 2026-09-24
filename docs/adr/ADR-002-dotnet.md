@@ -1,6 +1,6 @@
 # ADR-002 — Menargetkan `.NET 10`
 
-**Status:** Diterima. Issue [#12](../../../../issues/12) ditutup 2026-09-04.
+**Status:** Diterima. Issue [#12](https://github.com/xtheoputra/techverse-x/issues/12) ditutup 2026-09-04.
 **Tanggal:** 2026-09-03
 
 ## Konteks
@@ -31,7 +31,7 @@ Angka yang ditulis di situ harus versi **SDK** utuh berikut pita fiturnya
 (`10.0.100`), bukan versi **runtime** (`10.0.0`). Begitu `rollForward` disebut,
 `setup-dotnet` menolak bentuk runtime — sementara `dotnet` di mesin yang SDK-nya
 sudah terpasang menerimanya diam-diam. Kekeliruan ini pernah memerahkan CI dan
-hanya terlihat di runner bersih; lihat Issue [#24](../../../../issues/24).
+hanya terlihat di runner bersih; lihat Issue [#24](https://github.com/xtheoputra/techverse-x/issues/24).
 
 ## Konsekuensi
 

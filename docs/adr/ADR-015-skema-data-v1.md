@@ -1,7 +1,7 @@
 # ADR-015 — Skema data V1: entitas, dua sumbu status, dan penyimpanan vektor
 
 **Status:** Diterima. **Sebagian sudah mendarat** - lihat bagian Pembaruan di kaki berkas ini.
-Menutup Issue [#20](../../../../issues/20).
+Menutup Issue [#20](https://github.com/xtheoputra/techverse-x/issues/20).
 **Tanggal:** 2026-09-04
 
 ## Konteks

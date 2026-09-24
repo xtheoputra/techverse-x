@@ -1,7 +1,7 @@
 # ADR-021 — Jalan sah menuju `tinjau`: workflow bergerbang, bukan endpoint publik
 
 **Status:** Diterima sebagai **pola**; implementasinya **sengaja ditunda** sampai
-[#40](../../../../issues/40) tutup. **Menjawab pertanyaan yang dibiarkan terbuka
+[#40](https://github.com/xtheoputra/techverse-x/issues/40) tutup. **Menjawab pertanyaan yang dibiarkan terbuka
 [ADR-020](ADR-020-permukaan-tulis-api.md).** **Tanggal:** 2026-09-09
 
 ## Konteks
@@ -10,7 +10,7 @@ Dua temuan bertemu di satu titik:
 
 1. **`MarkReviewed()` dan `Publish()` nol pemanggil di kode produksi** — bukan
    endpoint, bukan skrip, bukan UI; hanya uji unit. Jadi sasaran Bulan 2
-   ([#42](../../../../issues/42): tujuh topik AI Agents berstatus `tinjau`)
+   ([#42](https://github.com/xtheoputra/techverse-x/issues/42): tujuh topik AI Agents berstatus `tinjau`)
    bukan sekadar "menunggu manusia" — **hari ini ia mustahil bagi siapa pun.**
    Angka *"N topik sudah diperiksa manusia"* di halaman muka adalah pencacah
    **tanpa produsen**.
@@ -82,14 +82,14 @@ juga begitu ia masuk ke daftar.
 
 `RENCANA-V1.md` menulisnya tanpa ambiguitas: **Bulan 1 mengejar URL, bukan
 fitur**, dan pekerjaan sisi isi adalah pekerjaan **sesudah** situs tayang.
-[#41](../../../../issues/41) bahkan memesan urutan itu secara eksplisit.
+[#41](https://github.com/xtheoputra/techverse-x/issues/41) bahkan memesan urutan itu secara eksplisit.
 
 Membangun mesin peninjauan sekarang berarti: menulis mesin untuk **isi yang
 belum ada**, di **situs yang belum tayang**, untuk **basis data yang belum
 dibuat** (#38). Itu persis bentuk kegagalan yang jadi benang merah seluruh
 proyek ini — *mati karena 40 halaman setengah jadi, bukan karena kurang fitur*.
 
-**Pemicu membangunnya: [#40](../../../../issues/40) tutup** — yaitu saat URL
+**Pemicu membangunnya: [#40](https://github.com/xtheoputra/techverse-x/issues/40) tutup** — yaitu saat URL
 publiknya ada. Sebelum itu, yang berlaku dari ADR ini cuma satu hal: **soalnya
 sudah tidak terbuka lagi**, jadi tidak perlu diperdebatkan ulang tiap sesi.
 

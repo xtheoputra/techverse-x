@@ -9,7 +9,7 @@
 ownership atas datanya, tetapi pada fase awal semuanya tinggal di **satu**
 PostgreSQL dengan **schema per context** — lalu dipisah kalau skalanya menuntut.
 
-Rancangan skema penuhnya sendiri masih Issue [#20](../../../../issues/20).
+Rancangan skema penuhnya sendiri masih Issue [#20](https://github.com/xtheoputra/techverse-x/issues/20).
 
 ## Keputusan
 
@@ -34,6 +34,6 @@ perubahan skema bisa dibaca sebagai SQL sebelum menyentuh produksi.
 
 - Menambah bounded context berarti menambah `DbContext` dan schema-nya sendiri.
 - `Technology.Category` sengaja **teks bebas, bukan kunci asing**. Taksonomi
-  bidang masih Issue [#1](../../../../issues/1) dan [#3](../../../../issues/3);
+  bidang masih Issue [#1](https://github.com/xtheoputra/techverse-x/issues/1) dan [#3](https://github.com/xtheoputra/techverse-x/issues/3);
   membuat tabel kategori sekarang berarti menebak keputusan yang belum diambil.
 - pgvector **tidak** dipasang — lihat [ADR-005](ADR-005-qdrant.md).

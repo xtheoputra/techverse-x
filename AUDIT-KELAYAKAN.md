@@ -174,9 +174,9 @@ pgvector matang: rilis stabil 0.8.6 (29 Juli 2026), iterative index scan sejak 0
 ## Peringatan
 
 1. **Keyakinan tidak merata.** B1, B2, B3 berkeyakinan **tinggi** dengan rujukan ke NuGet, dokumentasi resmi, dan registri npm. B4 berkeyakinan **sedang** — tidak ada angka pembanding resmi pgvector vs Qdrant pada skala ratusan ribu; halaman benchmark Qdrant terakhir diperbarui 2024 dan tidak menyertakan pgvector sama sekali.
-2. ~~**Status ketentuan layanan OpenAI belum diperiksa siapa pun**~~ — ✅ **sudah dibaca 7 September 2026.** Lihat [pembaruan di bawah](#pembaruan-7-september-2026--ketentuan-layanan-sudah-dibaca). Yang tersisa dari Issue [#17](../../issues/17) tinggal keputusan pemilik: batas kutipan wajar, dan tinjauan hukum bila TechVerse komersial.
+2. ~~**Status ketentuan layanan OpenAI belum diperiksa siapa pun**~~ — ✅ **sudah dibaca 7 September 2026.** Lihat [pembaruan di bawah](#pembaruan-7-september-2026--ketentuan-layanan-sudah-dibaca). Yang tersisa dari Issue [#17](https://github.com/xtheoputra/techverse-x/issues/17) tinggal keputusan pemilik: batas kutipan wajar, dan tinjauan hukum bila TechVerse komersial.
 3. **Tanggal GA Microsoft Agent Framework berbeda antar-berkas.** B2 menulis **2 April 2026** untuk `Microsoft.Agents.AI` 1.0.0; `AUDIT-KESEGARAN.md` Bagian A menulis **3 April 2026**. Keduanya keluaran agen berbeda dan belum dicocokkan ke satu sumber primer.
-4. **Berkas ini temuan, bukan keputusan — tetapi tabel 2.6 sudah tidak sama lagi dengan yang diaudit.** Saat audit ini dijalankan, `KERANGKA.md` 2.6 masih memuat `.NET 9`, LangGraph, Auth.js, dan Qdrant. Tabel itu kemudian ditulis ulang mengikuti Bagian 4 (Engineering Blueprint v1) milik pemilik, dan hasilnya sejalan dengan B1-B3. Yang **belum** diputuskan tetap B4 (pgvector saja atau Qdrant terpisah, Issue [#15](../../issues/15)); rekonsiliasi lengkapnya ada di `KERANGKA.md` 4.20.
+4. **Berkas ini temuan, bukan keputusan — tetapi tabel 2.6 sudah tidak sama lagi dengan yang diaudit.** Saat audit ini dijalankan, `KERANGKA.md` 2.6 masih memuat `.NET 9`, LangGraph, Auth.js, dan Qdrant. Tabel itu kemudian ditulis ulang mengikuti Bagian 4 (Engineering Blueprint v1) milik pemilik, dan hasilnya sejalan dengan B1-B3. Yang **belum** diputuskan tetap B4 (pgvector saja atau Qdrant terpisah, Issue [#15](https://github.com/xtheoputra/techverse-x/issues/15)); rekonsiliasi lengkapnya ada di `KERANGKA.md` 4.20.
 
 
 ---
@@ -255,7 +255,7 @@ sumber — tetap konsisten dengan seluruh pembacaan di atas.
 ## Pembaruan 8 September 2026 — dua dokumen terakhir Issue #17 sudah dibaca
 
 Keduanya dibuka di **peramban sungguhan**; pengambil otomatis tetap dibalas 403.
-Ini menutup langkah *membaca* di Issue [#17](../../issues/17).
+Ini menutup langkah *membaca* di Issue [#17](https://github.com/xtheoputra/techverse-x/issues/17).
 
 ⚖️ Yang di bawah ini **pembacaan, bukan nasihat hukum.**
 
