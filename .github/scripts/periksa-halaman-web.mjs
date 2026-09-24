@@ -17,12 +17,24 @@
 // melihat ketiganya. Selama produksi nol topik, keempat belas kartu itulah isi
 // utama halaman muka.
 //
-// ⚠️ **TIDAK dijalankan di `verify` maupun di CI, dan itu disebutkan supaya tidak
-// disalahpahami sebagai gerbang yang selalu menjaga.** Ia menuntut web yang sudah
-// dibangun DAN API yang hidup; job `frontend` di `ci.yml` tidak punya keduanya, dan
-// menyalakannya di sana berarti Postgres + API + `next start` di satu job. Jalan
-// itu tertulis sebagai langkah berikutnya, bukan diklaim sudah ada. Sampai itu:
-// dijalankan tangan lewat satu perintah, dan perintahnya yang tidak boleh lupa.
+// ⚠️ **Di CI ia jalan, di `verify` TIDAK — dan bedanya penting.**
+//
+// Versi pertama berkas ini (pagi yang sama) menulis bahwa ia tidak jalan di CI dan
+// menyebut jalan ke sana "langkah berikutnya". Langkah itu **sudah diambil**: job
+// `citra` di `ci.yml` menyalakan `docker-compose.prod.yml` lalu memanggil berkas ini.
+// Job itu yang dipilih, bukan `frontend`, karena ia sudah membangun ketiga citranya
+// beberapa langkah di atas — jadi `compose up` di sana menabrak cache build.
+//
+// `verify` tetap **tidak** memanggilnya, dengan alasan yang sama seperti `seed`: ia
+// menuntut tumpukan yang hidup, dan gerbang lokal yang menuntut Docker Compose
+// berhenti bisa dijalankan sambil menulis kode.
+//
+// 📏 Angka yang diukur di kedua bentuk, dan keduanya dicatat supaya selisihnya tidak
+// disalahartikan sebagai kemunduran:
+//
+//   - bentuk PRODUKSI (yang dijalankan CI): 16 halaman, **14 dari 14** — nol topik,
+//     jadi empat belas halaman bidang itulah seluruh isinya;
+//   - bentuk PENGEMBANGAN (API dev berisi 6 topik contoh): 22 halaman, **20 dari 20**.
 //
 // Pemakaian:
 //   node .github/scripts/periksa-halaman-web.mjs
@@ -161,6 +173,32 @@ while (antre.length > 0 && dikunjungi.size < BATAS_HALAMAN) {
     for (const id of ['q', 'q-halaman']) {
       const n = [...hasil.html.matchAll(new RegExp(`\\bid="${id}"`, 'g'))].length;
       if (n !== 1) temuan.push([jalur, `id="${id}" muncul ${n}x, seharusnya 1x`, null]);
+    }
+  }
+
+  // Aturan ADR-023: blok "Topik terhubung" TIDAK PERNAH tampil kosong. Relasi bukan
+  // bagian template yang wajib diisi, jadi judul berdaftar kosong menandai halaman
+  // seolah setengah jadi - dan di produksi, yang nol topik, blok ini tidak boleh
+  // terlihat sama sekali.
+  //
+  // Sampai hari ini penjaganya hanya sabotase TANGAN (Sesi 14: return awal dibuang
+  // -> qiskit memuat "Topik terhubung Pelajari lebih dulu Dibutuhkan oleh"
+  // berdaftar kosong). Invariannya bisa diperiksa di bentuk APA PUN, termasuk
+  // produksi tempat ia vakum: kalau blok itu ada, ia wajib berisi setidaknya satu
+  // butir.
+  const blok = /<section[^>]*aria-labelledby="topik-terhubung"[^>]*>([\s\S]*?)<\/section>/i.exec(hasil.html);
+  if (blok) {
+    const butir = [...blok[1].matchAll(/<li\b/gi)].length;
+    if (butir === 0) {
+      temuan.push([jalur, 'blok "Topik terhubung" tampil dengan NOL butir (ADR-023)', teksTerlihat(blok[0])]);
+    }
+    for (const judul of ['Pelajari lebih dulu', 'Dibutuhkan oleh']) {
+      // Judul sub-daftar hanya boleh ada kalau daftarnya sendiri ada isinya. Keduanya
+      // muncul bersamaan di sabotase Sesi 14, jadi keduanya diperiksa.
+      const sub = new RegExp(`<h3[^>]*>\\s*${judul}\\s*</h3>([\\s\\S]*?)(?=<h3\\b|$)`, 'i').exec(blok[1]);
+      if (sub && [...sub[1].matchAll(/<li\b/gi)].length === 0) {
+        temuan.push([jalur, `sub-daftar "${judul}" ada tapi NOL butir (ADR-023)`, null]);
+      }
     }
   }
 

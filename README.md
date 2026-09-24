@@ -110,7 +110,14 @@ Aturan teks pembaca [ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md) —
 .\run.ps1 halaman              make cek-halaman
 ```
 
-Ia menuntut API hidup **dan** build produksi web (bukan `next dev` — aturannya memang membedakan keduanya), jadi ia **sengaja di luar `verify` dan di luar CI**. Selain memindai teks, ia menelusuri dari `/` dan membandingkan jumlah halaman `/teknologi/*` yang tercapai dengan yang dikenal API: hari ini **20 dari 20** di pengembangan.
+Ia menuntut API hidup **dan** build produksi web (bukan `next dev` — aturannya memang membedakan keduanya), jadi ia **sengaja di luar `verify`**. Di **CI ia tetap jalan**: job `citra` menyalakan `docker-compose.prod.yml` lalu memanggil pemindai yang sama, di job yang memang sudah membangun ketiga citranya.
+
+Selain memindai teks ia menelusuri dari `/`, membandingkan jumlah halaman `/teknologi/*` yang tercapai dengan yang dikenal API, dan menolak blok *"Topik terhubung"* yang tampil kosong (ADR-023). Angkanya berbeda di dua bentuk, dan keduanya benar:
+
+| Bentuk | Halaman | `/teknologi/*` |
+|---|---|---|
+| **produksi** (yang dijalankan CI) | 16 | **14 dari 14** — nol topik, jadi empat belas bidang itulah seluruh isinya |
+| **pengembangan** (6 topik contoh) | 22 | **20 dari 20** |
 
 ### Isi contoh itu bukan kurikulum
 

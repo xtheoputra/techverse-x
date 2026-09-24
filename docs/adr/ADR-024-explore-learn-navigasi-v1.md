@@ -207,5 +207,36 @@ URL**, dan skema itu tidak disentuh. `/` tetap bekerja saat `/explore` kelak ada
   > di satu job; itu langkah berikutnya yang tertulis, bukan yang sudah ada. Yang juga
   > belum: uji komponen untuk `TopikTerhubung` dan kawannya — harness JS penuh tetap
   > keputusan tersendiri.
+  >
+  > ✅ **Langkah itu diambil di hari yang sama — pemindainya kini gerbang CI.** Bukan
+  > di job `frontend` melainkan di job **`citra`**, dan itu yang membuatnya murah: job
+  > itu sudah membangun ketiga citranya beberapa langkah di atas, jadi
+  > `docker compose -f docker-compose.prod.yml up -d --wait` di sana menabrak cache
+  > build. Ketiga target compose sama persis dengan ketiga `docker build`-nya
+  > (`final`, `migrator`, Dockerfile web). Volume-nya dibongkar `down -v` di langkah
+  > ber-`always()`, sebab volume yang tertinggal membuat *"migrasi dari nol"* berhenti
+  > terukur di jalan berikutnya.
+  >
+  > **Bentuk produksi yang dijaga, dan itu yang paling murah:** nol topik dan empat
+  > belas bidang datang dari migrasi tanpa seed, jadi angkanya deterministik. Job-nya
+  > **ditiru utuh di lokal** sebelum ditulis — ketiga citra, gerbang ADR-020,
+  > `compose up --wait`, pemindai, `down -v` — dan hijau: 6 migrasi dari nol, 14
+  > bidang · 0 topik · 0 sisi, **16 halaman, 14 dari 14, teks terlihat 0 kena**.
+  >
+  > 🐞 Satu angka di tiruan itu sempat tidak bisa dijelaskan: *"migrasi diterapkan:
+  > 12"* padahal berkas migrasinya enam. Sebabnya diukur, bukan ditebak — `efbundle`
+  > mencetak `Applying migration '…'` **dan** logger EF Core mencetak barisnya sendiri,
+  > jadi setiap migrasi muncul dua kali. Enam nama berbeda; angka 12 dibuang dari
+  > laporan, bukan dipakai.
+  >
+  > **Ditambahkan juga:** blok *"Topik terhubung"* yang tampil kosong kini ditolak
+  > (aturan ADR-023, sampai hari ini hanya dijaga sabotase tangan). Kedua bentuknya
+  > dibuktikan merah: `return null` awal dibuang → **empat** topik tanpa relasi
+  > melaporkan blok ber-NOL butir; penjaga per sub-daftar dibuang → `Dibutuhkan oleh`
+  > kosong di `model-context-protocol` dan `Pelajari lebih dulu` kosong di `tool-use`,
+  > tepat dua halaman yang memang timpang. Invariannya berlaku di bentuk apa pun, dan
+  > di produksi ia vakum.
+  >
+  > Yang **tetap** belum: uji komponen JS. Harness penuh masih keputusan tersendiri.
 - **Cara membalikkan:** tambah rute dan butir menunya. Tidak ada yang perlu
   dimigrasikan; migrasi ringkasan bidang berdiri sendiri dan tidak perlu dibalik.

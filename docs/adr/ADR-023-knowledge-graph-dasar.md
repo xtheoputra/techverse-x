@@ -308,6 +308,17 @@ Satu komponen server, `apps/web/src/components/TopikTerhubung.tsx`, dirender
   lengkap secara palsu;
 - **tidak pernah dihitung di `missingSections`**.
 
+> ✅ **Dijaga otomatis sejak 2026-09-24.** Kedua aturan di atas — blok tersembunyi
+> kalau kosong, dan sub-daftar hanya kalau berisi — sampai hari itu hanya bertahan
+> selama sabotase tangan diulang. Sekarang `.github/scripts/periksa-halaman-web.mjs`
+> menolak keduanya di HTML jadinya, dan ia jalan di CI (job `citra`, bentuk produksi).
+> Invariannya dipilih supaya berlaku di bentuk apa pun: *kalau bloknya ada, ia wajib
+> berisi setidaknya satu butir* — jadi di produksi yang nol topik ia vakum, bukan
+> palsu hijau. Keduanya dibuktikan merah: `return null` awal dibuang → empat topik
+> tanpa relasi melaporkan blok ber-NOL butir; penjaga per sub-daftar dibuang →
+> `Dibutuhkan oleh` kosong di `model-context-protocol` dan `Pelajari lebih dulu`
+> kosong di `tool-use`, tepat dua halaman yang memang timpang.
+
 **Hubungannya dengan langkah 0 roadmap (ADR-012):** langkah 0 tetap satu-satunya
 prasyarat PROSA — keterampilan yang belum tentu punya halaman di situs ini. Sisi
 `Requires` adalah navigasi ke halaman yang ada. **Topik yang sudah jadi tujuan

@@ -67,8 +67,9 @@ cek-tautan: ## Memeriksa tautan di berkas Markdown (tanpa jaringan)
 	@node .github/scripts/cek-tautan-markdown.mjs
 
 # SENGAJA di luar `verify`: menuntut web yang sudah dibangun DAN API yang hidup,
-# sama seperti `seed`. Bentuk PRODUKSI yang diukur, bukan `next dev` - aturan teks
-# pembaca ADR-024 membedakan keduanya.
+# sama seperti `seed`. Di CI ia TETAP jalan - job `citra` menyalakan
+# docker-compose.prod.yml lalu memanggil pemindai yang sama. Bentuk PRODUKSI yang
+# diukur, bukan `next dev` - aturan teks pembaca ADR-024 membedakan keduanya.
 .PHONY: cek-halaman
 cek-halaman: ## Gerbang ADR-024 di halaman jadinya (butuh web + API hidup)
 	@WEB_BASE_URL=$${WEB_BASE_URL:-http://localhost:3310} \

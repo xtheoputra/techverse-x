@@ -137,7 +137,11 @@ switch ($Command) {
 
     'halaman' {
         # SENGAJA di luar `verify`: ia menuntut web yang sudah dibangun DAN API
-        # yang hidup, sama seperti `seed`. Urutan yang dituntutnya:
+        # yang hidup, sama seperti `seed`. Di CI ia TETAP jalan - job `citra`
+        # menyalakan docker-compose.prod.yml lalu memanggil pemindai yang sama,
+        # jadi bentuk produksinya dijaga otomatis; perintah di bawah untuk bentuk
+        # PENGEMBANGAN, yang punya topik contoh dan karena itu punya relasi.
+        # Urutan yang dituntutnya:
         #   .\run.ps1 up  ->  .\run.ps1 migrate  ->  .\run.ps1 api
         #   lalu, di jendela lain: npm run build:web
         #   lalu: cd apps/web; $env:API_BASE_URL='http://localhost:5080'
