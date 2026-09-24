@@ -205,6 +205,45 @@ jobs:
       - name: Citra API menolak menulis (ADR-020)
         run: bash .github/scripts/periksa-permukaan-tulis.sh techversex-api:ci
 
+      # Gerbang ADR-024: aturan teks pembaca dan penelusuran halaman, diukur di
+      # BENTUK PRODUKSI - tumpukan yang sama dengan yang akan tayang, bukan host
+      # rakitan dan bukan `next dev`.
+      #
+      # 🔑 Kenapa di job INI dan bukan di `frontend`: pemindainya menuntut web
+      # yang sudah jadi DAN API yang hidup. Job `frontend` tidak punya keduanya,
+      # sedangkan job ini sudah membangun ketiga citranya beberapa langkah di
+      # atas - jadi `compose up` di sini menabrak cache build, bukan membangun
+      # ulang. Ketiga target compose sama persis dengan ketiga `docker build` di
+      # atas (`final`, `migrator`, dan Dockerfile web).
+      #
+      # 🔑 Bentuk produksi juga yang paling MURAH dijaga: nol topik dan empat
+      # belas bidang datang dari migrasi, tanpa seed, jadi angkanya deterministik.
+      # Diukur lokal terhadap tumpukan ini: 16 halaman, 14 dari 14 halaman
+      # /teknologi/* yang dikenal API, teks terlihat 0 kena.
+      - name: Pasang Node untuk pemindai halaman
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Tumpukan produksi hidup
+        run: docker compose -f docker-compose.prod.yml up -d --wait
+
+      - name: Teks pembaca dan penelusuran halaman (ADR-024)
+        env:
+          WEB_BASE_URL: http://localhost:8080
+          API_BASE_URL: http://localhost:8081
+        run: node .github/scripts/periksa-halaman-web.mjs
+
+      # `always()`: kalau gerbang di atas merah, log peti kemasnya yang paling
+      # berguna - dan volume yang tertinggal akan membuat jalan berikutnya
+      # memigrasi basis data yang SUDAH terisi, jadi "migrasi dari nol" berhenti
+      # terukur.
+      - name: Log tumpukan produksi, lalu bongkar
+        if: always()
+        run: |
+          docker compose -f docker-compose.prod.yml logs --no-color --tail 60
+          docker compose -f docker-compose.prod.yml down -v
+
       # Trivy dijalankan sebagai peti kemas, bukan lewat action pihak ketiga:
       # gerbang ini tidak butuh satu pun izin tambahan, dan tidak menambah
       # aksi yang harus dipercaya. `--exit-code 1` yang membuatnya menggigit -

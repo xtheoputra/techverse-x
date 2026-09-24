@@ -4,6 +4,127 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-24 — Sesi 15: tiga pekerjaan yang tidak menunggu siapa pun, dan tiga penjaga yang hijau karena tidak melihat
+
+Permintaan pemilik: *"lanjutkan semua tugas yang belum terselesaikan, sesuai dokumen, kerjakan dengan sempurna"*.
+
+### Yang diwarisi — dibaca dari catatan sesi, lalu DIUKUR ULANG
+
+Sesi 14 (lanjutan) berakhir rapi: semua cabang ter-push, pohon bersih, nol stash. Yang tertinggal bukan pekerjaan setengah jalan melainkan **daftar tunggu**, dan tiap barisnya diperiksa dulu sebelum dipercaya:
+
+| Yang tertulis | Keadaan sesudah diukur hari ini |
+|---|---|
+| CI mati karena kuota ([#57](https://github.com/xtheoputra/techverse-x/issues/57)) | **masih mati** — jalan-ulang run `35189801706` attempt 2: `02:05:20Z` → `02:05:27Z`, **7 detik**, `steps=0` di keempat job |
+| Uji Railway R1–R6, Neon, Vercel | tetap menunggu pemilik; **tidak satu akun pun dibuat** |
+| Rantai PR #56←#58←#62←#63 | belum satu pun di-merge; **tidak dicoba** |
+| *"Belum terverifikasi"*: tautan `../../issues/N` di `docs/*.md` | **terbukti rusak**, dan lebih luas daripada dugaannya |
+| Harness JS `apps/web` — *"keputusan tersendiri"* | dikerjakan **separuh**, dan separuh yang tidak dikerjakan ditulis |
+| Siklus transitif — *"wajib mendarat lebih dulu"* ([#59](https://github.com/xtheoputra/techverse-x/issues/59)) | **dibangun** |
+
+🔑 Yang dikerjakan hari ini dipilih dengan satu saringan: **tidak menunggu akun, merge, atau pemicu tertulis.** Tiga pekerjaan lolos saringan itu, dan ketiganya jadi PR sendiri.
+
+### 🔴 Klaim tautan sesi lalu benar — dan jalan keluarnya juga keliru
+
+Diukur di halaman GitHub yang **hidup**, tiga repo publik, tanpa login:
+
+| # | Sumber | Ditulis | Dirender GitHub |
+|---|---|---|---|
+| 1 | `enquirer/enquirer` `docs/install.md` | `../../../issues/new` | `href="/enquirer/enquirer/issues/new"` |
+| 2 | `nana-4/materia-theme` `TODO.md` (**akar**) | `../../issues/106` | `href="/nana-4/materia-theme/issues/106"` |
+| 3 | `dotnet/runtime` cabang **`release/8.0`** | `../design/…` | `href="/dotnet/runtime/blob/release/8.0/docs/design/…"` |
+
+Pengukuran 1+2 memperlihatkan jebakannya: **dua `../` benar di akar repo, kurang satu di `docs/`** — persis bentuk cacatnya di sini, konvensi `README.md` yang disalin ke `docs/`. Pengukuran 3 membantah jalan keluar yang sesi lalu usulkan (*"tautan baru memakai `../../../`"*): nama ref bergaris miring memakan **dua** segmen, jadi cabang `fase-1/...` menggeser hitungannya lagi.
+
+**71 dari 222** rusak dibaca di `main`; **221 dari 222** dibaca di cabang. Yang kedua yang paling merugikan — badan issue di repo ini menautkan ADR lewat blob **cabang**.
+
+Jadi yang diperbaiki bukan hitungannya melainkan aturannya: tautan relatif hanya untuk berkas **di dalam** repo. 222 tautan di 32 berkas, dan buktinya bukan pembacaan mata: tiap hasil dibandingkan **bita per bita** dengan HEAD yang ditransformasi ulang → 24 sama persis, 8 sama sesudah akhir baris dinormalkan (CRLF yang **sudah** ada di HEAD), **nol beda**.
+
+### 🐞 Ketiga penjaga baru pernah hijau karena TIDAK MELIHAT
+
+Ini benang merah sesi ini, dan ketiganya ketahuan karena dijalankan, bukan dibaca:
+
+1. **Penjaga tautan melaporkan tiga temuan yang tidak ada** — prosa yang **mengutip** kode (`` `<Link href="/learn">` `` di catatan sesi) terbaca sebagai jangkar HTML. Potongan kode sebaris dibuang lebih dulu.
+2. **Aturan *"jangan keluar dari pohon repo"* punya lubang.** Dari berkas empat tingkat dalam, empat `../` mendarat **tepat di akar repo** — jadi dua tautan issue di `apps/web/src/lib/lingkungan.ts` lolos hijau, padahal di halaman blob keduanya jatuh ke `…/blob/main/issues/42`, berkas yang tidak ada. Sekarang resolusi jalur **dan** keberadaan berkas diperiksa, untuk semua berkas.
+3. **Pemindai halaman berhenti di 21 halaman dan `/cari` tidak pernah dikunjungi** — satu-satunya jalan ke sana `<form action="/cari" method="get">`, bukan `<a href>`. Akibatnya pemeriksaan `id="q"` tidak pernah berjalan sekali pun. **Angka 21 itulah yang membocorkannya** (beranda + 20 topik, tanpa `/cari`). Formulir GET kini ikut ditelusuri; POST tidak, sebab ia bukan navigasi.
+
+Dan penjaga tautan sempat **mengusulkan perbaikan yang rusak**: untuk tautan berakar yang sudah memuat nama repo, usulnya `…/techverse-x/xtheoputra/techverse-x/issues/61`.
+
+💡 *Penjaga yang belum pernah merah bukan penjaga. Tapi penjaga yang merahnya belum pernah DIHITUNG juga belum terbukti — tiga dari empat cacat di atas hanya terlihat setelah angka keluarannya dibaca, bukan setelah exit code-nya dibaca.*
+
+### 🔴 Siklus bertiga diterima 200, dan ramalan ADR-023 kurang satu kata
+
+Pemeriksaan siklus V1 hanya melihat **satu lompatan**. Diukur lewat API sungguhan sebelum disentuh: `a→b` 200, `b→c` 200, lalu `c→a` **juga 200** — lingkaran tertutup, barisnya tersimpan, uji barunya berbunyi `Expected: BadRequest / Actual: OK`.
+
+Yang diganti hanya isi argumen kedua (penutupan transitif, disapu berlapis dengan LINQ EF biasa; **CTE rekursif ditolak** — ia akan jadi SQL mentah pertama di lapisan fitur, dan menuntut nama tabel ditulis tangan terlepas dari pemetaan EF). Harganya ditulis jujur: **kedalaman + 1** perjalanan.
+
+🔴 Tapi *"peningkatannya hanya menyentuh handler"* benar untuk **tanda tangannya**, bukan untuk kalimat galatnya: *"Dua topik tidak boleh saling mensyaratkan"* adalah pernyataan yang **salah** untuk lingkaran bertiga — ia menyuruh penulisnya mencari sisi kebalikan yang tidak ada.
+
+🐞 **Dan komentar saya sendiri terbantah sebelum di-commit**, kedua kalinya di repo ini. Versi pertamanya berbunyi *"sisi A→B yang sudah tersimpan menaruh A di dalam penutupan B"* — keliru; penutupan B berisi yang **dibutuhkan** B. Yang benar lebih sempit dan hanya mengenai baris lama yang sudah berputar. Kalimat soal titik awal juga dipersempit dengan cara yang sama.
+
+### 🔴 Sabotase saya sendiri kurang satu tempat
+
+Untuk membuktikan penjaga penelusuran bisa merah, `<Link>` topik dibuang dari `TechnologyList` — dan hasilnya **tetap 20 dari 20**. Halaman bidang punya `<Link>` sendiri di `app/teknologi/[slug]/page.tsx`. Sesudah keduanya dibuang: **14 dari 20**, dengan keenam topiknya disebut satu per satu. Itu sebabnya catatan Sesi 14 menyebut **dua** tempat — dan itu ketahuan lagi hari ini hanya karena angkanya dibaca.
+
+### Yang dibangun
+
+| PR | Cabang | Isi |
+|---|---|---|
+| [#64](https://github.com/xtheoputra/techverse-x/pull/64) | `fase-1/tautan-markdown-absolut` | 222 tautan jadi absolut + `.github/scripts/cek-tautan-markdown.mjs`, ikut `verify` dan CI |
+| [#65](https://github.com/xtheoputra/techverse-x/pull/65) | `fase-2/siklus-prasyarat-transitif` | penutupan transitif di `RequireTopicHandler`, pesan galat baru, pembaruan ADR-023 |
+| [#66](https://github.com/xtheoputra/techverse-x/pull/66) | `fase-2/gerbang-halaman-web` | `.github/scripts/periksa-halaman-web.mjs`, pembaruan ADR-024 |
+
+### 🔎 Koreksi #57: "pemblokiran se-AKUN" terlalu luas
+
+Endpoint billing lama sudah **410** (*"This endpoint has been moved"*); yang baru `GET /users/{user}/settings/billing/usage`. Dari sana, dan dari API run:
+
+Di repo **privat** `zarastrade`, run `35547048935` ber-`event: dynamic` (Dependabot Updates) **menjalankan 5 langkah** dan sukses, `00:14:25Z` → `00:19:30Z` **21 September** — dua pekan sesudah run biasa mulai ditolak. Dan itu **ditagih**: baris `Actions Linux` 27 menit (11 Sep), 19 (14 Sep), **20 (21 Sep)**.
+
+Jadi yang ditolak adalah run `push`/`pull_request`; run Dependabot lolos dan terus memakan kuota yang sudah lewat batas. `techverse-x` **tidak** punya `.github/dependabot.yml`, jadi repo ini tidak menambah apa pun lewat jalan itu. Total menit repo privat September: **2.162** dari kuota 2.000. Perkiraan pulih 1 Oktober 2026 tetap **belum terbukti**. Diposting ke [#57](https://github.com/xtheoputra/techverse-x/issues/57#issuecomment-5806628640).
+
+💡 *Menyonde CI tidak berbiaya: nol langkah berarti nol menit. Yang mahal justru menganggapnya masih mati tanpa memeriksa.*
+
+### Ukuran
+
+`run.ps1 verify` hijau: Release **0 peringatan**, **104 unit + 63 integrasi** (dari 102 + 61), cek tautan, lint, build web. Penjaga halaman terhadap build produksi + API dev: **22 halaman, 20 dari 20 yang dikenal API, teks terlihat 0 kena, setiap halaman 200**.
+
+Basis data pengembang ditinggalkan seperti saat sesi mulai: 6 topik contoh, 1 sisi, **nol sisa uji**, nol ringkasan bidang menyebut ADR, nol basis data `gladi%`.
+
+### Yang TIDAK dikerjakan, dan kenapa
+
+- **Tidak ada yang di-merge, dan tidak dicoba.** Rantainya kini **tujuh** PR dalam dan urutannya wajib dari bawah.
+- **`make cek-tautan` dan `make cek-halaman` tidak dijalankan**: `make` tidak terpasang di mesin ini. Keduanya ditulis, tidak diklaim terukur.
+- **Penjaga halaman tidak masuk `verify` maupun CI.** Ia menuntut web dibangun + API hidup; job `frontend` tidak punya keduanya. Jalan ke CI (Postgres + API + `next start` di satu job) tertulis sebagai langkah berikutnya.
+- **Uji komponen `apps/web`** (`TopikTerhubung` dan kawannya) belum ada. Harness JS penuh tetap keputusan tersendiri; yang mendarat hari ini pemindai halaman jadinya, bukan penggantinya.
+- **[#54](https://github.com/xtheoputra/techverse-x/issues/54) tidak disentuh** — pemicunya tertulis: sesudah ada isi sungguhan.
+- **Riset Bulan 4 (arus arXiv) tetap tidak dituangkan ke ADR.** Isinya hanya ada di transkrip sesi lain, jalur produksi pertamanya tetap butuh dua workflow yang mati di bawah #57, dan Bulan 4 bukan prioritas selama Bulan 1 tertahan tiga akun.
+- **Komentar kode dan teks workflow yang menyebut Koyeb dibiarkan**, `Dockerfile.vercel` tidak dibuat, dan ulang-sekali `getJson` untuk 502 tidak dipasang — ketiganya menunggu pemicu yang sudah tertulis.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Rantai PR, belum satu pun di-merge — urutan merge wajib dari bawah:**
+
+| PR | Cabang | Base |
+|---|---|---|
+| [#56](https://github.com/xtheoputra/techverse-x/pull/56) | `fase-2/pencarian-teks-penuh` | `main` |
+| [#58](https://github.com/xtheoputra/techverse-x/pull/58) | `fase-2/knowledge-graph-dasar` | #56 |
+| [#62](https://github.com/xtheoputra/techverse-x/pull/62) | `fase-1/adr-025-host-api` | #58 |
+| [#63](https://github.com/xtheoputra/techverse-x/pull/63) | `fase-1/muatan-cacat-60-61` | #62 |
+| [#64](https://github.com/xtheoputra/techverse-x/pull/64) | `fase-1/tautan-markdown-absolut` | #63 |
+| [#65](https://github.com/xtheoputra/techverse-x/pull/65) | `fase-2/siklus-prasyarat-transitif` | #64 |
+| [#66](https://github.com/xtheoputra/techverse-x/pull/66) | `fase-2/gerbang-halaman-web` | #65 |
+
+CI ketujuhnya merah dalam hitungan detik dengan **nol langkah** — #57, bukan isinya.
+
+**Menunggu pemilik:** #57 (kuota menit Actions se-akun, diukur ulang hari ini masih mati); uji Railway R1–R6 (ADR-025, [#39](https://github.com/xtheoputra/techverse-x/issues/39)) → proyek Neon ([#38](https://github.com/xtheoputra/techverse-x/issues/38)) → Vercel ([#40](https://github.com/xtheoputra/techverse-x/issues/40)); merge rantai di atas.
+
+**Menunggu pemicu tertulis, bukan macet:** [#42](https://github.com/xtheoputra/techverse-x/issues/42) · [#54](https://github.com/xtheoputra/techverse-x/issues/54) · [#59](https://github.com/xtheoputra/techverse-x/issues/59) — **prasyaratnya tinggal kedua pemicunya**, sebab siklus transitif sudah mendarat di #65 · [#55](https://github.com/xtheoputra/techverse-x/issues/55) tutup saat #58 masuk · [#60](https://github.com/xtheoputra/techverse-x/issues/60) dan [#61](https://github.com/xtheoputra/techverse-x/issues/61) tutup saat #63 sampai `main`.
+
+**Sudah terverifikasi sesi ini** (dulu *"belum terverifikasi"*): resolusi tautan relatif di halaman blob GitHub. Tidak perlu diklik lagi — aturannya kini dijaga skrip, dan skripnya dibuktikan merah lima kali.
+
+**Lingkungan pengembangan:** `techversex-postgres` dan `techversex-redis` tetap menyala seperti saat sesi mulai. API :5080 dan `next start` :3310 yang dinyalakan sesi ini **sudah dimatikan** — port 3000, 3310, 3311, dan 5080 semuanya kosong saat sesi ditutup. Yang tersisa hanya proses `dotnet` node-reuse MSBuild dari build terakhir, dan itu bawaan `dotnet build`.
+
+---
+
 ## 2026-09-17 — Sesi 14 (lanjutan): sisa Bulan 3 mendarat, dan halaman JADINYA menemukan yang tidak akan ditemukan membaca kode
 
 Permintaan pemilik: *"lanjutkan tugas yang belum selesai"*.
