@@ -18,8 +18,8 @@
 // 📏 Ketiga klaim di atas DIUKUR di halaman GitHub yang hidup, bukan disimpulkan
 // dari dokumentasi (2026-09-24, repo publik, tanpa login):
 //
-//   1. `enquirer/enquirer` `docs/install.md` menulis `[issue](../../../issues/new)`
-//      dan GitHub merendernya jadi `href="/enquirer/enquirer/issues/new"`.
+//   1. `enquirer/enquirer` `docs/install.md` menautkan `../../../issues/new` dan
+//      GitHub merendernya jadi `href="/enquirer/enquirer/issues/new"`.
 //      -> dari `docs/` di ref tanpa garis miring, yang benar TIGA `../`.
 //   2. `nana-4/materia-theme` `TODO.md` (di AKAR) menulis `../../issues/106`
 //      dan jadi `href="/nana-4/materia-theme/issues/106"`.
@@ -56,13 +56,27 @@ const LEWATI = new Set(['node_modules', '.git', 'bin', 'obj', '.next', 'dist', '
 const PERMUKAAN_GITHUB =
   /(?:^|\/)(issues|pull|discussions|milestone|milestones|labels|compare|commit|commits|releases|actions|wiki|projects|security|graphs|blob|tree|raw)(?:\/|$)/;
 
-function berkasMarkdown(dir) {
+// Komentar kode ikut diperiksa — dan bukan demi kerapian. Dokumentasi XML C# dan
+// JSDoc di repo ini DITULIS dalam Markdown (daftar berbutir, penekanan, tautan),
+// dan `apps/web/src/lib/lingkungan.ts` memang menautkan dua issue dengan hitungan
+// `../` yang tidak pernah benar di mana pun. Yang tidak diperiksa di berkas kode:
+// keberadaan berkas tujuan — jalur relatif di dalam komentar tidak punya basis yang
+// jelas — jadi hanya aturan permukaan GitHub yang berlaku di sana.
+const EKSTENSI_KODE = new Set([
+  '.cs', '.ts', '.tsx', '.js', '.mjs', '.cjs', '.ps1', '.sh', '.yml', '.yaml', '.sql', '.props', '.csproj', '.slnx',
+]);
+
+function berkasTeks(dir) {
   const hasil = [];
   for (const entri of readdirSync(dir, { withFileTypes: true })) {
     if (entri.isDirectory()) {
       if (LEWATI.has(entri.name)) continue;
-      hasil.push(...berkasMarkdown(join(dir, entri.name)));
-    } else if (entri.name.endsWith('.md')) {
+      hasil.push(...berkasTeks(join(dir, entri.name)));
+      continue;
+    }
+    const titik = entri.name.lastIndexOf('.');
+    const ext = titik === -1 ? '' : entri.name.slice(titik);
+    if (ext === '.md' || EKSTENSI_KODE.has(ext)) {
       hasil.push(join(dir, entri.name));
     }
   }
@@ -100,7 +114,7 @@ function barisDiLuarBlokKode(isi) {
   return keluar;
 }
 
-// [teks](tujuan) · [id]: tujuan · href="tujuan"
+// Tautan sebaris, definisi rujukan gaya `[id]: …`, dan jangkar HTML.
 const POLA = [
   /\[[^\]]*\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g,
   /^\s{0,3}\[[^\]]+\]:\s*<?([^\s>]+)>?/g,
@@ -108,16 +122,23 @@ const POLA = [
 ];
 
 const temuan = [];
-const berkas = berkasMarkdown(AKAR).sort();
+const berkas = berkasTeks(AKAR).sort();
 let diperiksa = 0;
+let berkasMd = 0;
 
 for (const jalur of berkas) {
   const rel = relative(AKAR, jalur).split(sep).join('/');
+  const markdown = rel.endsWith('.md');
+  if (markdown) berkasMd += 1;
   const isi = readFileSync(jalur, 'utf8');
+
+  // Di berkas kode hanya bentuk tautan sebarisnya yang dicari. `href=` dan
+  // definisi rujukan di sana lebih sering kode daripada tautan.
+  const polaBerlaku = markdown ? POLA : POLA.slice(0, 1);
 
   for (const [nomor, baris] of barisDiLuarBlokKode(isi)) {
     const teks = tanpaKodeSebaris(baris);
-    for (const pola of POLA) {
+    for (const pola of polaBerlaku) {
       pola.lastIndex = 0;
       let cocok;
       while ((cocok = pola.exec(teks)) !== null) {
@@ -130,11 +151,22 @@ for (const jalur of berkas) {
           continue;
         }
         if (tujuan.startsWith('/')) {
-          temuan.push([rel, nomor, tujuan, 'tautan berakar "/" ikut berubah arti antar ref — pakai URL absolut', `${REPO}${tujuan}`]);
+          // Usulnya `https://github.com` + jalurnya apa adanya, BUKAN REPO +
+          // jalurnya: versi pertama menyarankan
+          // `…/techverse-x/xtheoputra/techverse-x/issues/61` untuk tautan berakar
+          // yang sudah memuat nama repo — penjaga yang mengusulkan perbaikan rusak.
+          if (markdown) {
+            temuan.push([
+              rel,
+              nomor,
+              tujuan,
+              'tautan berakar "/" ikut berubah arti antar ref — pakai URL absolut',
+              `https://github.com${tujuan}`,
+            ]);
+          }
           continue;
         }
 
-        diperiksa += 1;
         const [jalurSaja] = tujuan.split('#');
         if (jalurSaja === '') continue; // hanya jangkar, sudah ditangani di atas
 
@@ -143,6 +175,7 @@ for (const jalur of berkas) {
         if (sasaran.startsWith('..')) {
           // Keluar dari akar repo. Di halaman blob inilah tautan yang jatuh ke
           // `…/blob/<sesuatu>` alih-alih ke tujuannya.
+          diperiksa += 1;
           const ekor = tujuan.slice(tujuan.lastIndexOf('../') + 3);
           const sebab = PERMUKAAN_GITHUB.test(ekor)
             ? 'permukaan GitHub ditunjuk relatif — jumlah ../ tidak pernah benar di semua ref'
@@ -151,10 +184,27 @@ for (const jalur of berkas) {
           continue;
         }
 
+        // ⚠️ Keberadaan berkas diperiksa juga di berkas kode, dan versi pertama
+        // berkas ini TIDAK melakukannya — lubang yang langsung terbukti. Dua tautan
+        // issue di `apps/web/src/lib/lingkungan.ts` (empat tingkat dalam) memakai
+        // empat `../`, yang secara JALUR mendarat tepat di akar repo. Jadi ia tidak
+        // "keluar pohon" dan lolos, padahal di halaman blob ia jatuh ke
+        // `…/blob/main/issues/42`: berkas yang tidak ada. Satu-satunya aturan yang
+        // menangkap keduanya adalah aturan yang sama untuk semua berkas.
+        diperiksa += 1;
         try {
           statSync(join(AKAR, sasaran.split('/').join(sep)));
         } catch {
-          temuan.push([rel, nomor, tujuan, `berkas tidak ada: ${sasaran}`, null]);
+          const ekor = tujuan.includes('../') ? tujuan.slice(tujuan.lastIndexOf('../') + 3) : tujuan;
+          temuan.push([
+            rel,
+            nomor,
+            tujuan,
+            PERMUKAAN_GITHUB.test(ekor)
+              ? `permukaan GitHub ditunjuk relatif — jatuh ke berkas yang tidak ada: ${sasaran}`
+              : `berkas tidak ada: ${sasaran}`,
+            PERMUKAAN_GITHUB.test(ekor) ? `${REPO}/${ekor}` : null,
+          ]);
         }
       }
     }
@@ -167,7 +217,10 @@ const hijau = '\u001b[32m';
 const mati = '\u001b[0m';
 
 if (temuan.length === 0) {
-  console.log(`  ${berkas.length} berkas Markdown, ${diperiksa} tautan relatif diperiksa — ${hijau}semuanya menunjuk ke dalam repo${mati}`);
+  console.log(
+    `  ${berkasMd} berkas Markdown + ${berkas.length - berkasMd} berkas kode, ` +
+      `${diperiksa} tautan relatif diperiksa — ${hijau}semuanya menunjuk ke dalam repo${mati}`,
+  );
   process.exit(0);
 }
 
