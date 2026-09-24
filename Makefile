@@ -66,6 +66,15 @@ test: ## Menjalankan uji .NET
 cek-tautan: ## Memeriksa tautan di berkas Markdown (tanpa jaringan)
 	@node .github/scripts/cek-tautan-markdown.mjs
 
+# SENGAJA di luar `verify`: menuntut web yang sudah dibangun DAN API yang hidup,
+# sama seperti `seed`. Bentuk PRODUKSI yang diukur, bukan `next dev` - aturan teks
+# pembaca ADR-024 membedakan keduanya.
+.PHONY: cek-halaman
+cek-halaman: ## Gerbang ADR-024 di halaman jadinya (butuh web + API hidup)
+	@WEB_BASE_URL=$${WEB_BASE_URL:-http://localhost:3310} \
+	 API_BASE_URL=$${API_BASE_URL:-http://localhost:5080} \
+	 node .github/scripts/periksa-halaman-web.mjs
+
 # `setup-dotnet` menolak `sdk.version` yang bukan versi SDK utuh begitu
 # `rollForward` disebut, sedangkan `dotnet` di mesin yang SDK-nya sudah terpasang
 # menerimanya diam-diam. Selisih itu memerahkan CI sementara verifikasi lokal

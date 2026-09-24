@@ -181,5 +181,31 @@ URL**, dan skema itu tidak disentuh. `/` tetap bekerja saat `/explore` kelak ada
   Keduanya hanya bertahan selama pemindaian teks dan pemeriksaan halaman diulang
   tangan di build produksi; PR berikutnya bisa menanam *"Bulan N"* lagi tanpa ada
   yang merah. Harness JS untuk `apps/web` adalah keputusan tersendiri.
+
+  > ✅ **Dijawab sebagian 2026-09-24 — `.github/scripts/periksa-halaman-web.mjs`.**
+  > Kedua pemindaian tangan itu jadi satu perintah (`.\run.ps1 halaman` /
+  > `make cek-halaman`): ia menelusuri dari `/`, mengambil teks yang **terlihat**
+  > (`<script>`/`<style>` dibuang berikut isinya — muatan RSC hidup di sana), memindai
+  > pola ADR-024 apa adanya, dan membandingkan jumlah halaman `/teknologi/*` yang
+  > tercapai dengan yang **dikenal API**. Ia juga menjaga `id="q"` tunggal di `/cari`.
+  >
+  > Dijalankan terhadap build produksi hari ini: **22 halaman, 20 dari 20 yang dikenal
+  > API, teks terlihat 0 kena** — angka yang sama dengan hitungan tangan 17 September.
+  > Ketiga aturannya dibuktikan merah: teks *"Tahap: Bulan 4"* yang ditanam terbaca
+  > berikut kalimat sekitarnya; `<Link>` topik yang dibuang memberi **14 dari 20**
+  > dengan keenam topiknya disebut satu per satu; `id="q"` ganda memberi dua temuan.
+  > Kendalinya juga diukur: sesudah ketiganya dipulihkan, hijau lagi.
+  >
+  > 🐞 **Versi pertamanya hijau karena tidak melihat.** Ia hanya mengikuti `<a href>`,
+  > berhenti di 21 halaman, dan `/cari` tidak pernah dikunjungi — satu-satunya jalan ke
+  > sana `<form action="/cari" method="get">` di tata letak. Jadi pemeriksaan `id="q"`
+  > tidak pernah berjalan sekali pun. Sekarang formulir GET ikut ditelusuri.
+  >
+  > ⚠️ **Yang belum dijawab:** ia **tidak** ikut di `verify` maupun di CI, sebab ia
+  > menuntut web yang sudah dibangun DAN API yang hidup — job `frontend` di `ci.yml`
+  > tidak punya keduanya. Menyalakannya di sana berarti Postgres + API + `next start`
+  > di satu job; itu langkah berikutnya yang tertulis, bukan yang sudah ada. Yang juga
+  > belum: uji komponen untuk `TopikTerhubung` dan kawannya — harness JS penuh tetap
+  > keputusan tersendiri.
 - **Cara membalikkan:** tambah rute dan butir menunya. Tidak ada yang perlu
   dimigrasikan; migrasi ringkasan bidang berdiri sendiri dan tidak perlu dibalik.
