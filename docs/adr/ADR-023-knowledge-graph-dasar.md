@@ -4,7 +4,7 @@
 sisi**, dan tetap nol sampai topik masuk lewat jalan
 [ADR-021](ADR-021-jalan-menuju-tinjau.md). Menjawab
 [#55](https://github.com/xtheoputra/techverse-x/issues/55). Sasaran Bulan 3 di [RENCANA-V1.md](../RENCANA-V1.md).
-**Tanggal:** 2026-09-16 (diputuskan), dibangun sampai 2026-09-17
+**Tanggal:** 2026-09-16 (diputuskan), dibangun sampai 2026-09-17; pemeriksaan siklus transitif 2026-09-24
 
 ## Konteks
 
@@ -123,13 +123,43 @@ dulu"**.
 - **Sisi identik diulang = no-op idempoten** (200, tanpa baris kedua).
 - **Kebalikan yang bertentangan ditolak 400** oleh agregat (*"Dua topik tidak
   boleh saling mensyaratkan"*); handler menyerahkan tujuan `Requires` langsung
-  milik topik tujuan untuk pemeriksaan ini.
+  milik topik tujuan untuk pemeriksaan ini. ⚠️ **Kedua bagian kalimat ini basi
+  sejak 2026-09-24** — pesannya berganti dan yang diserahkan kini penutupan
+  transitif; lihat pembaruan di bawah. Dibiarkan sebagai rekaman keadaan 17
+  September, tapi jangan mencari kalimat galat itu di kode: ia sudah tidak ada.
 - **Siklus yang lebih panjang (A→B→C→A) TIDAK diperiksa di V1.** Pembacaan selalu
   satu lompatan, jadi siklus yang lolos tidak pernah bisa membuat halaman
   berputar atau meledak. Peningkatannya hanya menyentuh handler: serahkan
   penutupan transitif alih-alih tujuan langsung; tanda tangan metode agregat
   tidak berubah. **Pemicu:** sebelum fitur apa pun mengurutkan topik berdasarkan
   `Requires` (Learn), atau begitu sisi produksi punya lebih dari satu penulis.
+
+> ✅ **Dibangun 2026-09-24 — dan satu kata di paragraf di atas kurang.**
+> `RequireTopicHandler` kini menyerahkan **penutupan transitif** sisi `Requires`
+> milik tujuan, disapu berlapis (LINQ EF biasa, bukan CTE rekursif, jadi lapisan
+> fitur tetap tanpa SQL mentah; harganya **kedalaman + 1** perjalanan ke basis
+> data, dan penyaring "sudah dikunjungi" membuatnya berhenti walau barisnya sudah
+> berputar sebelum aturan ini ada).
+>
+> Ramalan *"hanya menyentuh handler"* benar untuk **tanda tangannya** —
+> `RequireTopic(Guid, IReadOnlyCollection<Guid>)` tidak berubah sama sekali — tapi
+> **kalimat galatnya harus ikut berubah.** *"Dua topik tidak boleh saling
+> mensyaratkan"* adalah pernyataan yang **salah** ketika yang ditutup lingkaran
+> bertiga: ia menyuruh penulisnya mencari sisi kebalikan yang tidak ada. Sekarang:
+> *"Topik yang diminta sudah mensyaratkan 'X', langsung atau lewat rantai
+> prasyarat. Prasyarat tidak boleh berputar (ADR-023)."* Agregatnya menerima
+> himpunan rata dan **memang tidak bisa** membedakan tujuan langsung dari ujung
+> rantai — itu yang membentuk kata-katanya, bukan kehati-hatian.
+>
+> Bukti merahnya diukur, bukan diasumsikan: dengan kueri satu lompatan yang lama,
+> `Siklus_bertiga_ditolak_400` dan `Rantai_empat_topik_ditolak_di_lompatan_TERJAUH`
+> keduanya gagal berbunyi **`Expected: BadRequest / Actual: OK`** — siklusnya
+> diterima 200 dan barisnya tersimpan. Dengan pesan yang lama, 2 uji unit + 3 uji
+> integrasi merah. Kendalinya juga dibuktikan: jalan pintas di dalam rantai yang
+> sama (A→C saat A→B→C→D sudah ada) tetap **200**, jadi pemeriksaannya bukan
+> penolak segala sisi baru. Ditagih di
+> [#59](https://github.com/xtheoputra/techverse-x/issues/59) sebagai syarat yang
+> wajib mendarat sebelum Learn.
 
 ### 4. Penjaga di basis data — migrasi `RelasiAntarTopik`
 
@@ -161,11 +191,13 @@ Sisi tetap anak agregat topik **ASAL**. Urutan pemeriksaannya:
 1. `topicRequires` tidak boleh null.
 2. Ke diri sendiri → `ArgumentException` bermedan `topicSlug`.
 3. Sisi `Requires` identik sudah ada → kembali tanpa `Touch()`.
-4. `topicRequires` memuat `Id` topik ini → `InvalidOperationException` (2-siklus).
+4. `topicRequires` memuat `Id` topik ini → `InvalidOperationException` (siklus).
+   Sejak 2026-09-24 isinya penutupan transitif, jadi butir ini menangkap lingkaran
+   sepanjang apa pun — bukan cuma yang berdua.
 5. Selain itu tambah sisi, lalu `Touch()`.
 
 - **Parameter kedua WAJIB, tanpa nilai bawaan**, supaya tidak ada pemanggil yang
-  bisa melewati aturan 2-siklus dengan melupakannya — idiom yang sama dengan
+  bisa melewati aturan siklus dengan melupakannya — idiom yang sama dengan
   parameter `editorialWrites` ADR-020.
 - **Tidak menggugurkan `HumanReviewed`** (alasan yang sama dengan `Touch`), dan
   **tidak pernah masuk `MissingSections`**.
@@ -215,9 +247,9 @@ jalan masuk. Celah itu **nyata di tempat lain** — terukur, `POST …/resources
 dengan `"type":"0"` tersimpan sebagai `OfficialDocs` ([#60](https://github.com/xtheoputra/techverse-x/issues/60);
 diperbaiki 2026-09-17 — jenis sumber kini diurai berdasarkan nama saja).
 
-⚠️ **Balapan yang diterima:** pencarian tujuan, pembacaan sisi milik tujuan, dan
-`SaveChanges` bukan satu transaksi. Dua penulis serentak bisa menyelipkan
-2-siklus, dan tujuan yang dibuang di antaranya jadi 500 dari kunci asingnya. Itu
+⚠️ **Balapan yang diterima:** pencarian tujuan, pembacaan penutupan milik tujuan,
+dan `SaveChanges` bukan satu transaksi. Dua penulis serentak bisa menyelipkan
+siklus, dan tujuan yang dibuang di antaranya jadi 500 dari kunci asingnya. Itu
 celah yang sama dengan pemeriksaan slug↔bidang di `CreateTechnologyHandler`,
 diterima dengan alasan yang sama: penulisnya tunggal (seed, atau alur ADR-021).
 
@@ -315,7 +347,7 @@ tidak dipilih ulang — ia dijaga dan diberi satu pintu.
 | Tidak dibangun | Pemicu |
 |---|---|
 | Jenis relasi lain | sesudah #42: daftar relasi yang ingin dinyatakan penulis tapi tidak bisa |
-| Pemeriksaan siklus transitif | sebelum Learn mengurutkan topik lewat sisi, atau begitu sisi produksi punya lebih dari satu penulis |
+| ~~Pemeriksaan siklus transitif~~ | ✅ **dibangun 2026-09-24**, sebelum pemicunya tiba — lihat pembaruan di bagian 3 |
 | Jalan membuang sisi (`Unrelate`, endpoint) | diputuskan bersama ADR-021 dibangun — bersama jalan membuang bagian isi, yang juga belum ada |
 | `/graph` dan visualisasi | EPIC 10 (Neo4j, ADR-006) |
 | Relasi bidang↔bidang | nanti, sebagai proyeksi saat-baca dari sisi topik |
@@ -357,13 +389,15 @@ tidak dipilih ulang — ia dijaga dan diberi satu pintu.
   Pembersihan — uji, dan penghapus kelak — wajib membuang sisi lebih dulu.
   Terukur di dev DB: `DELETE` topik tujuan membalas `violates foreign key
   constraint "FK_technology_relationships_technologies_ToTechnologyId"`.
-- **Balapan 2-siklus diterima**, seperti pemeriksaan slug↔bidang.
+- **Balapan siklus diterima**, seperti pemeriksaan slug↔bidang.
 - **Web mentoleransi API yang lebih tua** (bagian 10).
 - **Uji:** 7 unit (`PrasyaratTopikTests` domain), 1 integrasi penjaga model
   (`ModelMigrasiTests`), 4 integrasi basis data (`PrasyaratTopikPersistenceTests`),
   10 integrasi endpoint (`PrasyaratTopikTests`). Hitungan repo 95+32 → **102+47**.
   Setiap penjaga dibuktikan merah — rincian dan kalimat kegagalannya di
   [SESSION-LOG](../SESSION-LOG.md) Sesi 14.
+  **Pemeriksaan siklus transitif 2026-09-24 menambah 2 unit + 2 integrasi endpoint:
+  9 unit dan 12 integrasi endpoint, hitungan repo → 104+63.**
 - ⚠️ **`ModelMigrasiTests` TIDAK menjaga `ValueGeneratedNever`** — terukur: baris
   itu dikomentari, ujinya tetap hijau, sebab `ValueGenerated` pada kunci uuid
   tanpa identity tidak mengubah kolom. Yang menjaganya P2 (persistensi) dan
