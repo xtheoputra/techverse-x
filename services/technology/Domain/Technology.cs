@@ -302,21 +302,29 @@ public sealed class Technology
     /// </summary>
     /// <param name="topicId">Topik yang dibutuhkan. Harus topik lain, bukan topik ini.</param>
     /// <param name="topicRequires">
-    /// Sisi <see cref="RelationshipKind.Requires"/> milik <paramref name="topicId"/>
-    /// sendiri — hari ini tujuan-tujuan langsungnya. <b>Wajib, tanpa nilai bawaan</b>:
-    /// pemanggil yang bisa melupakannya adalah pemanggil yang bisa melewati aturan
-    /// dua arah di bawah, idiom yang sama dengan sakelar tanpa bawaan di ADR-020.
+    /// Segala yang <paramref name="topicId"/> butuhkan lewat sisi
+    /// <see cref="RelationshipKind.Requires"/> — <b>penutupan transitifnya</b>, bukan
+    /// tujuan langsungnya. <b>Wajib, tanpa nilai bawaan</b>: pemanggil yang bisa
+    /// melupakannya adalah pemanggil yang bisa melewati aturan siklus di bawah, idiom
+    /// yang sama dengan sakelar tanpa bawaan di ADR-020.
+    /// <para>
+    /// ⚠️ Agregat ini <b>tidak bisa tahu</b> apakah sebuah Id di dalamnya tujuan
+    /// langsung atau ujung rantai — yang diterimanya himpunan rata. Itu yang membentuk
+    /// kata-kata galatnya, dan alasan ia tidak menyebut "dua topik".
+    /// </para>
     /// </param>
     /// <remarks>
     /// 🔑 <b>Bukan bagian template ADR-012.</b> Relasi tidak pernah dihitung
     /// <see cref="MissingSections"/>: halaman tanpa satu sisi pun tetap lengkap.
     /// <para>
-    /// 🔴 <b>Dua topik tidak boleh saling mensyaratkan.</b> Kalau topik tujuan sudah
-    /// membutuhkan topik ini, sisi baru itu kontradiksi yang terbaca di dua halaman
-    /// sekaligus, jadi ia ditolak. Siklus yang lebih panjang (A→B→C→A) BELUM
-    /// diperiksa di V1; menaikkannya cukup dengan mengirim penutupan transitif
-    /// sebagai <paramref name="topicRequires"/> — tanda tangan ini tidak berubah.
-    /// Pemicunya tertulis di ADR-023.
+    /// 🔴 <b>Prasyarat tidak boleh berputar.</b> Kalau topik tujuan sudah membutuhkan
+    /// topik ini — langsung, atau lewat rantai sepanjang apa pun — sisi baru itu
+    /// menutup lingkaran, jadi ia ditolak. Sampai 2026-09-24 hanya lingkaran berdua
+    /// yang tertangkap, sebab yang diserahkan pemanggil cuma tujuan langsung tujuan;
+    /// A→B→C→A lolos. Yang berubah memang hanya isi <paramref name="topicRequires"/>,
+    /// seperti yang diramal ADR-023 — <b>tapi kalimat galatnya ikut berubah</b>: "dua
+    /// topik tidak boleh saling mensyaratkan" adalah pernyataan yang salah ketika yang
+    /// ditutup lingkaran bertiga.
     /// </para>
     /// <para>
     /// ⚠️ Seperti <see cref="Touch"/>, ia <b>tidak</b> menurunkan
@@ -351,8 +359,18 @@ public sealed class Technology
 #pragma warning restore CA2208
         }
 
-        // Idempoten, dan sengaja SEBELUM pemeriksaan dua arah: mengulang
-        // permintaan yang sudah tercatat tidak boleh berubah jadi galat.
+        // Idempoten, dan sengaja SEBELUM pemeriksaan siklus: mengulang permintaan
+        // yang sudah tercatat tidak boleh berubah jadi galat.
+        //
+        // ⚠️ Versi pertama komentar ini mengklaim urutan itu jadi LEBIH penting
+        // sesudah penutupan transitif dipakai, sebab "sisi A→B yang sudah tersimpan
+        // menaruh A di dalam penutupan B". Itu KELIRU: penutupan B berisi yang
+        // DIBUTUHKAN B, dan A tidak ada di sana kecuali lingkarannya memang sudah
+        // tertutup. Yang benar lebih sempit, dan hanya mengenai baris yang tersimpan
+        // SEBELUM aturan ini ada: kalau B→C→A sudah ada, mengulang A→B kini melihat A
+        // di penutupan B (dulu tidak, sebab tujuan langsung B cuma C) - jadi jalan
+        // keluar di atas inilah yang menjaga permintaan ulang tetap 200 di data lama
+        // yang sudah berputar.
         if (_relationships.Any(r => r.Kind == RelationshipKind.Requires && r.ToTechnologyId == topicId))
         {
             return;
@@ -361,7 +379,7 @@ public sealed class Technology
         if (topicRequires.Contains(Id))
         {
             throw new InvalidOperationException(
-                $"Topik yang diminta sudah mensyaratkan '{Slug}'. Dua topik tidak boleh saling mensyaratkan (ADR-023).");
+                $"Topik yang diminta sudah mensyaratkan '{Slug}', langsung atau lewat rantai prasyarat. Prasyarat tidak boleh berputar (ADR-023).");
         }
 
         _relationships.Add(TechnologyRelationship.Create(Id, topicId, RelationshipKind.Requires));
