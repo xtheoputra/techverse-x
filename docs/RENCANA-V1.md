@@ -239,3 +239,55 @@ menuntaskan **tiga dari enam bidang prioritas 1**, dan menuliskan 42 di sana
 akan menjadikan rencana ini persis seperti rencana yang digantikannya — janji
 yang tidak punya bulan untuk mengerjakannya. **V1 selesai kalau di akhir Bulan 6
 angkanya 22 dan ketiga fitur di atas jalan.** Sisanya V1.1.
+
+### Kemajuan per 25 September 2026
+
+Pemilik bertanya *"sudah berapa % proyek ini jadi?"*. Jawabannya bergantung pada
+alat ukurnya, jadi ketiganya ditulis berdampingan — dan **hanya yang pertama
+yang mengikat**.
+
+| Alat ukur | Angka | Sifatnya |
+|---|---|---|
+| **Topik berstatus `tinjau`** (ukuran di atas) | **0 dari 22 — 0%** | resmi; dihitung, bukan diperkirakan |
+| Pekerjaan per bulan rencana | **± 24%** | perkiraan, bobot tiap bulan sama |
+| Visi penuh `KERANGKA.md` | **di bawah 10%** | perkiraan kasar |
+
+**Kenapa ukuran resmi masih nol.** Produksi belum tayang, dan di bentuk produksi
+basis datanya berisi 14 bidang dan **nol topik**. Enam topik di pengembangan
+adalah isi contoh `seed`, bukan kurikulum — tidak satu pun dihitung. Jalan untuk
+menaikkan halaman ke `tinjau` ([ADR-021](adr/ADR-021-jalan-menuju-tinjau.md))
+sengaja belum dibangun sampai [#40](https://github.com/xtheoputra/techverse-x/issues/40) tutup.
+
+**Rincian per bulan.** Kolom kanan perkiraan, bukan hitungan:
+
+| Bulan | Keadaan 25 September | Perkiraan |
+|---|---|---|
+| 1 | 3 dari 4 butir selesai. Deploy menunggu uji Railway ([#39](https://github.com/xtheoputra/techverse-x/issues/39)) → Neon ([#38](https://github.com/xtheoputra/techverse-x/issues/38)) → Vercel ([#40](https://github.com/xtheoputra/techverse-x/issues/40)). Ukuran selesainya — URL publik — **belum tercapai** | ± 75% pekerjaan, **0** ukuran selesai |
+| 2 | 7 topik AI Agents ([#42](https://github.com/xtheoputra/techverse-x/issues/42)) terkunci di belakang ADR-021 | 0% |
+| 3 | pencarian ✅ · Knowledge Graph dasar 🟡 (produksi nol sisi) · Explore ✅ · Learn ⏸ · [#54](https://github.com/xtheoputra/techverse-x/issues/54) terbuka | ± 70% |
+| 4 | Cloud & Infrastructure dan IoT: nol topik. arXiv: baru riset di transkrip sesi — belum ADR, belum kode | 0% |
+| 5 | AI Mentor: **nol kode AI** — tidak ada paket OpenAI, Anthropic, Agent Framework, atau pgvector di `apps`, `services`, `packages`, maupun `tests` | 0% |
+| 6 | Labs + Project Generator: web punya tiga rute (`/`, `/cari`, `/teknologi/<slug>`), tidak satu pun Labs | 0% |
+
+(75 + 0 + 70 + 0 + 0 + 0) / 6 ≈ 24%. Visi penuh jauh lebih lebar: dari tujuh
+bagian aplikasi di `KERANGKA.md`, yang sudah berbentuk baru Explore dan Knowledge
+Graph dasar — belum menghitung Visi 2.0 sama sekali.
+
+⚠️ **Angka ± 70% Bulan 3 belum ada di `main`.** Semuanya masih di rantai delapan
+PR ([#56](https://github.com/xtheoputra/techverse-x/pull/56) … [#67](https://github.com/xtheoputra/techverse-x/pull/67)) yang belum di-merge, dan CI-nya mati karena
+[#57](https://github.com/xtheoputra/techverse-x/issues/57) (terakhir diukur 24 September). Dibaca dari `main` saja, Bulan 3 masih 0.
+
+**Terhadap waktu, proyek tidak terlambat.** Rencana ini bertanggal 4 September;
+25 September adalah akhir minggu ke-3 dari ± 26 — sekitar 12% waktunya.
+Rekayasanya justru mendahului jadwal, sebab Bulan 3 dikerjakan sebelum Bulan 1
+selesai. Kalau Bulan 1 dihitung dari tanggal rencana ini, ia berakhir ± 4 Oktober:
+sisa sembilan hari, dan seluruh sisanya pekerjaan pemilik, bukan kode.
+
+🔑 **Yang paling cepat menggerakkan angka resmi bukan kode baru**, melainkan urutan
+ini: uji Railway R1–R6 → Neon → Vercel (#40 tutup, Bulan 1 selesai) → ADR-021 boleh
+dibangun → penghitung `tinjau` akhirnya bisa bergerak. Merge rantai PR menunggu
+#57 pulih.
+
+💡 Bobot per bulan yang sama dipilih karena paling mudah dibantah, bukan karena
+paling tepat — Bulan 5 (AI Mentor) hampir pasti lebih berat daripada Bulan 1.
+Kalau angka ± 24% dikutip, kutip bersama angka resminya.

@@ -4,6 +4,47 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-25 — Sesi 16: *"sudah berapa %?"* dijawab dengan tiga angka, dan hanya satu yang resmi
+
+Permintaan pemilik: *"sudah berapa % proyek ini jadi?"*, lalu *"simpan, commit dan push"*.
+
+Tidak ada kode yang disentuh. Jawabannya disimpan di
+[RENCANA-V1](RENCANA-V1.md#kemajuan-per-25-september-2026), di bawah ukuran
+kemajuan yang ditulis berkas itu sendiri: **0 dari 22 topik `tinjau` (0%)** sebagai
+angka resmi, **± 24%** pekerjaan per bulan rencana sebagai perkiraan, dan **di
+bawah 10%** untuk visi penuh `KERANGKA.md`.
+
+### Diukur ulang sebelum dijawab, bukan disalin dari Sesi 15
+
+| Yang diperiksa | Hasil |
+|---|---|
+| PR terbuka | delapan, #56 … #67, **tidak berubah** sejak Sesi 15 |
+| `origin/main` | masih `52dd79f` (merge #53); cabang ini **26 commit** di depannya, sebelum commit sesi ini |
+| Issue terbuka | #38 · #39 · #40 · #42 · #54 · #55 · #57 · #59 · #60 · #61 · #68 — sama |
+| *"Belum ada kode AI"* (README) | **benar** — nol berkas `.cs`/`.ts`/`.tsx`/`.csproj`/`.props` di `apps`, `services`, `packages`, `tests` menyebut OpenAI, Anthropic, Agent Framework, Semantic Kernel, atau pgvector |
+| Rute web | tiga `page.tsx`: `/`, `/cari`, `/teknologi/[slug]` — tidak ada Labs |
+| arXiv di kode | satu komentar di `ResourceType.cs`; tidak ada pengambilnya |
+
+⚠️ **#57 tidak diukur ulang sebelum ditulis** — RENCANA-V1 menyebut tanggal
+pengukuran terakhirnya (24 September), bukan hari ini. Push commit ini memicu
+run CI di [#67](https://github.com/xtheoputra/techverse-x/pull/67), dan run itulah
+sonde gratisnya.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Sama dengan Sesi 15**, ditambah satu commit dokumen di puncak rantai
+(`fase-2/kata-kunci-yang-dicari`, [#67](https://github.com/xtheoputra/techverse-x/pull/67)). Rantai
+delapan PR, urutan merge, yang menunggu pemilik, dan yang menunggu pemicu tertulis
+tidak bergeser satu baris pun — baca bagian yang sama di Sesi 15 di bawah.
+
+**Lingkungan pengembangan:** berbeda dari yang Sesi 15 tinggalkan, dan bukan karena
+sesi ini — **Docker daemon tidak berjalan** (`docker ps` gagal menyambung ke
+`dockerDesktopLinuxEngine`), jadi `techversex-postgres` dan `techversex-redis`
+yang Sesi 15 catat menyala kini mati. Sesi ini tidak menyalakan atau mematikan
+proses apa pun. `.\run.ps1 up` lalu `migrate` diperlukan sebelum `verify`.
+
+---
+
 ## 2026-09-24 — Sesi 15: tiga pekerjaan yang tidak menunggu siapa pun, dan tiga penjaga yang hijau karena tidak melihat
 
 Permintaan pemilik: *"lanjutkan semua tugas yang belum terselesaikan, sesuai dokumen, kerjakan dengan sempurna"*.
