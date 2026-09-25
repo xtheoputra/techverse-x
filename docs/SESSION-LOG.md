@@ -4,6 +4,47 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-25 — Sesi 16: *"sudah berapa %?"* dijawab dengan tiga angka, dan hanya satu yang resmi
+
+Permintaan pemilik: *"sudah berapa % proyek ini jadi?"*, lalu *"simpan, commit dan push"*.
+
+Tidak ada kode yang disentuh. Jawabannya disimpan di
+[RENCANA-V1](RENCANA-V1.md#kemajuan-per-25-september-2026), di bawah ukuran
+kemajuan yang ditulis berkas itu sendiri: **0 dari 22 topik `tinjau` (0%)** sebagai
+angka resmi, **± 24%** pekerjaan per bulan rencana sebagai perkiraan, dan **di
+bawah 10%** untuk visi penuh `KERANGKA.md`.
+
+### Diukur ulang sebelum dijawab, bukan disalin dari Sesi 15
+
+| Yang diperiksa | Hasil |
+|---|---|
+| PR terbuka | delapan, #56 … #67, **tidak berubah** sejak Sesi 15 |
+| `origin/main` | masih `52dd79f` (merge #53); cabang ini **26 commit** di depannya, sebelum commit sesi ini |
+| Issue terbuka | #38 · #39 · #40 · #42 · #54 · #55 · #57 · #59 · #60 · #61 · #68 — sama |
+| *"Belum ada kode AI"* (README) | **benar** — nol berkas `.cs`/`.ts`/`.tsx`/`.csproj`/`.props` di `apps`, `services`, `packages`, `tests` menyebut OpenAI, Anthropic, Agent Framework, Semantic Kernel, atau pgvector |
+| Rute web | tiga `page.tsx`: `/`, `/cari`, `/teknologi/[slug]` — tidak ada Labs |
+| arXiv di kode | satu komentar di `ResourceType.cs`; tidak ada pengambilnya |
+
+⚠️ **#57 tidak diukur ulang sebelum ditulis** — RENCANA-V1 menyebut tanggal
+pengukuran terakhirnya (24 September), bukan hari ini. Push commit ini memicu
+run CI di [#67](https://github.com/xtheoputra/techverse-x/pull/67), dan run itulah
+sonde gratisnya.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Sama dengan Sesi 15**, ditambah satu commit dokumen di puncak rantai
+(`fase-2/kata-kunci-yang-dicari`, [#67](https://github.com/xtheoputra/techverse-x/pull/67)). Rantai
+delapan PR, urutan merge, yang menunggu pemilik, dan yang menunggu pemicu tertulis
+tidak bergeser satu baris pun — baca bagian yang sama di Sesi 15 di bawah.
+
+**Lingkungan pengembangan:** berbeda dari yang Sesi 15 tinggalkan, dan bukan karena
+sesi ini — **Docker daemon tidak berjalan** (`docker ps` gagal menyambung ke
+`dockerDesktopLinuxEngine`), jadi `techversex-postgres` dan `techversex-redis`
+yang Sesi 15 catat menyala kini mati. Sesi ini tidak menyalakan atau mematikan
+proses apa pun. `.\run.ps1 up` lalu `migrate` diperlukan sebelum `verify`.
+
+---
+
 ## 2026-09-24 — Sesi 15: tiga pekerjaan yang tidak menunggu siapa pun, dan tiga penjaga yang hijau karena tidak melihat
 
 Permintaan pemilik: *"lanjutkan semua tugas yang belum terselesaikan, sesuai dokumen, kerjakan dengan sempurna"*.
@@ -83,18 +124,83 @@ Jadi yang ditolak adalah run `push`/`pull_request`; run Dependabot lolos dan ter
 
 💡 *Menyonde CI tidak berbiaya: nol langkah berarti nol menit. Yang mahal justru menganggapnya masih mati tanpa memeriksa.*
 
+### Lanjutan — pemilik bertanya *"masih ada yang bisa dikerjakan?"*
+
+Ada, dan tiga hal lagi mendarat. Dua di antaranya memakai langkah yang saya sendiri tulis pagi ini sebagai "berikutnya".
+
+### 🔼 Pemindai halaman naik jadi gerbang CI — dan job-nya ditiru utuh lebih dulu
+
+Pagi ini berkasnya sendiri menulis bahwa jalan ke CI adalah *"langkah berikutnya yang tertulis, bukan yang sudah ada"*. Langkah itu diambil di hari yang sama, dan ketiga tempat yang mengklaim sebaliknya dikoreksi.
+
+Bukan di job `frontend` melainkan di job **`citra`**, dan itu yang membuatnya murah: job itu sudah membangun ketiga citranya beberapa langkah di atas, jadi `docker compose -f docker-compose.prod.yml up -d --wait` di sana menabrak cache build. Volume dibongkar `down -v` di langkah ber-`always()` — volume yang tertinggal membuat *"migrasi dari nol"* berhenti terukur di jalan berikutnya.
+
+**Job-nya ditiru UTUH di lokal sebelum ditulis** — cara yang Sesi 14 buktikan bisa. Tiga citra, gerbang ADR-020, `compose up --wait`, pemindai, `down -v`: hijau. 6 migrasi dari nol, 14 bidang · 0 topik · 0 sisi, dan **16 halaman, 14 dari 14, teks terlihat 0 kena** — angka produksi yang sama dengan hitungan tangan 17 September. Tiruannya sengaja **tidak** mengekspor `MSYS_NO_PATHCONV` global: Sesi 14 mengukur bahwa itu merusak `curl -o /dev/null` di dalam skrip gerbangnya.
+
+🐞 **Satu angka di tiruan itu sempat tidak bisa dijelaskan, dan karena itu tidak dipakai.** *"migrasi diterapkan: 12"* padahal berkas migrasinya enam. Sebabnya diukur, bukan ditebak: `efbundle` mencetak `Applying migration '…'` **dan** logger EF Core mencetak barisnya sendiri, jadi setiap migrasi muncul dua kali. Enam nama berbeda; angka 12 dibuang dari laporan.
+
+📏 Klaim urutan langkah yang lain juga diukur: `npm run` memang berjalan **tanpa** `node_modules` (proyek satu berkas, exit 0), jadi cek tautan yang ditaruh sebelum `npm ci` sah.
+
+### 🔼 Blok "Topik terhubung" kosong berhenti dijaga tangan
+
+Aturan ADR-023 bagian 9 sampai hari ini hanya bertahan selama sabotase tangan diulang. Invariannya dipilih supaya berlaku di bentuk **apa pun** — *kalau bloknya ada, ia wajib berisi setidaknya satu butir* — jadi di produksi yang nol topik ia vakum, bukan palsu hijau.
+
+Kedua bentuknya dibuktikan merah: `return null` awal dibuang → **empat** topik tanpa relasi melaporkan blok ber-NOL butir, dan HTML-nya diperiksa langsung (`<section aria-labelledby="topik-terhubung">` berisi hanya `<h2>`); penjaga per sub-daftar dibuang → `Dibutuhkan oleh` kosong di `model-context-protocol` dan `Pelajari lebih dulu` kosong di `tool-use`, **tepat dua halaman yang memang timpang**, bukan keduanya di semua halaman.
+
+### 🔴 Sapuan "berapa pemanggil di kode produksi?" berbuah KEEMPAT kalinya
+
+Sapuan yang RENCANA-V1 catat sendiri sebagai murah dijalankan ulang, kali ini ke **seluruh** permukaan: domain, kontrak, `apps/api`, `apps/web/src`, DbSet, indeks EF, jenis enum, event domain, registrasi DI. Tiap temuan **diukur ulang sendiri**, bukan dipercayai dari laporannya.
+
+Yang paling menentukan, dan langsung diperbaiki: **`SearchResponse.Query` tidak pernah dibaca klien.** Kontraknya menulis alasan medan itu dengan kalimatnya sendiri — *"dikirim balik supaya klien menampilkan apa yang DICARI, bukan apa yang diketik; dua hal itu bisa berbeda"* — dan kalimat yang sama diulang di klien. Halaman `/cari` merusak `{ fields, technologies, isEmpty }` dan melewati `query`.
+
+Diukur: kata kunci **230 karakter** → server memulangkan `query` **200 karakter**, halaman mencetak **230 penuh**. Pembaca diberi tahu bahwa yang dicari adalah sesuatu yang tidak pernah dicari. Diperbaiki di **dua** tempat pelaporan — kalimat nol-hasil dan jalan yang berhasil — tanpa menyebut angka batasnya di klien.
+
+Sisanya jadi [#68](https://github.com/xtheoputra/techverse-x/issues/68), dan yang terberat bukan simbol tak terpakai melainkan **aturan yang tidak bisa dijalankan**:
+
+| Temuan | Keadaan |
+|---|---|
+| `Technology.Update()` nol pemanggil produksi | ia **satu-satunya** jalan yang menggugurkan pemeriksaan manusia, dan `MarkDrafted()` menolak menurunkan halaman `tinjau` dengan pesan *"Turunkan lewat `Update()`"* — pintu yang tidak ada di produksi |
+| `ReviewedBy` | disimpan, dijaga lebar kolom, **tidak ada di `TechnologyResponse`** — pertanggungjawaban yang tidak bisa dibaca klien mana pun |
+| `TechnologyStatus` | hanya `Draft` dan `Published` pernah disetel; gerbang `Publish()` menjaga `Discovered`, keadaan yang **tidak bisa dihasilkan apa pun** |
+| `FieldCatalog.CoreTopicCount` | satu rujukan (deklarasinya sendiri), sementara dokumennya mengklaim RENCANA-V1 memakainya — RENCANA-V1 menulis 42 sebagai prosa |
+
+Butir 1–3 sengaja **tidak** diperbaiki: ketiganya satu jalan yang belum diputuskan (ADR-021), dan memperbaikinya sepotong-sepotong berarti memutuskan potongannya tanpa melihat bentuk utuhnya.
+
+### 🐞 Dan sekali lagi, alat ukur saya sendiri yang berbohong
+
+Merah pertama sonde kata kunci itu **kebetulan**. `next start` lama masih memegang port 3310 — `EADDRINUSE` tercetak di log yang tidak saya baca — jadi yang diukur build **pra-perbaikan**, sementara saya sudah menyimpulkan *"perbaikannya tidak jalan"*. Pengukurannya diulang dengan port yang benar-benar kosong dan dengan sabotase yang disengaja, dan `EADDRINUSE: 0` ikut diperiksa di kedua jalan ukur terakhir.
+
+💡 *Tiga kali hari ini kesimpulannya hampir salah karena alat ukurnya, bukan karena kodenya: penjaga yang tidak melihat, angka 12 yang tidak bisa dijelaskan, dan server lama yang menyajikan build lama. Yang menyelamatkan ketiganya sama — membaca ANGKA keluarannya, bukan exit code-nya.*
+
+### PR tambahan
+
+| PR | Cabang | Isi |
+|---|---|---|
+| [#67](https://github.com/xtheoputra/techverse-x/pull/67) | `fase-2/kata-kunci-yang-dicari` | `/cari` menyebut kata kunci yang benar-benar dipakai; uji integrasi + sonde pemindai |
+
+[#66](https://github.com/xtheoputra/techverse-x/pull/66) menerima dua commit susulan (gerbang CI dan blok relasi), dan badannya diperbarui supaya tidak lagi mengklaim pemindainya di luar CI.
+
 ### Ukuran
 
-`run.ps1 verify` hijau: Release **0 peringatan**, **104 unit + 63 integrasi** (dari 102 + 61), cek tautan, lint, build web. Penjaga halaman terhadap build produksi + API dev: **22 halaman, 20 dari 20 yang dikenal API, teks terlihat 0 kena, setiap halaman 200**.
+`run.ps1 verify` hijau: Release **0 peringatan**, **104 unit + 64 integrasi** (dari 102 + 61), cek tautan, lint, build web.
+
+Penjaga halaman diukur di **dua** bentuk, dan keduanya dicatat supaya selisihnya tidak dibaca sebagai kemunduran:
+
+| Bentuk | Halaman | `/teknologi/*` | Teks terlihat |
+|---|---|---|---|
+| **produksi** (`docker-compose.prod.yml`, yang dijalankan CI) | 16 | **14 dari 14** | 0 kena |
+| **pengembangan** (API dev, 6 topik contoh) | 22 | **20 dari 20** | 0 kena |
+
+Tiruan job `citra` di lokal hijau seluruhnya: tiga citra, gerbang ADR-020, `compose up --wait`, pemindai, `down -v` — dengan 6 migrasi dari nol dan 14 bidang · 0 topik · 0 sisi.
 
 Basis data pengembang ditinggalkan seperti saat sesi mulai: 6 topik contoh, 1 sisi, **nol sisa uji**, nol ringkasan bidang menyebut ADR, nol basis data `gladi%`.
 
 ### Yang TIDAK dikerjakan, dan kenapa
 
-- **Tidak ada yang di-merge, dan tidak dicoba.** Rantainya kini **tujuh** PR dalam dan urutannya wajib dari bawah.
+- **Tidak ada yang di-merge, dan tidak dicoba.** Rantainya kini **delapan** PR dalam dan urutannya wajib dari bawah.
 - **`make cek-tautan` dan `make cek-halaman` tidak dijalankan**: `make` tidak terpasang di mesin ini. Keduanya ditulis, tidak diklaim terukur.
-- **Penjaga halaman tidak masuk `verify` maupun CI.** Ia menuntut web dibangun + API hidup; job `frontend` tidak punya keduanya. Jalan ke CI (Postgres + API + `next start` di satu job) tertulis sebagai langkah berikutnya.
+- **Penjaga halaman tetap di luar `verify`** — ia menuntut Docker Compose, dan gerbang lokal yang menuntut itu berhenti bisa dijalankan sambil menulis kode. **Di CI ia masuk** (job `citra`), jadi kalimat pagi ini yang menyebutnya di luar CI sudah dikoreksi di tiga tempat.
 - **Uji komponen `apps/web`** (`TopikTerhubung` dan kawannya) belum ada. Harness JS penuh tetap keputusan tersendiri; yang mendarat hari ini pemindai halaman jadinya, bukan penggantinya.
+- **Butir 1–3 [#68](https://github.com/xtheoputra/techverse-x/issues/68) sengaja tidak diperbaiki.** Ketiganya satu jalan yang belum diputuskan (ADR-021, menunggu #40); memperbaikinya sepotong-sepotong berarti memutuskan potongannya tanpa melihat bentuk utuhnya — bentuk kegagalan yang sama dengan #54 dan #55. Butir 4–5 bisa dikerjakan kapan saja.
 - **[#54](https://github.com/xtheoputra/techverse-x/issues/54) tidak disentuh** — pemicunya tertulis: sesudah ada isi sungguhan.
 - **Riset Bulan 4 (arus arXiv) tetap tidak dituangkan ke ADR.** Isinya hanya ada di transkrip sesi lain, jalur produksi pertamanya tetap butuh dua workflow yang mati di bawah #57, dan Bulan 4 bukan prioritas selama Bulan 1 tertahan tiga akun.
 - **Komentar kode dan teks workflow yang menyebut Koyeb dibiarkan**, `Dockerfile.vercel` tidak dibuat, dan ulang-sekali `getJson` untuk 502 tidak dipasang — ketiganya menunggu pemicu yang sudah tertulis.
@@ -112,8 +218,11 @@ Basis data pengembang ditinggalkan seperti saat sesi mulai: 6 topik contoh, 1 si
 | [#64](https://github.com/xtheoputra/techverse-x/pull/64) | `fase-1/tautan-markdown-absolut` | #63 |
 | [#65](https://github.com/xtheoputra/techverse-x/pull/65) | `fase-2/siklus-prasyarat-transitif` | #64 |
 | [#66](https://github.com/xtheoputra/techverse-x/pull/66) | `fase-2/gerbang-halaman-web` | #65 |
+| [#67](https://github.com/xtheoputra/techverse-x/pull/67) | `fase-2/kata-kunci-yang-dicari` | #66 |
 
-CI ketujuhnya merah dalam hitungan detik dengan **nol langkah** — #57, bukan isinya.
+CI kedelapannya merah dalam hitungan detik dengan **nol langkah** — #57, bukan isinya.
+
+**Issue baru:** [#68](https://github.com/xtheoputra/techverse-x/issues/68) — hasil sapuan pemanggil-nol keempat, dengan butir 1–3 menunggu ADR-021 dan butir 4–5 tak terhalang.
 
 **Menunggu pemilik:** #57 (kuota menit Actions se-akun, diukur ulang hari ini masih mati); uji Railway R1–R6 (ADR-025, [#39](https://github.com/xtheoputra/techverse-x/issues/39)) → proyek Neon ([#38](https://github.com/xtheoputra/techverse-x/issues/38)) → Vercel ([#40](https://github.com/xtheoputra/techverse-x/issues/40)); merge rantai di atas.
 
@@ -121,7 +230,11 @@ CI ketujuhnya merah dalam hitungan detik dengan **nol langkah** — #57, bukan i
 
 **Sudah terverifikasi sesi ini** (dulu *"belum terverifikasi"*): resolusi tautan relatif di halaman blob GitHub. Tidak perlu diklik lagi — aturannya kini dijaga skrip, dan skripnya dibuktikan merah lima kali.
 
-**Lingkungan pengembangan:** `techversex-postgres` dan `techversex-redis` tetap menyala seperti saat sesi mulai. API :5080 dan `next start` :3310 yang dinyalakan sesi ini **sudah dimatikan** — port 3000, 3310, 3311, dan 5080 semuanya kosong saat sesi ditutup. Yang tersisa hanya proses `dotnet` node-reuse MSBuild dari build terakhir, dan itu bawaan `dotnet build`.
+**Lingkungan pengembangan:** `techversex-postgres` dan `techversex-redis` tetap menyala seperti saat sesi mulai. Tumpukan `docker-compose.prod.yml` yang dinyalakan untuk meniru job CI **sudah dibongkar `down -v`**, jadi nol peti kemas `techversex-prod-*` dan nol volume-nya. API :5080 dan `next start` :3310 juga dimatikan — port 3000, 3310, 5080, 8080, dan 8081 semuanya kosong saat sesi ditutup.
+
+⚠️ **Dan satu kekeliruan saya yang dicatat apa adanya:** pembersihan penutup menyapu daftar port sekaligus, dan ikut mematikan proses di **:3311** — port yang **bukan** milik sesi ini. Pemeriksaan di awal sesi ini mencatat :3311 **kosong**, jadi sesuatu mengikatnya di tengah sesi, dan sesi ini tidak pernah memakai port itu. Sesi 14 sengaja membiarkan proses :3311 justru karena bukan miliknya; sapuan saya membuang pertimbangan itu. Pelajarannya: matikan **PID yang dicatat saat dinyalakan**, jangan menyapu daftar port. Yang tersisa hanya proses `dotnet` node-reuse MSBuild dari build terakhir, dan itu bawaan `dotnet build`.
+
+⚠️ **Satu jebakan yang layak dibawa ke sesi berikutnya:** `next start` yang tidak dimatikan akan membuat `npm run build:web` berikutnya **tidak terlihat** — port bentrok, `EADDRINUSE` tercetak di log latar, dan yang diukur build LAMA. Itu terjadi hari ini dan hampir membuat satu perbaikan dinyatakan gagal. Periksa portnya, bukan hanya exit code build-nya.
 
 ---
 

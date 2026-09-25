@@ -85,12 +85,31 @@ async function Hasil({ q }: { q: string }) {
     );
   }
 
-  const { fields, technologies, isEmpty } = result.data;
+  // `query`, bukan `q`: yang disebut ke pembaca harus kata kunci yang BENAR-BENAR
+  // dipakai server. Aturan itu tertulis dua kali — di `SearchResponse` dan di
+  // `SearchResult` — dan sampai 2026-09-24 halaman ini mengabaikan keduanya.
+  //
+  // 📏 Bukan kehati-hatian teoretis; diukur lewat API sungguhan: kata kunci 230
+  // karakter dijawab `query` 200 karakter (`PencarianTeks.Bersihkan` memotongnya),
+  // sementara halaman ini mencetak 230 karakter penuh. Pembaca diberi tahu bahwa
+  // yang dicari adalah sesuatu yang tidak pernah dicari.
+  const { query: dicari, fields, technologies, isEmpty } = result.data;
+
+  // Sengaja TANPA menyebut angka batasnya. Angka itu milik server
+  // (`PencarianTeks.MaksPanjangKataKunci`), dan menuliskannya di sini akan jadi
+  // sumber kedua yang bisa hanyut tanpa ada yang merah — cacat yang sama dengan
+  // kembaran `seed.sh` dulu.
+  const dipendekkan = dicari !== q;
 
   if (isEmpty) {
     return (
       <div className="rounded-lg border border-neutral-300 bg-white p-4 text-sm dark:border-neutral-700 dark:bg-neutral-900">
-        <p className="font-medium">Tidak ada yang cocok dengan “{q}”.</p>
+        <p className="font-medium">Tidak ada yang cocok dengan “{dicari}”.</p>
+        {dipendekkan ? (
+          <p className="mt-1 text-neutral-600 dark:text-neutral-400">
+            Kata kuncinya dipendekkan sebelum dicari.
+          </p>
+        ) : null}
         <p className="mt-1 text-neutral-600 dark:text-neutral-400">
           {/*
             🔴 Kalimat ini menyebut BATAS pencarian hari ini, dan #54 wajib
@@ -113,6 +132,13 @@ async function Hasil({ q }: { q: string }) {
 
   return (
     <div className="space-y-10">
+      {/* Juga di jalan yang BERHASIL, bukan cuma saat nol hasil: kalau yang dicari
+          bukan yang diketik, hasil yang tampil pun bukan jawaban atas yang diketik. */}
+      {dipendekkan ? (
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          Hasil untuk “{dicari}” — kata kuncinya dipendekkan sebelum dicari.
+        </p>
+      ) : null}
       {fields.length > 0 ? <BidangCocok fields={fields} /> : null}
       {technologies.items.length > 0 ? (
         <TopikCocok items={technologies.items} total={technologies.totalItems} />
