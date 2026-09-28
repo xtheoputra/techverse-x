@@ -127,7 +127,7 @@ Pemilik memilih jalur yang paling sederhana dari tiga yang ditimbang: **tidak pi
 
 `origin/main` masih `52dd79f`. **CI GitHub berjalan lagi sejak repo publik**, dan run `pull_request` kesepuluh PR **hijau** di commit kepalanya masing-masing; run `push` lama #56–#69 dijalankan ulang supaya centang merah nol-langkah hilang dari halaman PR. `.\run.ps1 ci` tetap alat pengembang sebelum push.
 
-**Issue terbuka** (diukur): #38 · #39 · #40 · #42 · #54 · #55 · #57 · #59 · #60 · #61 · #68 — sama. #68 tinggal butir 1–3. #57 menerima [koreksi](https://github.com/xtheoputra/techverse-x/issues/57#issuecomment-5863273523).
+**Issue terbuka** (diukur sesudah penutupan): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68. **#57 ditutup** dengan buktinya — tiga run yang benar-benar berjalan. #68 tinggal butir 1–3. #57 menerima [koreksi](https://github.com/xtheoputra/techverse-x/issues/57#issuecomment-5863273523).
 
 **Menunggu pemilik — baru hari ini:** `LICENSE` (repo kini publik tanpa lisensi = *all rights reserved*); nama repo privat lain di catatan Sesi 14–15 dan komentar #57; akun hosting dan AI khusus TechVerse X saat dipakai. **Merge rantai kini punya dasar CI hijau** — urutan dari #56 ke atas.
 
