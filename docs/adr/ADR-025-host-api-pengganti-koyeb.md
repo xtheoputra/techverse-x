@@ -384,7 +384,7 @@ harga lebih teliti: halaman pemasarannya menulis *"no credit card required"* dan
 
 ---
 
-## Pembaruan 2026-09-28 - jalan keluar berbayar dicoret, satu jalan mandiri ditambahkan
+## Pembaruan 2026-09-28 - jalan keluar berbayar dicoret
 
 [ADR-026](ADR-026-nol-biaya-gratis-mandiri.md) menurunkan pagu ke **nol**. Urutan uji
 di bagian 3-5 **tidak berubah**, dan angka Railway diperiksa ulang ke sumber primer
@@ -397,7 +397,16 @@ Yang berubah ada di bagian 6:
 - **Dicoret:** *"Melonggarkan tanpa kartu"* (Railway Hobby, Koyeb Pro) dan domain
   berbayar untuk *named* Cloudflare Tunnel. Oracle Always Free juga tidak: ia
   menuntut kartu.
-- **Ditambahkan - hibrida mandiri:** web di Vercel Hobby, API **dan** PostgreSQL di
-  PC pemilik lewat `docker-compose.prod.yml`, diterbitkan lewat **Tailscale Funnel**
-  (`*.ts.net`, tanpa domain). Tabel timbangannya - tenaga lawan ketersediaan - ada di
-  ADR-026 bagian 5. Tidak dipilih di sini; uji Funnel butuh akun Tailscale.
+- **Tidak ditambahkan: host dari PC pemilik.** Versi pertama pembaruan ini sempat
+  menambahkan API dan PostgreSQL di PC pemilik lewat Tailscale Funnel; pemilik
+  menolaknya di hari yang sama - proyek tidak boleh bergantung pada mesin siapa pun.
+- **Dua fakta baru untuk urutan uji:** Railway Free tidak bisa menarik citra dari
+  registry privat (*"Private registry credentials are available on the Pro plan"*) -
+  R3 memang membangun dari Dockerfile repo, jadi tidak terkena. Dan repo ini akan
+  pindah ke **organisasi GitHub gratis, publik** (ADR-026): dokumentasi Vercel
+  bertentangan soal Hobby dari repo organisasi, jadi uji V1 dan penyambungan web
+  dimulai dengan memastikan itu.
+- **Migrasi jalur Vercel tidak lagi dari mesin pemilik.** Bagian 3 dan uji V2 menaruhnya
+  di sana *"karena Actions mati"*. Begitu repo punya menit sendiri di organisasinya,
+  migrasi berjalan dari `migrasi-produksi.yml` (`workflow_dispatch`) — gerbang manusia
+  yang sama, tanpa bergantung pada PC siapa pun.

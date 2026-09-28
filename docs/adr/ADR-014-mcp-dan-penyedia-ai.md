@@ -63,15 +63,20 @@ diambil, apalagi ketika tidak mengambilnya gratis.
 
 ---
 
-## Pembaruan 2026-09-28 - bawaan pindah ke Ollama
+## Pembaruan 2026-09-28 - bawaan pindah ke tier gratis, tanpa kartu
 
 *"Default V1 tetap OpenAI"* dibatalkan oleh
-[ADR-026](ADR-026-nol-biaya-gratis-mandiri.md): bawaannya **Ollama di mesin
-pemilik** (`qwen3:8b`, Apache-2.0), dengan embedding `qwen3-embedding:0.6b`.
-Keputusan inti halaman ini justru yang membuat perpindahan itu murah — kode bicara ke
-abstraksi, dan Agent Framework menyambung ke Ollama lewat OllamaSharp.
+[ADR-026](ADR-026-nol-biaya-gratis-mandiri.md): nol biaya, dan proyek tidak bergantung
+pada mesin siapa pun. Bawaannya kini dua tier gratis tanpa kartu yang sama-sama
+menjanjikan **tidak melatih** model dengan input dan output kita — **Groq** untuk draf
+dari sumber terkurasi, **Cloudflare Workers AI** untuk AI Mentor dan embedding — dan
+keduanya saling jadi cadangan. Keduanya lewat endpoint yang kompatibel OpenAI, jadi
+keputusan inti halaman ini justru yang membuat perpindahan itu murah: kode bicara ke
+abstraksi, penyedia dan model tetap konfigurasi.
 
-Dua batas yang ADR-026 ukur di mesin itu dan berlaku untuk setiap fitur AI: model
-lokal **hanya menulis dari sumber yang sudah dikurasi** (tanpa sumber, jawabannya
-tentang MCP salah dengan tata bahasa yang meyakinkan), dan ia **batch, bukan
-waktu-nyata** (~5,5 token/detik di CPU).
+Tier gratis Gemini, Mistral, dan model `:free` OpenRouter **tidak** boleh menerima
+pertanyaan pembaca - syarat datanya ada di ADR-026.
+
+Satu batas yang ADR-026 ukur dan berlaku untuk penyedia mana pun: model **hanya
+menulis dari sumber yang sudah dikurasi**. Tanpa sumber, model kecil menjawab *"apa
+itu MCP?"* salah dengan tata bahasa yang meyakinkan.

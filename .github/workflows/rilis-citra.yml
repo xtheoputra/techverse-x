@@ -101,7 +101,7 @@ jobs:
       # pemindainya mendapat soket Docker. `:latest` selama jendela paparan
       # CVE-2026-33634 (Maret 2026) adalah citra pencuri kredensial - dengan
       # soket itu ia bisa membaca kredensial runner dan menerbitkan citra palsu
-      # atas nama repo ini. Digest yang sama dipakai ci.yml dan ci-mandiri.sh.
+      # atas nama repo ini. Digest yang sama dipakai ci.yml dan gerbang-ci-lokal.sh.
       - name: Pindai sebelum diterbitkan
         run: |
           for c in api migrate web; do

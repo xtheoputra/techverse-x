@@ -1,311 +1,263 @@
-# ADR-026 — Nol biaya: mandiri lebih dulu, gratis tanpa kartu kedua, berbayar tidak pernah
+# ADR-026 — Nol biaya, dan TechVerse X berdiri sendiri
 
-**Status:** Diterima — arahan pemilik, 2026-09-28. **Menggantikan** pagu USD 60 di
-[ADR-016](ADR-016-pagu-biaya.md) butir 1 dan bawaan OpenAI di
+**Status:** Diterima — arahan dan pilihan pemilik, 2026-09-28. **Menggantikan** pagu
+USD 60 di [ADR-016](ADR-016-pagu-biaya.md) butir 1 dan bawaan OpenAI di
 [ADR-014](ADR-014-mcp-dan-penyedia-ai.md). Host API tetap milik
-[ADR-025](ADR-025-host-api-pengganti-koyeb.md) (Diusulkan); yang berubah di sana
-hanya jalan keluar yang berbayar, dan satu jalan mandiri yang ditambahkan.
-Issue [#57](https://github.com/xtheoputra/techverse-x/issues/57).
+[ADR-025](ADR-025-host-api-pengganti-koyeb.md) (Diusulkan); yang berubah di sana hanya
+jalan keluar berbayar yang dicoret. Issue [#57](https://github.com/xtheoputra/techverse-x/issues/57).
 **Tanggal:** 2026-09-28
 
 ## Konteks
 
-Sesudah CI repo ini kembali merah dengan nol langkah dan anotasi *"recent account
-payments have failed or your spending limit needs to be increased"*, pemilik
-menulis:
+Pemilik menulis dua pesan di hari yang sama:
 
 > *"hindari penggunaan yang berbayar, cari semua mandiri dan secara gratis tapi
 > powerfull"*
 
-Tiga dokumen masih mengandaikan sebaliknya. [ADR-016](ADR-016-pagu-biaya.md)
-menetapkan pagu **USD 60 per bulan** — Azure PostgreSQL, OpenAI dengan pagu keras
-USD 20, domain. [ADR-014](ADR-014-mcp-dan-penyedia-ai.md) menjadikan OpenAI bawaan.
-Bagian 6 [ADR-025](ADR-025-host-api-pengganti-koyeb.md) menawarkan Railway Hobby,
-Koyeb Pro, dan domain untuk Cloudflare Tunnel, *"keduanya di dalam pagu $60"*.
+> *"bukan gunakan mesin ini, kalo agent tetap gunakan versi gratis, lalu apa
+> hubungannya proyek ini dan proyek lain?, saya ingin membangun proyek ini sendiri
+> tanpa terhubung dengan proyek lain"*
 
-### Apa yang sebenarnya menghabiskan kuota CI — diukur ulang, dan Sesi 15 keliru
+🔴 **Versi pertama ADR ini (commit `dba033c`) salah membaca kata "mandiri"** sebagai
+"berjalan di mesin pemilik": Ollama lokal sebagai penyedia AI, API dan basis data di
+PC pemilik lewat Tailscale Funnel, dan gerbang CI di mesin itu sebagai pengganti
+Actions. Pesan kedua membetulkannya. **Mandiri berarti proyek ini berdiri sendiri** —
+tidak berbagi kuota, akun, tagihan, atau mesin dengan proyek lain pemilik — dan
+infrastrukturnya tidak bergantung pada PC siapa pun. Ketiga keputusan berbasis PC
+ditarik; yang tersisa dari versi pertama adalah yang tetap benar di bawah arti itu.
 
-Paket GitHub Free memberi **2.000 menit Actions per bulan untuk SEMUA repo privat
-akun**, bukan per repo. Akun ini punya 21 repo privat. Laporan billing **harian**
-(`GET /users/{user}/settings/billing/usage?year=&month=&day=`) September 2026:
+### Keterhubungan yang sungguh ada — diukur
 
-| Repo | Menit 1–10 Sep | Catatan |
-|---|---|---|
-| `wellsy` | **1.053** | 585 + 393 menit pada 8–9 Sep saja |
-| `zarastrade` | 481 | CI biasa + Dependabot |
-| `techverse-x` | **558** | repo ini |
-| `jago-bahasa`, `think-mate` | 47 | |
-| **Jumlah** | **2.139** | kuota 2.000 terlewati **10 September** |
+CI repo ini mati sejak 10 September dengan anotasi *"recent account payments have
+failed or your spending limit needs to be increased"*. Sebabnya bukan kode, melainkan
+**akun**: paket GitHub Free memberi 2.000 menit Actions per bulan untuk **semua** repo
+privat sebuah akun, dan repo ini tinggal di akun pribadi bersama 20 repo privat lain.
+Laporan billing **harian** September (`GET /users/{user}/settings/billing/usage?year=&month=&day=`):
 
-Sesudah itu hanya muncul 18–27 menit per hari, di hari-hari yang run `zarastrade`-nya
-**hanya** Dependabot (21 dan 28 Sep: 6 run `dynamic`, nol run lain).
+| Repo | Menit 1–10 Sep |
+|---|---|
+| repo privat lain A | **1.053** — 978 di antaranya dalam dua hari |
+| `techverse-x` | 558 |
+| repo privat lain B | 481 |
+| repo privat lain C | 4 |
+| **Jumlah menit privat** | **2.096** — kuota terlewati **10 September** |
 
-🔴 **Catatan Sesi 15 menyebut run Dependabot `zarastrade` "terus memakan kuota yang
-sudah lewat batas". Itu tidak terbukti.** Dokumentasi GitHub menulis sebaliknya —
-*"Running Dependabot on standard GitHub-hosted or self-hosted runners does not count
-towards your included GitHub Actions minutes"* — dan menit-menit itu memang tercatat
-dengan diskon penuh, bentuk yang sama untuk "gratis" maupun "masuk jatah". Sebab
-kekeliruannya diukur: endpoint billing **bulanan** melaporkan seluruh 2.223 menit
-September di bawah **satu** `repositoryName` (`zarastrade`), padahal hitungan harian
-membaginya ke lima repo.
+(Satu repo lain yang saat itu **publik** memakai 43 menit; menit repo publik tidak
+masuk kuota.) Satu proyek lain menghabiskan **lebih dari separuh** kuota dalam empat
+hari, dan proyek ini ikut mati. Itu jawaban atas *"apa hubungannya proyek ini dan
+proyek lain"*.
 
-📏 Dua hal lain yang ikut terukur, dan membuat jalan keluarnya bukan sekadar
-menunggu 1 Oktober:
+**Angka ini bukan temuan baru.** Sesi 14 (16 September) sudah mengukurnya dengan
+benar di [komentar #57](https://github.com/xtheoputra/techverse-x/issues/57#issuecomment-5695424090),
+termasuk bahwa `push` di cabang `fase-*` memakan ±26% menit repo ini.
 
-- **Seperempat pemakaian repo ini adalah run ganda.** Setiap push ke cabang ber-PR
-  menjalankan CI dua kali (`push` dan `pull_request`, commit yang sama): 30 dari 63
-  commit, 147 dari 578 menit (dihitung per job, dibulatkan ke atas per menit —
-  cocok dengan 558 di billing).
-- **Endpoint `timing` GitHub tidak bisa dipakai untuk ini.** Ia melaporkan
-  `billable` **0 ms** untuk semua 144 run `zarastrade` September, termasuk 51 run
-  `push` yang berjalan 183 menit.
+🐞 Yang salah datang sesudahnya: Sesi 15, lalu catatan pagi ini, menyalahkan run
+Dependabot repo B. Keduanya salah: dokumentasi GitHub menulis bahwa Dependabot
+*"does not count towards your included GitHub Actions minutes"*, dan endpoint billing
+**bulanan** yang dibaca keduanya melaporkan seluruh 2.223 menit September di bawah
+**satu** nama repo. Hitungan harian membaginya ke lima. Endpoint `timing` juga tidak
+bisa dipakai: `billable` 0 ms untuk semua 144 run repo B, termasuk yang berjalan 183
+menit.
 
-Dengan laju 1–10 September, repo ini sendiri menghabiskan kuota bersama dalam
-sekitar tiga minggu — **tanpa** repo lain. Kuota yang pulih 1 Oktober karena itu
-jalan yang rapuh, bukan jalan keluar.
+📏 Dan seperempat menit repo ini sendiri terbuang: setiap push ke cabang ber-PR
+menjalankan CI dua kali (`push` + `pull_request`, commit yang sama) — 30 dari 63
+commit, 147 dari 578 menit (per job, dibulatkan ke atas; cocok dengan 558 di billing).
 
 ### Cara riset ini dilakukan
 
-Sama dengan ADR-025: tiga riset sumber primer (CI, AI, hosting), setiap klaim
-dengan kutipan dan tanggal; satu pemeriksa terpisah yang tugasnya **membantah**;
-dan setiap angka yang bisa diukur di mesin pemilik diukur, bukan dikutip.
-
-**Hasil pemeriksa atas 20 klaim penentu: 17 bertahan, 3 bersyarat, 1 terbantah.**
-Yang terbantah — *aksi `node20` berhenti bekerja* — dibetulkan di bagian 6; yang
-bersyarat (kartu Tailscale, kartu Oracle, jeda Vercel) ditulis dengan syaratnya.
+Seperti ADR-025: riset sumber primer dengan kutipan dan tanggal, lalu pemeriksa
+terpisah yang tugasnya **membantah**. Dua putaran hari ini — 20 klaim (17 bertahan,
+3 bersyarat, 1 terbantah) dan 17 klaim (sebagian besar bertahan, sembilan ditulis
+ulang). Klaim di bawah ditulis dalam bentuk yang lolos pemeriksa, termasuk syaratnya.
 
 ## Keputusan
 
-### 1. Pagu: nol. Urutan pilihan: mandiri → gratis tanpa kartu → berbayar tidak pernah
+### 1. Prinsip
 
-- **Mandiri** — berjalan di mesin pemilik (i7-14700 20 inti, RAM 15,8 GB, tanpa GPU
-  diskret; Docker, WSL, Ollama 0.34.4) atau perangkat lunak terbuka yang dipasang
-  sendiri.
-- **Gratis tanpa kartu** — tier gratis vendor, dengan syarat dan batasnya dikutip.
-- **Berbayar** — boleh dicatat sebagai fakta, tidak pernah direkomendasikan. Termasuk
-  *"naikkan batas belanja"*, *"beli domain"*, dan kunci API berbayar.
+- **Nol biaya.** Berbayar boleh dicatat sebagai fakta, tidak pernah direkomendasikan —
+  termasuk *"naikkan batas belanja"*, domain, dan kunci API berbayar.
+- **Berdiri sendiri.** Tidak ada kuota, akun, tagihan, atau mesin yang dibagi dengan
+  proyek lain. Di mana sebuah tier gratis dihitung **per akun**, akun itu dipakai
+  **khusus** TechVerse X — dan tidak ada akun ganda untuk melipatgandakan jatah:
+  aturan GitHub (*"no more than one free Account"*), Vercel (*"create multiple
+  accounts"* di daftar larangan), dan Railway (*"evading usage or billing limits"*)
+  melarangnya.
+- **Bukan mesin pemilik.** PC pemilik hanya tempat menulis kode.
+- **"Powerful" diukur, bukan diklaim.**
 
-"*Powerful*" diukur, bukan diklaim: token/detik, detik per gerbang, halaman yang
-tercapai.
+### 2. GitHub: organisasi gratis sendiri, repo publik — pilihan pemilik
 
-### 2. Inventaris pos biaya
+| Jalur | Dipilih? | Sebab |
+|---|---|---|
+| **Organisasi gratis baru + repo publik** | ✅ **pemilik, 2026-09-28** | tagihan sendiri; menit runner standar gratis untuk repo publik |
+| Organisasi gratis baru + repo privat | ❌ | kuota 2.000 menit sendiri, tapi Vercel Hobby **tidak bisa** men-deploy dari repo privat milik organisasi — kedua halaman dokumentasinya sepakat soal itu |
+| Tetap di akun pribadi | ❌ | kuota tetap dibagi 21 repo |
 
-| Pos | Sebelumnya | Sekarang | Keadaan |
+Yang menopangnya, per sumber primer:
+
+- *"GitHub bills you separately for each account you own (personal, organization, or
+  enterprise). Each account has a separate: … Payment method"*, dan *"Minutes usage is
+  charged to the repository owner"*.
+- *"The use of standard GitHub-hosted runners is free: In public repositories"* — gratis,
+  **bukan tanpa batas**: 20 job serentak di paket Free, 6 jam per job, dan *larger
+  runner* selalu berbayar.
+- Memindahkan repo membawa issue, PR, wiki, bintang, dan pengamat; secret, webhook, dan
+  deploy key tetap melekat; tautan web dan git **dialihkan** — kecuali repo baru dibuat
+  di nama lama.
+
+⚠️ **Yang tidak terverifikasi, dan ditulis supaya tidak dibaca lebih:**
+
+- Tidak ada pernyataan GitHub bahwa blok billing akun pribadi **tidak** menjalar ke
+  organisasi yang ia miliki. Tagihan terpisah membuatnya sangat mungkin; bukti
+  eksplisitnya tidak ada. Run pertama di organisasi yang menjawabnya.
+- Organisasi dengan satu pemilik bisa *"become inaccessible if the owner is
+  unreachable"* — akun pribadi pemilik tetap satu-satunya kunci.
+- **Vercel Hobby dari repo organisasi PUBLIK: dokumentasinya bertentangan.** `/docs/git`
+  (18 Sep 2026) hanya melarang repo *privat* organisasi; `/docs/limits` (16 Sep 2026)
+  menulis *"Vercel does not support connecting a project on your Hobby team to Git
+  repositories owned by Git organizations"*. **Wajib diuji langsung** sebelum web
+  dipindah — langkah pertama di daftar pemilik di bawah.
+
+**Yang dibuka ke publik, dan sudah diperiksa:** seluruh riwayat git dipindai gitleaks —
+82 commit, **0 bocor**. Workflow aman untuk repo publik: `pull_request` dari fork
+berjalan dengan token baca-saja dan tanpa secret, satu-satunya secret
+(`NEON_DATABASE_URL`) hanya dipakai `workflow_dispatch`. ⚠️ Yang **ikut terbuka** dan
+belum diputuskan: nama repo privat lain pemilik — di catatan Sesi 14 dan 15, di 5 commit
+riwayat, dan di komentar #57. ADR ini dan catatan sesi 2026-09-28 menyamarkannya;
+sisanya keputusan pemilik (menyunting catatan lama dan komentar bisa dibalik,
+menulis ulang riwayat git tidak). Repo juga belum punya berkas `LICENSE` —
+tanpanya kode publik tetap *all rights reserved*.
+
+### 3. CI: tetap GitHub Actions, di kuotanya sendiri
+
+- **Gerbang yang dihitung tetap `ci.yml`.** Sesudah pindah, ia berjalan di tagihan dan
+  menit organisasi, bukan akun pribadi.
+- **`push` hanya untuk `main`**, plus `workflow_dispatch`. Cabang ber-PR diperiksa
+  lewat `pull_request`, yang menguji hasil penggabungan. Sesi 14 sengaja menunda
+  perubahan ini karena *"tidak bisa dibuktikan selama CI tidak berjalan"* — tapi run
+  yang terblok tetap **dibuat**, jadi jumlahnya terukur: di
+  [#70](https://github.com/xtheoputra/techverse-x/pull/70) **satu** run, bukan dua. Hemat
+  menitnya sendiri baru terukur saat CI berjalan lagi.
+- **gitleaks jalan sebagai CLI (MIT) dalam peti kemas**, bukan `gitleaks-action`: aksi
+  itu menuntut `GITLEAKS_LICENSE` untuk repo milik organisasi (gratis, tapi lewat
+  formulir Google), dan kodenya bukan lagi MIT sejak v2. CLI-nya tanpa kunci, tanpa
+  `GITHUB_TOKEN`, tanpa izin `pull-requests: read`. Perilakunya ditiru di Linux dengan
+  repo milik uid lain: citranya memasang `safe.directory = *` sendiri, 82 commit
+  dipindai — bukan nol.
+- **`.\run.ps1 ci` / `make ci` adalah alat pengembang**, bukan pengganti CI: seluruh
+  gerbang `ci.yml` sebelum push, hijau end-to-end dalam 161 detik, dibuktikan merah
+  (rahasia palsu di klona sekali pakai → exit 1). Dua jebakan Windows yang ditemukan
+  saat mengukurnya: `bash` di PowerShell adalah bash WSL (tanpa `node` di distro
+  ini), dan PowerShell 5.1 mengubah stderr `INF` gitleaks jadi galat terminasi.
+  `run.ps1` memanggil Git Bash dan menilai exit code saja.
+- **Runner self-hosted: tidak.** Ia gratis, tapi berjalan di mesin pemilik.
+
+### 4. AI: tier gratis layanan, tanpa kartu
+
+| Pemakaian | Penyedia | Kenapa | Kapasitas gratis |
 |---|---|---|---|
-| **CI** | GitHub Actions, kuota bersama 2.000 menit | **CI mandiri** `.\run.ps1 ci` / `make ci` sebagai gerbang wajib; Actions sebagai bonus, dengan run ganda dibuang | ✅ dibangun, bagian 3 |
-| **Pemindai** (gitleaks, Trivy) | tag bergerak `@v2`, `:latest` | tetap gratis, **disematkan SHA/digest** | ✅ bagian 6 |
-| **Model bahasa** | OpenAI, pagu USD 20 | **Ollama lokal**, `qwen3:8b` | ✅ diukur, bagian 4 |
-| **Embedding** | tersirat `text-embedding-3-large` (ADR-005) | **`qwen3-embedding:0.6b`**, 1024 dimensi | 📋 dipilih, belum dipasang |
-| **Host web** | Vercel Hobby | tetap | gratis, non-komersial |
-| **Host API** | ADR-025 (Railway → Vercel) | + jalan **mandiri**: PC pemilik lewat Tailscale Funnel | 📋 menunggu uji pemilik, bagian 5 |
-| **PostgreSQL** | Azure (ADR-016) → Neon Free (ADR-019) | Neon Free, **atau** di PC pemilik bila API di sana | 📋 ikut host API |
-| **Domain** | ~USD 1–2/bulan | `*.vercel.app` dan `*.ts.net` | ✅ nol |
-| **Autentikasi (V1.1)** | Clerk | ditinjau saat V1.1 — Clerk tier gratis lawan OSS yang dipasang sendiri | ⏸ belum waktunya |
+| **Draf dari sumber terkurasi** (batch) | **Groq**, `openai/gpt-oss-120b` | kartu hanya untuk naik tier; Services Agreement §4.2: *"Groq is not permitted to use Inputs or Outputs for training"* | 30 RPM · 1K RPD · 8K TPM · **200K token/hari** — ±40 draf/hari sebelum token penalaran |
+| **AI Mentor** (pertanyaan pembaca) | **Cloudflare Workers AI** | *"Start building for free — no credit card required"*; *"Cloudflare does not use your Customer Content to (1) train any AI models"* | **10.000 neuron/hari**; `gpt-oss-120b` 31.818 / 68.182 neuron per juta token masuk/keluar |
+| **Embedding** konten dan kueri | Workers AI, `@cf/qwen/qwen3-embedding-0.6b` | model sama untuk konten dan kueri | 1.075 neuron per juta token |
 
-### 3. CI mandiri: gerbangnya dibawa pulang
+- **Semua lewat endpoint yang kompatibel OpenAI** — Groq
+  `https://api.groq.com/openai/v1`, Workers AI `…/accounts/{id}/ai/v1` — jadi
+  abstraksi [ADR-014](ADR-014-mcp-dan-penyedia-ai.md) cukup; penyedia dan model tetap
+  konfigurasi.
+- **Groq dan Cloudflare saling jadi cadangan**; keduanya menjanjikan tanpa pelatihan.
+- **Jatah Cloudflare satu untuk semua**: Mentor dan embedding mengambil dari 10.000
+  neuron yang sama. Habis = error 3036 / HTTP 429 sampai reset 00:00 UTC. Karena itu
+  pagu panggilan harian global [ADR-016](ADR-016-pagu-biaya.md) butir 5 tetap berlaku,
+  dan jawaban *"Mentor sedang penuh"* adalah perilaku yang dirancang, bukan galat.
+- **Dimensi embedding hingga 1.024** menurut kartu model Qwen — Cloudflare sendiri
+  tidak mendokumentasikannya, jadi diverifikasi dari `shape` panggilan pertama sebelum
+  kolom `vector(…)` ditulis. 1.024 di bawah batas HNSW pgvector (2.000).
+- **Tidak boleh menerima data pembaca:** tier gratis **Gemini** (isi dipakai untuk
+  produk Google dan bisa dibaca peninjau manusia; paket gratis juga tidak boleh
+  melayani pengguna di EEA, Swiss, dan Inggris), **Mistral** mode gratis (boleh
+  melatih; *"testing and prototyping"*), dan model `:free` **OpenRouter** (sebagian
+  penyedianya mencatat atau melatih).
+- **Gugur:** Cerebras (API tidak aktif tanpa metode pembayaran), trial Cohere (*"not
+  permitted to be used for production or commercial purposes"*), GitHub Models
+  (pensiun 30 Juli 2026). Ollama Cloud tercatat tanpa-pelatihan, tapi kebutuhan kartunya
+  belum terverifikasi dan tier gratisnya hanya *"starter models"*.
+- **Akun Groq dan Cloudflare khusus TechVerse X** — batas Groq berlaku *"at the
+  organization level"*, jatah Workers AI per akun.
 
-`.\run.ps1 ci` / `make ci` = `verify` **+** `.github/scripts/ci-mandiri.sh`, dan
-skrip itu menjalankan sisanya dengan urutan `ci.yml`: gitleaks atas **seluruh**
-riwayat git, ketiga `docker build`, gerbang ADR-020, tumpukan produksi dari volume
-kosong (= migrasi dari nol lewat bundel migrasi), pemindai halaman ADR-024, dan Trivy
-atas ketiga citra. Satu skrip untuk Git Bash di Windows dan untuk Linux/WSL/macOS.
+**Satu pengukuran dari versi pertama yang tetap berlaku untuk penyedia mana pun.**
+Model kecil (`qwen3:8b`, diukur di mesin pengembang) menjawab *"apa itu MCP?"* **salah
+dengan yakin** tanpa sumber — *"protokol … sistem komunikasi real-time"* — dan benar
+begitu diberi kutipan dokumentasinya. Jadi AI hanya menulis dari sumber yang sudah
+dikurasi (jalur `kurasi` → `draf`, [ADR-012](ADR-012-template-halaman.md)), dan
+tinjauan manusia tetap satu-satunya jalan ke `tinjau`.
 
-**Diukur 2026-09-28, bagian di luar `verify`: hijau dalam 178 detik.**
+### 5. Hosting: tier gratis vendor, akun khusus
 
-| Langkah | Detik | Hasil |
-|---|---|---|
-| gitleaks, seluruh riwayat | 7 | 80 commit (+ 20 merge yang tak berpatch), 0 bocor |
-| tiga citra | 48 + 50 + 6 | — |
-| gerbang ADR-020 | 2 | `health/live=200`, `POST=405` |
-| tumpukan produksi | 13 | 6 migrasi dari nol, 14 bidang · 0 topik · 0 sisi |
-| pemindai halaman | 2 | 16 halaman, 14 dari 14, 0 kena |
-| Trivy | 40 | 0 CRITICAL/HIGH di ketiga citra |
-
-**Dibuktikan merah, dua kali.** Rahasia palsu (`ghp_` + 36 karakter acak) di-commit
-ke **klona sekali pakai** — repo aslinya tidak disentuh — dan perintah gitleaks yang
-sama melaporkan *"81 commits scanned … leaks found: 1"*, exit 1. Port 8080 dipegang
-pendengar milik uji itu sendiri: skrip berhenti di langkah pertama, menyebut portnya,
-exit 1, dan **tidak mematikan apa pun**.
-
-🐞 **Skripnya hijau, pintu masuknya merah — dua kali, di tempat yang sama.** Jalan
-pertama `.\run.ps1 ci` gagal di langkah gitleaks yang sebenarnya lulus (*"80 commits
-scanned"*). Dua sebab, keduanya diukur:
-
-1. **`bash` di PowerShell adalah `C:\Windows\System32\bash.exe` — bash WSL**, bukan
-   Git Bash tempat skripnya diuji. Distro WSL di mesin ini tidak punya `node`, jadi
-   pemindai halaman pasti gagal di sana. `run.ps1` kini memanggil Git Bash dari
-   samping `git`.
-2. **PowerShell 5.1 mengubah setiap baris stderr program native jadi galat** begitu
-   keluarannya dialihkan, dan dengan `ErrorActionPreference = 'Stop'` baris log `INF`
-   pertama gitleaks menghentikan gerbang. Pelonggarannya hanya di sekitar panggilan
-   itu; yang memutuskan tetap exit code skripnya.
-
-Gerbang diukur lewat perintah yang akan diketik orang, bukan lewat skrip yang
-dipanggilnya: skripnya sendiri sudah hijau dua kali sebelum ini ketahuan.
-
-🐞 Percobaan merah pertama sempat hijau karena alasan yang salah: klonanya gagal
-*checkout* (jalur Windows terlalu panjang), commit rahasia tidak pernah terjadi, dan
-yang dipindai klona bersih. Angkanya — 80, bukan 81 — yang membongkarnya.
-
-**Yang sengaja tidak ditiru:**
-
-- **Job backend dan frontend** — itu `verify`. Uji integrasi menyematkan
-  `localhost:5432`, jadi Postgres sekali pakai di port lain tidak bisa dipakai tanpa
-  mengubah ujinya; "migrasi dari nol" dibuktikan bundel migrasi, bukan
-  `dotnet ef database update`.
-- **`act` (nektos/act)** — menjalankan `ci.yml` itu sendiri, tapi *bind mount*
-  compose diselesaikan di host dan `permissions`/`timeout-minutes` diabaikan; hijau
-  palsu lebih mahal daripada skrip yang jujur soal batasnya.
-
-**Yang juga diubah di `ci.yml`:** `push` hanya untuk `main`. Cabang ber-PR tetap
-diperiksa lewat `pull_request`, yang menguji hasil penggabungan; cabang tanpa PR
-diperiksa CI mandiri. Hemat terukurnya seperempat menit repo ini.
-
-**Batasnya, ditulis supaya tidak dibaca lebih:** CI mandiri tidak memberi tanda
-centang di PR dan bergantung pada disiplin menjalankannya. Hasilnya dicatat di badan
-PR, seperti selama #57. **Runner self-hosted** — gratis menurut dokumentasi GitHub,
-dan dianjurkan hanya untuk repo privat — akan memberi tanda centang itu di mesin yang
-sama, tapi mendaftarkannya adalah tindakan di akun pemilik, dan apakah job-nya lolos
-blok billing belum terverifikasi. Ia diserahkan ke pemilik, bukan dipasang.
-
-### 4. AI mandiri: diukur di mesin ini, dan batasnya ikut terukur
-
-`qwen3:8b` (Apache-2.0) lewat Ollama (MIT), CPU saja, 2026-09-28:
-
-| Uji | Hasil |
-|---|---|
-| Kecepatan keluaran | **5,3–5,6 token/detik**; prompt 49–370 token/detik; muat dingin 14,9 s |
-| Memori | 6,7 GB, 100% CPU, konteks 8.192 |
-| *"Apa itu MCP?"* **tanpa sumber** | 🔴 **salah** — *"protokol untuk mengatur dan membagikan konteks dalam sistem komunikasi … real-time"* |
-| Pertanyaan yang sama **dengan sumber** (kutipan dokumentasi MCP) | ✅ setia pada sumber — *"standar open-source … menghubungkan aplikasi AI ke sistem eksternal"* — 21,5 s |
-
-Dari situ keputusannya:
-
-1. **Model lokal hanya menulis dari sumber yang sudah dikurasi.** Jalur
-   `kurasi` → `draf` [ADR-012](ADR-012-template-halaman.md) memang begitu bentuknya,
-   dan ukuran di atas memperlihatkan kenapa itu wajib, bukan gaya: tanpa sumber ia
-   mengarang dengan tata bahasa yang meyakinkan. Label `draf` dan tinjauan manusia
-   tetap satu-satunya jalan ke `tinjau`.
-2. **Batch, bukan waktu-nyata.** Pada ~5,5 token/detik, satu bagian halaman
-   (≈1.500 token) makan ±5 menit — wajar untuk antrean semalam, tidak wajar untuk
-   pembaca yang menunggu. **AI Mentor untuk publik tidak dijalankan dari PC ini**
-   sampai konkurensinya diukur.
-3. **Bawaan [ADR-014](ADR-014-mcp-dan-penyedia-ai.md) pindah ke Ollama.** Abstraksinya
-   sudah ada: Microsoft Agent Framework (1.0 untuk .NET, 3 April 2026; `Microsoft.Agents.AI`
-   1.22.0 per 18 September) mendokumentasikan penyedia Ollama lewat **OllamaSharp** —
-   paket pihak ketiga (MIT), bukan milik Microsoft — dan `OllamaApiClient`
-   mengimplementasikan `IChatClient` **dan** `IEmbeddingGenerator`. Nama model tetap
-   konfigurasi.
-4. **Embedding: `qwen3-embedding:0.6b`, 1024 dimensi, kolom `vector(1024)` ber-HNSW.**
-   Apache-2.0, 639 MB, multibahasa (MMTEB rata-rata 64,33 — di atas `bge-m3`
-   59,56). 1024 di bawah batas indeks HNSW pgvector untuk `vector` (2.000), jadi
-   jebakan dimensi yang [ADR-005](ADR-005-qdrant.md) tandai tidak menyala. Belum
-   diunduh dan belum diukur — dipasang bersama embedding pertama.
-5. **Model lain yang layak diuji, belum diukur:** `qwen3.5:9b` (6,6 GB) dan
-   `gemma4:12b` (7,6 GB), keduanya Apache-2.0. Llama 3.1 **tidak**: lisensinya
-   menuntut atribusi dan izin di atas 700 juta pengguna, dan bahasa Indonesia tidak
-   ada di daftar bahasanya.
-6. **Tier gratis ber-API hanya cadangan, hanya untuk isi publik.** Gemini tier gratis
-   memakai data untuk memperbaiki produk Google dan dibaca peninjau manusia; tidak
-   satu pun data pembaca boleh lewat sana. **GitHub Models sudah pensiun** (30 Juli
-   2026) — jangan dirujuk.
-
-### 5. Host: jalan mandiri ditambahkan, jalan berbayar dicoret
-
-**Dicoret dari bagian 6 ADR-025:** Railway Hobby, Koyeb Pro, dan domain untuk
-*named* Cloudflare Tunnel — ketiganya berbayar. **Oracle Always Free** juga tidak:
-FAQ-nya menuntut kartu kredit atau debit untuk verifikasi identitas, tanpa
-pengecualian, dan menolak kartu prabayar maupun virtual (Arm A1-nya pun kini 2 OCPU /
-12 GB, bukan 24 GB).
-
-**Ditambahkan — hibrida mandiri:** web tetap di Vercel Hobby
-(`<proyek>.vercel.app`); API **dan** PostgreSQL berjalan di PC pemilik lewat
-`docker-compose.prod.yml` — tumpukan yang sama yang CI mandiri nyalakan dalam 13
-detik — dan diterbitkan lewat **Tailscale Funnel** (`<mesin>.<tailnet>.ts.net`,
-tanpa domain).
-
-| | Managed (ADR-025) | Hibrida mandiri |
-|---|---|---|
-| Tenaga | Railway Free: kredit USD 1/bulan, RAM 0,5 GB; Neon 0,5 GB | i7-14700, 15,8 GB, disk ratusan GB |
-| Ketersediaan | vendor | selama PC menyala dan internet rumah hidup |
-| Saat API mati | web tetap menyajikan halaman yang sudah tertembolok (dibuktikan ADR-019) | sama |
-| Paparan | nol port rumah | satu port 443 lewat Funnel, **hanya** API — permukaan tulisnya mati di citra produksi (ADR-020) |
-| Syarat vendor | Hobby non-komersial; melewati batas = fitur dijeda sampai 30 hari berlalu, tanpa tagihan | Hobby **dan** Tailscale Personal non-komersial; Funnel masih Beta, hanya port 443/8443/10000, batas bandwidth tidak dipublikasikan |
-
-**Tidak dipilih di sini.** Keduanya gratis; yang membedakan adalah ketersediaan
-lawan tenaga, dan itu keputusan pemilik. Uji Funnel butuh akun Tailscale — tindakan
-di akun pemilik — dan tidak menuntut satu baris pun perubahan repo selain
-`API_BASE_URL` web. ⚠️ Halaman harga Tailscale yang sekarang **tidak menyebut kartu
-sama sekali**; pernyataan *"no credit card"* yang eksplisit hanya ada di blog harga
-2023, sebelum skema harga April 2026. Paket Personal didapat dengan identitas domain
-publik (GitHub, Gmail); email berdomain sendiri masuk uji coba bisnis. Aturan
-ADR-025 berlaku: layar yang meminta kartu = uji gagal, berhenti.
+- **Web — Vercel Hobby.** Jatahnya dihitung per tim Hobby untuk semua proyeknya, jadi
+  akun itu khusus TechVerse X (pilihan pemilik). Non-komersial. Melewati batas =
+  dijeda sampai 30 hari berlalu, tanpa tagihan. Deploy dari repo organisasi: **uji
+  dulu** (bagian 2).
+- **API — urutan uji [ADR-025](ADR-025-host-api-pengganti-koyeb.md) tetap.** Railway Free
+  memberi USD 1 per bulan per akun (syarat R7 *"≤ $0,70"* sudah mengantisipasinya) dan
+  tidak bisa menarik citra registry privat (*"Private registry credentials are available
+  on the Pro plan"*); ia membangun dari Dockerfile repo, seperti rancangan R3.
+- **PostgreSQL — Neon Free.** Batasnya per proyek (100 CU-jam, 0,5 GB), jadi satu
+  proyek Neon untuk TechVerse X sudah terisolasi.
+- **Dicoret dari ADR-025 bagian 6:** Railway Hobby, Koyeb Pro, domain untuk *named*
+  Cloudflare Tunnel (berbayar), dan Oracle Always Free (menuntut kartu).
+- **Ditarik:** hosting dari PC pemilik lewat Tailscale Funnel — versi pertama ADR ini.
 
 ### 6. Rantai pasok: gratis tetap rantai pasok
 
-Maret 2026 Trivy disusupi (GHSA-69fq-xp46-6x23 / CVE-2026-33634): rilis v0.69.4, citra
-Docker v0.69.5–v0.69.6, **`latest` selama jendela paparan**, dan 76 dari 77 tag
-`aquasecurity/trivy-action` yang dipaksa-dorong. Advisory-nya menyebut citra yang
-dirujuk lewat **digest** tidak terkena. Repo ini menarik `aquasec/trivy:latest` di
-tiga tempat dengan soket Docker terpasang — salah satunya di `rilis-citra.yml`, job
-yang sudah login ke GHCR dengan `packages: write`.
-
-Dan Node 20 dicabut dari runner GitHub pada **23 September 2026**. Dibaca dari
-`action.yml` di tag yang dipakai, **dua** aksi masih menyatakan `node20`:
-`gitleaks/gitleaks-action@v2` dan `docker/login-action@v3`. Sejak tanggal itu runner
-**memaksa** keduanya berjalan di Node 24 — tidak ditolak, tapi berjalan di runtime
-yang tidak pernah diujikan penulisnya, dan opt-out
-`ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION` sudah tidak berlaku.
-
-🐞 Riset pertama menulis bahwa aksi `node20` *"berhenti bekerja"* — kalimat dari
-catatan rilis gitleaks-action, yang juga masih menyebut tanggal rencana lama
-(16 September). Pemeriksa membantahnya dari kode sumber runner (*"Always use Node 24
-regardless of environment variables"*). Versi barunya tetap dipasang; alasannya yang
-dibetulkan.
-
-Aturannya sejak hari ini:
-
-- **Aksi pihak ketiga disematkan per SHA** dengan versinya di komentar:
-  `gitleaks-action` v3.0.0, `docker/login-action` v4.6.0 (keduanya `node24`, input
-  sama). Aksi `actions/*` tetap per tag mayor — pemiliknya platform itu sendiri.
-- **Citra alat disematkan per versi DAN digest:** Trivy 0.74.0
-  (`sha256:62b1e65e…`, digest indeks multi-arsitektur), gitleaks v8.30.1
-  (`sha256:c00b6bd0…`). Menaikkan versi berarti menaikkan digest di `ci.yml`,
-  `rilis-citra.yml`, `ci-mandiri.sh`, dan `PENYEBARAN.md` bersamaan.
-- **Digest Trivy itu diverifikasi, bukan dipercaya.** Tidak ada advisory yang
-  menyebut 0.74.0 (rilis 14 Agustus 2026, jauh sesudah jendela paparan), dan
-  tanda tangannya diperiksa 2026-09-28 dengan cosign v3.1.3: **dua tanda tangan**
-  untuk digest tersebut, sertifikat untuk workflow `github.com/aquasecurity/trivy`
-  dari penerbit OIDC GitHub Actions, tercatat di log transparansi. 🐞 cosign
-  v2.5.3 melaporkan *"no signatures found"* untuk citra yang sama — Trivy menandatangani
-  dengan format bundle Sigstore lewat OCI *referrers*, yang hanya dibaca v3. Hasil
-  "tidak bertanda tangan" dari alat yang salah generasi bukan bukti apa pun.
+- **Trivy disusupi Maret 2026** (GHSA-69fq-xp46-6x23 / CVE-2026-33634): citra
+  v0.69.4–v0.69.6, dan **`latest` selama jendela paparan**, membawa pencuri kredensial.
+  Repo ini menariknya `:latest` di tiga tempat dengan soket Docker — satu di
+  `rilis-citra.yml`, job yang sudah login ke GHCR dengan `packages: write`. Kini
+  `0.74.0@sha256:62b1e65e…` (digest indeks multi-arsitektur), dan tanda tangannya
+  **diverifikasi** dengan cosign v3.1.3: dua tanda tangan, sertifikat untuk workflow
+  `github.com/aquasecurity/trivy`, tercatat di log transparansi. (cosign v2.5.3
+  melaporkan *"no signatures found"* — format bundle baru hanya dibaca v3.)
+- **Node 20 dicabut dari runner pada 23 September 2026**; aksi yang menyatakan `node20`
+  kini **dipaksa** berjalan di Node 24 (bukan ditolak). `docker/login-action` v3 → v4.6.0,
+  disematkan SHA.
+- **Aturannya:** aksi pihak ketiga per SHA; citra alat per versi **dan** digest —
+  gitleaks v8.30.1 (`sha256:c00b6bd0…`), Trivy 0.74.0. Menaikkan versi berarti
+  menaikkan digest di `ci.yml`, `rilis-citra.yml`, `gerbang-ci-lokal.sh`, dan
+  `PENYEBARAN.md` bersamaan.
 
 ## Konsekuensi
 
-- **Pagu ADR-016 batal**, dan ketiga "nol" di tabelnya (Qdrant, Clerk, LangGraph)
-  tetap nol karena alasan yang sama. Butir 4 (arXiv saja, tanpa ringkasan AI) tetap
-  — alasan hukumnya tidak bergantung pada biaya.
-- **CI mandiri adalah gerbang yang dihitung sampai Actions terbukti hidup lagi**, dan
-  sesudahnya tetap jaring kedua: kuota yang dibagi 21 repo tidak bisa diandalkan.
-- **Menit Actions repo ini turun kira-kira seperempat** tanpa gerbang yang hilang.
-- **AI tetap belum ditulis** (ADR-007). Yang berubah: saat ditulis, penyedianya
-  Ollama, dan batas "hanya dari sumber" sudah terukur.
-- **Hibrida mandiri memindahkan tanggung jawab ke pemilik**: PC tidak boleh tidur,
-  pembaruan OS, cadangan basis data. Itu harga "mandiri", dan ditulis supaya tidak
-  ditemukan belakangan.
+- **Pagu ADR-016 batal.** Butir 4 (arXiv saja, tanpa ringkasan AI) tetap — alasan
+  hukumnya tidak bergantung pada biaya.
+- **CI hidup lagi begitu repo pindah**, tanpa menunggu 1 Oktober dan tanpa bergantung
+  pada repo lain.
+- **Kode dan riwayat terbuka.** Itu harga menit gratis di repo publik, dan pilihan
+  pemilik.
+- **Nama citra berganti** ke `ghcr.io/<organisasi>/techverse-x/…` — ia dibentuk dari
+  `GITHUB_REPOSITORY`, jadi workflow mengikutinya sendiri. Paket lama tetap milik akun
+  pribadi dan kehilangan tautannya ke repo.
+- **AI tetap belum ditulis** (ADR-007). Saat ditulis: Groq dan Cloudflare lewat
+  endpoint kompatibel OpenAI, dengan pagu harian dan cadangan satu sama lain.
 
-## Yang menunggu pemilik — tidak dijalankan di sini
+## Yang dikerjakan pemilik — urut
 
-| Keputusan | Kenapa bukan asisten |
-|---|---|
-| Pemakaian CI `wellsy` (1.053 menit dalam 4 hari) | repo lain; ia yang menentukan apakah kuota bersama bertahan sebulan |
-| Mendaftarkan runner self-hosted untuk repo ini | tindakan di akun; apakah ia lolos blok billing belum terverifikasi |
-| Akun Tailscale untuk uji Funnel | pendaftaran akun |
-| Menjadikan repo publik | **tidak disarankan**: tidak terbukti membuka blok (laporan komunitas menyebut repo publik ikut terblok), membuka seluruh riwayat, dan membuat runner self-hosted berbahaya |
+1. **Buat organisasi GitHub gratis** untuk TechVerse X. Layar yang meminta kartu =
+   berhenti (tidak ada dokumen yang secara eksplisit menjamin tanpa kartu).
+2. **Putuskan dulu** soal nama repo lain di riwayat dan komentar lama (bagian 2), dan
+   soal `LICENSE`.
+3. **Pindahkan repo** ke organisasi, lalu jadikan **publik**.
+4. **Uji Vercel Hobby dari repo organisasi** sebelum apa pun bergantung padanya.
+5. Sesudah pindah, sesi berikutnya mengganti `REPO` di
+   `.github/scripts/cek-tautan-markdown.mjs` dan tautan absolut ke nama baru — GitHub
+   mengalihkan yang lama, tapi penjaga tautan menuntut awalan yang tepat — dan
+   memastikan secret `NEON_DATABASE_URL` masih ada.
+6. Akun **Groq** dan **Cloudflare** khusus TechVerse X — saat kode AI pertama ditulis,
+   bukan sekarang.
 
 ## Cara membatalkan keputusan ini
 
 Menaikkan pagu di atas nol adalah keputusan pemilik yang ditulis sebagai ADR baru —
-bukan pengecualian diam-diam per pos. Skrip CI mandiri, sematan SHA/digest, dan
-pemicu `push: [main]` berdiri sendiri; ketiganya tetap benar pada pagu berapa pun.
+bukan pengecualian diam-diam per pos. Pemindahan repo bisa dibalik (organisasi →
+akun pribadi); membuat repo privat lagi tidak menarik kembali apa yang sudah dibaca
+atau disalin orang selama ia publik. Sematan SHA/digest, pemicu `push: [main]`, dan
+gitleaks CLI berdiri sendiri — tetap benar di mana pun repo tinggal.

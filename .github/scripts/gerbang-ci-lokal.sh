@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 #
-# CI MANDIRI - gerbang ci.yml yang TIDAK ada di `verify`, dijalankan di mesin
-# sendiri. Nol menit Actions, nol biaya (ADR-026).
+# GERBANG CI DI MESIN PENGEMBANG - bagian ci.yml yang TIDAK ada di `verify`,
+# dijalankan sebelum push (ADR-026).
 #
-# Kenapa ada: sejak sekitar 7 September 2026 setiap job GitHub Actions di repo
-# ini berhenti dengan NOL langkah - kuota menit repo privat se-akun habis (#57),
-# sebagian besar dimakan run Dependabot repo lain. Menaikkan batas belanja bukan
-# jalan keluar (ADR-026). Jadi gerbangnya dibawa pulang:
+# ⚠️ Ini ALAT PENGEMBANG, bukan pengganti CI. CI proyek ini tetap GitHub Actions,
+# dan infrastruktur proyek tidak boleh bergantung pada mesin pemilik (arahan
+# pemilik 2026-09-28). Gunanya: menangkap merah SEBELUM menit Actions terpakai,
+# dan tetap bisa memeriksa selama Actions mati - sejak 10 September 2026 kuota
+# 2.000 menit yang dibagi semua repo privat akun pribadi habis, terutama oleh
+# repo lain (#57).
 #
 #   .\run.ps1 ci   /   make ci   =   verify  +  berkas ini
 #
 # Urutannya sama dengan ci.yml:
 #
-#   1. Pindai rahasia   - gitleaks atas SELURUH riwayat git. CI hanya memindai
-#                         commit milik PR; di sini seluruh riwayat, sebab tidak
-#                         ada menit yang dihemat dengan memindai lebih sedikit.
+#   1. Pindai rahasia   - gitleaks atas SELURUH riwayat git, perintah dan digest
+#                         yang sama dengan job `secret-scan` di ci.yml.
 #   2. Citra peti kemas - ketiga `docker build`, gerbang ADR-020, tumpukan
 #                         produksi dari volume KOSONG (= migrasi dari nol lewat
 #                         bundel migrasi), pemindai halaman ADR-024, lalu Trivy
@@ -34,7 +35,7 @@
 # yang memegangnya - proses di mesin ini belum tentu milik repo ini (Sesi 15
 # mematikan satu yang bukan miliknya). Ia berhenti dan menyebut pemegangnya.
 #
-# Pemakaian: bash .github/scripts/ci-mandiri.sh
+# Pemakaian: bash .github/scripts/gerbang-ci-lokal.sh
 set -u
 
 GITLEAKS='zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f'
@@ -141,7 +142,7 @@ jalankan "Pindai ketiga citra (Trivy, CRITICAL/HIGH)" pindai_citra
 bongkar
 trap - EXIT
 
-printf '\n%sRingkasan CI mandiri%s (%ss)\n' "$ABU" "$MATI" "$(( $(date +%s) - mulai_semua ))"
+printf '\n%sRingkasan gerbang CI lokal%s (%ss)\n' "$ABU" "$MATI" "$(( $(date +%s) - mulai_semua ))"
 for baris in "${ringkasan[@]}"; do printf '  %s\n' "$baris"; done
 if [ "$vonis" -eq 0 ]; then
   printf '\n%sVONIS: HIJAU%s - ditambah `verify`, itu seluruh gerbang ci.yml.\n' "$HIJAU" "$MATI"

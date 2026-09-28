@@ -154,39 +154,34 @@ jobs:
     name: Pindai rahasia
     runs-on: ubuntu-latest
 
-    # Pada kejadian `pull_request`, gitleaks-action MEMBACA daftar commit PR lewat
-    # API (`GET /repos/{owner}/{repo}/pulls/{pull_number}/commits`) sebelum
-    # memindai apa pun. Dengan `contents: read` saja panggilan itu ditolak 403 dan
-    # langkahnya mati walau tidak ada satu pun rahasia. Yang dibutuhkan hanya izin
-    # BACA; menulis komentar PR sengaja dimatikan di bawah.
+    # CLI gitleaks sebagai peti kemas, BUKAN gitleaks-action - sejak 2026-09-28.
+    # Tiga alasan, dari yang paling berat:
+    #   1. gitleaks-action menuntut GITLEAKS_LICENSE begitu repo dimiliki
+    #      ORGANISASI (kuncinya gratis, tapi lewat pendaftaran di gitleaks.io).
+    #      Memindahkan repo ini ke organisasinya sendiri - supaya kuota Actions-nya
+    #      tidak dibagi proyek lain (#57, ADR-026) - akan memerahkan gerbang ini
+    #      tanpa satu rahasia pun. CLI-nya MIT, tanpa kunci.
+    #   2. Aksi pihak ketiga yang dijalankan dengan GITHUB_TOKEN diganti peti kemas
+    #      tanpa token dan tanpa izin tambahan: `pull-requests: read` ikut hilang.
+    #   3. Perintah yang SAMA dengan .github/scripts/gerbang-ci-lokal.sh, digest sama.
+    #
+    # Seluruh riwayat (fetch-depth 0), bukan hanya commit PR: diukur 2026-09-28,
+    # 80-82 commit dalam 0,3-22 detik. Citra ini berjalan sebagai root atas repo
+    # milik pengguna runner; ia memasang `safe.directory = *` sendiri, dan
+    # kondisinya ditiru di Linux (WSL, repo uid 1000, peti kemas uid 0): 82 commit
+    # dipindai, bukan nol. Merahnya dibuktikan dengan rahasia palsu di klona
+    # sekali pakai: "leaks found: 1", exit 1.
     permissions:
       contents: read
-      pull-requests: read
 
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      # v3, disematkan per SHA. v2 menyatakan `using: node20`, dan Node 20 dicabut
-      # dari runner GitHub 2026-09-23: sejak itu aksi node20 DIPAKSA berjalan di
-      # Node 24 - tidak ditolak, tapi berjalan di runtime yang tidak pernah diuji
-      # penulisnya. v3 adalah versi yang memang ditulis untuk node24, dengan input
-      # dan keluaran yang sama (catatan rilis v3.0.0). Dibaca 2026-09-28 dari
-      # action.yml di kedua tag.
-      #
-      # SHA, bukan tag: aksi PIHAK KETIGA yang dijalankan dengan GITHUB_TOKEN.
-      # Maret 2026 penyerang memaksa-dorong 76 dari 77 tag aquasecurity/trivy-action
-      # (CVE-2026-33634); tag bisa dipindah, SHA tidak. Lihat ADR-026.
-      - name: gitleaks
-        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Komentar PR menuntut `pull-requests: write` untuk aksi pihak ketiga —
-          # harga yang tidak sepadan, karena temuan tetap tampil UTUH di job
-          # summary (aturan, commit, berkas, baris, penulis) dan kebocoran tetap
-          # menggagalkan gerbang ini lewat exit code.
-          GITLEAKS_ENABLE_COMMENTS: "false"
+      - name: gitleaks (seluruh riwayat)
+        run: |
+          docker run --rm -v "$PWD:/repo"             zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f             git /repo --redact --no-banner --exit-code 1
 
   citra:
     name: Citra peti kemas
@@ -281,7 +276,7 @@ jobs:
       # dan `latest` selama jendela paparan - membawa pencuri kredensial, dan
       # langkah ini memasang soket Docker ke dalamnya. Advisory itu sendiri
       # menyebut citra yang dirujuk lewat DIGEST tidak terkena. Digest yang sama
-      # dipakai .github/scripts/ci-mandiri.sh; naikkan keduanya bersamaan.
+      # dipakai .github/scripts/gerbang-ci-lokal.sh; naikkan keduanya bersamaan.
       - name: Pindai ketiga citra
         run: |
           for citra in techversex-api:ci techversex-migrate:ci techversex-web:ci; do

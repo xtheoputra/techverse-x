@@ -72,7 +72,7 @@ switch ($Command) {
             @{ n = 'tautan';    d = 'Memeriksa tautan di berkas Markdown (tanpa jaringan)' }
             @{ n = 'halaman';   d = 'Gerbang ADR-024 di halaman jadinya (butuh web + API hidup)' }
             @{ n = 'verify';    d = 'Gerbang yang sama dengan CI (butuh up + migrate)' }
-            @{ n = 'ci';        d = 'CI mandiri: verify + pindai rahasia + job citra (butuh Docker)' }
+            @{ n = 'ci';        d = 'Seluruh gerbang ci.yml sebelum push: verify + rahasia + citra (butuh Docker)' }
         ) | ForEach-Object { Write-Host ('  {0,-12} {1}' -f $_.n, $_.d) }
         Write-Host ''
         Write-Host '  Uji integrasi MENULIS BARIS ke PostgreSQL sungguhan, jadi jalankan' -ForegroundColor DarkGray
@@ -171,9 +171,9 @@ switch ($Command) {
     }
 
     'ci' {
-        # CI MANDIRI (ADR-026): seluruh gerbang ci.yml di mesin sendiri, nol menit
-        # Actions. `verify` menanggung job backend dan frontend; skrip bash-nya
-        # menanggung pindai rahasia dan job `citra`. Satu skrip untuk Windows
+        # Seluruh gerbang ci.yml di mesin pengembang, SEBELUM push (ADR-026).
+        # Alat pengembang, bukan pengganti CI. `verify` menanggung job backend dan
+        # frontend; skrip bash-nya menanggung pindai rahasia dan job `citra`. Satu skrip untuk Windows
         # (Git Bash) DAN Linux/WSL/macOS, alasan yang sama dengan `seed`.
         & $PSCommandPath verify
         if (-not $?) { exit 1 }
@@ -191,11 +191,11 @@ switch ($Command) {
         # dialihkan, dan dengan 'Stop' baris INF pertama gitleaks menghentikan
         # gerbang yang sebenarnya lulus - terjadi 2026-09-28. Yang menentukan
         # tetap exit code skripnya.
-        Write-Host '-> CI mandiri: pindai rahasia + job citra' -ForegroundColor Cyan
+        Write-Host '-> Gerbang ci.yml: pindai rahasia + job citra' -ForegroundColor Cyan
         $ErrorActionPreference = 'Continue'
-        & $gitBash .github/scripts/ci-mandiri.sh
+        & $gitBash .github/scripts/gerbang-ci-lokal.sh
         $kode = $LASTEXITCODE
         $ErrorActionPreference = 'Stop'
-        if ($kode -ne 0) { throw "Gagal: CI mandiri (exit $kode)" }
+        if ($kode -ne 0) { throw "Gagal: gerbang ci.yml (exit $kode)" }
     }
 }
