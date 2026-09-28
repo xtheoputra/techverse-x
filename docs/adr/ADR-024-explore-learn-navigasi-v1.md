@@ -238,5 +238,37 @@ URL**, dan skema itu tidak disentuh. `/` tetap bekerja saat `/explore` kelak ada
   > di produksi ia vakum.
   >
   > Yang **tetap** belum: uji komponen JS. Harness penuh masih keputusan tersendiri.
+  >
+  > 🐞 **2026-09-28 — ukuran "N dari N" itu punya batas yang tidak tertulis: 20.**
+  > Pembandingnya membaca `GET /api/v1/technologies` sekali, dengan `pageSize` bawaan
+  > server, jadi topik ke-21 dan seterusnya tidak pernah masuk hitungan *"dikenal
+  > API"*. Di skala hari ini (6 topik di pengembangan, 0 di produksi) angkanya
+  > kebetulan benar; target Bulan 4 saja 22. Diukur dengan 55 topik sementara di satu
+  > bidang (61 seluruhnya): halaman bidang memotong di 50 dan beranda di 24, jadi lima
+  > topik memang tidak punya satu tautan pun — dan versi lama **hijau, exit 0**, sambil
+  > mencetak *"70 dari 34"*. Sekarang ia membaca halaman demi halaman sampai
+  > `hasNextPage` salah: *"70 dari 75"*, kelima topiknya disebut, exit 1. Topik
+  > sementaranya dihapus lagi.
+  >
+  > Di hari yang sama ia mendapat satu sonde lagi: **ringkasan alat yang dikirim API
+  > wajib terlihat di halaman topik.** Sampai hari itu halaman hanya mencetak nama
+  > dan catatan alat, padahal `Tool` jadi agregat sendiri justru supaya halaman-halaman
+  > tidak berbeda pendapat soal *apa* alat itu. Pola yang sama dengan kata kunci
+  > `/cari` ([#67](https://github.com/xtheoputra/techverse-x/pull/67)): kontraknya menyatakan gunanya, kliennya melewatinya. Merah dulu di
+  > build lama (`model-context-protocol`, satu temuan), hijau sesudah halaman
+  > diperbaiki. Di produksi, yang nol topik, sonde ini vakum dan laporannya menyebut
+  > angkanya.
+  >
+  > 🐞 **Dan tiruan lokal 24 September tidak seutuh yang ditulis di atas.** Langkah
+  > compose-nya berjalan tanpa `--build`, jadi compose diam-diam memakai citra
+  > `techversex-prod-*` yang sudah ada di mesin — bertanggal **17 September**, dan
+  > masih bertanggal itu pada 28 September sebelum dibangun ulang. Jadi *"16 halaman,
+  > 14 dari 14"* di atas diukur terhadap citra seminggu lebih tua daripada kode yang
+  > di-commit. CI sendiri tidak terkena — runner lahir tanpa citra itu, jadi compose
+  > terpaksa membangun — tapi orang yang menyalin barisnya ke mesin sendiri terkena;
+  > `ci.yml` kini menulis `--build`. Tiruan 28 September memakai citra yang baru
+  > dibangun (tanggalnya diperiksa, bukan dianggap): 6 migrasi dari nol, 14 bidang ·
+  > 0 topik · 0 sisi, **16 halaman, 14 dari 14, ringkasan alat 0 diperiksa, teks
+  > terlihat 0 kena**.
 - **Cara membalikkan:** tambah rute dan butir menunya. Tidak ada yang perlu
   dimigrasikan; migrasi ringkasan bidang berdiri sendiri dan tidak perlu dibalik.

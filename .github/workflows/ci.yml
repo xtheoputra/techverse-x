@@ -225,8 +225,14 @@ jobs:
         with:
           node-version: 22
 
+      # `--build` tidak mengubah apa pun DI SINI - runner lahir tanpa citra
+      # techversex-prod-*, jadi compose membangunnya juga, dari cache langkah di
+      # atas. Ia ada untuk orang yang MENYALIN baris ini ke mesinnya: tanpa
+      # `--build`, compose diam-diam memakai citra techversex-prod-* lama yang
+      # sudah ada. Terjadi 2026-09-24 - tiruan lokal job ini menguji citra
+      # 17 September, bukan kode yang sedang di-commit.
       - name: Tumpukan produksi hidup
-        run: docker compose -f docker-compose.prod.yml up -d --wait
+        run: docker compose -f docker-compose.prod.yml up -d --build --wait
 
       - name: Teks pembaca dan penelusuran halaman (ADR-024)
         env:

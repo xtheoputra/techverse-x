@@ -333,4 +333,56 @@ public sealed class ContentSectionEndpointTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Contains("bidang", await response.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
     }
+
+    /// <summary>
+    /// 🔴 <c>Location</c> di jawaban <c>201</c> adalah janji bahwa yang baru dibuat
+    /// bisa dibaca di alamat itu — dan sampai 2026-09-28 satu dari dua janji itu
+    /// palsu.
+    /// </summary>
+    /// <remarks>
+    /// Diukur ke API pengembangan sebelum diperbaiki: <c>POST /api/v1/tools</c>
+    /// membalas <b>201</b> dengan <c>Location: /api/v1/tools/&lt;slug&gt;</c>, dan
+    /// alamat itu membalas <b>404</b> — tidak ada rute <c>GET</c> alat sama sekali.
+    /// Pembaca <c>ToolResponse.Slug</c> satu-satunya di kode produksi adalah baris
+    /// yang menyusun header itu.
+    /// <para>
+    /// Invariannya sengaja tidak menyebut rute mana pun: <em>kalau</em> ada
+    /// <c>Location</c>, ia wajib terbaca. Topik jadi kendalinya — Location-nya
+    /// DIPASTIKAN ada, jadi invarian ini tidak bisa hijau karena tidak pernah
+    /// dijalankan. Menambah <c>GET /api/v1/tools/{slug}</c> kelak membuat
+    /// Location alat sah lagi tanpa uji ini perlu diubah.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public async Task Location_di_jawaban_201_hanya_menunjuk_alamat_yang_bisa_dibaca()
+    {
+        using var host = Host();
+        using var client = host.CreateClient();
+
+        var slugTopik = Unik("uji-lokasi");
+        _topikDibuat.Add(slugTopik);
+        var topik = await client.PostAsJsonAsync(
+            new Uri("/api/v1/technologies", UriKind.Relative),
+            new CreateTechnologyRequest("Uji Lokasi", "Ringkasan untuk uji.", "ai-agents", slugTopik));
+        Assert.Equal(HttpStatusCode.Created, topik.StatusCode);
+
+        // Kendali: Location topik ada, dan membukanya menjawab 200.
+        Assert.NotNull(topik.Headers.Location);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync(topik.Headers.Location)).StatusCode);
+
+        var slugAlat = Unik("alat-lokasi");
+        _alatDibuat.Add(slugAlat);
+        var alat = await client.PostAsJsonAsync(
+            new Uri("/api/v1/tools", UriKind.Relative),
+            new CreateToolRequest("Alat Lokasi", "Dipakai uji Location.", null, slugAlat));
+        Assert.Equal(HttpStatusCode.Created, alat.StatusCode);
+
+        if (alat.Headers.Location is { } lokasiAlat)
+        {
+            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync(lokasiAlat)).StatusCode);
+        }
+
+        // Tanpa Location pun jawabannya tetap menyebut apa yang dibuat.
+        Assert.Equal(slugAlat, (await alat.Content.ReadFromJsonAsync<ToolResponse>())!.Slug);
+    }
 }

@@ -104,6 +104,11 @@ internal sealed class TechnologyToolConfiguration : IEntityTypeConfiguration<Tec
             .HasForeignKey(t => t.ToolId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Tidak ada kueri aplikasi yang memakai indeks ini - arah alat -> topik
+        // memang tidak pernah dibaca (#68). Pemakainya pemeriksaan Restrict di atas:
+        // menghapus satu alat mencari barisnya di sini per ToolId, dan EXPLAIN
+        // kueri pemeriksaan itu memilih indeks ini. Membuangnya pun tidak bisa:
+        // diukur 2026-09-28, EF membuatnya lagi sebagai IX_technology_tools_ToolId.
         builder.HasIndex(t => t.ToolId).HasDatabaseName("ix_technology_tools_tool_id");
     }
 }
@@ -144,6 +149,13 @@ internal sealed class ResourceConfiguration : IEntityTypeConfiguration<Resource>
         builder.Property(r => r.Url).HasMaxLength(1000).IsRequired();
         builder.Property(r => r.CreatedAt).IsRequired();
 
+        // Satu-satunya indeks berawalan TechnologyId di tabel ini, jadi ia yang
+        // melayani Include(Resources) dan cascade dari technologies - EXPLAIN
+        // memilihnya untuk WHERE "TechnologyId" = ... (diukur 2026-09-28, #68).
+        // Kolom Type di dalamnya memang tidak dipakai kueri mana pun: urutan per
+        // jenis dikerjakan di memori (TechnologyResponseFactory). Tanpa baris ini EF
+        // menggantinya dengan IX_resources_TechnologyId - lebih sempit, tapi migrasi
+        // demi selisih yang tidak terukur di skala ini.
         builder.HasIndex(r => new { r.TechnologyId, r.Type })
             .HasDatabaseName("ix_resources_technology_type");
     }

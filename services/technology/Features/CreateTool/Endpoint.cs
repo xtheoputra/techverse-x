@@ -37,8 +37,13 @@ public static class CreateToolEndpoint
             });
         }
 
+        // 🔴 201 TANPA Location, dengan sengaja. Sampai 2026-09-28 di sini tertulis
+        // Location: /api/v1/tools/<slug> - dan alamat itu membalas 404, sebab tidak
+        // ada rute GET alat sama sekali. Alat hanya terbaca sebagai bagian topik
+        // yang menautkannya. Location kembali bersama rute yang melayaninya, bukan
+        // sebelumnya; ContentSectionEndpointTests menuntut setiap Location terbaca.
         return result.IsConflict
             ? TypedResults.Conflict($"Slug alat '{result.ConflictingSlug}' sudah dipakai.")
-            : TypedResults.Created($"/api/v1/tools/{result.Value!.Slug}", result.Value);
+            : TypedResults.Created((string?)null, result.Value);
     }
 }
