@@ -15,7 +15,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'api', 'web', 'build', 'test', 'tautan', 'halaman', 'verify')]
+    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'api', 'web', 'build', 'test', 'tautan', 'halaman', 'verify', 'ci')]
     [string]$Command = 'help',
 
     [Parameter(Position = 1)]
@@ -72,6 +72,7 @@ switch ($Command) {
             @{ n = 'tautan';    d = 'Memeriksa tautan di berkas Markdown (tanpa jaringan)' }
             @{ n = 'halaman';   d = 'Gerbang ADR-024 di halaman jadinya (butuh web + API hidup)' }
             @{ n = 'verify';    d = 'Gerbang yang sama dengan CI (butuh up + migrate)' }
+            @{ n = 'ci';        d = 'Seluruh gerbang ci.yml sebelum push: verify + rahasia + citra (butuh Docker)' }
         ) | ForEach-Object { Write-Host ('  {0,-12} {1}' -f $_.n, $_.d) }
         Write-Host ''
         Write-Host '  Uji integrasi MENULIS BARIS ke PostgreSQL sungguhan, jadi jalankan' -ForegroundColor DarkGray
@@ -167,5 +168,34 @@ switch ($Command) {
         Invoke-Step 'Build web' { npm run build:web }
         Write-Host ''
         Write-Host 'Semua gerbang hijau.' -ForegroundColor Green
+    }
+
+    'ci' {
+        # Seluruh gerbang ci.yml di mesin pengembang, SEBELUM push (ADR-026).
+        # Alat pengembang, bukan pengganti CI. `verify` menanggung job backend dan
+        # frontend; skrip bash-nya menanggung pindai rahasia dan job `citra`. Satu skrip untuk Windows
+        # (Git Bash) DAN Linux/WSL/macOS, alasan yang sama dengan `seed`.
+        & $PSCommandPath verify
+        if (-not $?) { exit 1 }
+
+        # GIT BASH, bukan `bash`. Di Windows `bash` di PATH adalah
+        # C:\Windows\System32\bash.exe - bash WSL - dan distro WSL belum tentu
+        # punya `node`: diukur 2026-09-28, di mesin ini tidak ada, jadi pemindai
+        # halaman pasti gagal di sana. Git Bash selalu ada di samping git.
+        $gitRoot = Split-Path (Split-Path (Get-Command git).Source)
+        $gitBash = @("$gitRoot\bin\bash.exe", "$gitRoot\usr\bin\bash.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+        if (-not $gitBash) { throw "Git Bash tidak ditemukan di $gitRoot" }
+
+        # gitleaks dan docker menulis log ke stderr. PowerShell 5.1 mengubah
+        # setiap baris stderr program native jadi galat begitu keluarannya
+        # dialihkan, dan dengan 'Stop' baris INF pertama gitleaks menghentikan
+        # gerbang yang sebenarnya lulus - terjadi 2026-09-28. Yang menentukan
+        # tetap exit code skripnya.
+        Write-Host '-> Gerbang ci.yml: pindai rahasia + job citra' -ForegroundColor Cyan
+        $ErrorActionPreference = 'Continue'
+        & $gitBash .github/scripts/gerbang-ci-lokal.sh
+        $kode = $LASTEXITCODE
+        $ErrorActionPreference = 'Stop'
+        if ($kode -ne 0) { throw "Gagal: gerbang ci.yml (exit $kode)" }
     }
 }
