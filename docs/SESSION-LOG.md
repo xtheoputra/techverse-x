@@ -139,6 +139,9 @@ Pemilik memilih jalur yang paling sederhana dari tiga yang ditimbang: **tidak pi
 - **Baru, dan milik repo ini:** volume `techversex-trivy-cache` (tembolok basis data kerentanan untuk `run.ps1 ci`), citra `ghcr.io/sigstore/cosign/cosign` v2.5.3 dan v3.1.3 (verifikasi tanda tangan). Ollama tetap menyala seperti sebelumnya; `qwen3:8b` dimuat saat diukur dan dilepas Ollama sendiri.
 - API :5080 dan `next start` :3310 dari putaran ukur dimatikan lewat **PID yang dicatat saat dinyalakan**, sesudah baris perintah dan waktu mulainya dicocokkan — bukan lewat sapuan port. Pendengar uji di :8080 dimatikan lewat PID-nya. Port 3310, 5080, 8080, 8081, 18080 kosong; nol peti kemas dan volume `techversex-prod*`.
 - **Bukan milik sesi ini, dan dibiarkan:** :3311 dipegang `next start -p 3311` dari repo **lain** milik pemilik, mulai 02:51Z; beberapa peti kemas juga milik proyek lain. Apakah proses :3311 yang Sesi 15 matikan milik repo yang sama tidak bisa diukur lagi.
+- Klona uji gitleaks di WSL (`~/uji-gitleaks`) dan klona sekali pakai di scratchpad sudah dihapus.
+
+**Ditutup pemilik** — *"simpan commit dan push, akan saya akhiri dulu sesi kali ini"*. Diukur saat ditutup: pohon kerja bersih, nol *stash*, kedua cabang sesi ini (`fase-1/sapuan-68-butir-4-5`, `fase-1/nol-biaya-mandiri`) sama dengan remote, repo **PUBLIC**, dan semua centang CI di #56–#70 hijau.
 
 ---
 
