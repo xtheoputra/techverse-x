@@ -6,7 +6,7 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ## 2026-09-28 — Sesi 17: butir 4–5 #68 — tiga "sampah" yang ternyata janji kontrak, dan pemindai yang buta mulai topik ke-21
 
-Permintaan pemilik: *"lanjutkan semua tugas yang tersisa"*, lalu — sesudah percakapan pertama terputus — *"lanjutkan"*.
+Permintaan pemilik: *"lanjutkan semua tugas yang tersisa"*, lalu — sesudah percakapan pertama terputus — *"lanjutkan"*, lalu *"hindari penggunaan yang berbayar, cari semua mandiri dan secara gratis tapi powerfull"* (lihat *Lanjutan*).
 
 ### Yang diwarisi, dan yang terputus
 
@@ -38,7 +38,9 @@ Tiruan lokal 24 September menjalankan compose **tanpa `--build`**, jadi compose 
 
 ### #57: masih mati, dan sondenya gratis lagi
 
-Push cabang ini memicu dua run ([#69](https://github.com/xtheoputra/techverse-x/pull/69)): semua job **nol langkah**, selesai 3–5 detik, dengan anotasi *"The job was not started because recent account payments have failed or your spending limit needs to be increased."* API billing: `techverse-x` nol menit Actions Linux di September (hanya penyimpanan 0,5 GB-jam); `zarastrade` **2.223 menit**, 18 di antaranya pagi ini dari enam run Dependabot (00:11–00:17Z) — jalan yang Sesi 15 temukan masih memakan kuota. Pulih 1 Oktober tetap **belum terbukti**.
+Push cabang ini memicu dua run ([#69](https://github.com/xtheoputra/techverse-x/pull/69)): semua job **nol langkah**, selesai 3–5 detik, dengan anotasi *"The job was not started because recent account payments have failed or your spending limit needs to be increased."* Pulih 1 Oktober tetap **belum terbukti**.
+
+🔴 **Paragraf ini dikoreksi di hari yang sama.** Versi pertamanya (commit `022fc08`) menulis dari endpoint billing **bulanan** bahwa `techverse-x` memakai nol menit September dan bahwa Dependabot `zarastrade` "masih memakan kuota". Keduanya salah: endpoint bulanan melabeli seluruh 2.223 menit dengan satu repo, dan hitungan **harian** memberi `techverse-x` 558 menit; Dependabot menurut dokumentasi GitHub tidak memakan kuota. Lihat *Lanjutan* di bawah.
 
 Anotasi kedua di run yang sama dicatat, tidak ditindak: `ubuntu-latest` berpindah ke Ubuntu 26 mulai 19 Oktober 2026 (runner-images #14748).
 
@@ -61,25 +63,51 @@ Tiruan job `citra` seluruhnya hijau: tiga citra, gerbang ADR-020 (`health/live=2
 - **Kata `export` di delapan tipe `api.ts`** dibiarkan: tipenya hidup, hanya ekspornya yang tak berpengimpor.
 - **Tidak ada yang di-merge, dan tidak dicoba.** `make` tetap tidak terpasang; tidak ada target Makefile yang berubah.
 
+### Lanjutan — pemilik: *"hindari penggunaan yang berbayar, cari semua mandiri dan secara gratis tapi powerfull"*
+
+Jawabannya [ADR-026](adr/ADR-026-nol-biaya-gratis-mandiri.md) dan [#70](https://github.com/xtheoputra/techverse-x/pull/70): pagu ADR-016 turun dari USD 60 ke **nol**, dengan urutan *mandiri → gratis tanpa kartu → berbayar tidak pernah*. Riset dijalankan seperti ADR-025 — tiga riset sumber primer dan satu pemeriksa yang tugasnya membantah (**17 dari 20 klaim bertahan, 3 bersyarat, 1 terbantah**) — dan setiap angka yang bisa diukur di mesin pemilik diukur.
+
+| Pos | Yang terjadi |
+|---|---|
+| **CI** | `.\run.ps1 ci` / `make ci` — seluruh gerbang `ci.yml` di mesin sendiri. Hijau end-to-end **161 detik**; merah dibuktikan dua kali |
+| **#57** | kuota bersama habis **10 September**: `wellsy` 1.053, `techverse-x` 558, `zarastrade` 481 menit. Seperempat menit repo ini run ganda → `push` hanya `main`; terbukti di #70: **satu** run |
+| **Rantai pasok** | Trivy `:latest` (disusupi Maret 2026) di tiga tempat → 0.74.0 per digest, tanda tangan diverifikasi cosign; dua aksi `node20` → versi `node24` per SHA |
+| **AI** | Ollama lokal jadi bawaan ADR-014. `qwen3:8b`: **5,3–5,6 token/detik**, 6,7 GB — dan **salah** menjawab "apa itu MCP" tanpa sumber, benar dengan sumber |
+| **Host** | jalan berbayar ADR-025 bagian 6 dicoret; jalan mandiri lewat Tailscale Funnel ditambahkan, tidak dipilih |
+
+### 🐞 Tiga kali hari ini angka yang benar datang dari sumber yang salah
+
+1. **Endpoint billing bulanan** melabeli 2.223 menit dengan satu repo — dan catatan Sesi 15, lalu catatan saya pagi ini, membacanya sebagai "Dependabot `zarastrade` menghabiskan kuota". Hitungan **harian** membaginya ke lima repo. Paragraf pagi ini dikoreksi di atas, terang-terangan.
+2. **Endpoint `timing`** melaporkan 0 ms billable untuk semua 144 run `zarastrade`, termasuk yang berjalan 183 menit. Dibuang; hitungan per job dari API `jobs` (578 menit) cocok dengan billing harian (558).
+3. **Skrip CI mandiri hijau, pintu masuknya merah.** `bash` di PowerShell adalah bash WSL (tanpa `node` di distro ini), dan PowerShell 5.1 mengubah stderr `INF` gitleaks jadi galat terminasi. Ketahuan hanya karena gerbangnya dijalankan lewat `.\run.ps1 ci` — perintah yang akan diketik orang — dan bukan lewat skripnya.
+
+Dan satu klaim riset yang terbantah sebelum ditulis ke kode: *"aksi `node20` berhenti bekerja"*. Runner memaksanya ke Node 24; komentar di ketiga workflow sempat menulis versi yang salah dan dibetulkan sebelum commit.
+
+💡 *"Gratis" tidak berarti tanpa harga. Alat gratis tetap rantai pasok (Trivy), model gratis tetap mengarang tanpa sumber (qwen3), dan kuota gratis dibagi dengan repo lain (`wellsy`). Yang membuat ketiganya aman bukan harganya melainkan pengukurannya.*
+
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
-**Rantai PR, belum satu pun di-merge — urutan merge wajib dari bawah.** Sama dengan Sesi 15, ditambah satu di puncak:
+**Rantai PR, belum satu pun di-merge — urutan merge wajib dari bawah.** Sama dengan Sesi 15, ditambah dua di puncak:
 
 | PR | Cabang | Base |
 |---|---|---|
 | #56 … #67 | *(delapan, lihat Sesi 15)* | `main` … #66 |
 | [#69](https://github.com/xtheoputra/techverse-x/pull/69) | `fase-1/sapuan-68-butir-4-5` | #67 |
+| [#70](https://github.com/xtheoputra/techverse-x/pull/70) | `fase-1/nol-biaya-mandiri` | #69 |
 
-`origin/main` masih `52dd79f`. CI kesembilannya merah dengan nol langkah — #57.
+`origin/main` masih `52dd79f`. CI GitHub kesepuluhnya merah dengan nol langkah — #57 — tapi **gerbang yang dihitung kini `.\run.ps1 ci`**, hijau di puncak rantai.
 
-**Issue terbuka** (diukur): #38 · #39 · #40 · #42 · #54 · #55 · #57 · #59 · #60 · #61 · #68 — sama. #68 tinggal butir 1–3.
+**Issue terbuka** (diukur): #38 · #39 · #40 · #42 · #54 · #55 · #57 · #59 · #60 · #61 · #68 — sama. #68 tinggal butir 1–3. #57 menerima [koreksi](https://github.com/xtheoputra/techverse-x/issues/57#issuecomment-5863273523).
 
-**Menunggu pemilik** dan **menunggu pemicu tertulis**: tidak bergeser satu baris pun dari Sesi 15.
+**Menunggu pemilik — baru hari ini:** CI `wellsy` (pemakan kuota bersama terbesar); runner self-hosted untuk repo ini; akun Tailscale untuk uji Funnel. Repo publik **tidak disarankan**. Sisanya — uji Railway, Neon, Vercel, merge rantai — tidak bergeser dari Sesi 15.
+
+**Menunggu pemicu tertulis**: tidak bergeser. **1 Oktober 00:00 UTC** kuota pulih; run GitHub pertama sesudahnya menjawab #57.
 
 **Lingkungan pengembangan:**
 
 - Docker Desktop **menyala** — dinyalakan sesi ini karena Sesi 16 mendapatinya mati. `techversex-postgres` dan `techversex-redis` hidup; basis data: 14 bidang · 6 topik · 1 sisi · 1 alat, nol sisa sonde, nol basis data `gladi%`.
-- API :5080 dan `next start` :3310 dari putaran ukur dimatikan lewat **PID yang dicatat saat dinyalakan**, sesudah baris perintah dan waktu mulainya dicocokkan — bukan lewat sapuan port. Port 3310, 5080, 8080, 8081 kosong.
+- **Baru, dan milik repo ini:** volume `techversex-trivy-cache` (tembolok basis data kerentanan untuk `run.ps1 ci`), citra `ghcr.io/sigstore/cosign/cosign` v2.5.3 dan v3.1.3 (verifikasi tanda tangan). Ollama tetap menyala seperti sebelumnya; `qwen3:8b` dimuat saat diukur dan dilepas Ollama sendiri.
+- API :5080 dan `next start` :3310 dari putaran ukur dimatikan lewat **PID yang dicatat saat dinyalakan**, sesudah baris perintah dan waktu mulainya dicocokkan — bukan lewat sapuan port. Pendengar uji di :8080 dimatikan lewat PID-nya. Port 3310, 5080, 8080, 8081, 18080 kosong; nol peti kemas dan volume `techversex-prod*`.
 - **Bukan milik sesi ini, dan dibiarkan:** :3311 dipegang `next start -p 3311` dari repo **lain** (`SmartFit`), mulai 02:51Z; peti kemas `hvx-*` juga milik proyek lain. Apakah proses :3311 yang Sesi 15 matikan milik repo yang sama tidak bisa diukur lagi.
 
 ---
