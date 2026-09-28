@@ -17,13 +17,24 @@
 name: CI
 
 on:
+  # 🔴 `push` hanya untuk main. Sampai 2026-09-28 cabang fase-*/** ikut di sini,
+  # jadi setiap push ke cabang ber-PR menjalankan CI DUA kali - `push` dan
+  # `pull_request` untuk commit yang sama. Diukur atas run 1-12 September (menit
+  # dibulatkan per job, cara GitHub menagih): 30 dari 63 commit berjalan ganda,
+  # dan jalan `push` tambahannya memakan 147 menit - seperempat pemakaian repo
+  # ini bulan itu, dari kuota 2.000 menit yang dibagi SEMUA repo privat akun ini
+  # (#57, ADR-026). Cakupannya tidak berkurang: jalan `pull_request` menguji
+  # hasil penggabungan, lebih kuat daripada ujung cabang. Cabang tanpa PR tidak
+  # diperiksa di sini - untuk itu ada CI mandiri, `.\run.ps1 ci` / `make ci`.
   push:
-    branches: [main, "fase-*/**"]
+    branches: [main]
   # PR yang menyasar cabang fase-* ikut diperiksa, bukan cuma yang menyasar main.
-  # Tanpa baris kedua, PR bertumpuk (mis. #25 -> fase-1/skeleton) hanya kebagian
-  # jalan `push`, yang menguji ujung cabangnya - BUKAN hasil penggabungannya.
+  # Tanpa baris ini, PR bertumpuk (mis. #25 -> fase-1/skeleton) tidak diperiksa
+  # sama sekali.
   pull_request:
     branches: [main, "fase-*/**"]
+  # Jalan tangan dari tab Actions, tanpa commit kosong.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -157,8 +168,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      # v3, disematkan per SHA. v2 menyatakan `using: node20`, dan Node 20 dicabut
+      # dari runner GitHub 2026-09-23: sejak itu aksi node20 DIPAKSA berjalan di
+      # Node 24 - tidak ditolak, tapi berjalan di runtime yang tidak pernah diuji
+      # penulisnya. v3 adalah versi yang memang ditulis untuk node24, dengan input
+      # dan keluaran yang sama (catatan rilis v3.0.0). Dibaca 2026-09-28 dari
+      # action.yml di kedua tag.
+      #
+      # SHA, bukan tag: aksi PIHAK KETIGA yang dijalankan dengan GITHUB_TOKEN.
+      # Maret 2026 penyerang memaksa-dorong 76 dari 77 tag aquasecurity/trivy-action
+      # (CVE-2026-33634); tag bisa dipindah, SHA tidak. Lihat ADR-026.
       - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Komentar PR menuntut `pull-requests: write` untuk aksi pihak ketiga —
@@ -254,13 +275,20 @@ jobs:
       # gerbang ini tidak butuh satu pun izin tambahan, dan tidak menambah
       # aksi yang harus dipercaya. `--exit-code 1` yang membuatnya menggigit -
       # tanpa itu ia cuma mencetak laporan dan selalu hijau.
+      #
+      # 🔴 Disematkan per versi DAN digest, bukan `:latest`. Maret 2026 Trivy
+      # disusupi (GHSA-69fq-xp46-6x23 / CVE-2026-33634): citra v0.69.4-v0.69.6 -
+      # dan `latest` selama jendela paparan - membawa pencuri kredensial, dan
+      # langkah ini memasang soket Docker ke dalamnya. Advisory itu sendiri
+      # menyebut citra yang dirujuk lewat DIGEST tidak terkena. Digest yang sama
+      # dipakai .github/scripts/ci-mandiri.sh; naikkan keduanya bersamaan.
       - name: Pindai ketiga citra
         run: |
           for citra in techversex-api:ci techversex-migrate:ci techversex-web:ci; do
             echo "::group::$citra"
             docker run --rm \
               -v /var/run/docker.sock:/var/run/docker.sock \
-              aquasec/trivy:latest image \
+              aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969 image \
                 --scanners vuln \
                 --severity CRITICAL,HIGH \
                 --exit-code 1 \

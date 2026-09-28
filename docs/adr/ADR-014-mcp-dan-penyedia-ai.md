@@ -60,3 +60,18 @@ diambil, apalagi ketika tidak mengambilnya gratis.
 - Server MCP ke luar, kalau nanti dibangun, **hanya menyajikan halaman berstatus
   `tinjau`**. Status halaman jadi penjaga distribusi, bukan sekadar label
   tampilan.
+
+---
+
+## Pembaruan 2026-09-28 - bawaan pindah ke Ollama
+
+*"Default V1 tetap OpenAI"* dibatalkan oleh
+[ADR-026](ADR-026-nol-biaya-gratis-mandiri.md): bawaannya **Ollama di mesin
+pemilik** (`qwen3:8b`, Apache-2.0), dengan embedding `qwen3-embedding:0.6b`.
+Keputusan inti halaman ini justru yang membuat perpindahan itu murah — kode bicara ke
+abstraksi, dan Agent Framework menyambung ke Ollama lewat OllamaSharp.
+
+Dua batas yang ADR-026 ukur di mesin itu dan berlaku untuk setiap fitur AI: model
+lokal **hanya menulis dari sumber yang sudah dikurasi** (tanpa sumber, jawabannya
+tentang MCP salah dengan tata bahasa yang meyakinkan), dan ia **batch, bukan
+waktu-nyata** (~5,5 token/detik di CPU).

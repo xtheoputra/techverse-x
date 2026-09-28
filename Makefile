@@ -97,3 +97,10 @@ verify: check-global-json cek-tautan ## Gerbang yang sama dengan CI: build ketat
 	dotnet test TechVerseX.slnx --no-build --configuration Release
 	npm run lint:web
 	npm run build:web
+
+# CI MANDIRI (ADR-026): seluruh gerbang ci.yml di mesin sendiri, nol menit
+# Actions. `verify` menanggung job backend dan frontend; skrip bash-nya menanggung
+# pindai rahasia dan job `citra`. Skrip yang sama dipanggil run.ps1.
+.PHONY: ci
+ci: verify ## CI mandiri: verify + pindai rahasia + job citra (butuh Docker)
+	bash .github/scripts/ci-mandiri.sh

@@ -381,3 +381,23 @@ harga lebih teliti: halaman pemasarannya menulis *"no credit card required"* dan
   layanan di dasbornya. `apps/api/Dockerfile` tidak berubah.
 - **Vercel kontainer → host lain:** hapus `Dockerfile.vercel` dan proyek keduanya.
 - **Neon dan Vercel web** tidak disentuh keputusan ini.
+
+---
+
+## Pembaruan 2026-09-28 - jalan keluar berbayar dicoret, satu jalan mandiri ditambahkan
+
+[ADR-026](ADR-026-nol-biaya-gratis-mandiri.md) menurunkan pagu ke **nol**. Urutan uji
+di bagian 3-5 **tidak berubah**, dan angka Railway diperiksa ulang ke sumber primer
+hari ini: uji coba USD 5 sekali untuk 30 hari tanpa kartu, lalu Free dengan kredit
+**USD 1 per bulan** dan RAM $10/GB/bulan - persis batas yang syarat R7 (*"proyeksi
+<= $0,70"*) sudah antisipasi.
+
+Yang berubah ada di bagian 6:
+
+- **Dicoret:** *"Melonggarkan tanpa kartu"* (Railway Hobby, Koyeb Pro) dan domain
+  berbayar untuk *named* Cloudflare Tunnel. Oracle Always Free juga tidak: ia
+  menuntut kartu.
+- **Ditambahkan - hibrida mandiri:** web di Vercel Hobby, API **dan** PostgreSQL di
+  PC pemilik lewat `docker-compose.prod.yml`, diterbitkan lewat **Tailscale Funnel**
+  (`*.ts.net`, tanpa domain). Tabel timbangannya - tenaga lawan ketersediaan - ada di
+  ADR-026 bagian 5. Tidak dipilih di sini; uji Funnel butuh akun Tailscale.

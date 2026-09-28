@@ -65,7 +65,7 @@ Yang sudah terbukti hidup: rantai Next.js → API .NET → PostgreSQL, dengan he
 >
 > ⚖️ **Sisi hukum sudah tuntas untuk V1** (Issue [#17](https://github.com/xtheoputra/techverse-x/issues/17), ditutup 8 Sep 2026). Keempat dokumen ketentuan layanan dibaca di peramban sungguhan, dan batas kutipan ditetapkan: **arXiv boleh metadata penuh (CC0); sumber lain hanya judul, tautan, nama sumber, dan tanggal — nol kutipan.** Rekamannya di [AUDIT-KELAYAKAN.md](AUDIT-KELAYAKAN.md#pembaruan-8-september-2026--dua-dokumen-terakhir-issue-17-sudah-dibaca).
 >
-> ⚠️ Dua hal yang mengikat begitu AI dinyalakan: **OpenAI §10 melarang memasang nama/logo mereka** di situs tanpa izin tertulis (*"Powered by OpenAI"* melanggarnya), dan *Sharing & Publication Policy* menuntut **manusia memikul tanggung jawab akhir** atas isi terbit — yang berbenturan dengan tingkat `draf`. Belum menyala: V1 tidak memanggil model sama sekali.
+> ⚠️ Kalau OpenAI dipakai, dua hal mengikat: **§10 melarang memasang nama/logo mereka** di situs tanpa izin tertulis (*"Powered by OpenAI"* melanggarnya), dan *Sharing & Publication Policy* menuntut **manusia memikul tanggung jawab akhir** atas isi terbit — yang berbenturan dengan tingkat `draf`. Sejak 2026-09-28 bawaannya **bukan** OpenAI melainkan **Ollama di mesin pemilik**, nol biaya ([ADR-026](docs/adr/ADR-026-nol-biaya-gratis-mandiri.md)) — dan diukur di sana: tanpa sumber yang dikurasi, model lokal menjawab salah dengan yakin, jadi tinjauan manusia tetap satu-satunya jalan ke `tinjau`. Belum menyala: V1 tidak memanggil model sama sekali.
 
 ---
 
@@ -87,8 +87,11 @@ Butuh **.NET SDK 10**, **Node 22+**, dan **Docker**.
 Gerbang yang sama dengan CI, sebelum push:
 
 ```bash
-.\run.ps1 verify               make verify
+.\run.ps1 verify               make verify   # build ketat, uji, tautan, lint, build web
+.\run.ps1 ci                   make ci       # verify + pindai rahasia + job citra (butuh Docker)
 ```
+
+`ci` adalah **CI mandiri** ([ADR-026](docs/adr/ADR-026-nol-biaya-gratis-mandiri.md)): seluruh gerbang `ci.yml` di mesin sendiri, nol menit Actions. Ia ada karena kuota menit GitHub dibagi semua repo privat akun ini dan habis 10 September 2026 ([#57](https://github.com/xtheoputra/techverse-x/issues/57)); menaikkan batas belanja bukan jalan keluarnya. Diukur di mesin pengembangan: bagian di luar `verify` hijau dalam **178 detik** — gitleaks atas seluruh riwayat, tiga citra, gerbang ADR-020, tumpukan produksi dari volume kosong, pemindai halaman, Trivy 0 CRITICAL/HIGH.
 
 ⚠️ **`verify` dan `test` menuntut `up` LALU `migrate` lebih dulu.** Uji integrasi menulis baris ke PostgreSQL sungguhan — kesiapan yang diuji tanpa dependensi sungguhan tidak mengukur apa pun. Tanpa `migrate`, galatnya `relation "technology.technologies" does not exist`.
 

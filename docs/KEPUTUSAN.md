@@ -100,7 +100,7 @@ Empat yang paling mudah dibalik, kalau Anda mau mulai dari yang murah:
 | [15](https://github.com/xtheoputra/techverse-x/issues/15) pgvector → Qdrant | Ganti tempat vektor disimpan. Keduanya duduk di bawah abstraksi `Microsoft.Extensions.VectorData` yang sama, dan keyakinan audit di butir ini memang cuma **sedang** |
 | [2](https://github.com/xtheoputra/techverse-x/issues/2) nama produk | Ganti teks. Tidak ada URL yang memuat nama produk |
 | [7](https://github.com/xtheoputra/techverse-x/issues/7) XR dinaikkan prioritasnya | Ganti satu kolom prioritas, lalu tulis kontennya |
-| [22](https://github.com/xtheoputra/techverse-x/issues/22) pagu biaya | Angka $60 adalah perkiraan dari daftar pos, **belum pernah diuji tagihan sungguhan** |
+| [22](https://github.com/xtheoputra/techverse-x/issues/22) pagu biaya | Angka $60 adalah perkiraan dari daftar pos, **belum pernah diuji tagihan sungguhan**. ➡️ **Sudah dibalik 2026-09-28**: pagunya kini nol, mandiri lebih dulu ([ADR-026](adr/ADR-026-nol-biaya-gratis-mandiri.md)) |
 
 Dua yang paling mahal dibalik, jadi paling layak Anda periksa sekarang:
 
