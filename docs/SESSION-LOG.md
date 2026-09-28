@@ -105,6 +105,16 @@ Yang berubah di repo karenanya:
 
 🐞 **Dan satu "temuan" saya ternyata sudah ada sebelas hari.** Rincian menit per repo — dan bahwa run ganda memakan ±26% menit repo ini — sudah diukur benar oleh **Sesi 14** di komentar #57. Sesi 15 lalu salah membacanya, dan pagi ini saya mengulang kesalahan Sesi 15 sebelum mengukur ulang dari nol. Satu angka saya juga keliru: repo yang saat itu **publik** ikut saya jumlahkan ke kuota. Menit privat 1–10 September: **2.096**, bukan 2.139 — tanggal habisnya tetap 10 September. Pelajarannya untuk sesi berikutnya: sebelum mengukur ulang, cari dulu di catatan sesi apakah sudah pernah diukur — lalu ukur ulang juga, sebab yang lama pun bisa salah dibaca.
 
+### Lanjutan ketiga — *"githubnya gunakan yang sama, tapi ubah ke publik, lalu lanjutkan"*
+
+Pemilik memilih jalur yang paling sederhana dari tiga yang ditimbang: **tidak pindah ke organisasi**, repo tetap `xtheoputra/techverse-x`, dijadikan **publik**. Sebelum diubah, yang ikut terbuka diperiksa sekali lagi: gitleaks seluruh riwayat 0 bocor, `.env` tidak pernah ter-commit (hanya `.env.example` bernilai pengembangan), email penulis `xtheoputra@gmail.com` di 188 commit. Diubah **05:36:43Z**.
+
+📏 **Pertanyaan yang tidak dijawab dokumentasi mana pun, dijawab dengan menjalankannya.** Apakah blok billing akun ikut menahan repo publik milik akun yang sama? Laporan komunitas bilang ya. Diukur: satu menit sesudahnya run [#70](https://github.com/xtheoputra/techverse-x/pull/70) `36380051993` **menjalankan langkahnya** — keempat job hijau di runner sungguhan, gitleaks **83 commit** (bukan nol), **104 unit + 65 integrasi**, ADR-020 `200/405`, 16 halaman · 14 dari 14, Trivy **0** di ketiga citra. Run pertama yang benar-benar berjalan sejak 10 September; [#57](https://github.com/xtheoputra/techverse-x/issues/57) terjawab.
+
+**"Lanjutkan" berarti membuat rantai bisa di-merge dengan dasar CI yang sungguhan.** Kesembilan PR lain masih merah nol-langkah dari masa blok, jadi run `pull_request` **dan** `push` terakhir tiap PR dijalankan ulang — gratis, karena repo publik. Tiap run dicocokkan dengan commit **kepala** PR-nya, bukan dianggap. Hasil `pull_request`: **10 dari 10 hijau**, #56 sampai #70.
+
+🐞 Satu hal yang hampir terlewat: sesudah run `pull_request` hijau, halaman PR #56–#69 **tetap** memperlihatkan 3 centang merah — dari run `push` lama yang gagal nol-langkah, yang tidak ikut dijalankan ulang. Ketahuan dengan membaca status centang per kejadian (`gh pr checks`), bukan status run terakhir. #70 tidak punya run `push` sama sekali — pemicu barunya bekerja.
+
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
 **Rantai PR, belum satu pun di-merge — urutan merge wajib dari bawah.** Sama dengan Sesi 15, ditambah dua di puncak:
@@ -115,13 +125,13 @@ Yang berubah di repo karenanya:
 | [#69](https://github.com/xtheoputra/techverse-x/pull/69) | `fase-1/sapuan-68-butir-4-5` | #67 |
 | [#70](https://github.com/xtheoputra/techverse-x/pull/70) | `fase-1/nol-biaya-mandiri` | #69 |
 
-`origin/main` masih `52dd79f`. CI GitHub kesepuluhnya merah dengan nol langkah — #57. Gerbang yang dihitung **tetap `ci.yml`**, dan ia hidup lagi begitu repo pindah ke organisasinya sendiri; sampai itu, `.\run.ps1 ci` hijau di puncak rantai sebagai alat pengembang.
+`origin/main` masih `52dd79f`. **CI GitHub berjalan lagi sejak repo publik**, dan run `pull_request` kesepuluh PR **hijau** di commit kepalanya masing-masing; run `push` lama #56–#69 dijalankan ulang supaya centang merah nol-langkah hilang dari halaman PR. `.\run.ps1 ci` tetap alat pengembang sebelum push.
 
 **Issue terbuka** (diukur): #38 · #39 · #40 · #42 · #54 · #55 · #57 · #59 · #60 · #61 · #68 — sama. #68 tinggal butir 1–3. #57 menerima [koreksi](https://github.com/xtheoputra/techverse-x/issues/57#issuecomment-5863273523).
 
-**Menunggu pemilik — baru hari ini:** membuat organisasi GitHub gratis, memindahkan repo, dan menjadikannya publik (ADR-026, *Yang dikerjakan pemilik*). Sebelum publik: nama repo lain di catatan lama/riwayat/komentar #57, dan `LICENSE`. Sisanya — uji Railway, Neon, Vercel, merge rantai — tidak bergeser dari Sesi 15.
+**Menunggu pemilik — baru hari ini:** `LICENSE` (repo kini publik tanpa lisensi = *all rights reserved*); nama repo privat lain di catatan Sesi 14–15 dan komentar #57; akun hosting dan AI khusus TechVerse X saat dipakai. **Merge rantai kini punya dasar CI hijau** — urutan dari #56 ke atas.
 
-**Menunggu pemicu tertulis**: tidak bergeser. #57 dijawab run GitHub pertama yang menjalankan langkahnya — di organisasi baru, atau di akun pribadi sesudah kuota pulih **1 Oktober 00:00 UTC**. **Sesudah repo pindah, sesi berikutnya wajib:** ganti `REPO` di `cek-tautan-markdown.mjs` dan tautan absolut ke nama organisasi, pastikan secret `NEON_DATABASE_URL` ada, dan catat apakah Vercel Hobby mau men-deploy dari repo organisasi.
+**Menunggu pemicu tertulis**: tidak bergeser. #57 **terjawab** — repo publik, CI berjalan. Jangan jadikan repo privat lagi tanpa pemilik: kuota bersama kembali berlaku.
 
 **Lingkungan pengembangan:**
 

@@ -155,15 +155,14 @@ jobs:
     runs-on: ubuntu-latest
 
     # CLI gitleaks sebagai peti kemas, BUKAN gitleaks-action - sejak 2026-09-28.
-    # Tiga alasan, dari yang paling berat:
-    #   1. gitleaks-action menuntut GITLEAKS_LICENSE begitu repo dimiliki
-    #      ORGANISASI (kuncinya gratis, tapi lewat pendaftaran di gitleaks.io).
-    #      Memindahkan repo ini ke organisasinya sendiri - supaya kuota Actions-nya
-    #      tidak dibagi proyek lain (#57, ADR-026) - akan memerahkan gerbang ini
-    #      tanpa satu rahasia pun. CLI-nya MIT, tanpa kunci.
-    #   2. Aksi pihak ketiga yang dijalankan dengan GITHUB_TOKEN diganti peti kemas
+    # Tiga alasan:
+    #   1. Aksi pihak ketiga yang dijalankan dengan GITHUB_TOKEN diganti peti kemas
     #      tanpa token dan tanpa izin tambahan: `pull-requests: read` ikut hilang.
-    #   3. Perintah yang SAMA dengan .github/scripts/gerbang-ci-lokal.sh, digest sama.
+    #   2. Perintah yang SAMA dengan .github/scripts/gerbang-ci-lokal.sh, digest sama.
+    #   3. gitleaks-action bukan lagi MIT sejak v2, dan menuntut GITLEAKS_LICENSE
+    #      begitu repo dimiliki ORGANISASI (lewat pendaftaran di gitleaks.io). Repo
+    #      ini tetap di akun pribadi (ADR-026), tapi gerbang rahasia tidak boleh
+    #      bisa merah hanya karena repo dipindah. CLI-nya MIT, tanpa kunci.
     #
     # Seluruh riwayat (fetch-depth 0), bukan hanya commit PR: diukur 2026-09-28,
     # 80-82 commit dalam 0,3-22 detik. Citra ini berjalan sebagai root atas repo

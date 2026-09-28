@@ -402,11 +402,10 @@ Yang berubah ada di bagian 6:
   menolaknya di hari yang sama - proyek tidak boleh bergantung pada mesin siapa pun.
 - **Dua fakta baru untuk urutan uji:** Railway Free tidak bisa menarik citra dari
   registry privat (*"Private registry credentials are available on the Pro plan"*) -
-  R3 memang membangun dari Dockerfile repo, jadi tidak terkena. Dan repo ini akan
-  pindah ke **organisasi GitHub gratis, publik** (ADR-026): dokumentasi Vercel
-  bertentangan soal Hobby dari repo organisasi, jadi uji V1 dan penyambungan web
-  dimulai dengan memastikan itu.
+  R3 memang membangun dari Dockerfile repo, jadi tidak terkena. Dan repo ini
+  **publik** sejak 2026-09-28, tetap di akun pribadi (ADR-026) — larangan Vercel Hobby
+  atas repo milik organisasi tidak berlaku.
 - **Migrasi jalur Vercel tidak lagi dari mesin pemilik.** Bagian 3 dan uji V2 menaruhnya
-  di sana *"karena Actions mati"*. Begitu repo punya menit sendiri di organisasinya,
+  di sana *"karena Actions mati"*. Sejak repo publik Actions berjalan lagi, jadi
   migrasi berjalan dari `migrasi-produksi.yml` (`workflow_dispatch`) — gerbang manusia
   yang sama, tanpa bergantung pada PC siapa pun.

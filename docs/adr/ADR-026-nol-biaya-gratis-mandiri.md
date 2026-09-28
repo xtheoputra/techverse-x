@@ -4,7 +4,8 @@
 USD 60 di [ADR-016](ADR-016-pagu-biaya.md) butir 1 dan bawaan OpenAI di
 [ADR-014](ADR-014-mcp-dan-penyedia-ai.md). Host API tetap milik
 [ADR-025](ADR-025-host-api-pengganti-koyeb.md) (Diusulkan); yang berubah di sana hanya
-jalan keluar berbayar yang dicoret. Issue [#57](https://github.com/xtheoputra/techverse-x/issues/57).
+jalan keluar berbayar yang dicoret. Issue [#57](https://github.com/xtheoputra/techverse-x/issues/57) — **terjawab**:
+repo publik sejak 2026-09-28, dan CI berjalan lagi.
 **Tanggal:** 2026-09-28
 
 ## Konteks
@@ -85,65 +86,61 @@ ulang). Klaim di bawah ditulis dalam bentuk yang lolos pemeriksa, termasuk syara
 - **Bukan mesin pemilik.** PC pemilik hanya tempat menulis kode.
 - **"Powerful" diukur, bukan diklaim.**
 
-### 2. GitHub: organisasi gratis sendiri, repo publik — pilihan pemilik
+### 2. GitHub: akun yang sama, repo publik — pilihan pemilik, dan terbukti bekerja
+
+Tiga jalur ditimbang; pemilik memilih **tetap di akun pribadi, repo dijadikan publik**
+(dijalankan 2026-09-28 05:36Z).
 
 | Jalur | Dipilih? | Sebab |
 |---|---|---|
-| **Organisasi gratis baru + repo publik** | ✅ **pemilik, 2026-09-28** | tagihan sendiri; menit runner standar gratis untuk repo publik |
-| Organisasi gratis baru + repo privat | ❌ | kuota 2.000 menit sendiri, tapi Vercel Hobby **tidak bisa** men-deploy dari repo privat milik organisasi — kedua halaman dokumentasinya sepakat soal itu |
-| Tetap di akun pribadi | ❌ | kuota tetap dibagi 21 repo |
+| **Akun pribadi, repo publik** | ✅ **pemilik** | tanpa pindah, tanpa ganti nama; menit runner standar untuk repo publik **tidak masuk kuota** yang dibagi repo privat |
+| Organisasi gratis baru + repo publik | — | tagihan terpisah, tapi pemindahan membawa ganti nama, citra GHCR baru, dan lisensi untuk `gitleaks-action` |
+| Organisasi gratis baru + repo privat | ❌ | Vercel Hobby **tidak bisa** men-deploy dari repo privat milik organisasi |
 
-Yang menopangnya, per sumber primer:
+Yang menopangnya, per sumber primer: *"The use of standard GitHub-hosted runners is free:
+In public repositories"* — gratis, **bukan tanpa batas**: 20 job serentak di paket
+Free, 6 jam per job, dan *larger runner* selalu berbayar.
 
-- *"GitHub bills you separately for each account you own (personal, organization, or
-  enterprise). Each account has a separate: … Payment method"*, dan *"Minutes usage is
-  charged to the repository owner"*.
-- *"The use of standard GitHub-hosted runners is free: In public repositories"* — gratis,
-  **bukan tanpa batas**: 20 job serentak di paket Free, 6 jam per job, dan *larger
-  runner* selalu berbayar.
-- Memindahkan repo membawa issue, PR, wiki, bintang, dan pengamat; secret, webhook, dan
-  deploy key tetap melekat; tautan web dan git **dialihkan** — kecuali repo baru dibuat
-  di nama lama.
+📏 **Yang tidak dijawab dokumentasi mana pun, dijawab dengan menjalankannya.** Apakah
+blok billing akun (*"recent account payments have failed…"*) ikut menahan repo publik
+milik akun yang sama? Laporan komunitas menyebut ya. Diukur: satu menit sesudah repo
+dijadikan publik, run CI [#70](https://github.com/xtheoputra/techverse-x/pull/70)
+(`36380051993`) **menjalankan langkahnya** — keempat job hijau, 05:36:54Z → 05:39:55Z.
+Di runner: gitleaks **83 commit, 0 bocor**; **104 unit + 65 integrasi**; gerbang
+ADR-020 `200/405`; tumpukan produksi dari nol, 16 halaman, 14 dari 14; Trivy **0**
+di ketiga citra. Run pertama yang benar-benar berjalan sejak 10 September.
 
-⚠️ **Yang tidak terverifikasi, dan ditulis supaya tidak dibaca lebih:**
+⚠️ **Yang tetap terhubung, ditulis supaya tidak dibaca lebih:** repo ini masih tinggal
+di akun yang sama dengan repo privat lain. Menit dan tagihannya kini terpisah dalam
+praktik — repo publik tidak memakai kuota — tapi akunnya satu. Kalau suatu hari repo
+ini dijadikan privat lagi, keterhubungan #57 kembali utuh.
 
-- Tidak ada pernyataan GitHub bahwa blok billing akun pribadi **tidak** menjalar ke
-  organisasi yang ia miliki. Tagihan terpisah membuatnya sangat mungkin; bukti
-  eksplisitnya tidak ada. Run pertama di organisasi yang menjawabnya.
-- Organisasi dengan satu pemilik bisa *"become inaccessible if the owner is
-  unreachable"* — akun pribadi pemilik tetap satu-satunya kunci.
-- **Vercel Hobby dari repo organisasi PUBLIK: dokumentasinya bertentangan.** `/docs/git`
-  (18 Sep 2026) hanya melarang repo *privat* organisasi; `/docs/limits` (16 Sep 2026)
-  menulis *"Vercel does not support connecting a project on your Hobby team to Git
-  repositories owned by Git organizations"*. **Wajib diuji langsung** sebelum web
-  dipindah — langkah pertama di daftar pemilik di bawah.
+**Yang dibuka ke publik, dan sudah diperiksa sebelum dibuka:** seluruh riwayat git
+dipindai gitleaks — 82 commit, **0 bocor**; `.env` tidak pernah ter-commit, hanya
+`.env.example` berisi nilai pengembangan lokal. Workflow aman untuk repo publik:
+`pull_request` dari fork berjalan dengan token baca-saja dan tanpa secret, dan
+satu-satunya secret (`NEON_DATABASE_URL`) hanya dipakai `workflow_dispatch`. ⚠️ Yang
+**ikut terbuka**: alamat email penulis di 188 commit; nama repo privat lain pemilik di
+catatan Sesi 14 dan 15, di 5 commit riwayat, dan di komentar #57 (ADR ini dan catatan
+sesi 2026-09-28 menyamarkannya). Repo juga belum punya berkas `LICENSE` — tanpanya
+kode publik tetap *all rights reserved*.
 
-**Yang dibuka ke publik, dan sudah diperiksa:** seluruh riwayat git dipindai gitleaks —
-82 commit, **0 bocor**. Workflow aman untuk repo publik: `pull_request` dari fork
-berjalan dengan token baca-saja dan tanpa secret, satu-satunya secret
-(`NEON_DATABASE_URL`) hanya dipakai `workflow_dispatch`. ⚠️ Yang **ikut terbuka** dan
-belum diputuskan: nama repo privat lain pemilik — di catatan Sesi 14 dan 15, di 5 commit
-riwayat, dan di komentar #57. ADR ini dan catatan sesi 2026-09-28 menyamarkannya;
-sisanya keputusan pemilik (menyunting catatan lama dan komentar bisa dibalik,
-menulis ulang riwayat git tidak). Repo juga belum punya berkas `LICENSE` —
-tanpanya kode publik tetap *all rights reserved*.
+### 3. CI: tetap GitHub Actions, di luar kuota bersama
 
-### 3. CI: tetap GitHub Actions, di kuotanya sendiri
-
-- **Gerbang yang dihitung tetap `ci.yml`.** Sesudah pindah, ia berjalan di tagihan dan
-  menit organisasi, bukan akun pribadi.
+- **Gerbang yang dihitung tetap `ci.yml`**, dan sejak repo publik ia berjalan lagi — di
+  luar kuota yang dibagi repo privat.
 - **`push` hanya untuk `main`**, plus `workflow_dispatch`. Cabang ber-PR diperiksa
   lewat `pull_request`, yang menguji hasil penggabungan. Sesi 14 sengaja menunda
   perubahan ini karena *"tidak bisa dibuktikan selama CI tidak berjalan"* — tapi run
   yang terblok tetap **dibuat**, jadi jumlahnya terukur: di
   [#70](https://github.com/xtheoputra/techverse-x/pull/70) **satu** run, bukan dua. Hemat
   menitnya sendiri baru terukur saat CI berjalan lagi.
-- **gitleaks jalan sebagai CLI (MIT) dalam peti kemas**, bukan `gitleaks-action`: aksi
-  itu menuntut `GITLEAKS_LICENSE` untuk repo milik organisasi (gratis, tapi lewat
-  formulir Google), dan kodenya bukan lagi MIT sejak v2. CLI-nya tanpa kunci, tanpa
-  `GITHUB_TOKEN`, tanpa izin `pull-requests: read`. Perilakunya ditiru di Linux dengan
-  repo milik uid lain: citranya memasang `safe.directory = *` sendiri, 82 commit
-  dipindai — bukan nol.
+- **gitleaks jalan sebagai CLI (MIT) dalam peti kemas**, bukan `gitleaks-action`: CLI-nya
+  tanpa kunci, tanpa `GITHUB_TOKEN`, tanpa izin `pull-requests: read`, dan perintahnya
+  sama dengan gerbang lokal. Aksinya bukan lagi MIT sejak v2 dan menuntut
+  `GITLEAKS_LICENSE` begitu repo dimiliki organisasi — jalur yang kini tidak diambil,
+  tapi tidak lagi jadi alasan gerbang ini bisa merah. Di runner sungguhan: **83 commit
+  dipindai**, bukan nol.
 - **`.\run.ps1 ci` / `make ci` adalah alat pengembang**, bukan pengganti CI: seluruh
   gerbang `ci.yml` sebelum push, hijau end-to-end dalam 161 detik, dibuktikan merah
   (rahasia palsu di klona sekali pakai → exit 1). Dua jebakan Windows yang ditemukan
@@ -195,8 +192,8 @@ tinjauan manusia tetap satu-satunya jalan ke `tinjau`.
 
 - **Web — Vercel Hobby.** Jatahnya dihitung per tim Hobby untuk semua proyeknya, jadi
   akun itu khusus TechVerse X (pilihan pemilik). Non-komersial. Melewati batas =
-  dijeda sampai 30 hari berlalu, tanpa tagihan. Deploy dari repo organisasi: **uji
-  dulu** (bagian 2).
+  dijeda sampai 30 hari berlalu, tanpa tagihan. Repo tetap milik akun pribadi, jadi
+  larangan Hobby atas repo organisasi tidak berlaku.
 - **API — urutan uji [ADR-025](ADR-025-host-api-pengganti-koyeb.md) tetap.** Railway Free
   memberi USD 1 per bulan per akun (syarat R7 *"≤ $0,70"* sudah mengantisipasinya) dan
   tidak bisa menarik citra registry privat (*"Private registry credentials are available
@@ -229,35 +226,31 @@ tinjauan manusia tetap satu-satunya jalan ke `tinjau`.
 
 - **Pagu ADR-016 batal.** Butir 4 (arXiv saja, tanpa ringkasan AI) tetap — alasan
   hukumnya tidak bergantung pada biaya.
-- **CI hidup lagi begitu repo pindah**, tanpa menunggu 1 Oktober dan tanpa bergantung
-  pada repo lain.
+- **CI hidup lagi sejak repo publik** — tanpa menunggu 1 Oktober, dan tanpa bergantung
+  pada pemakaian menit repo lain.
 - **Kode dan riwayat terbuka.** Itu harga menit gratis di repo publik, dan pilihan
-  pemilik.
-- **Nama citra berganti** ke `ghcr.io/<organisasi>/techverse-x/…` — ia dibentuk dari
-  `GITHUB_REPOSITORY`, jadi workflow mengikutinya sendiri. Paket lama tetap milik akun
-  pribadi dan kehilangan tautannya ke repo.
+  pemilik. Menjadikannya privat lagi tidak menarik kembali apa yang sudah dibaca atau
+  disalin orang — dan mengembalikan keterhubungan #57.
+- **Nama repo, tautan, dan citra GHCR tidak berubah** — tidak ada pemindahan.
 - **AI tetap belum ditulis** (ADR-007). Saat ditulis: Groq dan Cloudflare lewat
   endpoint kompatibel OpenAI, dengan pagu harian dan cadangan satu sama lain.
 
-## Yang dikerjakan pemilik — urut
+## Yang dikerjakan pemilik
 
-1. **Buat organisasi GitHub gratis** untuk TechVerse X. Layar yang meminta kartu =
-   berhenti (tidak ada dokumen yang secara eksplisit menjamin tanpa kartu).
-2. **Putuskan dulu** soal nama repo lain di riwayat dan komentar lama (bagian 2), dan
-   soal `LICENSE`.
-3. **Pindahkan repo** ke organisasi, lalu jadikan **publik**.
-4. **Uji Vercel Hobby dari repo organisasi** sebelum apa pun bergantung padanya.
-5. Sesudah pindah, sesi berikutnya mengganti `REPO` di
-   `.github/scripts/cek-tautan-markdown.mjs` dan tautan absolut ke nama baru — GitHub
-   mengalihkan yang lama, tapi penjaga tautan menuntut awalan yang tepat — dan
-   memastikan secret `NEON_DATABASE_URL` masih ada.
-6. Akun **Groq** dan **Cloudflare** khusus TechVerse X — saat kode AI pertama ditulis,
-   bukan sekarang.
+1. ~~Menjadikan repo publik~~ — **selesai 2026-09-28**, atas perintah pemilik, dan CI
+   terbukti berjalan lagi.
+2. **`LICENSE`** — tanpanya kode publik tetap *all rights reserved*. Pilihan lisensinya
+   milik pemilik.
+3. **Nama repo privat lain** di catatan Sesi 14–15 dan komentar #57 — menyuntingnya bisa
+   dibalik; riwayat git tidak ditulis ulang.
+4. Akun **Vercel, Railway, Neon** khusus TechVerse X (pilihan pemilik) saat uji ADR-025
+   dijalankan; akun **Groq** dan **Cloudflare** khusus TechVerse X saat kode AI pertama
+   ditulis, bukan sekarang.
 
 ## Cara membatalkan keputusan ini
 
 Menaikkan pagu di atas nol adalah keputusan pemilik yang ditulis sebagai ADR baru —
-bukan pengecualian diam-diam per pos. Pemindahan repo bisa dibalik (organisasi →
-akun pribadi); membuat repo privat lagi tidak menarik kembali apa yang sudah dibaca
-atau disalin orang selama ia publik. Sematan SHA/digest, pemicu `push: [main]`, dan
-gitleaks CLI berdiri sendiri — tetap benar di mana pun repo tinggal.
+bukan pengecualian diam-diam per pos. Repo bisa dijadikan privat lagi, tapi itu tidak
+menarik kembali apa yang sudah terbuka, dan kuota bersama #57 berlaku lagi. Sematan
+SHA/digest, pemicu `push: [main]`, dan gitleaks CLI berdiri sendiri — tetap benar di
+mana pun repo tinggal.
