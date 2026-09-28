@@ -4,6 +4,86 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-28 — Sesi 17: butir 4–5 #68 — tiga "sampah" yang ternyata janji kontrak, dan pemindai yang buta mulai topik ke-21
+
+Permintaan pemilik: *"lanjutkan semua tugas yang tersisa"*, lalu — sesudah percakapan pertama terputus — *"lanjutkan"*.
+
+### Yang diwarisi, dan yang terputus
+
+Saringan Sesi 15 dipakai lagi: **tidak menunggu akun, merge, atau pemicu tertulis.** Yang lolos hanya satu: butir 4–5 [#68](https://github.com/xtheoputra/techverse-x/issues/68). Docker daemon yang Sesi 16 catat mati dinyalakan (02:50Z), basis data dimigrasi, dan `verify` di HEAD `e98d868` hijau lebih dulu sebagai garis dasar: 0 peringatan, 104 unit + 64 integrasi.
+
+⚠️ **Percakapan pertama terputus pukul 03:17Z** — sesudah semua pengukuran selesai, **sebelum** satu commit pun. Yang tertinggal: 16 berkas berubah di cabang baru `fase-1/sapuan-68-butir-4-5`, API dan `next start` dari putaran ukur kedua masih hidup, dan nol catatan sesi. Percakapan kedua merekonstruksinya dari transkrip — hasil tiap langkah dibaca dari **keluaran perintah yang terekam**, bukan dari ringkasan — lalu mengulang yang murah sebelum commit: pemindai terhadap tumpukan yang masih hidup (angka sama), sonde keunikan `ix_fields_name` (sama), dan `verify` penuh atas pohon final.
+
+### 🔴 Tiga "sampah" yang ternyata cacat
+
+Butir 5 #68 bertingkat ⚪ bersih-bersih. Diukur satu per satu, tiga di antaranya **janji kontrak yang tidak ditepati** — pola yang sama dengan `SearchResponse.Query` di [#67](https://github.com/xtheoputra/techverse-x/pull/67):
+
+| Janji | Diukur | Merahnya lebih dulu |
+|---|---|---|
+| `201` + `Location: /api/v1/tools/<slug>` | alamat itu **404**; `GET /api/v1/tools` **405** | uji baru `Expected: OK / Actual: NotFound` |
+| `summary` alat — alasan `Tool` jadi agregat sendiri | ada di jawaban API, **tidak** di teks terlihat, tidak pula di muatan RSC | sonde baru pemindai: 1 temuan, `model-context-protocol` |
+| pemindai: *"N dari N yang dikenal API"* | hanya membaca **halaman pertama** API — 20 topik | 55 topik sementara: versi lama **hijau, exit 0**, mencetak *"70 dari 34"* |
+
+Yang ketiga ketahuan justru karena `PagedResponse.HasNextPage` — medan nol-pembaca di #68 — diberi pembaca pertamanya. Dengan 61 topik, halaman bidang memotong di 50 dan beranda di 24, jadi lima topik tanpa satu tautan pun; versi baru mencetak *"70 dari 75"*, menyebut kelimanya, exit 1. Topik sementaranya dihapus (`DELETE 55`), dan basis data kembali ke 6 topik · 1 sisi · 1 alat.
+
+📏 Satu hal di pengukuran itu yang hampir menyesatkan: topik sementara baru muncul di beranda dan halaman bidang **~190 detik** sesudah dibuat — cache data web. Sonde lamanya dijalankan sesudah kedua halaman **terbukti** memuatnya, bukan sesudah `POST`-nya berhasil.
+
+Sisanya — dibuang (`CoreTopicCount`, `Technology.Slugify`), dipertahankan dengan pemakai yang **diukur** (tiga indeks EF lewat `EXPLAIN` dan satu pelanggaran unik), atau dinyatakan bukan temuan dengan alasannya (`DomainEvent.EventId`/`OccurredAt` adalah keputusan ADR-004; kedelapan tipe `api.ts` dipakai di dalam `api.ts` sendiri) — tercatat per butir di [#69](https://github.com/xtheoputra/techverse-x/pull/69) dan [komentar #68](https://github.com/xtheoputra/techverse-x/issues/68#issuecomment-5862773677).
+
+💡 *Sisa sapuan pemanggil-nol keempat berbuah lagi, dan kali ini dari arah sebaliknya: bukan dengan membuang yang tak terbaca, tapi dengan memberinya pembaca — dan pembaca itulah yang menemukan cacatnya.*
+
+### 🐞 Koreksi atas Sesi 15: tiruan job `citra` tidak seutuh yang ditulis
+
+Tiruan lokal 24 September menjalankan compose **tanpa `--build`**, jadi compose memakai citra `techversex-prod-*` yang sudah ada di mesin — bertanggal **17 September**, dan masih bertanggal itu pagi ini sebelum dibangun ulang. *"16 halaman, 14 dari 14"* Sesi 15 diukur terhadap citra seminggu lebih tua daripada kodenya. CI tidak terkena (runner lahir tanpa citra itu), tapi baris yang disalin ke mesin orang terkena; `ci.yml` kini menulis `--build`, dan ADR-024 dikoreksi. Tiruan hari ini memeriksa **tanggal citra yang benar-benar dipakai compose** sebagai langkah tersendiri.
+
+### #57: masih mati, dan sondenya gratis lagi
+
+Push cabang ini memicu dua run ([#69](https://github.com/xtheoputra/techverse-x/pull/69)): semua job **nol langkah**, selesai 3–5 detik, dengan anotasi *"The job was not started because recent account payments have failed or your spending limit needs to be increased."* API billing: `techverse-x` nol menit Actions Linux di September (hanya penyimpanan 0,5 GB-jam); `zarastrade` **2.223 menit**, 18 di antaranya pagi ini dari enam run Dependabot (00:11–00:17Z) — jalan yang Sesi 15 temukan masih memakan kuota. Pulih 1 Oktober tetap **belum terbukti**.
+
+Anotasi kedua di run yang sama dicatat, tidak ditindak: `ubuntu-latest` berpindah ke Ubuntu 26 mulai 19 Oktober 2026 (runner-images #14748).
+
+### Ukuran
+
+`run.ps1 verify` hijau atas pohon final: 0 peringatan, **104 unit** (dua uji pindah ke `SlugsTests`, jumlahnya tetap) + **65 integrasi** (dari 64), 284 tautan, lint, build web.
+
+| Bentuk | Halaman | `/teknologi/*` | Ringkasan alat | Teks terlihat |
+|---|---|---|---|---|
+| **produksi** (tiruan job `citra`, citra baru dibangun) | 16 | **14 dari 14** | 0 diperiksa — vakum | 0 kena |
+| **pengembangan** (6 topik contoh) | 22 | **20 dari 20** | 1 diperiksa | 0 kena |
+
+Tiruan job `citra` seluruhnya hijau: tiga citra, gerbang ADR-020 (`health/live=200`, `POST=405`), `compose up --build --wait`, 6 migrasi dari nol, pemindai, `down -v` — nol peti kemas dan nol volume `techversex-prod*` tersisa.
+
+### Yang TIDAK dikerjakan, dan kenapa
+
+- **Butir 1–3 #68** — pemicunya tetap ADR-021, yang menunggu [#40](https://github.com/xtheoputra/techverse-x/issues/40). #69 sengaja hanya `Refs #68`.
+- **`correlationId`** tidak ditambahkan ke `DomainEvent`: menambahnya berarti memutuskan asal nilainya tanpa satu pun pembaca yang bisa membantah.
+- **`GET /api/v1/tools/{slug}`** tidak dibuat hanya supaya `Location` sah — rute itu belum punya klien. Ujinya sudah siap menerima `Location` kembali tanpa diubah.
+- **Kata `export` di delapan tipe `api.ts`** dibiarkan: tipenya hidup, hanya ekspornya yang tak berpengimpor.
+- **Tidak ada yang di-merge, dan tidak dicoba.** `make` tetap tidak terpasang; tidak ada target Makefile yang berubah.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Rantai PR, belum satu pun di-merge — urutan merge wajib dari bawah.** Sama dengan Sesi 15, ditambah satu di puncak:
+
+| PR | Cabang | Base |
+|---|---|---|
+| #56 … #67 | *(delapan, lihat Sesi 15)* | `main` … #66 |
+| [#69](https://github.com/xtheoputra/techverse-x/pull/69) | `fase-1/sapuan-68-butir-4-5` | #67 |
+
+`origin/main` masih `52dd79f`. CI kesembilannya merah dengan nol langkah — #57.
+
+**Issue terbuka** (diukur): #38 · #39 · #40 · #42 · #54 · #55 · #57 · #59 · #60 · #61 · #68 — sama. #68 tinggal butir 1–3.
+
+**Menunggu pemilik** dan **menunggu pemicu tertulis**: tidak bergeser satu baris pun dari Sesi 15.
+
+**Lingkungan pengembangan:**
+
+- Docker Desktop **menyala** — dinyalakan sesi ini karena Sesi 16 mendapatinya mati. `techversex-postgres` dan `techversex-redis` hidup; basis data: 14 bidang · 6 topik · 1 sisi · 1 alat, nol sisa sonde, nol basis data `gladi%`.
+- API :5080 dan `next start` :3310 dari putaran ukur dimatikan lewat **PID yang dicatat saat dinyalakan**, sesudah baris perintah dan waktu mulainya dicocokkan — bukan lewat sapuan port. Port 3310, 5080, 8080, 8081 kosong.
+- **Bukan milik sesi ini, dan dibiarkan:** :3311 dipegang `next start -p 3311` dari repo **lain** (`SmartFit`), mulai 02:51Z; peti kemas `hvx-*` juga milik proyek lain. Apakah proses :3311 yang Sesi 15 matikan milik repo yang sama tidak bisa diukur lagi.
+
+---
+
 ## 2026-09-25 — Sesi 16: *"sudah berapa %?"* dijawab dengan tiga angka, dan hanya satu yang resmi
 
 Permintaan pemilik: *"sudah berapa % proyek ini jadi?"*, lalu *"simpan, commit dan push"*.

@@ -131,6 +131,9 @@ async function ambil(jalur) {
 // ---------------------------------------------------------------- penelusuran
 
 const dikunjungi = new Map();
+// Teks terlihat tiap halaman yang menjawab 200 — dibaca lagi oleh sonde ringkasan
+// alat di bawah, yang membandingkannya dengan jawaban API.
+const teksHalaman = new Map();
 const antre = ['/'];
 const temuan = [];
 
@@ -157,6 +160,7 @@ while (antre.length > 0 && dikunjungi.size < BATAS_HALAMAN) {
   }
 
   const terlihat = teksTerlihat(hasil.html);
+  teksHalaman.set(jalur, terlihat);
   TERLARANG.lastIndex = 0;
   const kena = [...new Set((terlihat.match(TERLARANG) ?? []))];
   for (const k of kena) {
@@ -252,17 +256,46 @@ while (antre.length > 0 && dikunjungi.size < BATAS_HALAMAN) {
 
 // ---------------------------------------------- pembanding dari API (opsional)
 
+/**
+ * SEMUA topik yang dikenal API, halaman demi halaman sampai `hasNextPage` salah.
+ *
+ * 🐞 Sampai 2026-09-28 pembanding ini membaca `GET /api/v1/technologies` SEKALI,
+ * tanpa `pageSize` — jadi dengan bawaan server, 20. Topik ke-21 dan seterusnya
+ * tidak pernah masuk hitungan "dikenal API", dan halaman mereka yang tidak
+ * tercapai tidak pernah dilaporkan. Di skala hari ini (6 topik di pengembangan,
+ * 0 di produksi) hitungannya kebetulan benar; target Bulan 4 di RENCANA-V1 saja
+ * sudah 22.
+ *
+ * 📏 Diukur, bukan diduga: 55 topik sementara di bidang XR (61 seluruhnya).
+ * Halaman bidang memotong di 50 dan beranda di 24, jadi lima topik memang tidak
+ * punya satu tautan pun. Versi lama HIJAU, exit 0, sambil mencetak "70 dari 34" —
+ * pembilang lebih besar daripada penyebutnya. Versi ini: "70 dari 75", kelima
+ * topiknya disebut satu per satu, exit 1.
+ *
+ * Ini juga pembaca pertama `PagedResponse.HasNextPage` di repo ini.
+ */
+async function semuaTopik() {
+  const semua = [];
+  for (let halaman = 1; halaman <= 1000; halaman++) {
+    const jawaban = await fetch(`${API}/api/v1/technologies?page=${halaman}&pageSize=100`).then((r) => r.json());
+    if (Array.isArray(jawaban)) return jawaban;
+    semua.push(...(jawaban.items ?? []));
+    if (!jawaban.hasNextPage) return semua;
+  }
+  throw new Error('lebih dari 1000 halaman topik — hasNextPage tidak pernah false?');
+}
+
 const halamanTeknologi = [...dikunjungi.keys()].filter((j) => j.startsWith('/teknologi/'));
 let barisApi = `${kuning}API_BASE_URL tidak diberikan — jumlah halaman tidak dibandingkan${mati}`;
+let barisAlat = null;
 
 if (API) {
   try {
-    const [bidang, topik] = await Promise.all([
+    const [bidang, daftarTopik] = await Promise.all([
       fetch(`${API}/api/v1/fields`).then((r) => r.json()),
-      fetch(`${API}/api/v1/technologies`).then((r) => r.json()),
+      semuaTopik(),
     ]);
     const daftarBidang = Array.isArray(bidang) ? bidang : (bidang.items ?? []);
-    const daftarTopik = Array.isArray(topik) ? topik : (topik.items ?? []);
     const diharap = new Set([
       ...daftarBidang.map((b) => `/teknologi/${b.slug}`),
       ...daftarTopik.map((t) => `/teknologi/${t.slug}`),
@@ -274,6 +307,45 @@ if (API) {
     for (const j of hilang) {
       temuan.push([j, 'dikenal API tapi TIDAK tercapai dari / lewat tautan mana pun', null]);
     }
+
+    // ------------------------- sonde: ringkasan alat yang dikirim API TAMPIL
+    //
+    // `Tool` menulis alasan keberadaannya sendiri: katalog alat berdiri sendiri
+    // supaya lima halaman yang memakai LangGraph tidak berbeda pendapat soal APA
+    // LangGraph itu. Jawaban "apa"-nya adalah `summary` alat — dan sampai
+    // 2026-09-28 medan itu melintasi kabel ke setiap halaman topik tanpa pernah
+    // tergambar: halaman hanya mencetak nama dan `note`. Diukur di contoh
+    // pengembangan: "Alat memeriksa server MCP secara interaktif." ada di jawaban
+    // API, tidak ada di teks terlihat halamannya, dan tidak ada pula di muatan RSC.
+    //
+    // Pola yang sama dengan `SearchResponse.Query` (#67): kontraknya menyatakan
+    // untuk apa medan itu, kliennya melewatinya. Bandingkan dengan sonde kata kunci
+    // di atas, yang lahir dari cacat itu.
+    //
+    // ⚠️ Di produksi hari ini sonde ini VAKUM — nol topik, jadi nol alat — dan
+    // barisnya di laporan menyebut angkanya supaya kevakuman itu terbaca, bukan
+    // disangka hijau.
+    let diperiksa = 0;
+    let halamanBeralat = 0;
+    for (const t of daftarTopik) {
+      const jalur = `/teknologi/${t.slug}`;
+      const terlihat = teksHalaman.get(jalur);
+      // Tidak tercapai atau bukan 200: sudah dilaporkan di atas, jangan dua kali.
+      if (terlihat === undefined) continue;
+
+      const detail = await fetch(`${API}/api/v1/technologies/${encodeURIComponent(t.slug)}`).then((r) => r.json());
+      const alatBerringkasan = (detail.tools ?? []).filter((a) => a.summary?.trim());
+      if (alatBerringkasan.length > 0) halamanBeralat++;
+
+      for (const alat of alatBerringkasan) {
+        diperiksa++;
+        const ringkasan = alat.summary.replace(/\s+/g, ' ').trim();
+        if (!terlihat.includes(ringkasan)) {
+          temuan.push([jalur, `ringkasan alat "${alat.name}" dikirim API tapi TIDAK terlihat di halaman`, ringkasan]);
+        }
+      }
+    }
+    barisAlat = `ringkasan alat: ${diperiksa} diperiksa di ${halamanBeralat} halaman topik`;
   } catch (galat) {
     barisApi = `${kuning}API di ${API} tidak bisa dibaca: ${galat.message}${mati}`;
   }
@@ -283,6 +355,7 @@ if (API) {
 
 console.log(`  ${WEB} — ${dikunjungi.size} halaman ditelusuri, ${halamanTeknologi.length} di antaranya /teknologi/*`);
 console.log(`  ${barisApi}`);
+if (barisAlat) console.log(`  ${barisAlat}`);
 
 if (temuan.length === 0) {
   console.log(`  ${hijau}teks terlihat: 0 kena; setiap halaman 200${mati}`);

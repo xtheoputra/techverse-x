@@ -6,24 +6,6 @@ public sealed class TechnologyTests
 {
     private static readonly Guid AnyField = FieldCatalog.All[0].Id;
 
-    [Theory]
-    [InlineData("AI Agents", "ai-agents")]
-    [InlineData("  Quantum   Computing  ", "quantum-computing")]
-    [InlineData("Brain-Computer Interface (BCI)", "brain-computer-interface-bci")]
-    [InlineData("AR/VR", "ar-vr")]
-    [InlineData(".NET 10", "net-10")]
-    [InlineData("Bioteknologi + AI", "bioteknologi-ai")]
-    public void Slugify_MengubahNamaBidangJadiSlugYangAman(string input, string expected)
-    {
-        Assert.Equal(expected, Technology.Slugify(input));
-    }
-
-    [Fact]
-    public void Slugify_MenolakNamaYangTidakMenyisakanKarakterApaPun()
-    {
-        Assert.Throws<ArgumentException>(() => Technology.Slugify("!!! ???"));
-    }
-
     [Fact]
     public void Create_MenurunkanSlugDariNamaSaatSlugTidakDiberikan()
     {

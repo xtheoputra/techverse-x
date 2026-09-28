@@ -67,7 +67,12 @@ export default function TopicSections({ topic }: { topic: TechnologyDetail }) {
                   tool.name
                 )}
               </span>
-              {tool.note ? <span className="text-sm text-neutral-600 dark:text-neutral-400"> — {tool.note}</span> : null}
+              {/* Ringkasan menjawab APA alat ini dan tinggal SEKALI di katalog,
+                  dipakai bersama semua topik - itu alasan Tool jadi agregat
+                  sendiri. Catatan menjawab KENAPA ia dipakai di topik INI. Sampai
+                  2026-09-28 hanya catatannya yang tergambar. */}
+              {tool.summary ? <span className="text-sm text-neutral-600 dark:text-neutral-400"> — {tool.summary}</span> : null}
+              {tool.note ? <span className="block text-sm text-neutral-600 dark:text-neutral-400">{tool.note}</span> : null}
             </li>
           ))}
         </ul>

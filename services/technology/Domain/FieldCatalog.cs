@@ -20,12 +20,11 @@ public static class FieldCatalog
     /// <summary>Jumlah bidang menurut ADR-010. Dipakai uji sebagai penjaga.</summary>
     public const int ExpectedCount = 14;
 
-    /// <summary>
-    /// Jumlah topik yang dijanjikan ditulis manusia — enam bidang
-    /// <see cref="FieldPriority.Core"/>, 42 topik. Angka ini yang dipakai
-    /// <c>docs/RENCANA-V1.md</c> untuk mengukur kemajuan.
-    /// </summary>
-    public const int CoreTopicCount = 42;
+    // Sampai 2026-09-28 di sini ada CoreTopicCount = 42, yang mengaku dipakai
+    // docs/RENCANA-V1.md untuk mengukur kemajuan. Nol rujukan di kode, uji, maupun
+    // dokumen - RENCANA-V1 menulis 42 sebagai prosa (#68). Angka tanpa pembaca yang
+    // mengaku punya pembaca hanya bisa hanyut, jadi ia dibuang; 42 tinggal di tabel
+    // ADR-010, satu-satunya tempat yang benar-benar menghitungnya.
 
     // 🔴 Ringkasan di sini TEKS PEMBACA, bukan catatan redaksi. Ia tercetak di
     // keempat belas kartu halaman muka, di kepala halaman bidang, dan di hasil

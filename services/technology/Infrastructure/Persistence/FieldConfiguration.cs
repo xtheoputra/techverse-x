@@ -25,6 +25,11 @@ internal sealed class FieldConfiguration : IEntityTypeConfiguration<Field>
         builder.Property(f => f.Priority).HasConversion<string>().HasMaxLength(20).IsRequired();
 
         builder.HasIndex(f => f.Slug).IsUnique().HasDatabaseName("ix_fields_slug");
+        // Tidak ada kueri yang memakai indeks ini - bidang dicari lewat Slug atau
+        // Id, dan Name hanya dicocokkan pola tanpa peka huruf (#68). Yang ia jaga
+        // KEUNIKAN: diukur 2026-09-28, mengganti nama bidang `xr` jadi "IoT"
+        // ditolak "duplicate key value violates unique constraint". Dua kartu
+        // bidang bernama sama tidak bisa dibedakan pembaca.
         builder.HasIndex(f => f.Name).IsUnique().HasDatabaseName("ix_fields_name");
         builder.HasIndex(f => f.DisplayOrder).IsUnique().HasDatabaseName("ix_fields_display_order");
 
