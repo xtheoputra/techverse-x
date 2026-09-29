@@ -17,10 +17,13 @@ export default function Home() {
         mendarat" dan "Navigasi tujuh bagian aplikasi menyusul; halaman ini masih
         beranda sementara". Yang pertama basi dalam kurang dari dua minggu; yang
         kedua janji tanpa tanggal yang tampil di keadaan NORMAL produksi. Nomor ADR
-        menunjuk pembaca ke repositori privat yang tidak bisa mereka buka.
+        menunjuk pembaca ke catatan keputusan pengembang, bukan ke isi - dan sampai
+        2026-09-28 ke repositori privat yang bahkan tidak bisa mereka buka.
 
-        Tidak ada uji JS yang menjaganya - hanya pemindaian teks yang terlihat di
-        build produksi, dijalankan tangan (ADR-024).
+        Tidak ada uji JS yang menjaganya. Penjaganya pemindai teks yang TERLIHAT di
+        build produksi (.github/scripts/periksa-halaman-web.mjs): ditulis ke job
+        `citra` CI 2026-09-24, dan benar-benar berjalan di sana sejak #57 terjawab
+        2026-09-28 - bukan lagi dijalankan tangan (ADR-024).
       */}
       <div className="mb-8 rounded-lg border border-neutral-300 bg-white p-4 text-sm dark:border-neutral-700 dark:bg-neutral-900">
         <p className="text-neutral-600 dark:text-neutral-400">

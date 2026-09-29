@@ -13,7 +13,10 @@ pilihannya belum diambil, dan tidak ada di halaman ini yang mengunci pilihan itu
 
 Diterbitkan ke GitHub Container Registry oleh
 [`rilis-citra.yml`](../.github/workflows/rilis-citra.yml) setiap kali `main`
-bergerak. Citranya **privat**, mengikuti repo ini.
+bergerak. Citranya **privat** — dan visibilitas paket GHCR **tidak** ikut repo:
+repo publik sejak 2026-09-28, sedangkan ketiga citra diukur 2026-09-29 tetap
+menolak tarikan anonim (`UNAUTHORIZED`). Kredensial di bagian berikutnya karena
+itu tetap wajib.
 
 | Citra | Peran |
 |---|---|
@@ -329,6 +332,12 @@ ambang adalah cara paling cepat membuat gerbang ini berhenti menjaga apa pun.
 > `ConnectionStrings__Redis` dan `Editorial__WritesEnabled` kosong, `/health/ready`
 > yang hanya menyebut `postgres`, tiga `curl` permukaan tulis — berlaku untuk host
 > mana pun.
+>
+> ✅ **Diperbarui 2026-09-29 — langkah 3 bisa jalan lagi.** #57 terjawab: repo
+> publik sejak 2026-09-28, dan Actions kembali menjalankan langkahnya. Yang kini
+> ditunggu langkah 3 hanya secret `NEON_DATABASE_URL`
+> ([#38](https://github.com/xtheoputra/techverse-x/issues/38)) — diukur hari ini,
+> repo belum punya secret satu pun.
 
 Platformnya diputuskan di [ADR-019](adr/ADR-019-hosting-gratis-tanpa-kartu.md):
 **tiga tempat gratis, tak satu pun menuntut kartu.** Segala yang di atas tetap

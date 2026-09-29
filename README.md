@@ -91,7 +91,7 @@ Gerbang yang sama dengan CI, sebelum push:
 .\run.ps1 ci                   make ci       # verify + pindai rahasia + job citra (butuh Docker)
 ```
 
-`ci` menjalankan **seluruh** gerbang `ci.yml` di mesin pengembang sebelum push — gitleaks atas seluruh riwayat, tiga citra, gerbang ADR-020, tumpukan produksi dari volume kosong, pemindai halaman, Trivy. Diukur: hijau end-to-end dalam **161 detik**. Ia **alat pengembang, bukan pengganti CI**: CI proyek ini tetap GitHub Actions, dan infrastruktur proyek tidak bergantung pada mesin siapa pun ([ADR-026](docs/adr/ADR-026-nol-biaya-gratis-mandiri.md)). Gunanya menangkap merah sebelum menit Actions terpakai — kuota yang sejak 10 September 2026 habis karena dibagi dengan repo lain di akun yang sama ([#57](https://github.com/xtheoputra/techverse-x/issues/57)).
+`ci` menjalankan **seluruh** gerbang `ci.yml` di mesin pengembang sebelum push — gitleaks atas seluruh riwayat, tiga citra, gerbang ADR-020, tumpukan produksi dari volume kosong, pemindai halaman, Trivy. Diukur: hijau end-to-end dalam **161 detik**. Ia **alat pengembang, bukan pengganti CI**: CI proyek ini tetap GitHub Actions, dan infrastruktur proyek tidak bergantung pada mesin siapa pun ([ADR-026](docs/adr/ADR-026-nol-biaya-gratis-mandiri.md)). Gunanya menangkap merah sebelum push — termasuk di cabang yang belum punya PR, sebab `ci.yml` hanya memeriksa `main` dan PR. Sampai 2026-09-28 ia juga satu-satunya pemeriksa yang bisa jalan: kuota menit Actions yang dibagi semua repo privat di akun yang sama habis 10 September ([#57](https://github.com/xtheoputra/techverse-x/issues/57)); sejak repo publik, menit CI-nya tidak masuk kuota itu.
 
 ⚠️ **`verify` dan `test` menuntut `up` LALU `migrate` lebih dulu.** Uji integrasi menulis baris ke PostgreSQL sungguhan — kesiapan yang diuji tanpa dependensi sungguhan tidak mengukur apa pun. Tanpa `migrate`, galatnya `relation "technology.technologies" does not exist`.
 
@@ -228,4 +228,4 @@ Kedua berkas audit membawa peringatan metodenya masing-masing. **Baca bagian per
 
 ## Lisensi
 
-Belum ditentukan. Repositori privat.
+Belum ditentukan — pilihannya milik pemilik ([ADR-026](docs/adr/ADR-026-nol-biaya-gratis-mandiri.md)). Repositori ini **publik** sejak 2026-09-28, tapi tanpa berkas `LICENSE` seluruh hak cipta tetap pada pemilik: kodenya boleh dibaca dan di-*fork* di GitHub menurut Ketentuan Layanan GitHub, dan tidak otomatis boleh dipakai ulang, diubah, atau disebarkan di luar itu.

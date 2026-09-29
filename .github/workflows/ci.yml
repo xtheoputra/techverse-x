@@ -47,7 +47,18 @@ env:
 jobs:
   backend:
     name: Backend (.NET)
-    runs-on: ubuntu-latest
+    # 🔑 Runner disematkan per versi, bukan `ubuntu-latest` - sejak 2026-09-29,
+    # di keenam `runs-on` ketiga workflow. Label `ubuntu-latest` pindah ke Ubuntu
+    # 26.04 BERGILIR antara 19 Oktober dan 19 November 2026
+    # (actions/runner-images#14748): selama sebulan itu jalan yang sama bisa
+    # mendarat di dua OS berbeda, dan merah di sana punya dua tersangka.
+    #
+    # 24.04 dipilih karena di situlah SEMUA jalan hijau sampai hari ini - termasuk
+    # rilis-citra.yml dan migrasi-produksi.yml, yang tidak bisa diuji ulang tanpa
+    # mendorong citra atau tanpa secret Neon. 26.04 sudah DIUKUR untuk berkas ini:
+    # keempat job hijau di sana (run 36512838453, citra runner 20260920.143.1).
+    # Pindah = mengganti label di keenam tempat itu. ADR-026, Pembaruan 2026-09-29.
+    runs-on: ubuntu-24.04
 
     services:
       postgres:
@@ -124,7 +135,7 @@ jobs:
 
   frontend:
     name: Frontend (Next.js)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # disematkan - alasannya di job `backend`
 
     steps:
       - uses: actions/checkout@v5
@@ -152,7 +163,7 @@ jobs:
 
   secret-scan:
     name: Pindai rahasia
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # disematkan - alasannya di job `backend`
 
     # CLI gitleaks sebagai peti kemas, BUKAN gitleaks-action - sejak 2026-09-28.
     # Tiga alasan:
@@ -184,7 +195,7 @@ jobs:
 
   citra:
     name: Citra peti kemas
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # disematkan - alasannya di job `backend`
 
     # Hanya pada PR. Di `main`, workflow `rilis-citra.yml` sudah membangun
     # ketiganya sebelum mendorongnya - membangunnya dua kali cuma menghabiskan
