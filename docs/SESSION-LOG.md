@@ -48,6 +48,8 @@ Ketiga citra dibangun ulang dan dipindai lokal dengan Trivy tersemat (digest sam
 
 **Lingkungan — 2026-10-01:** pohon kerja bersih sesudah commit ini. Docker: `techversex-postgres`/`-redis` hidup, DB termigrasi (14 bidang · 6 topik, "already up to date"); `wellsy-*` milik proyek **lain** pemilik — tak disentuh. Citra uji lokal `techversex-{api,migrate,web}:ci` sudah **dihapus**; citra lama `techversex-prod-*`/`:lokal*`/`:fdd` dari sesi terdahulu dibiarkan (bukan milik sesi ini). Port 3310/5080 kosong.
 
+**Ditutup pemilik** — *"simpan, commit dan push"* (2026-10-01). Diukur saat ditutup: pohon kerja bersih, cabang `fase-1/sesudah-57` sama dengan remote, PR [#71](https://github.com/xtheoputra/techverse-x/pull/71) hijau di `8b065d0` (run `36815389020`), `origin/main` tetap `52dd79f` — belum ada yang di-merge. Commit penutup ini memicu satu run CI dokumen lagi.
+
 ---
 
 ## 2026-09-29 — Sesi 18: runner disematkan sebelum `ubuntu-latest` berpindah, citra GHCR tak ikut terbuka, dan sebelas klaim basi yang masih menulis #57 mati
