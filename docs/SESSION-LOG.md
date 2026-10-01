@@ -4,6 +4,52 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-01 — Sesi 19: Sesi 18 ditutup, lalu DB Trivy yang segar menangkap openssl (HIGH) dan RCE Next.js (CRITICAL)
+
+Permintaan pemilik: *"lanjutkan tugas"*.
+
+Sesi 18 (2026-09-29) terputus sesudah commit + push + PR [#71](https://github.com/xtheoputra/techverse-x/pull/71) tapi sebelum catatan sesi. Langkah pertama hari ini: menulis entri Sesi 18 + 🏁 dari transkrip, lalu commit (`63349dd`) dan push. Push itu memicu run CI PR #71 baru — dan di situ **target bergerak yang ADR-026 ramalkan benar-benar bergerak:** satu commit dokumen pun membuat job `citra` merah.
+
+### 🔴 Dua CVE, dari DB Trivy yang segar — bukan dari perubahan kode
+
+Biner Trivy disematkan per digest, tapi **basis data kerentanannya diunduh segar tiap run** — memang itu gunanya. Run `fa61600` hijau 2026-09-29 hanya karena DB-nya lebih tua. Hari ini (DB 2026-10-01):
+
+| Citra | Temuan | Parah | Perbaikan |
+|---|---|---|---|
+| `api` + `migrate` (aspnet / runtime-deps, ubuntu 24.04) | `CVE-2026-84782` — `openssl` + `libssl3t64` `3.0.13-0ubuntu3.15` → fix `-0ubuntu3.16` | **HIGH** (×2 paket) | `apt install --only-upgrade` di tahap final + migrator |
+| `web` (node:22-alpine) | `GHSA-vcvr-r3jv-pc5j` — RCE di `next/og ImageResponse` | **CRITICAL** | `next` 16.3.4 → **16.3.6** |
+
+🔑 **openssl — pilihan pemilik, pola yang sudah ada.** Citra `web` sejak lama menambal openssl basisnya saat build (`apk upgrade libssl3 libcrypto3`, komentarnya: "sampai hulu diperbarui"). Citra `api`/`migrate` tak pernah diberi perlakuan sama karena openssl-nya dulu bersih. Dari empat jalan yang ditimbang (tambal saat build · pin-ulang digest basis · `.trivyignore` · biarkan merah), pemilik memilih pola `web`: `apt install --only-upgrade openssl libssl3t64` sebagai root sebelum pindah ke `$APP_UID`. Terukur dari `noble-updates`: `3.0.13-0ubuntu3.16` terpasang di kedua tahap.
+
+🔑 **Next.js — RCE CRITICAL, satu perbaikan masuk akal.** Bukan isu basis-citra; `next@16.3.4` sendiri rentan, diperbaiki vendor di 16.3.6. Bump tambalan (minor sama); lockfile diperbarui terukur — 40/40 baris, hanya `next` + `@next/*`, tanpa churn lain. Build + tipe + empat rute utuh.
+
+### Ukuran
+
+Ketiga citra dibangun ulang dan dipindai lokal dengan Trivy tersemat (digest sama, `--severity CRITICAL,HIGH --exit-code 1`, DB 2026-10-01): **0 di ketiganya**. `run.ps1 verify` hijau: 309 tautan, 0 peringatan build Release, **104 unit + 65 integrasi**, lint web, build web atas **Next.js 16.3.6**. Lalu dibuktikan di CI, bukan diukur lokal saja: run [`36814987146`](https://github.com/xtheoputra/techverse-x/actions/runs/36814987146) (commit `21739a0`) — **keempat job hijau**, termasuk job `citra` yang Trivy-nya (`--exit-code 1`, DB CI sendiri) lolos di ketiga citra. Pemindai halaman ADR-024 dan gerbang ADR-020 ikut hijau di Next.js 16.3.6 — bump itu tidak mengubah keluaran terlihat.
+
+🐞 **Satu kali `npm ci` di dalam build web gagal "network", hijau saat diulang** — blip jaringan kontainer, bukan lockfile: percobaan kedua `added 373 packages` lalu `Compiled successfully`.
+
+### Yang TIDAK dikerjakan, dan kenapa
+
+- **`brace-expansion` HIGH dari `npm audit`** dibiarkan: transitif `@typescript-eslint`, sebuah **devDependency** — tidak ikut keluaran `standalone`, jadi tidak masuk citra yang Trivy ukur, dan bukan gerbang. Pra-ada, bukan dari bump `next` (diff lockfile hanya `next`/`@next/*`).
+- **Trivy tidak di-`.trivyignore`, basis citra tidak di-pin-ulang ke digest** — openssl ditambal saat build (pola `web`), RCE Next.js ditambal di sumbernya.
+- **Tidak ada ADR baru**: openssl = penerapan kebijakan `web` yang sudah ada; bump Next.js = penambalan rutin. Catatannya di komentar Dockerfile dan entri ini.
+- **Tidak ada yang di-merge, dan tidak dicoba.**
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Rantai PR tak bergeser** — sebelas PR, [#71](https://github.com/xtheoputra/techverse-x/pull/71) di puncak (base #70), `origin/main` masih `52dd79f`, belum ada merge. PR #71 kini memuat di atas `fa61600`: catatan Sesi 18 (`63349dd`), perbaikan CVE (`21739a0`), dan catatan Sesi 19 ini. **CI PR #71 hijau** di `21739a0` (run `36814987146`); catatan Sesi 19 commit terakhir memicu satu run dokumen lagi.
+
+**Issue terbuka** (tak berubah): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68.
+
+**Menunggu pemilik:** sama seperti Sesi 18 — `LICENSE`, buka paket GHCR atau tidak, nama repo privat lama, akun hosting & AI. Belum ada yang bergerak.
+
+**Catatan target bergerak (baru, penting):** DB Trivy segar akan terus menemukan CVE baru di basis citra tanpa satu baris kode berubah — tiap push, termasuk push dokumen. openssl kini ditambal saat build di **kedua** ekosistem (`apt` untuk ubuntu `api`/`migrate`, `apk` untuk alpine `web`); `next` dipin di `package.json` dan harus di-bump saat advisory baru muncul. Job `citra` yang merah tiba-tiba di masa depan kemungkinan besar ini, bukan regresi kode — baca langkah "Pindai ketiga citra" lebih dulu.
+
+**Lingkungan — 2026-10-01:** pohon kerja bersih sesudah commit ini. Docker: `techversex-postgres`/`-redis` hidup, DB termigrasi (14 bidang · 6 topik, "already up to date"); `wellsy-*` milik proyek **lain** pemilik — tak disentuh. Citra uji lokal `techversex-{api,migrate,web}:ci` sudah **dihapus**; citra lama `techversex-prod-*`/`:lokal*`/`:fdd` dari sesi terdahulu dibiarkan (bukan milik sesi ini). Port 3310/5080 kosong.
+
+---
+
 ## 2026-09-29 — Sesi 18: runner disematkan sebelum `ubuntu-latest` berpindah, citra GHCR tak ikut terbuka, dan sebelas klaim basi yang masih menulis #57 mati
 
 Permintaan pemilik: *"lanjutkan tugas"* — melanjutkan dari penutupan Sesi 17 (repo publik, CI berjalan lagi, rantai sepuluh PR hijau).
