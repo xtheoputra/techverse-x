@@ -4,6 +4,61 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-29 — Sesi 18: runner disematkan sebelum `ubuntu-latest` berpindah, citra GHCR tak ikut terbuka, dan sebelas klaim basi yang masih menulis #57 mati
+
+Permintaan pemilik: *"lanjutkan tugas"* — melanjutkan dari penutupan Sesi 17 (repo publik, CI berjalan lagi, rantai sepuluh PR hijau).
+
+⚠️ **Percakapan ini terputus 2026-09-29 ~02:45Z — sesudah commit, push, dan PR [#71](https://github.com/xtheoputra/techverse-x/pull/71) dibuka, tepat saat mulai memeriksa run CI-nya, sebelum satu baris catatan sesi pun.** Entri ini direkonstruksi **2026-10-01** dari keluaran perintah yang terekam di transkrip, dan satu-satunya hal yang Sesi 18 tak sempat buktikan — bahwa keempat job PR #71 benar-benar mendarat di `ubuntu-24.04`, bukan label yang terlanjur bergeser — diukur ulang hari ini: run [`36514003980`](https://github.com/xtheoputra/techverse-x/actions/runs/36514003980), keempat job hijau, keempat citra `ubuntu-24.04`. Pola yang sama dengan percakapan pertama Sesi 17 yang juga terputus sebelum commit — kali ini terputus satu langkah lebih jauh, sesudahnya.
+
+### 📌 Runner disematkan sebelum `ubuntu-latest` berpindah
+
+`ubuntu-latest` pindah ke Ubuntu 26.04 **bergilir** 19 Oktober–19 November 2026 ([runner-images #14748](https://github.com/actions/runner-images/issues/14748)) — anotasi yang Sesi 17 catat di run [#69](https://github.com/xtheoputra/techverse-x/pull/69) tanpa ditindak. Sebelum labelnya bergerak, `ci.yml` dijalankan utuh di `ubuntu-26.04` dari cabang sekali pakai di atas `bcbd18c` (kepala #70) lewat `workflow_dispatch` — run `36512838453`. Keempat job hijau dan **sama persis** dengan run 24.04 atas commit yang sama (`36385270062`): 104 unit + 65 integrasi, 6 migrasi dari nol, ADR-020 `200/405`, 16 halaman · 14 dari 14, Trivy 0. Perpindahannya tidak memerahkan `ci.yml` — diukur, bukan diduga dari daftar perangkat lunak citranya. Cabang ujinya dihapus (tak pernah sampai ke remote); run-nya tinggal sebagai bukti.
+
+**Keputusan: keenam `runs-on` di `ci.yml`, `rilis-citra.yml`, dan `migrasi-produksi.yml` disematkan ke `ubuntu-24.04`.** Selama jendela bergilir dua jalan berturut-turut bisa mendarat di dua OS, dan merah di sana punya dua tersangka; `rilis-citra.yml` + `migrasi-produksi.yml` hanya pernah hijau di 24.04 dan tak bisa diuji ulang di 26.04 tanpa mendorong citra ke GHCR dari cabang belum-merge atau secret Neon yang belum ada. Rinci di [ADR-026, Pembaruan 2026-09-29](adr/ADR-026-nol-biaya-gratis-mandiri.md). Yang **tidak** dijamin sematan: citra runner 24.04 tetap diperbarui GitHub tiap minggu — yang disematkan versi OS-nya, bukan isinya; alat penentu hasil disematkan sendiri (`global.json`, `setup-node`, kedua pemindai per digest).
+
+### 🔒 Repo publik tidak membuka paket GHCR-nya
+
+Pertanyaan yang tertinggal dari Sesi 17: repo jadi publik — apakah citra GHCR ikut terbuka? **Tidak**, visibilitas paket terpisah dari repo. Diukur tanpa login: token anonim untuk `api`, `migrate`, dan `web` ditolak `UNAUTHORIZED`, sedangkan citra publik pembanding (`aquasecurity/trivy`) langsung diberi token. Kredensial tarik di [PENYEBARAN](PENYEBARAN.md) karena itu **tetap wajib**. Satu akibat untuk [ADR-025](adr/ADR-025-host-api-pengganti-koyeb.md) dicatat-tidak-diputuskan: Railway Free membangun dari Dockerfile — yang tayang bukan bit yang dipindai Trivy; membuka ketiga paket menutup celah itu tapi membuka artefak yang sampai kini privat. Pilihan pemilik, di samping `LICENSE`.
+
+### 🐞 Sebelas klaim basi: #57 / repo-privat ditulis sebagai keadaan sekarang
+
+Repo kini publik dan #57 terjawab, tapi sepuluh tempat masih menulis keadaan lama. Dikoreksi: README (2), `gerbang-ci-lokal.sh`, `rilis-citra.yml`, PENYEBARAN (2), RENCANA-V1, ADR-023, `api.ts`, dan `page.tsx` (2). Yang menggambarkan keadaan kini dikoreksi di tempat; yang merupakan rekaman diberi catatan bertanggal. 🔴 **Satu di `page.tsx` basi sejak 2026-09-24, bukan karena #57:** pemindai halaman disebut "dijalankan tangan", padahal ia masuk job `citra` CI hari itu — tempat **keempat** yang luput dari koreksi "di tiga tempat" Sesi 15.
+
+### Ukuran
+
+`run.ps1 verify` hijau atas pohon final: 0 peringatan, **104 unit + 65 integrasi**, 306 tautan, lint, build web. Sesudahnya hanya satu baris komentar `api.ts` dibungkus ulang; lint + cek tautan diulang, hijau. CI PR [#71](https://github.com/xtheoputra/techverse-x/pull/71) run [`36514003980`](https://github.com/xtheoputra/techverse-x/actions/runs/36514003980): keempat job **hijau**, keempat di `ubuntu-24.04` (diukur 2026-10-01, dua hari sesudah commit).
+
+### Yang TIDAK dikerjakan, dan kenapa
+
+- **Paket GHCR tidak dibuka** — menutup celah Railway/Trivy, tapi membuka artefak yang kini privat; keputusan pemilik.
+- **Pin tidak dipindah ke 26.04** — label diganti nanti saat `ubuntu-latest` berpindah; yang belum diukur di 26.04 hanya langkah dorong-GHCR dan migrasi-Neon.
+- **Tidak ada yang di-merge, dan tidak dicoba.** `origin/main` tetap `52dd79f`. `make` tetap tidak terpasang; tidak ada target Makefile yang berubah.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Rantai PR, belum satu pun di-merge — urutan merge wajib dari bawah.** Sama dengan Sesi 17, ditambah satu di puncak:
+
+| PR | Cabang | Base |
+|---|---|---|
+| #56 … #70 | *(sepuluh, lihat Sesi 17)* | `main` … #69 |
+| [#71](https://github.com/xtheoputra/techverse-x/pull/71) | `fase-1/sesudah-57` | #70 |
+
+`origin/main` masih `52dd79f`. Sebelas PR terbuka: #56 · #58 · #62 · #63 · #64 · #65 · #66 · #67 · #69 · #70 · #71. CI PR #71 **hijau** di `fa61600`, keempat job mendarat di `ubuntu-24.04`. `.\run.ps1 ci` tetap alat pengembang sebelum push.
+
+**Issue terbuka** (tak berubah dari Sesi 17): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68. #57 tetap tertutup.
+
+**Menunggu pemilik:** `LICENSE` (repo publik tanpa lisensi = *all rights reserved*); **buka paket GHCR atau tidak** (baru sesi ini — menyentuh host ADR-025 dan rantai pasok Trivy); nama repo privat lain di catatan Sesi 14–15 dan komentar #57; akun hosting & AI khusus TechVerse X saat dipakai. Merge rantai #56→#71 kini punya dasar CI hijau.
+
+**Menunggu pemicu tertulis:** tidak bergeser. Jangan jadikan repo privat lagi tanpa pemilik — kuota bersama kembali berlaku.
+
+**Catatan runner:** keenam `runs-on` disematkan `ubuntu-24.04`. Tinjau saat `ubuntu-latest` berpindah (19 Okt–19 Nov 2026); hanya langkah dorong-GHCR dan migrasi-Neon yang belum diukur di 26.04.
+
+**Lingkungan — diukur 2026-10-01 (bukan keadaan 2026-09-29):** pohon kerja bersih, nol *stash*, cabang `fase-1/sesudah-57` = remote. Docker: `techversex-postgres` dan `techversex-redis` hidup; `wellsy-*` milik proyek **lain** pemilik — tidak disentuh. Port 3310 dan 5080 kosong (8080 dipegang proses bukan milik sesi ini, dibiarkan). Proses dev yang mungkin ditinggalkan percakapan 2026-09-29 tidak bisa diukur lagi.
+
+**Tidak ditutup pemilik** — percakapan 2026-09-29 terputus; penutupan ini ditulis sesi lanjutan 2026-10-01 atas keadaan yang terukur, bukan atas aba-aba *"akhiri sesi"*.
+
+---
+
 ## 2026-09-28 — Sesi 17: butir 4–5 #68 — tiga "sampah" yang ternyata janji kontrak, dan pemindai yang buta mulai topik ke-21
 
 Permintaan pemilik: *"lanjutkan semua tugas yang tersisa"*, lalu — sesudah percakapan pertama terputus — *"lanjutkan"*, lalu *"hindari penggunaan yang berbayar, cari semua mandiri dan secara gratis tapi powerfull"* (lihat *Lanjutan*).
