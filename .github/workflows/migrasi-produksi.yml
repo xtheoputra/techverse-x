@@ -27,7 +27,7 @@ on:
 jobs:
   migrasi:
     name: Jalankan bundel migrasi terhadap Neon
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # disematkan - alasannya di ci.yml, job `backend`
 
     # Environment memberi tempat untuk memasang required reviewer kalau suatu
     # saat diinginkan - gerbang tambahan tanpa mengubah workflow ini.

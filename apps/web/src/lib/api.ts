@@ -251,10 +251,11 @@ export async function getTechnology(slug: string): Promise<ApiResult<TechnologyD
 
   // 🔴 Web dan API TIDAK tayang bersamaan. Web dibangun ulang dari sumber tiap
   // kali `main` bergerak, sedangkan API berjalan dari citra ber-SHA yang dipasang
-  // tangan (ADR-018/019) — dan selama CI mati (#57) citra baru bahkan tidak bisa
-  // dibangun. Web yang membaca `topic.requires.length` dari API lama akan
-  // meledakkan SETIAP halaman topik. Dengan dua `?? []` ini, halaman dari API lama
-  // sekadar tidak menampilkan blok relasi, dan itu memang benar untuk API itu.
+  // tangan (ADR-018/019) — dan selama CI mati (#57, sampai 2026-09-28) citra baru
+  // bahkan tidak bisa dibangun. Web yang membaca `topic.requires.length` dari API
+  // lama akan meledakkan SETIAP halaman topik. Dengan dua `?? []` ini, halaman
+  // dari API lama sekadar tidak menampilkan blok relasi, dan itu memang benar
+  // untuk API itu.
   return {
     ok: true,
     data: { ...result.data, requires: result.data.requires ?? [], requiredBy: result.data.requiredBy ?? [] },

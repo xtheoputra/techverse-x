@@ -332,7 +332,7 @@ tidak menampilkan apa pun yang baru.
 
 Web dibangun dari sumber tiap kali `main` bergerak; API berjalan dari citra
 ber-SHA yang dipasang tangan (ADR-018/019), dan selama [#57](https://github.com/xtheoputra/techverse-x/issues/57)
-citra baru bahkan tidak bisa dibangun. `getTechnology()` karena itu mengisi `[]`
+(sampai 2026-09-28) citra baru bahkan tidak bisa dibangun. `getTechnology()` karena itu mengisi `[]`
 untuk kedua larik yang tidak ada. Terukur: tanpa pengisian itu, API lama membuat
 halaman topik **HTTP 500** (`Cannot read properties of undefined (reading
 'length')`); dengan pengisian, 200 tanpa blok relasi — dan itu memang benar untuk

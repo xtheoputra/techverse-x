@@ -5,10 +5,11 @@
 #
 # ⚠️ Ini ALAT PENGEMBANG, bukan pengganti CI. CI proyek ini tetap GitHub Actions,
 # dan infrastruktur proyek tidak boleh bergantung pada mesin pemilik (arahan
-# pemilik 2026-09-28). Gunanya: menangkap merah SEBELUM menit Actions terpakai,
-# dan tetap bisa memeriksa selama Actions mati - sejak 10 September 2026 kuota
-# 2.000 menit yang dibagi semua repo privat akun pribadi habis, terutama oleh
-# repo lain (#57).
+# pemilik 2026-09-28). Gunanya: menangkap merah SEBELUM push, termasuk di cabang
+# yang belum punya PR - ci.yml hanya memeriksa `main` dan PR. Sampai 2026-09-28
+# ia juga satu-satunya pemeriksa yang bisa jalan: kuota 2.000 menit yang dibagi
+# semua repo privat akun pribadi habis 10 September, terutama oleh repo lain
+# (#57). Sejak repo publik, menit CI-nya tidak masuk kuota itu (ADR-026).
 #
 #   .\run.ps1 ci   /   make ci   =   verify  +  berkas ini
 #

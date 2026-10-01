@@ -254,3 +254,62 @@ bukan pengecualian diam-diam per pos. Repo bisa dijadikan privat lagi, tapi itu 
 menarik kembali apa yang sudah terbuka, dan kuota bersama #57 berlaku lagi. Sematan
 SHA/digest, pemicu `push: [main]`, dan gitleaks CLI berdiri sendiri — tetap benar di
 mana pun repo tinggal.
+
+---
+
+## Pembaruan 2026-09-29 - runner disematkan sebelum `ubuntu-latest` berpindah, dan citra GHCR tidak ikut terbuka
+
+### Runner per versi Ubuntu
+
+GitHub mengumumkan ([actions/runner-images#14748](https://github.com/actions/runner-images/issues/14748),
+17 September) bahwa `ubuntu-latest` pindah ke Ubuntu 26.04 **bergilir** antara 19 Oktober
+dan 19 November 2026. Anotasinya sudah muncul di run [#69](https://github.com/xtheoputra/techverse-x/pull/69)
+tanggal 28 September, dan dicatat tanpa ditindak.
+
+📏 **Diukur sebelum labelnya bergerak.** `ci.yml` dijalankan utuh di `ubuntu-26.04` dari
+cabang sekali pakai di atas `bcbd18c` — kepala #70 — lewat `workflow_dispatch`. Cabang itu
+berbeda dari `ci.yml` di dua hal saja: labelnya, dan `if` job `citra` yang dilonggarkan
+supaya ikut berjalan saat dispatch. Cabangnya dihapus sesudahnya; run-nya tetap ada.
+
+| | `ubuntu-24.04` — run `36385270062` | `ubuntu-26.04` — run `36512838453` |
+|---|---|---|
+| Citra runner | 20260920.314.1 | 20260920.143.1 |
+| Backend | 104 unit + 65 integrasi, 6 migrasi dari nol | **sama** |
+| Frontend | 303 tautan, lint, build | **sama** |
+| Pindai rahasia | 86 commit, 0 bocor | 87 commit (+1: commit uji itu sendiri), 0 bocor |
+| Citra | ADR-020 `200/405` · 16 halaman · 14 dari 14 · teks terlihat 0 kena · Trivy 0 di ketiga citra | **sama** |
+
+Jadi perpindahan 19 Oktober **tidak** memerahkan `ci.yml` — diukur di commit yang sama,
+bukan diduga dari daftar perangkat lunak citranya.
+
+**Keputusan: keenam `runs-on` di ketiga workflow disematkan ke `ubuntu-24.04`.**
+
+- Selama jendela bergilir, `ubuntu-latest` bisa memberi dua OS pada dua jalan
+  berturut-turut, dan merah di sana punya dua tersangka.
+- 24.04 adalah tempat **semua** jalan hijau sampai hari ini — termasuk `rilis-citra.yml`
+  dan `migrasi-produksi.yml`, yang tidak bisa diuji ulang di 26.04 tanpa mendorong citra ke
+  GHCR dari cabang yang belum di-merge, atau tanpa secret Neon yang belum ada.
+- **Pindah ke 26.04 = mengganti label di keenam tempat itu.** Yang belum diukur di sana
+  hanya langkah dorong ke GHCR dan langkah migrasi ke Neon.
+- ⚠️ **Yang tidak dijamin sematan ini:** citra runner 24.04 tetap diperbarui GitHub tiap
+  minggu — yang disematkan versi OS-nya, bukan isinya. Alat yang menentukan hasil sudah
+  disematkan sendiri: SDK .NET lewat `global.json`, Node 22 lewat `setup-node`, kedua
+  pemindai per digest.
+
+Aturan bagian 6 bertambah satu baris: **runner per versi OS**, di samping aksi per SHA dan
+citra alat per digest.
+
+### Citra GHCR tidak ikut terbuka
+
+Bagian 2 menulis apa yang ikut terbuka saat repo dijadikan publik. **Paket GHCR tidak
+termasuk** — visibilitasnya terpisah dari repo. Diukur tanpa login: token anonim untuk
+`xtheoputra/techverse-x/api`, `migrate`, dan `web` ditolak `UNAUTHORIZED`, sedangkan citra
+publik pembanding (`aquasecurity/trivy`) langsung diberi token. Kredensial tarik di
+[PENYEBARAN](../PENYEBARAN.md#kredensial-untuk-menarik-citra) karena itu tetap wajib.
+
+Satu akibat untuk [ADR-025](ADR-025-host-api-pengganti-koyeb.md) — **dicatat, tidak
+diputuskan**. Railway Free tidak punya kredensial registry privat, jadi R3 membangun dari
+Dockerfile, dan yang tayang bukan bit yang dipindai Trivy. Kalau ketiga paket dibuka, host
+tanpa kredensial bisa menarik citra yang sama persis dengan yang dipindai. Tapi apakah
+Railway Free menarik citra GHCR publik **belum diukur**, dan membuka paket berarti membuka
+artefak yang sampai hari ini privat. Pilihan pemilik, di samping `LICENSE`.
