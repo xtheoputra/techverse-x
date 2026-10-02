@@ -205,7 +205,9 @@ Sisi tetap anak agregat topik **ASAL**. Urutan pemeriksaannya:
   kawannya. `DbSet<TechnologyRelationship> Relationships` (nol pemanggil)
   **dibuang**: anak agregat tidak punya pintu tulis kedua.
 - Tidak ada `Unrelate()`, tidak ada event domain — keduanya akan nol pemanggil,
-  pola #55 yang keempat.
+  pola #55 yang keempat. 🟢 **Disuperseding 2026-10-02:** begitu alur ADR-021 dibangun
+  ia jadi pemanggil, jadi jalan membuang sisi (`RemoveRequirement`, bukan `Unrelate`)
+  kini ada dan **punya** pemanggil — lihat Pembaruan di kaki. Event domain tetap tidak ada.
 
 ⚠️ `ArgumentException(..., "topicSlug")` ditolak CA2208 (peringatan = galat di
 repo ini) karena `topicSlug` bukan nama parameter metode. Nama medan itu kontrak
@@ -359,7 +361,7 @@ tidak dipilih ulang — ia dijaga dan diberi satu pintu.
 |---|---|
 | Jenis relasi lain | sesudah #42: daftar relasi yang ingin dinyatakan penulis tapi tidak bisa |
 | ~~Pemeriksaan siklus transitif~~ | ✅ **dibangun 2026-09-24**, sebelum pemicunya tiba — lihat pembaruan di bagian 3 |
-| Jalan membuang sisi (`Unrelate`, endpoint) | diputuskan bersama ADR-021 dibangun — bersama jalan membuang bagian isi, yang juga belum ada |
+| ~~Jalan membuang sisi (`Unrelate`, endpoint)~~ | ✅ **dibangun 2026-10-02** bersama alur ADR-021 — `Technology.RemoveRequirement` + `DELETE …/requires/{topicSlug}` (lihat Pembaruan di kaki). **Jalan membuang BAGIAN ISI masih belum ada.** |
 | `/graph` dan visualisasi | EPIC 10 (Neo4j, ADR-006) |
 | Relasi bidang↔bidang | nanti, sebagai proyeksi saat-baca dari sisi topik |
 | Penyaringan `Status`/`Publish` pada relasi | tidak ada satu halaman pun yang menyaring `Status` hari ini |
@@ -417,3 +419,38 @@ tidak dipilih ulang — ia dijaga dan diberi satu pintu.
   `Features/RequireTopic` dan `Features/TopikTerhubung.cs`, buang dua medan
   respons dan `TopikTerhubung.tsx`, kembalikan `RequireTopic` dan enum. Tidak ada
   data yang hilang selama produksi nol baris.
+
+---
+
+## Pembaruan 2026-10-02 — jalan membuang sisi dibangun (bersama alur ADR-021)
+
+Alur bergerbang [ADR-021](ADR-021-jalan-menuju-tinjau.md) dibangun hari ini mendahului
+[#40](https://github.com/xtheoputra/techverse-x/issues/40) atas keputusan pemilik. ADR-021
+menandai bahwa saat alur itu dibangun, **jalan membuang sisi** harus ikut diputuskan —
+tanpa itu, sisi yang keliru ditulis ke produksi lewat gerbang tidak punya jalan
+perbaikan sama sekali. Setengah pertamanya — membuang sisi — dibangun sekarang.
+
+**Bentuknya, dan kenapa `DELETE` beda dari `POST`:**
+
+- `Technology.RemoveRequirement(Guid topicId)` — idempoten, dan **tidak** menurunkan
+  `HumanReviewed` (alasan yang sama dengan `RequireTopic`/`Touch`: melepas tautan ke
+  topik lain bukan pembatalan pemeriksaan atas TEKS halaman ini).
+- `DELETE /api/v1/technologies/{slug}/requires/{topicSlug}`, di bawah cabang
+  `editorialWrites` bersama `POST`-nya, memakai ulang `TopicMutation`. Masuk
+  `SemuaEndpointTulis`, jadi ketiga uji ADR-020 langsung menjaganya.
+- 🔑 **Tujuan di ALAMAT, bukan muatan — kebalikan dari `POST`, dan itu tepat.** Bagian 6
+  memilih muatan untuk `POST` supaya "tujuan tak ada" jadi **400** (muatan keliru), bukan
+  404 yang rancu dengan rute tak terpasang. `DELETE` menegaskan **KETIADAAN** sebuah sisi
+  tertentu, jadi "tujuan tak ada" bukan kekeliruan melainkan keadaan yang sudah tercapai:
+  **idempoten 200**, bukan 400. Slug yang bentuknya cacat tetap 400; topik asal yang tak
+  ada tetap 404. Gerbang ADR-020 tetap terbaca (sakelar mati → 404 rute, sakelar hidup →
+  200/400, tak pernah 404-rute).
+
+**Terukur:** +2 uji unit (`PrasyaratTopikTests` domain: idempotensi, tidak menggugurkan
+pemeriksaan) dan +4 uji integrasi (`PrasyaratTopikTests`: hilang dari kedua halaman,
+idempoten, tujuan-tak-pernah-ada 200, sumber-tak-ada 404). Hitungan repo → **108 unit +
+73 integrasi**, seluruh `run.ps1 verify` hijau.
+
+🔴 **Yang MASIH belum ada: jalan membuang BAGIAN ISI** (langkah roadmap, tautan alat,
+proyek, sumber) — separuh kedua dari yang ADR-021 tandai, ditinggalkan sebagai langkah
+berikutnya. Produksi tetap nol sisi sampai #40 tutup dan alur ADR-021 dijalankan.

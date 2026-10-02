@@ -183,8 +183,10 @@ menjalankannya di produksi, yang memang belum ada.
 `TechnologyResponse` (butir 2 [#68](https://github.com/xtheoputra/techverse-x/issues/68)).
 Memunculkan identitas pemeriksa di tiap halaman topik publik adalah keputusan
 produk/privasi tersendiri; ADR ini hanya membangun jalan yang MENULIS nama itu,
-dan uji membacanya langsung dari DB. Jalan membuang sisi/bagian (Pembaruan
-2026-09-17) juga belum dibangun — belum ditagih permintaan ini.
+dan uji membacanya langsung dari DB. Jalan membuang **sisi** (Pembaruan
+2026-09-17) dibangun menyusul — lihat
+[ADR-023 Pembaruan 2026-10-02](ADR-023-knowledge-graph-dasar.md); jalan membuang
+**bagian isi** masih belum ada.
 
 **Terukur, bukan diklaim:** 106 uji unit + 69 uji integrasi hijau. Satu topik
 dibawa dari kosong sampai `tinjau` lewat HTTP (`TinjauEndpointTests`), dan nama
