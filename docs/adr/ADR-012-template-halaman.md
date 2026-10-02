@@ -153,3 +153,36 @@ halaman topik. Supaya bagian 1 ADR ini tetap benar, aturannya ditulis di sini:
 - Setiap judul yang ditautkan membawa **label kematangannya sendiri**. Aturan keras
   bagian 2 berlaku sampai ke tautan, dan dijamin tipe
   (`TechnologySummaryResponse`), bukan ketelitian.
+
+---
+
+## Pembaruan 2026-10-02 — bagian isi bisa dibuang (jalan perbaikan), roadmap belum
+
+Alur bergerbang [ADR-021](ADR-021-jalan-menuju-tinjau.md) dibangun mendahului
+[#40](https://github.com/xtheoputra/techverse-x/issues/40), dan ADR-021 menandai bahwa
+jalan **membuang bagian isi** harus ikut ada — tanpanya, bagian yang keliru ditulis ke
+produksi lewat gerbang tidak punya jalan perbaikan. Tiga dari empat bagian kini bisa
+dibuang:
+
+- `DELETE …/resources/{id}` dan `DELETE …/projects/{id}` (Id-nya dari respons),
+  `DELETE …/tools/{toolSlug}` (slug katalognya — **melepas TAUTAN, bukan menghapus
+  alat**; alatnya masih bisa ditautkan lagi).
+- Semua **idempoten** (tujuan tak ada → 200 tanpa-operasi, seperti DELETE sisi
+  [ADR-023](ADR-023-knowledge-graph-dasar.md)), di bawah cabang `editorialWrites`
+  (ADR-020), masuk `SemuaEndpointTulis` → ketiga uji ADR-020 langsung menjaganya.
+- **Tidak menurunkan `HumanReviewed`.** `Touch` dan bagian Konsekuensi ADR ini sudah
+  menalarnya untuk MENAMBAH (*"memperbaiki satu tautan mati tidak boleh membuang nilai
+  kerja pemeriksanya"*); buang adalah separuh lain dari "memperbaiki tautan mati", jadi
+  ia mengikuti aturan yang sama. ⚠️ Satu akibat jujur: topik `tinjau` bisa menjadi
+  tak-lengkap (`MissingSections` terisi) tanpa turun tingkat — re-review tanggung jawab
+  penyunting, persis seperti menambah bagian tidak otomatis menaikkan tingkat.
+
+🔴 **Langkah ROADMAP belum bisa dibuang.** Nomor langkah berurut tanpa lubang (bagian 1:
+*"roadmap berlubang mustahil"*), jadi membuang satu langkah menuntut keputusan penomoran
+ulang (geser 1..n, atau biarkan lubang dan ubah `AddRoadmapStep` ke `max+1`) yang belum
+diambil. Mengganti prasyarat tetap lewat `PUT …/roadmap/prasyarat`. Ditinggalkan sebagai
+langkah berikutnya.
+
+**Terukur:** +4 uji unit (`BagianIsiHalamanTests`) + 3 uji integrasi
+(`ContentSectionEndpointTests`, termasuk end-to-end *buang tidak menggugurkan tinjau*).
+Hitungan repo → **112 unit + 76 integrasi**, `run.ps1 verify` hijau.
