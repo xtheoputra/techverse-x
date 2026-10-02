@@ -53,6 +53,26 @@ public static class EditContentSectionsEndpoint
             .WithName("MarkDrafted")
             .WithSummary("Menaikkan isi ke tingkat draf. Menolak kalau ada bagian yang kosong.")
             .ProducesValidationProblem();
+
+        // Pasangan DELETE — jalan perbaikan bagian isi yang keliru di produksi
+        // (ADR-021 Pembaruan 2026-09-17). Idempoten: tujuan tak ada = 200 tanpa-operasi,
+        // bukan 404. Alat lewat SLUG (identitas katalognya); proyek & sumber lewat Id
+        // di responsnya. Langkah roadmap SENGAJA tidak punya pasangan buang di sini —
+        // nomornya berurut tanpa lubang, perlu keputusan penomoran ulang tersendiri.
+        routes.MapDelete("/{slug}/tools/{toolSlug}", DetachToolAsync)
+            .WithName("DetachTool")
+            .WithSummary("Melepas tautan satu alat dari topik ini. Idempoten.")
+            .ProducesValidationProblem();
+
+        routes.MapDelete("/{slug}/projects/{projectId:guid}", RemoveProjectAsync)
+            .WithName("RemoveProject")
+            .WithSummary("Membuang satu Mini Project. Idempoten.")
+            .ProducesValidationProblem();
+
+        routes.MapDelete("/{slug}/resources/{resourceId:guid}", RemoveResourceAsync)
+            .WithName("RemoveResource")
+            .WithSummary("Membuang satu sumber belajar. Idempoten.")
+            .ProducesValidationProblem();
     }
 
     private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> SetPrerequisiteAsync(
@@ -95,4 +115,25 @@ public static class EditContentSectionsEndpoint
         EditContentSectionsHandler handler,
         CancellationToken cancellationToken)
         => TopicMutation.ToHttpResult(await handler.MarkDraftedAsync(slug, cancellationToken).ConfigureAwait(false));
+
+    private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> DetachToolAsync(
+        string slug,
+        string toolSlug,
+        EditContentSectionsHandler handler,
+        CancellationToken cancellationToken)
+        => TopicMutation.ToHttpResult(await handler.DetachToolAsync(slug, toolSlug, cancellationToken).ConfigureAwait(false));
+
+    private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> RemoveProjectAsync(
+        string slug,
+        Guid projectId,
+        EditContentSectionsHandler handler,
+        CancellationToken cancellationToken)
+        => TopicMutation.ToHttpResult(await handler.RemoveProjectAsync(slug, projectId, cancellationToken).ConfigureAwait(false));
+
+    private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> RemoveResourceAsync(
+        string slug,
+        Guid resourceId,
+        EditContentSectionsHandler handler,
+        CancellationToken cancellationToken)
+        => TopicMutation.ToHttpResult(await handler.RemoveResourceAsync(slug, resourceId, cancellationToken).ConfigureAwait(false));
 }

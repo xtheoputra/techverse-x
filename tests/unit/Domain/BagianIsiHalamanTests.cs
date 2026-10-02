@@ -216,6 +216,73 @@ public sealed class BagianIsiHalamanTests
         Assert.Throws<ArgumentException>(() => technology.AddProject("Proyek", "   "));
     }
 
+    // ---- Membuang bagian isi: idempoten, tidak menurunkan tingkat ---------
+
+    [Fact]
+    public void RemoveResource_membuang_lalu_idempoten()
+    {
+        var technology = Kosong();
+        technology.AddResource(ResourceType.OfficialDocs, "Docs", "https://example.com");
+        var id = technology.Resources[0].Id;
+
+        technology.RemoveResource(id);
+        Assert.Empty(technology.Resources);
+
+        // Idempoten: membuang lagi, dan membuang Id yang tak pernah ada, tak melempar.
+        technology.RemoveResource(id);
+        technology.RemoveResource(Guid.NewGuid());
+        Assert.Empty(technology.Resources);
+    }
+
+    [Fact]
+    public void RemoveProject_membuang_lalu_idempoten()
+    {
+        var technology = Kosong();
+        technology.AddProject("Proyek", "Sesuatu yang jalan.");
+        var id = technology.Projects[0].Id;
+
+        technology.RemoveProject(id);
+        Assert.Empty(technology.Projects);
+
+        technology.RemoveProject(id);
+        technology.RemoveProject(Guid.NewGuid());
+        Assert.Empty(technology.Projects);
+    }
+
+    [Fact]
+    public void DetachTool_melepas_tautan_lalu_idempoten()
+    {
+        var technology = Kosong();
+        var alat = Guid.CreateVersion7();
+        technology.AttachTool(alat, "catatan");
+
+        technology.DetachTool(alat);
+        Assert.Empty(technology.Tools);
+
+        technology.DetachTool(alat);
+        technology.DetachTool(Guid.CreateVersion7());
+        Assert.Empty(technology.Tools);
+    }
+
+    [Fact]
+    public void MembuangBagian_TIDAKMenggugurkanPemeriksaanManusia()
+    {
+        // Cermin MenambahBagian_TIDAK...: ADR-012 menalar memperbaiki tautan mati
+        // (buang lalu tambah) tidak boleh membuang nilai kerja pemeriksa, jadi buang
+        // pun tidak menggugurkan. Ditambah satu sumber ekstra lalu dibuang supaya
+        // halamannya tetap lengkap — yang diuji murni efek buang pada kematangan.
+        var technology = Kosong().IsiKelimaBagian();
+        technology.MarkDrafted();
+        technology.MarkReviewed("pemilik");
+        technology.AddResource(ResourceType.Video, "Ekstra", "https://example.com/v");
+        var ekstra = technology.Resources[^1].Id;
+
+        technology.RemoveResource(ekstra);
+
+        Assert.Equal(ContentMaturity.HumanReviewed, technology.Maturity);
+        Assert.Equal("pemilik", technology.ReviewedBy);
+    }
+
     // ---- Batas yang sengaja dipilih, dan layak dibantah -------------------
 
     [Fact]
