@@ -4,6 +4,46 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-02 — Sesi 20: *"berapa %?"* dijawab, lalu jalan `tinjau` ADR-021 dibangun mendahului #40
+
+Permintaan pemilik: *"berapa % proyek ini jadi?"*, lalu *"kerjakan secara bertahap deliverable rencananya"*.
+
+### *"Berapa %?"* — dijawab dari ukuran resmi yang sudah ada
+
+Dijawab dari [RENCANA-V1 §Kemajuan](RENCANA-V1.md#kemajuan-per-25-september-2026), tak ada angka baru dikarang: **0 dari 22 topik `tinjau` (0%)** resmi, **± 24%** pekerjaan per bulan, **di bawah 10%** visi penuh. Sesi 17–19 (CI, CVE, pin runner) tidak menggerakkan satu pun.
+
+### Penyaringan: tak ada deliverable kode yang terbuka di bawah aturan sendiri
+
+Seluruh issue terbuka diperiksa (bukan ditebak): #60/#61 dan sisa rantai **selesai-menunggu-merge** (HEAD = puncak rantai, semua cabang lain ancestor-nya); #38/#39/#40 **akun pemilik**; #42, #54 (*"sesudah ada isi sungguhan"*), #55 butir 1, #59, #68 butir 1–3 semua **pemicu tertulis yang menunggu #40**. Jadi penyaring yang sama dengan Sesi 15/17 meloloskan **nol**.
+
+Satu-satunya pengungkit kode berleverage adalah [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md), yang **sengaja digerbang di belakang #40**. Karena itu menimpa keputusan tertulis, pemilik ditanya lebih dulu dan memilih **membangunnya mendahului #40**.
+
+### Yang dibangun — dibuktikan, bukan diklaim
+
+Rinci di [ADR-021 §Pembaruan 2026-10-02](adr/ADR-021-jalan-menuju-tinjau.md) dan [PR #72](https://github.com/xtheoputra/techverse-x/pull/72). Ringkasnya: endpoint `POST …/{slug}/tinjau` di grup `editorialWrites` (memakai ulang `TopicMutation`), workflow bergerbang `tinjau.yml` (citra `api` + `Editorial__WritesEnabled` di `127.0.0.1`, nama dari `github.actor`), dan — yang ADR sebut *"belum punya penjaga sama sekali"* — penjaga **"tanpa medan atas-nama"** (`TinjauWorkflowGuardTests`). `Technology.MarkReviewed()` berhenti nol-pemanggil-produksi.
+
+🔑 **Satu topik kini dibawa dari kosong ke `tinjau` lewat HTTP** (`TinjauEndpointTests`), pemeriksanya terbukti tersimpan di DB. Ukuran: **106 unit + 69 integrasi** hijau, `run.ps1 ci` **HIJAU** (Trivy 0 CRITICAL/HIGH ketiga citra, gerbang halaman ADR-024, seed produksi).
+
+### Yang TIDAK dikerjakan, dan kenapa
+
+- **`ReviewedBy` di `TechnologyResponse`** (#68 butir 2) — memunculkan identitas pemeriksa di halaman publik keputusan produk/privasi tersendiri, di luar lingkup ADR-021.
+- **Workflow belum pernah DIJALANKAN** — butuh secret `NEON_DATABASE_URL` + citra terbit (#38/#40). Jadi di produksi pencacah `tinjau` **tetap 0**; yang berubah hanya produsennya kini ada dan terbukti di dev.
+- **Tidak ada yang di-merge.**
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Rantai PR bertambah satu di puncak:** [PR #72](https://github.com/xtheoputra/techverse-x/pull/72) (`fase-1/jalan-tinjau-adr-021`, base #71). `origin/main` masih `52dd79f`, belum ada merge; urutan merge tetap dari #56 ke atas. Dua belas PR terbuka: #56 · #58 · #62 · #63 · #64 · #65 · #66 · #67 · #69 · #70 · #71 · #72.
+
+**Issue terbuka** (tak berubah angkanya, tapi artinya bergeser): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68. #42/#55 butir 1/#68 butir 1 kini menunjuk jalan yang **sudah dibangun**, bukan yang belum ada.
+
+**Menunggu pemilik:** sama seperti Sesi 19 (`LICENSE`, buka paket GHCR, nama repo privat lama, akun hosting & AI) **ditambah**: jalankan workflow `tinjau` begitu #40 tutup + secret Neon ada.
+
+**Lingkungan — 2026-10-02:** pohon kerja bersih sesudah commit ini. Docker Desktop hidup; `techversex-postgres`/`-redis` sehat, DB termigrasi ("already up to date"); `wellsy-*` milik proyek **lain** pemilik — tak disentuh. Port 5432/6379 dipakai compose dev.
+
+**Belum ditutup pemilik** — commit + push + PR dilakukan sebagai bagian dari permintaan *"kerjakan"* (izin tetap: push/PR ya, merge tidak), bukan atas aba-aba *"akhiri sesi"*.
+
+---
+
 ## 2026-10-01 — Sesi 19: Sesi 18 ditutup, lalu DB Trivy yang segar menangkap openssl (HIGH) dan RCE Next.js (CRITICAL)
 
 Permintaan pemilik: *"lanjutkan tugas"*.
