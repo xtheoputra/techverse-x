@@ -295,6 +295,17 @@ dibangun → penghitung `tinjau` akhirnya bisa bergerak. Merge rantai PR menungg
 > masing-masing, jadi merge punya dasar CI yang sungguhan — urutannya tetap dari
 > #56 ke atas. Angka-angka di bagian ini tidak diubah: ia rekaman 25 September.
 
+> ✅ **Diperbarui 2026-10-02 — produsen angka resmi akhirnya ada, mendahului #40.**
+> Atas keputusan pemilik (*"kerjakan secara bertahap deliverable rencananya"*),
+> jalan sah menuju `tinjau` ([ADR-021](adr/ADR-021-jalan-menuju-tinjau.md)) dibangun
+> lebih dulu daripada #40: endpoint `POST …/{slug}/tinjau` di grup tulis, workflow
+> bergerbang yang mengambil nama pemeriksa dari `github.actor`, dan penjaga "tanpa
+> medan atas-nama". Satu topik kini bisa dibawa sampai `tinjau` lewat HTTP (terbukti
+> di uji integrasi). 🔴 **Angka resmi tetap 0:** produksi belum tayang dan
+> workflow-nya belum pernah dijalankan (butuh #38/#40). Yang berubah: begitu #40
+> tutup, pencacahnya tinggal digerakkan, bukan dibangun. Angka 25 September tidak
+> diubah.
+
 💡 Bobot per bulan yang sama dipilih karena paling mudah dibantah, bukan karena
 paling tepat — Bulan 5 (AI Mentor) hampir pasti lebih berat daripada Bulan 1.
 Kalau angka ± 24% dikutip, kutip bersama angka resminya.

@@ -147,6 +147,14 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
         // dan tidak ada sisi yang tercipta - jadi pembersihan tidak perlu berubah.
         (HttpMethod.Post, $"/api/v1/technologies/{slug}/requires",
             new RequireTopicRequest("topik-yang-tidak-pernah-ada")),
+
+        // Topik uji ini baru dibuat, jadi isinya masih `kurasi`: dengan sakelar hidup
+        // MarkReviewed menolaknya 400 ("masih kurasi", bukan 404), dengan sakelar mati
+        // rutenya tidak dipasang - 404. Keduanya membuktikan gerbang ADR-020, dan tidak
+        // ada yang naik ke tinjau, jadi pembersihan tidak perlu berubah. Nama pemeriksa
+        // jadi medan teks pertama yang diincar uji muatan cacat #61.
+        (HttpMethod.Post, $"/api/v1/technologies/{slug}/tinjau",
+            new MarkReviewedRequest("Uji Permukaan Tulis")),
     ];
 
     private async Task<string> BuatTopikLewatHostTerbukaAsync()
