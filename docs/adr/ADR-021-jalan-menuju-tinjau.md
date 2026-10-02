@@ -1,8 +1,10 @@
 # ADR-021 — Jalan sah menuju `tinjau`: workflow bergerbang, bukan endpoint publik
 
-**Status:** Diterima sebagai **pola**; implementasinya **sengaja ditunda** sampai
-[#40](https://github.com/xtheoputra/techverse-x/issues/40) tutup. **Menjawab pertanyaan yang dibiarkan terbuka
-[ADR-020](ADR-020-permukaan-tulis-api.md).** **Tanggal:** 2026-09-09
+**Status:** Diterima sebagai **pola** (2026-09-09); **diimplementasikan 2026-10-02
+MENDAHULUI [#40](https://github.com/xtheoputra/techverse-x/issues/40)** atas keputusan
+pemilik — lihat [Pembaruan 2026-10-02](#pembaruan-2026-10-02--dibangun-mendahului-40-atas-keputusan-pemilik)
+di kaki. **Menjawab pertanyaan yang dibiarkan terbuka
+[ADR-020](ADR-020-permukaan-tulis-api.md).**
 
 ## Konteks
 
@@ -80,6 +82,11 @@ juga begitu ia masuk ke daftar.
 
 ## 🔴 Kenapa TIDAK dibangun sekarang
 
+> 🟢 **Disuperseding 2026-10-02 oleh keputusan pemilik — bagian ini kini REKAMAN.**
+> Alasan menunda di bawah tetap ditulis apa adanya sebagai rekaman keadaan
+> 2026-09-09; yang berubah hanya satu premisnya (lihat
+> [Pembaruan 2026-10-02](#pembaruan-2026-10-02--dibangun-mendahului-40-atas-keputusan-pemilik)).
+
 `RENCANA-V1.md` menulisnya tanpa ambiguitas: **Bulan 1 mengejar URL, bukan
 fitur**, dan pekerjaan sisi isi adalah pekerjaan **sesudah** situs tayang.
 [#41](https://github.com/xtheoputra/techverse-x/issues/41) bahkan memesan urutan itu secara eksplisit.
@@ -135,3 +142,57 @@ runner. Tidak ada mekanisme baru.
 - ⚠️ **Yang ikut diputuskan saat alur ini dibangun:** jalan membuang sisi DAN jalan
   membuang bagian isi. Keduanya belum ada, jadi sisi atau bagian yang keliru di
   produksi hari ini tidak punya jalan perbaikan sama sekali.
+
+---
+
+## Pembaruan 2026-10-02 — dibangun mendahului #40 atas keputusan pemilik
+
+Pemilik meminta *"kerjakan secara bertahap deliverable rencananya"* sesudah
+diberi tahu bahwa seluruh deliverable berkode sudah selesai-menunggu-merge atau
+digerbang di belakang #40. Itu **melonggarkan pemicu "#40 dulu"** yang ditulis ADR
+ini, dan alur ini — deliverable kode paling hulu yang membuat pencacah resmi
+RENCANA-V1 bisa bergerak — dibangun hari ini. Keputusan menimpa urutan tertulis,
+jadi ia dicatat di sini, bukan dijalankan diam-diam.
+
+**Satu premis "jangan bangun sekarang" sudah gugur, dua masih berdiri — dan itu
+membentuk apa yang dibangun vs tidak.** #57 beres (repo publik, CI & artefak
+hidup), jadi keberatan "workflow-nya mati di bawah #57" tidak berlaku lagi. Yang
+MASIH berdiri: belum ada URL publik (#40) dan belum ada DB produksi (#38). Karena
+itu yang dibangun adalah **mesin dan penjaganya, diuji di dev** — bukan
+menjalankannya di produksi, yang memang belum ada.
+
+**Ketiga keputusan ADR ini diimplementasikan apa adanya:**
+
+1. **Workflow manual bergerbang** — `.github/workflows/tinjau.yml`, meniru
+   `migrasi-produksi.yml`: `workflow_dispatch` + `environment: produksi` +
+   `packages: read`, menjalankan citra `api` yang sama dengan
+   `Editorial__WritesEnabled=true` terikat ke `127.0.0.1` (tak pernah publik), lalu
+   memanggil `/tinjau` lewat `localhost` dan membuang peti kemasnya.
+2. **Nama dari `github.actor`, tanpa masukan penimpa** — workflow mengikat
+   `PEMERIKSA: ${{ github.actor }}` dan hanya punya dua input (`sha`, `slug`).
+   Aturan "tanpa medan atas-nama" yang ADR ini sebut *"belum punya penjaga sama
+   sekali"* kini **punya penjaga**: `tests/unit/Workflows/TinjauWorkflowGuardTests.cs`
+   menolak input ketiga apa pun dan menuntut pemeriksa datang dari `github.actor`.
+3. **Endpoint di dalam grup TULIS** — `POST /api/v1/technologies/{slug}/tinjau`
+   (`services/technology/Features/MarkReviewed/`), memakai ulang `TopicMutation`
+   persis seperti yang komentar berkas itu ramalkan. Ia masuk daftar
+   `SemuaEndpointTulis`, jadi ketiga uji ADR-020 langsung menuntutnya hilang di
+   produksi dan ada saat sakelar hidup — tanpa uji baru untuk itu.
+
+**Yang SENGAJA tetap di luar lingkup:** `ReviewedBy` masih tidak ada di
+`TechnologyResponse` (butir 2 [#68](https://github.com/xtheoputra/techverse-x/issues/68)).
+Memunculkan identitas pemeriksa di tiap halaman topik publik adalah keputusan
+produk/privasi tersendiri; ADR ini hanya membangun jalan yang MENULIS nama itu,
+dan uji membacanya langsung dari DB. Jalan membuang sisi/bagian (Pembaruan
+2026-09-17) juga belum dibangun — belum ditagih permintaan ini.
+
+**Terukur, bukan diklaim:** 106 uji unit + 69 uji integrasi hijau. Satu topik
+dibawa dari kosong sampai `tinjau` lewat HTTP (`TinjauEndpointTests`), dan nama
+pemeriksanya terbukti tersimpan di DB. 🔴 **Yang BELUM terjadi:** workflow-nya
+belum pernah DIJALANKAN — ia butuh secret `NEON_DATABASE_URL` dan citra yang
+terbit, keduanya menunggu #38/#40. Jadi di produksi pencacah `tinjau` **tetap 0**;
+yang berubah hanya ini: begitu #40 tutup, produsennya sudah ada dan terbukti.
+
+**Cara membalikkan tidak lagi berbiaya nol.** Paragraf "Konsekuensi" di atas benar
+saat ditulis; kini membalikkan berarti membuang kode yang sudah mendarat berikut
+ujinya dan workflow-nya, bukan sekadar menghapus ADR.

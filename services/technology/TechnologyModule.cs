@@ -9,6 +9,7 @@ using TechVerseX.TechnologyService.Features.CreateTool;
 using TechVerseX.TechnologyService.Features.EditContentSections;
 using TechVerseX.TechnologyService.Features.GetTechnology;
 using TechVerseX.TechnologyService.Features.ListFields;
+using TechVerseX.TechnologyService.Features.MarkReviewed;
 using TechVerseX.TechnologyService.Features.RequireTopic;
 using TechVerseX.TechnologyService.Features.Search;
 using TechVerseX.TechnologyService.Features.SearchTechnology;
@@ -49,6 +50,7 @@ public static class TechnologyModule
         services.AddScoped<SearchHandler>();
         services.AddScoped<EditContentSectionsHandler>();
         services.AddScoped<RequireTopicHandler>();
+        services.AddScoped<MarkReviewedHandler>();
         services.AddScoped<CreateToolHandler>();
 
         services.AddScoped<IValidator<CreateTechnologyCommand>, CreateTechnologyValidator>();
@@ -127,6 +129,14 @@ public static class TechnologyModule
         // SemuaEndpointTulis di PermukaanTulisTests memuatnya: memasang baris ini
         // di atas batas memerahkan gerbangnya.
         technologies.MapRequireTopic();
+
+        // Menaikkan topik ke `tinjau` juga tulisan REDAKSI — satu-satunya jalan ke
+        // HumanReviewed, dan ia menuntut nama pemeriksa (ADR-012). Ia duduk di bawah
+        // batas ini bersama endpoint bagian isi dan /requires: di produksi rutenya
+        // tidak dipasang sama sekali, dan produsennya kelak alur bergerbang ADR-021
+        // yang memanggil rute yang sama dari localhost dalam runner. SemuaEndpointTulis
+        // memuatnya — memasang baris ini di atas batas memerahkan gerbangnya.
+        technologies.MapMarkReviewed();
 
         // Katalog alat punya grup sendiri, BUKAN sub-rute topik: satu alat dipakai
         // banyak topik, dan menempatkannya di bawah salah satunya akan menyiratkan
