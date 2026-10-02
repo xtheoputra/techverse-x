@@ -34,11 +34,17 @@ Rinci di [ADR-021 §Pembaruan 2026-10-02](adr/ADR-021-jalan-menuju-tinjau.md) da
 
 Permintaan *"lanjutkan"*. ADR-021 Pembaruan 2026-09-17 menandai bahwa saat alur bergerbang dibangun, jalan **membuang sisi** dan **membuang bagian isi** harus ikut ada — tanpanya, sisi/bagian keliru di produksi tak punya jalan perbaikan. Separuh pertama dibangun: `Technology.RemoveRequirement` + `DELETE …/requires/{topicSlug}` ([PR #73](https://github.com/xtheoputra/techverse-x/pull/73), [ADR-023 Pembaruan 2026-10-02](adr/ADR-023-knowledge-graph-dasar.md)).
 
-🔑 **`DELETE` sengaja kebalikan `POST`:** `POST` menegaskan ADANYA relasi (tujuan bukan topik → 400); `DELETE` menegaskan KETIADAAN (tujuan tak pernah ada → idempoten 200). Tidak menurunkan `HumanReviewed`. +2 unit + 4 integrasi; **108 + 73** hijau, `verify` HIJAU. 🔴 Jalan membuang **bagian isi** masih belum ada — langkah berikutnya.
+🔑 **`DELETE` sengaja kebalikan `POST`:** `POST` menegaskan ADANYA relasi (tujuan bukan topik → 400); `DELETE` menegaskan KETIADAAN (tujuan tak pernah ada → idempoten 200). Tidak menurunkan `HumanReviewed`. +2 unit + 4 integrasi; **108 + 73** hijau, `verify` HIJAU.
+
+### Lanjutan 2 — jalan membuang bagian isi (ADR-012)
+
+Permintaan *"lanjutkan"* lagi, sesudah #73 hijau di CI. Separuh **kedua** dari jalan perbaikan: `Technology.RemoveResource`/`RemoveProject`/`DetachTool` + `DELETE …/resources/{id}`, `…/projects/{id}`, `…/tools/{toolSlug}` ([PR #74](https://github.com/xtheoputra/techverse-x/pull/74), [ADR-012 Pembaruan 2026-10-02](adr/ADR-012-template-halaman.md)). Idempoten (tujuan tak ada → 200), dan **tidak menurunkan `HumanReviewed`** — ADR-012 sudah menalarnya untuk menambah, buang separuh lain dari "memperbaiki tautan mati". Dibuktikan end-to-end: topik dibawa ke `tinjau`, sumber dibuang, tetap `HumanReviewed`. +4 unit + 3 integrasi → **112 + 76** hijau.
+
+🔴 **Langkah ROADMAP belum bisa dibuang:** nomornya berurut tanpa lubang, perlu keputusan penomoran ulang tersendiri (geser 1..n, atau `AddRoadmapStep` → `max+1`). Mengganti prasyarat tetap lewat `PUT …/roadmap/prasyarat`. Itu satu-satunya sisa jalan-perbaikan editorial; sesudahnya permukaan tulis/perbaikan lengkap, dan pengungkit kembali ke akun pemilik (#38/#39/#40).
 
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
-**Rantai PR bertambah DUA di puncak:** [PR #72](https://github.com/xtheoputra/techverse-x/pull/72) (`fase-1/jalan-tinjau-adr-021`, base #71, CI run 36986226012 hijau) lalu [PR #73](https://github.com/xtheoputra/techverse-x/pull/73) (`fase-1/buang-sisi-adr-023`, base #72). `origin/main` masih `52dd79f`, belum ada merge; urutan merge tetap dari #56 ke atas. Tiga belas PR terbuka: #56 · #58 · #62 · #63 · #64 · #65 · #66 · #67 · #69 · #70 · #71 · #72 · #73.
+**Rantai PR bertambah TIGA di puncak:** [PR #72](https://github.com/xtheoputra/techverse-x/pull/72) (`fase-1/jalan-tinjau-adr-021`, base #71, CI run 36986226012 hijau) · [PR #73](https://github.com/xtheoputra/techverse-x/pull/73) (`fase-1/buang-sisi-adr-023`, base #72, CI run 36989339376 hijau) · [PR #74](https://github.com/xtheoputra/techverse-x/pull/74) (`fase-1/buang-bagian-isi-adr-012`, base #73). `origin/main` masih `52dd79f`, belum ada merge; urutan merge tetap dari #56 ke atas. Empat belas PR terbuka: #56 · #58 · #62 · #63 · #64 · #65 · #66 · #67 · #69 · #70 · #71 · #72 · #73 · #74.
 
 **Issue terbuka** (tak berubah angkanya, tapi artinya bergeser): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68. #42/#55 butir 1/#68 butir 1 kini menunjuk jalan yang **sudah dibangun**, bukan yang belum ada.
 
