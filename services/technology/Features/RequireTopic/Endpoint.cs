@@ -33,6 +33,16 @@ public static class RequireTopicEndpoint
             .WithName("RequireTopic")
             .WithSummary("Mencatat bahwa topik ini membutuhkan topik lain lebih dulu. Idempoten.")
             .ProducesValidationProblem();
+
+        // DELETE, dengan tujuan di ALAMAT — di sini itu tepat, berbeda dari POST.
+        // DELETE menegaskan KETIADAAN sebuah sisi tertentu, jadi "tujuan tidak ada"
+        // bukan muatan yang keliru melainkan keadaan yang justru sudah tercapai:
+        // idempoten 200, bukan 400. Lihat RemoveRequirementHandler. Jalan perbaikan
+        // sisi yang keliru di produksi (ADR-021 Pembaruan 2026-09-17).
+        routes.MapDelete("/{slug}/requires/{topicSlug}", RemoveRequirementAsync)
+            .WithName("RemoveRequirement")
+            .WithSummary("Membuang sisi 'membutuhkan' ke sebuah topik. Idempoten.")
+            .ProducesValidationProblem();
     }
 
     private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> RequireTopicAsync(
@@ -41,4 +51,11 @@ public static class RequireTopicEndpoint
         RequireTopicHandler handler,
         CancellationToken cancellationToken)
         => TopicMutation.ToHttpResult(await handler.HandleAsync(slug, request, cancellationToken).ConfigureAwait(false));
+
+    private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> RemoveRequirementAsync(
+        string slug,
+        string topicSlug,
+        RemoveRequirementHandler handler,
+        CancellationToken cancellationToken)
+        => TopicMutation.ToHttpResult(await handler.HandleAsync(slug, topicSlug, cancellationToken).ConfigureAwait(false));
 }

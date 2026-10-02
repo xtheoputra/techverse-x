@@ -387,6 +387,35 @@ public sealed class Technology
     }
 
     /// <summary>
+    /// Membuang sisi <b>"membutuhkan"</b> ke <paramref name="topicId"/> (ADR-023).
+    /// <b>Idempoten</b>: membuang sisi yang tidak ada tidak mengubah apa pun dan tidak
+    /// melempar.
+    /// </summary>
+    /// <remarks>
+    /// 🔑 <b>Jalan perbaikan sisi yang keliru di produksi.</b> Tanpa ini, sisi yang
+    /// salah ditulis lewat alur ADR-021 tidak punya jalan perbaikan sama sekali — hal
+    /// yang ADR-021 Pembaruan 2026-09-17 sebut harus ikut diputuskan saat alur itu
+    /// dibangun.
+    /// <para>
+    /// ⚠️ Seperti <see cref="RequireTopic"/> dan <see cref="Touch"/>, ia <b>tidak</b>
+    /// menurunkan <see cref="ContentMaturity.HumanReviewed"/>: melepas tautan ke topik
+    /// lain bukan pembatalan pemeriksaan atas TEKS halaman ini.
+    /// </para>
+    /// <para>
+    /// Satu-satunya pemanggil produksi: <c>RemoveRequirementHandler</c>, yang di
+    /// produksi hanya terjangkau lewat alur ADR-021.
+    /// </para>
+    /// </remarks>
+    public void RemoveRequirement(Guid topicId)
+    {
+        var dibuang = _relationships.RemoveAll(r => r.Kind == RelationshipKind.Requires && r.ToTechnologyId == topicId);
+        if (dibuang > 0)
+        {
+            Touch();
+        }
+    }
+
+    /// <summary>
     /// Menaikkan isi ke tingkat draf mesin — <b>kelima bagian terisi</b>, belum
     /// diperiksa.
     /// </summary>

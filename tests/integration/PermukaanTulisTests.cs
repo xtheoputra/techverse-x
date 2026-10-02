@@ -148,6 +148,12 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
         (HttpMethod.Post, $"/api/v1/technologies/{slug}/requires",
             new RequireTopicRequest("topik-yang-tidak-pernah-ada")),
 
+        // Membuang sisi: tujuannya tak pernah ada, jadi dengan sakelar hidup ia
+        // tanpa-operasi 200 (DELETE idempoten, beda dari POST yang 400), dengan
+        // sakelar mati rutenya tak dipasang - 404. Tanpa badan, jadi ikut dilewati
+        // uji muatan cacat #61, sama seperti /draf.
+        (HttpMethod.Delete, $"/api/v1/technologies/{slug}/requires/topik-yang-tidak-pernah-ada", null),
+
         // Topik uji ini baru dibuat, jadi isinya masih `kurasi`: dengan sakelar hidup
         // MarkReviewed menolaknya 400 ("masih kurasi", bukan 404), dengan sakelar mati
         // rutenya tidak dipasang - 404. Keduanya membuktikan gerbang ADR-020, dan tidak

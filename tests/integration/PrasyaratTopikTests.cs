@@ -337,6 +337,85 @@ public sealed class PrasyaratTopikTests : IAsyncLifetime
         Assert.Equal(b, Assert.Single(topik!.Requires).Slug);
     }
 
+    [Fact]
+    public async Task Membuang_sisi_menghapusnya_dari_kedua_halaman()
+    {
+        using var host = HostTerbuka();
+        using var client = host.CreateClient();
+
+        var a = await BuatTopikAsync(client, "buang-asal", "ai-agents");
+        var b = await BuatTopikAsync(client, "buang-tujuan", "ai-machine-learning");
+
+        Assert.Equal(HttpStatusCode.OK, (await RequireAsync(client, a, b)).StatusCode);
+        Assert.Equal(1, await HitungSisiAsync(a, b));
+
+        var response = await RemoveAsync(client, a, b);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Empty((await response.Content.ReadFromJsonAsync<TechnologyResponse>())!.Requires);
+
+        // Hilang dari KEDUA halaman: sisi disimpan sekali, jadi membuangnya juga
+        // menghapus "dibutuhkan oleh" yang diturunkan di halaman B.
+        var halamanB = await client.GetFromJsonAsync<TechnologyResponse>(
+            new Uri($"/api/v1/technologies/{b}", UriKind.Relative));
+        Assert.Empty(halamanB!.RequiredBy);
+        Assert.Equal(0, await HitungSisiAsync(a, b));
+    }
+
+    [Fact]
+    public async Task Membuang_sisi_idempoten_tetap_200()
+    {
+        using var host = HostTerbuka();
+        using var client = host.CreateClient();
+
+        var a = await BuatTopikAsync(client, "buang-ulang-asal", "ai-agents");
+        var b = await BuatTopikAsync(client, "buang-ulang-tujuan", "ai-machine-learning");
+
+        Assert.Equal(HttpStatusCode.OK, (await RequireAsync(client, a, b)).StatusCode);
+
+        Assert.Equal(HttpStatusCode.OK, (await RemoveAsync(client, a, b)).StatusCode);
+
+        // Membuang lagi sisi yang sudah tidak ada tetap 200 — DELETE menegaskan
+        // ketiadaan, dan itu sudah benar.
+        Assert.Equal(HttpStatusCode.OK, (await RemoveAsync(client, a, b)).StatusCode);
+        Assert.Equal(0, await HitungSisiAsync(a, b));
+    }
+
+    [Fact]
+    public async Task Membuang_tujuan_yang_tak_pernah_ada_200_tanpa_menyentuh_apa_pun()
+    {
+        // 🔑 Di sinilah DELETE sengaja berbeda dari POST: POST /requires ke tujuan
+        // yang bukan topik membalas 400 (lihat Target_keliru...), DELETE membalas 200.
+        // DELETE menegaskan TIDAK adanya sisi; tidak adanya sisi ke topik yang tak
+        // pernah ada itu sudah benar tanpa perlu diubah apa pun.
+        using var host = HostTerbuka();
+        using var client = host.CreateClient();
+
+        var a = await BuatTopikAsync(client, "buang-hampa", "ai-agents");
+
+        var response = await RemoveAsync(client, a, $"tak-pernah-ada-{Guid.NewGuid():N}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Empty((await response.Content.ReadFromJsonAsync<TechnologyResponse>())!.Requires);
+        Assert.Equal(0, await HitungSisiAsync(a));
+    }
+
+    [Fact]
+    public async Task Membuang_sisi_dari_sumber_tak_ada_membalas_404()
+    {
+        using var host = HostTerbuka();
+        using var client = host.CreateClient();
+
+        // Tujuan SUNGGUH ada, supaya yang tidak ditemukan pasti topik di alamat —
+        // bukan tujuan, yang untuk DELETE malah 200.
+        var b = await BuatTopikAsync(client, "buang-sumber-tujuan", "ai-machine-learning");
+
+        var response = await RemoveAsync(client, $"uji-syarat-buang-tak-ada-{Guid.NewGuid():N}", b);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(0, await HitungSisiAsync(b));
+    }
+
     /// <summary>
     /// Membuat satu topik dalam permintaannya sendiri. Slug didaftarkan untuk
     /// dibersihkan SEBELUM asersi apa pun: kalau pembuatannya yang gagal, membuang
@@ -359,6 +438,9 @@ public sealed class PrasyaratTopikTests : IAsyncLifetime
         client.PostAsJsonAsync(
             new Uri($"/api/v1/technologies/{sumber}/requires", UriKind.Relative),
             new RequireTopicRequest(tujuan));
+
+    private static Task<HttpResponseMessage> RemoveAsync(HttpClient client, string sumber, string tujuan) =>
+        client.DeleteAsync(new Uri($"/api/v1/technologies/{sumber}/requires/{tujuan}", UriKind.Relative));
 
     /// <summary>
     /// Baris yang menyentuh salah satu topik yang disebut, arah mana pun — dihitung

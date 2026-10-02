@@ -30,9 +30,15 @@ Rinci di [ADR-021 §Pembaruan 2026-10-02](adr/ADR-021-jalan-menuju-tinjau.md) da
 - **Workflow belum pernah DIJALANKAN** — butuh secret `NEON_DATABASE_URL` + citra terbit (#38/#40). Jadi di produksi pencacah `tinjau` **tetap 0**; yang berubah hanya produsennya kini ada dan terbukti di dev.
 - **Tidak ada yang di-merge.**
 
+### Lanjutan — jalan membuang sisi (ADR-023), mendahului #40 juga
+
+Permintaan *"lanjutkan"*. ADR-021 Pembaruan 2026-09-17 menandai bahwa saat alur bergerbang dibangun, jalan **membuang sisi** dan **membuang bagian isi** harus ikut ada — tanpanya, sisi/bagian keliru di produksi tak punya jalan perbaikan. Separuh pertama dibangun: `Technology.RemoveRequirement` + `DELETE …/requires/{topicSlug}` ([PR #73](https://github.com/xtheoputra/techverse-x/pull/73), [ADR-023 Pembaruan 2026-10-02](adr/ADR-023-knowledge-graph-dasar.md)).
+
+🔑 **`DELETE` sengaja kebalikan `POST`:** `POST` menegaskan ADANYA relasi (tujuan bukan topik → 400); `DELETE` menegaskan KETIADAAN (tujuan tak pernah ada → idempoten 200). Tidak menurunkan `HumanReviewed`. +2 unit + 4 integrasi; **108 + 73** hijau, `verify` HIJAU. 🔴 Jalan membuang **bagian isi** masih belum ada — langkah berikutnya.
+
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
-**Rantai PR bertambah satu di puncak:** [PR #72](https://github.com/xtheoputra/techverse-x/pull/72) (`fase-1/jalan-tinjau-adr-021`, base #71). `origin/main` masih `52dd79f`, belum ada merge; urutan merge tetap dari #56 ke atas. Dua belas PR terbuka: #56 · #58 · #62 · #63 · #64 · #65 · #66 · #67 · #69 · #70 · #71 · #72.
+**Rantai PR bertambah DUA di puncak:** [PR #72](https://github.com/xtheoputra/techverse-x/pull/72) (`fase-1/jalan-tinjau-adr-021`, base #71, CI run 36986226012 hijau) lalu [PR #73](https://github.com/xtheoputra/techverse-x/pull/73) (`fase-1/buang-sisi-adr-023`, base #72). `origin/main` masih `52dd79f`, belum ada merge; urutan merge tetap dari #56 ke atas. Tiga belas PR terbuka: #56 · #58 · #62 · #63 · #64 · #65 · #66 · #67 · #69 · #70 · #71 · #72 · #73.
 
 **Issue terbuka** (tak berubah angkanya, tapi artinya bergeser): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68. #42/#55 butir 1/#68 butir 1 kini menunjuk jalan yang **sudah dibangun**, bukan yang belum ada.
 
