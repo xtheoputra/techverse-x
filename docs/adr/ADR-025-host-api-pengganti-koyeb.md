@@ -381,3 +381,31 @@ harga lebih teliti: halaman pemasarannya menulis *"no credit card required"* dan
   layanan di dasbornya. `apps/api/Dockerfile` tidak berubah.
 - **Vercel kontainer → host lain:** hapus `Dockerfile.vercel` dan proyek keduanya.
 - **Neon dan Vercel web** tidak disentuh keputusan ini.
+
+---
+
+## Pembaruan 2026-09-28 - jalan keluar berbayar dicoret
+
+[ADR-026](ADR-026-nol-biaya-gratis-mandiri.md) menurunkan pagu ke **nol**. Urutan uji
+di bagian 3-5 **tidak berubah**, dan angka Railway diperiksa ulang ke sumber primer
+hari ini: uji coba USD 5 sekali untuk 30 hari tanpa kartu, lalu Free dengan kredit
+**USD 1 per bulan** dan RAM $10/GB/bulan - persis batas yang syarat R7 (*"proyeksi
+<= $0,70"*) sudah antisipasi.
+
+Yang berubah ada di bagian 6:
+
+- **Dicoret:** *"Melonggarkan tanpa kartu"* (Railway Hobby, Koyeb Pro) dan domain
+  berbayar untuk *named* Cloudflare Tunnel. Oracle Always Free juga tidak: ia
+  menuntut kartu.
+- **Tidak ditambahkan: host dari PC pemilik.** Versi pertama pembaruan ini sempat
+  menambahkan API dan PostgreSQL di PC pemilik lewat Tailscale Funnel; pemilik
+  menolaknya di hari yang sama - proyek tidak boleh bergantung pada mesin siapa pun.
+- **Dua fakta baru untuk urutan uji:** Railway Free tidak bisa menarik citra dari
+  registry privat (*"Private registry credentials are available on the Pro plan"*) -
+  R3 memang membangun dari Dockerfile repo, jadi tidak terkena. Dan repo ini
+  **publik** sejak 2026-09-28, tetap di akun pribadi (ADR-026) — larangan Vercel Hobby
+  atas repo milik organisasi tidak berlaku.
+- **Migrasi jalur Vercel tidak lagi dari mesin pemilik.** Bagian 3 dan uji V2 menaruhnya
+  di sana *"karena Actions mati"*. Sejak repo publik Actions berjalan lagi, jadi
+  migrasi berjalan dari `migrasi-produksi.yml` (`workflow_dispatch`) — gerbang manusia
+  yang sama, tanpa bergantung pada PC siapa pun.

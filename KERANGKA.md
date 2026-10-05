@@ -1921,7 +1921,7 @@ Apa yang saya ubah dari tempelan mentah:
 ## Yang Perlu Anda Putuskan atau Lengkapi
 
 > Seluruh butir di bawah sudah dipindahkan menjadi **GitHub Issues** supaya bisa dilacak satu per satu.
-> Repositori: <https://github.com/xtheoputra/techverse-x> (privat)
+> Repositori: <https://github.com/xtheoputra/techverse-x> (publik sejak 2026-09-28 — [ADR-026](docs/adr/ADR-026-nol-biaya-gratis-mandiri.md))
 
 ### Peta Butir ke Issue
 

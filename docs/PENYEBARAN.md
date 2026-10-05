@@ -293,13 +293,20 @@ dari citra dasarnya — 17 MB yang tidak pernah dipanggil `node server.js`, teta
 menyumbang **11 dari 13 temuan CRITICAL/HIGH**, termasuk satu-satunya CRITICAL.
 Membuangnya, plus menambal openssl citra dasar, membawa hitungannya **13 → 0**.
 
-Menjalankan pemindaian yang sama di mesin sendiri:
+Menjalankan pemindaian yang sama di mesin sendiri — atau seluruh gerbang CI
+sekaligus lewat `.\run.ps1 ci` / `make ci` ([ADR-026](adr/ADR-026-nol-biaya-gratis-mandiri.md)):
 
 ```
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-  aquasec/trivy:latest image --scanners vuln \
-  --severity CRITICAL,HIGH --exit-code 1 <nama-citra>
+  aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969 \
+  image --scanners vuln --severity CRITICAL,HIGH --exit-code 1 <nama-citra>
 ```
+
+🔴 **Per digest, bukan `:latest`.** Maret 2026 Trivy disusupi
+(CVE-2026-33634): citra v0.69.4–v0.69.6 — dan `latest` selama jendela paparan —
+membawa pencuri kredensial, dan perintah di atas memasang soket Docker ke
+dalamnya. Sampai 2026-09-28 baris ini, `ci.yml`, dan `rilis-citra.yml` menarik
+`:latest`.
 
 ⚠️ Kalau suatu hari gerbang ini merah karena kerentanan baru di citra dasar,
 **perbaiki akarnya** — perbarui citra dasar atau tambal paketnya. Menurunkan
