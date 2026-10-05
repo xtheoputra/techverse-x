@@ -15,7 +15,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'api', 'web', 'build', 'test', 'tautan', 'verify')]
+    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'api', 'web', 'build', 'test', 'tautan', 'halaman', 'verify')]
     [string]$Command = 'help',
 
     [Parameter(Position = 1)]
@@ -70,6 +70,7 @@ switch ($Command) {
             @{ n = 'build';     d = 'Build solusi .NET' }
             @{ n = 'test';      d = 'Menjalankan uji .NET (uji integrasi butuh up + migrate)' }
             @{ n = 'tautan';    d = 'Memeriksa tautan di berkas Markdown (tanpa jaringan)' }
+            @{ n = 'halaman';   d = 'Gerbang ADR-024 di halaman jadinya (butuh web + API hidup)' }
             @{ n = 'verify';    d = 'Gerbang yang sama dengan CI (butuh up + migrate)' }
         ) | ForEach-Object { Write-Host ('  {0,-12} {1}' -f $_.n, $_.d) }
         Write-Host ''
@@ -131,6 +132,25 @@ switch ($Command) {
         # dengan `seed`: berkas .mjs yang sama dipanggil run.ps1, Makefile, dan
         # ci.yml, jadi ketiganya tidak bisa menyimpang diam-diam.
         node .github/scripts/cek-tautan-markdown.mjs
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+
+    'halaman' {
+        # SENGAJA di luar `verify`: ia menuntut web yang sudah dibangun DAN API
+        # yang hidup, sama seperti `seed`. Di CI ia TETAP jalan - job `citra`
+        # menyalakan docker-compose.prod.yml lalu memanggil pemindai yang sama,
+        # jadi bentuk produksinya dijaga otomatis; perintah di bawah untuk bentuk
+        # PENGEMBANGAN, yang punya topik contoh dan karena itu punya relasi.
+        # Urutan yang dituntutnya:
+        #   .\run.ps1 up  ->  .\run.ps1 migrate  ->  .\run.ps1 api
+        #   lalu, di jendela lain: npm run build:web
+        #   lalu: cd apps/web; $env:API_BASE_URL='http://localhost:5080'
+        #         npx next start -p 3310
+        # Bentuk PRODUKSI yang diukur, bukan `next dev` - aturan teks pembaca
+        # ADR-024 memang membedakan keduanya (lihat apps/web/src/lib/lingkungan.ts).
+        if (-not $env:WEB_BASE_URL) { $env:WEB_BASE_URL = 'http://localhost:3310' }
+        if (-not $env:API_BASE_URL) { $env:API_BASE_URL = 'http://localhost:5080' }
+        node .github/scripts/periksa-halaman-web.mjs
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 

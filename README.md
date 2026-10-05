@@ -102,6 +102,23 @@ Sebabnya bisa diukur: halaman blob GitHub meresolusi tautan relatif dengan atura
 
 Komentar kode ikut diperiksa, sebab dokumentasi XML C# dan JSDoc di repo ini ditulis dalam Markdown — dan dua tautan issue di `apps/web/src/lib/lingkungan.ts` memang rusak. Keduanya juga memperlihatkan kenapa aturannya **bukan** sekadar "jangan keluar dari pohon repo": dari berkas empat tingkat dalam, empat `../` mendarat tepat di akar repo, jadi ia tidak keluar dari pohon — ia menunjuk berkas bernama `issues/42` yang tidak ada.
 
+### Gerbang halaman jadinya, di luar `verify`
+
+Aturan teks pembaca [ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md) — tidak ada *"Bulan N"*, *"menyusul"*, nomor ADR, perintah `run.ps1`, atau alamat internal di teks yang **terlihat** — hanya bisa diukur di halaman yang sudah tergambar, bukan di kode web. Tiga dari sembilan pelanggaran pertamanya datang dari **data**, yaitu ringkasan bidang yang disemai migrasi; pemindai kode tidak akan pernah melihatnya.
+
+```bash
+.\run.ps1 halaman              make cek-halaman
+```
+
+Ia menuntut API hidup **dan** build produksi web (bukan `next dev` — aturannya memang membedakan keduanya), jadi ia **sengaja di luar `verify`**. Di **CI ia tetap jalan**: job `citra` menyalakan `docker-compose.prod.yml` lalu memanggil pemindai yang sama, di job yang memang sudah membangun ketiga citranya.
+
+Selain memindai teks ia menelusuri dari `/`, membandingkan jumlah halaman `/teknologi/*` yang tercapai dengan yang dikenal API, dan menolak blok *"Topik terhubung"* yang tampil kosong (ADR-023). Angkanya berbeda di dua bentuk, dan keduanya benar:
+
+| Bentuk | Halaman | `/teknologi/*` |
+|---|---|---|
+| **produksi** (yang dijalankan CI) | 16 | **14 dari 14** — nol topik, jadi empat belas bidang itulah seluruh isinya |
+| **pengembangan** (6 topik contoh) | 22 | **20 dari 20** |
+
 ### Isi contoh itu bukan kurikulum
 
 `seed` memasukkan enam topik contoh, mengisi kelima bagian satu di antaranya, dan mencatat satu relasi antar-topik — sekadar supaya layar dan endpoint ada isinya. Cara isi sungguhan lahir sudah diputuskan di [ADR-012](docs/adr/ADR-012-template-halaman.md) (`kurasi` → `draf` → `tinjau` oleh manusia), dimulai dari tujuh topik AI Agents di [#42](https://github.com/xtheoputra/techverse-x/issues/42), dan jalan terakhirnya ke produksi ada di [ADR-021](docs/adr/ADR-021-jalan-menuju-tinjau.md). Tidak satu pun lewat `seed`.
