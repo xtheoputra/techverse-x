@@ -93,6 +93,26 @@ Bukti merah web, masing-masing dipulihkan dan diff-nya dicek sama dengan referen
 
 💡 *Klaim di badan issue diperiksa seperti klaim di kode: mengukur satu kasus lagi sebelum menulisnya menemukan cacat yang lebih besar daripada yang sedang ditulis.*
 
+### 🔎 Pengganti Koyeb: pemeriksa-pembantah dijalankan ulang, satu kandidat terbantah, dan ADR-025
+
+Tiga pemeriksa yang kemarin tidak pernah kembali dijalankan ulang, satu per kandidat teratas, masing-masing bertugas **membantah**:
+
+| Kandidat | Hasil | Penentunya |
+|---|---|---|
+| Back4App Containers | ❌ **terbantah** | kode dasbornya sendiri: URL app gratis *"temporary and will be live for 60 minutes"*, dan `CreditCardValidationRequiredError` |
+| Railway Free | ✅ **bersyarat** | gratis dan tanpa kartu benar; verifikasi otomatis menimbang umur akun GitHub (pemilik: 15 Juni 2026), dan jalan keluarnya kartu atau Hobby |
+| Vercel Functions dari citra kontainer | ✅ **Beta** | kuotanya dibagi dengan web, dan Vercel sendiri tidak menyarankan Beta untuk produksi |
+
+🔑 **Laporan pemeriksa tidak disalin begitu saja.** Kutipan penentunya diambil ulang dari 13 halaman Railway, Vercel, dan Koyeb yang hidup plus bundel dasbor Back4App, lalu dicocokkan dengan skrip pencari frasa di atas teks yang dinormalkan. Semuanya cocok. Kaki Neon dan Vercel diperiksa ulang dengan cara yang sama — dan satu klaim riset **kemarin** ikut terbantah: setelan monorepo Vercel memang menyala secara bawaan sejak 2020, jadi badan #40 yang benar.
+
+🔴 **Tabel survei ADR-019 ternyata keliru di dua baris sejak hari ditulis, dengan arah berlawanan:** Koyeb (gratisnya hilang Februari 2026) dan Railway (gratisnya kembali Agustus 2025).
+
+Dituangkan sebagai [ADR-025](adr/ADR-025-host-api-pengganti-koyeb.md), berstatus **Diusulkan**. Host API belum dipilih; yang diusulkan uji Railway lebih dulu (R1–R7) lalu Vercel (V1–V5), dengan syarat lulus per langkah, dan berhenti begitu ada layar yang meminta kartu. Koreksi kaki Neon (string *direct*, region terkunci, 100 CU-jam) dan Vercel (log satu jam) masuk ke ADR-019, PENYEBARAN, README, dan RENCANA-V1.
+
+GitHub: PR [#62](../../../pull/62) ditumpuk di atas #58. Hasil riset diposting ke [#39](../../../issues/39#issuecomment-5708360833) — janji kemarin ditepati — dan koreksinya ke [#38](../../../issues/38#issuecomment-5708361264) serta [#40](../../../issues/40#issuecomment-5708361549). #39 berganti judul dan berlabel `keputusan`; deskripsi milestone Fase 1 diperbarui, termasuk bahwa #57 **tidak** menahan jalur Railway.
+
+💡 *Back4App lolos penyapuan kemarin karena halaman harganya menulis "no credit card required", dan terbantah hari ini karena pemeriksanya membaca kode dasbornya. Membaca halaman pemasaran dengan lebih teliti tidak akan pernah menemukannya.*
+
 ### Ukuran
 
 **102 unit + 47 integrasi** (dari 95 + 32 di ujung #56), build Release 0 peringatan, `run.ps1 verify` hijau. Dev DB ditinggalkan: 6 migrasi, 6 topik contoh, 1 sisi, nol sisa uji; tidak ada basis data `gladi%`, tidak ada proses latar.
@@ -102,6 +122,8 @@ Bukti merah web, masing-masing dipulihkan dan diff-nya dicek sama dengan referen
 - **Tidak ada yang di-merge**, dan PR #58 tetap ditumpuk di atas #56. Syarat merge-nya tertulis: #57 selesai, #56 masuk, CI hijau di PR ini — termasuk *"Migrasi bisa dijalankan dari nol"* yang kini menghadapi **tiga** migrasi baru di atas `main`.
 - **Harness JS untuk `apps/web`.** Aturan teks pembaca dan tampilan relasi hanya bertahan selama pemindaiannya diulang tangan (ADR-024). Itu keputusan tersendiri.
 - **Riset Bulan 4 (arus arXiv)** selesai sebagai riset kemarin, tapi **tidak dituangkan ke ADR**: kritiknya sendiri membantah klaim terkuat rancangannya — jalur produksi pertamanya tetap butuh *Rilis citra* dan *Migrasi produksi*, dua workflow Actions yang mati di bawah #57.
+- **Uji Railway (R1–R7) tidak dijalankan, dan tidak satu akun pun dibuat.** Pendaftarannya atas nama pemilik — dan R1 justru menguji akun GitHub pemilik sendiri.
+- **Komentar kode dan teks workflow yang menyebut Koyeb dibiarkan**, begitu pula `Dockerfile.vercel` yang tidak dibuat. Yang pertama menunggu host dipilih, yang kedua hanya berguna kalau Railway gagal (ADR-025, *Konsekuensi*).
 
 ---
 

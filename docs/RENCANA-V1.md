@@ -111,6 +111,18 @@ ketiganya gratis tanpa kartu tapi tetap harus atas nama pemilik: **#38** (Neon)
 → **#39** (Koyeb) → **#40** (Vercel). Domain dan sertifikat tidak lagi menahan:
 ketiga platform memberi subdomain ber-TLS sendiri.
 
+> 🔴 **Diperbarui 2026-09-17 — kaki Koyeb gugur, dan urutan di atas berubah.**
+> Sejak 17 Februari 2026 akun baru Koyeb wajib memilih paket berbayar dan
+> memasukkan metode pembayaran; ditemukan 2026-09-16, delapan hari sesudah ADR-019
+> ditulis. Host API dibuka lagi di
+> [ADR-025](adr/ADR-025-host-api-pengganti-koyeb.md): **belum dipilih**, diuji
+> berurutan — Railway Free lebih dulu, Vercel kontainer kedua — dengan syarat
+> lulus tertulis di tiap langkah. Yang menahan Bulan 1 kini: **uji Railway oleh
+> pemilik** (langkah R1–R6, satu duduk) → proyek Neon di region yang mengikutinya
+> (**#38**) → **#40** (Vercel). Jalur Railway tidak tertahan **#57**: ia membangun
+> sendiri dari repo dan memigrasi lewat *pre-deploy*. Paragraf di atas dibiarkan
+> sebagai rekaman keadaan 10 September.
+
 ✅ **Segala yang bisa dilatih tanpa akun sudah dilatih**, dan latihannya memang
 berbuah — dua cacat yang menghentikan langkah 3 (`channel_binding`, lalu SHA
 pendek) ditemukan begitu, bukan dari uji. Per 2026-09-10 yang sudah terbukti:

@@ -14,17 +14,17 @@ Repositori ini punya **kode yang jalan** dan **citra produksi yang sudah terbit*
 
 > ### 🔜 Langkah berikutnya, berurutan
 >
-> Semua yang bisa dikerjakan tanpa akun **sudah selesai.** Yang menahan situs tayang tinggal tiga pendaftaran — **ketiganya gratis dan tanpa kartu** ([ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md)):
+> Semua yang bisa dikerjakan tanpa akun **sudah selesai.** Yang menahan situs tayang tinggal tiga pendaftaran ([ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md)) — dan **satu di antaranya berubah**:
 >
-> 1. **[#38](../../issues/38)** — Neon (PostgreSQL) → simpan URI sebagai secret `NEON_DATABASE_URL`
-> 2. **[#39](../../issues/39)** — Koyeb (API) dari citra GHCR
+> 1. **[#38](../../issues/38)** — Neon (PostgreSQL) → simpan URI **direct** (sakelar pooling mati) sebagai secret `NEON_DATABASE_URL`. ⚠️ Proyek sungguhannya dibuat **sesudah** region host API diketahui — region Neon tidak bisa diubah.
+> 2. **[#39](../../issues/39)** — host API. 🔴 **Koyeb tidak lagi gratis untuk akun baru** (sejak 17 Februari 2026) — jangan mendaftar ke sana. Penggantinya diuji menurut **[ADR-025](docs/adr/ADR-025-host-api-pengganti-koyeb.md)**: Railway Free lebih dulu, dengan syarat lulus tertulis di tiap langkah.
 > 3. **[#40](../../issues/40)** — Vercel (web) → **ini yang memberi URL publiknya**
 >
 > Sesudah tayang: **[#42](../../issues/42)** — isi AI Agents menuju Bulan 2. [#41](../../issues/41) (endpoint isi halaman + `/teknologi/<slug>`) **sudah selesai**, mendarat lewat PR #44.
 >
 > 🔴 **Tapi #42 belum bisa dikerjakan siapa pun — termasuk pemilik.** `MarkReviewed()` nol pemanggil di kode produksi, jadi tidak ada satu jalan pun untuk menaikkan halaman ke `tinjau`. Jalannya sudah diputuskan di [ADR-021](docs/adr/ADR-021-jalan-menuju-tinjau.md) — workflow bergerbang, nama pemeriksa dari `github.actor` — dan **sengaja belum dibangun sampai #40 tutup**, sebab Bulan 1 mengejar URL, bukan fitur.
 >
-> Enam langkah terincinya ada di **[docs/PENYEBARAN.md](docs/PENYEBARAN.md#menyebarkan-vercel--koyeb--neon)**.
+> Langkah terincinya ada di **[docs/PENYEBARAN.md](docs/PENYEBARAN.md#menyebarkan-vercel--koyeb--neon)** — bagian Koyeb-nya kini rekaman, dan langkah Neon-nya sudah dikoreksi.
 
 > ### 🔎 Dan sementara ketiganya menunggu, Bulan 3 dimulai duluan
 >
@@ -110,7 +110,7 @@ Gerbang yang sama dengan CI, sebelum push:
 | **[docs/KEPUTUSAN.md](docs/KEPUTUSAN.md)** | **Ke-22 keputusan dalam satu halaman**, berikut cara membatalkan tiap keputusan. Berlaku di atas `KERANGKA.md` kalau keduanya berbeda. |
 | **[docs/RENCANA-V1.md](docs/RENCANA-V1.md)** | Rencana enam bulan yang menggantikan `KERANGKA.md` 2.9. Deployment naik dari Bulan 6 ke Bulan 1. |
 | **[docs/PENYEBARAN.md](docs/PENYEBARAN.md)** | Runbook penyebaran, **netral platform**. Kredensial menarik citra, urutan `postgres → migrate → api → web`, variabel lingkungan, dan health check mana yang dipakai untuk apa. |
-| **[docs/adr/](docs/adr/)** | Dua puluh empat Architecture Decision Record. Yang menyangkut penyebaran: [ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md) memilih **Vercel + Koyeb + Neon** (gratis, tanpa kartu) dan **menggantikan** [ADR-017](docs/adr/ADR-017-platform-hosting.md); [ADR-018](docs/adr/ADR-018-rilis-citra-dan-reproducibility.md) mengatur kapan citra dibangun ulang. |
+| **[docs/adr/](docs/adr/)** | Dua puluh lima Architecture Decision Record. Yang menyangkut penyebaran: [ADR-019](docs/adr/ADR-019-hosting-gratis-tanpa-kartu.md) memilih **Vercel + Koyeb + Neon** (gratis, tanpa kartu) dan **menggantikan** [ADR-017](docs/adr/ADR-017-platform-hosting.md) — kaki Koyeb-nya gugur untuk akun baru, dan [ADR-025](docs/adr/ADR-025-host-api-pengganti-koyeb.md) menguji penggantinya; [ADR-018](docs/adr/ADR-018-rilis-citra-dan-reproducibility.md) mengatur kapan citra dibangun ulang. |
 | **[docs/SESSION-LOG.md](docs/SESSION-LOG.md)** | Catatan sesi kerja, urutan terbaru di atas. |
 
 ### Kode
