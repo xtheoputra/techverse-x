@@ -1,0 +1,194 @@
+# Menaikkan satu topik ke `tinjau` di PRODUKSI — jalan sah ADR-021.
+#
+# Kenapa ini ada sebagai workflow, bukan endpoint publik (ADR-021):
+# `tinjau` adalah SATU-SATUNYA klaim kepercayaan produk ini — "sudah diperiksa
+# manusia". V1 tidak punya autentikasi (ADR-013), jadi endpoint publik untuk ini
+# bisa dipalsukan siapa saja. Permukaan tulis karena itu MATI di produksi
+# (ADR-020). Workflow ini menyalakan citra `api` yang SAMA PERSIS di dalam runner
+# dengan `Editorial__WritesEnabled=true`, memanggilnya lewat localhost, lalu
+# membuangnya — yang tayang di host API tetap tidak memasang satu pun endpoint
+# tulis.
+#
+# 🔑 Nama pemeriksanya diambil dari `github.actor`, BUKAN diketik — sudah
+# diautentikasi GitHub sebelum sampai ke kode kita, dan tercatat permanen di
+# riwayat Actions. ⚠️ TIDAK ADA input untuk menimpanya (ADR-021 §2): kalau yang
+# memeriksa orang lain, orang itu yang menekan tombolnya. `TinjauWorkflowGuardTests`
+# menjaga aturan ini — menambah input "atas nama" akan memerahkannya.
+#
+# ⚠️ SENGAJA MANUAL (workflow_dispatch). Ia menulis data produksi dan memasang
+# lencana kepercayaan; gerbang yang dilewati manusia lebih murah daripada tinjau
+# palsu yang mendarat sendiri.
+
+name: Naikkan ke tinjau
+
+on:
+  workflow_dispatch:
+    inputs:
+      # ⚠️ HANYA dua input, dan tidak satu pun menamai pemeriksanya. Menambah input
+      # ketiga yang mengisi `reviewer` mengembalikan nama teks-bebas yang ADR-021 §2
+      # buang — TinjauWorkflowGuardTests menolaknya.
+      sha:
+        description: "SHA commit yang citra `api`-nya dipakai — pendek atau penuh (harus SAMA dengan yang tayang di host API)"
+        required: true
+        type: string
+      slug:
+        description: "Slug topik yang dinaikkan ke tinjau (mis. model-context-protocol)"
+        required: true
+        type: string
+
+jobs:
+  tinjau:
+    name: Naikkan satu topik ke tinjau terhadap Neon
+    runs-on: ubuntu-24.04 # disematkan — alasannya di ci.yml, job `backend`
+
+    # Environment memberi tempat memasang required reviewer GitHub kalau suatu saat
+    # diinginkan — gerbang tambahan tanpa mengubah workflow ini. Itu reviewer GitHub
+    # (siapa boleh MENJALANKAN), beda sumbu dari nama pemeriksa KONTEN di bawah.
+    environment: produksi
+
+    permissions:
+      contents: read
+      # Hanya BACA paket. Workflow ini tidak menerbitkan apa pun.
+      packages: read
+
+    # 🔑 Nama pemeriksa konten — satu-satunya sumbernya, dan tidak bisa ditimpa input.
+    # Dibaca langkah `Naikkan ke tinjau` di bawah sebagai badan permintaan.
+    env:
+      PEMERIKSA: ${{ github.actor }}
+
+    steps:
+      # v4 disematkan per SHA — alasan sama dengan migrasi-produksi.yml.
+      - name: Masuk ke GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # SHA pendek -> `manifest unknown` di tarikan; dikanonikalkan di sini, persis
+      # seperti migrasi-produksi.yml (alasan lengkap ada di sana).
+      - name: Kanonikalkan SHA
+        id: sha
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MASUKAN: ${{ inputs.sha }}
+        run: |
+          penuh="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${MASUKAN}" --jq .sha 2>/dev/null || true)"
+
+          if [ -z "$penuh" ]; then
+            echo "::error::SHA '${MASUKAN}' tidak dikenali di repo ini. Ambil dari ringkasan jalan 'Rilis citra' terakhir yang hijau."
+            exit 1
+          fi
+
+          echo "penuh=$penuh" >> "$GITHUB_OUTPUT"
+          echo "Masukan '${MASUKAN}' -> $penuh"
+
+      - name: Siapkan nama citra
+        id: nama
+        run: echo "citra=ghcr.io/${GITHUB_REPOSITORY,,}/api:${{ steps.sha.outputs.penuh }}" >> "$GITHUB_OUTPUT"
+
+      # Ditarik terpisah dari menjalankan, supaya gagal MENARIK bisa dibedakan dari
+      # gagal MENJALANKAN — obatnya berbeda. Sama dengan migrasi-produksi.yml.
+      - name: Tarik citra api
+        run: |
+          if docker pull "${{ steps.nama.outputs.citra }}" 2>"$RUNNER_TEMP/tarik.err"; then
+            exit 0
+          fi
+
+          cat "$RUNNER_TEMP/tarik.err"
+
+          if grep -qi "manifest unknown" "$RUNNER_TEMP/tarik.err"; then
+            echo "::error::Tidak ada citra bertag itu. Kredensialnya DITERIMA — yang tidak ada TAGnya. Kemungkinan besar SHA-nya memang belum pernah membangun citra (ADR-018 melewati commit dokumen). Ambil SHA dari ringkasan jalan 'Rilis citra' terakhir yang hijau."
+          elif grep -qiE "denied|unauthorized" "$RUNNER_TEMP/tarik.err"; then
+            echo "::error::Registry MENOLAK — ini soal izin, bukan soal tag. Periksa 'packages: read' pada workflow ini."
+          fi
+
+          exit 1
+
+      - name: Naikkan ke tinjau
+        env:
+          POSTGRES: ${{ secrets.NEON_DATABASE_URL }}
+          SLUG: ${{ inputs.slug }}
+          CITRA: ${{ steps.nama.outputs.citra }}
+        run: |
+          if [ -z "$POSTGRES" ]; then
+            echo "::error::Secret NEON_DATABASE_URL belum diisi."
+            exit 1
+          fi
+
+          # Citra `api` yang SAMA PERSIS dengan yang tayang, dengan dua beda sengaja:
+          # permukaan tulis dinyalakan, dan portnya diikat ke 127.0.0.1 — jadi ia
+          # tidak pernah punya alamat publik (ADR-021 §1). Redis sengaja tidak diisi:
+          # kesiapan API sudah tahu hidup tanpanya (ADR-016). Dibuang di langkah
+          # Bersihkan, apa pun hasilnya.
+          docker run -d --name tinjau-api \
+            -e "ConnectionStrings__Postgres=$POSTGRES" \
+            -e "Editorial__WritesEnabled=true" \
+            -e "ASPNETCORE_ENVIRONMENT=Production" \
+            -p 127.0.0.1:8080:8080 \
+            "$CITRA"
+
+          # Tunggu sampai SIAP — /health/ready menyentuh Postgres sungguhan, jadi
+          # 200 di sini juga membuktikan sambungan Neon hidup sebelum menulis.
+          siap=""
+          for _ in $(seq 1 30); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/health/ready)" = "200" ]; then
+              siap="ya"
+              break
+            fi
+            sleep 2
+          done
+
+          if [ -z "$siap" ]; then
+            echo "::error::API tidak pernah SIAP dalam 60 detik. Lihat log peti kemas di langkah Bersihkan."
+            exit 1
+          fi
+
+          # 🔑 Pemeriksanya $PEMERIKSA (= github.actor), bukan input. Slug di ALAMAT,
+          # nama pemeriksa di MUATAN — bentuk kontrak MarkReviewedRequest.
+          badan="$(printf '{"reviewer":"%s"}' "$PEMERIKSA")"
+          kode="$(curl -s -o "$RUNNER_TEMP/tinjau.json" -w '%{http_code}' \
+            -X POST "http://127.0.0.1:8080/api/v1/technologies/${SLUG}/tinjau" \
+            -H 'content-type: application/json' \
+            -d "$badan")"
+
+          echo "HTTP $kode"
+          cat "$RUNNER_TEMP/tinjau.json" || true
+          echo
+
+          # 404 = topiknya tidak ada; 400 = belum draf, atau nama pemeriksa kosong.
+          # Keduanya bukan kegagalan sistem — pesan badannya menyebut sebabnya.
+          if [ "$kode" != "200" ]; then
+            echo "::error::Menaikkan '${SLUG}' ke tinjau gagal (HTTP $kode). Sebabnya di badan di atas: 404 topik tak ada, 400 belum draf/isinya belum lengkap."
+            exit 1
+          fi
+
+          if ! grep -q '"maturity":"HumanReviewed"' "$RUNNER_TEMP/tinjau.json"; then
+            echo "::error::200 tapi kematangannya bukan HumanReviewed. Badan ada di atas."
+            exit 1
+          fi
+
+          echo "SIAP='$siap' — '${SLUG}' naik ke tinjau, diperiksa oleh '${PEMERIKSA}'."
+
+      # if: always() — peti kemasnya dibuang walau langkah di atas gagal, dan lognya
+      # dicetak lebih dulu supaya kegagalan menjalankan (bukan menarik) punya bukti.
+      - name: Bersihkan
+        if: always()
+        run: |
+          docker logs tinjau-api 2>&1 | tail -n 50 || true
+          docker rm -f tinjau-api || true
+
+      - name: Ringkasan
+        if: success()
+        run: |
+          {
+            echo "### Naik ke tinjau"
+            echo
+            echo "Topik: \`${{ inputs.slug }}\`"
+            echo "Diperiksa oleh: \`${{ github.actor }}\` (dari github.actor, bukan diketik)"
+            echo "Citra: \`${{ steps.nama.outputs.citra }}\`"
+            echo
+            echo "> Ini satu-satunya jalan sah ke \`tinjau\` (ADR-021). Permukaan tulis"
+            echo "> yang tayang di host API tetap tertutup — peti kemas yang menulis"
+            echo "> tadi hidup hanya di dalam runner dan sudah dibuang."
+          } >> "$GITHUB_STEP_SUMMARY"
