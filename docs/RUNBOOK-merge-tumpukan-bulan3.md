@@ -5,9 +5,15 @@
 membawa `main` naik dari Sesi 12 ke Sesi 20 dan menyalakan **pencarian teks-penuh +
 Knowledge Graph** di situs yang hidup.
 
-> ⚠️ Baca seluruhnya dulu. Ini **bukan sekadar klik merge** — kode baru menuntut
-> migrasi skema yang belum ada di Neon, dan API di Vercel **otomatis bangun ulang
-> dari `main`** tiap kali ada merge. Urutan di bawah mencegah situs live rusak.
+> ⚠️ Baca seluruhnya dulu. Kode baru menuntut migrasi skema yang belum ada di Neon,
+> dan API di Vercel **otomatis bangun ulang dari `main`** tiap kali ada merge.
+>
+> ✅ **De-risk (diperiksa 2026-10-05 di kode tumpukan):** API **tidak** migrasi/
+> validasi skema saat startup, dan `/health/ready` hanya cek konektivitas. Jadi
+> kalau tumpukan ter-merge **sebelum** migrasi, **API tetap hidup** — homepage,
+> 14 bidang, dan halaman bidang jalan normal; **hanya `/cari`** (pencarian teks-
+> penuh baru) yang 500 sampai migrasi dijalankan. Situs **tidak** rusak total.
+> Karena itu **Fase 0 di bawah OPSIONAL.**
 
 ---
 
@@ -29,16 +35,16 @@ Knowledge Graph** di situs yang hidup.
 
 ---
 
-## Fase 0 — Hentikan auto-deploy API dulu (cegah 14 build & jendela rusak)
+## Fase 0 — (OPSIONAL) Hentikan auto-deploy API
 
-Tanpa ini, tiap merge memicu Vercel membangun ulang API, dan keadaan antara
-(mis. kode pencarian sudah masuk tapi migrasi belum) membuat `/cari` 500 berkali-kali.
+**Tidak wajib** (lihat de-risk di atas: API tidak crash; hanya `/cari` yang 500
+sementara). Lakukan **hanya** kalau Anda ingin `/cari` tetap mulus selama proses
+merge. Untuk situs pra-luncur tanpa pengguna nyata, **melewati fase ini aman** —
+`/cari` akan pulih sendiri begitu Fase 3 (migrasi) selesai.
 
-1. Vercel → proyek **`techverse-x-api`** → **Settings → Git**
-2. **Matikan** "Production Deployments" otomatis dari Git (atau "Ignored Build Step"
-   yang memblokir build). Tujuannya: tidak ada redeploy API sampai Fase 4.
-3. Proyek **`techverse-x-web`** boleh dibiarkan auto — perubahan web aman dan tidak
-   butuh migrasi.
+Kalau tetap mau menjeda: Vercel → proyek **`techverse-x-api`** → **Settings → Git**
+→ setel **"Ignored Build Step"** ke perintah yang membatalkan build, lalu kosongkan
+lagi di Fase 4. (Mekanismenya agak fiddly — kalau ragu, **lewati saja fase ini.**)
 
 ---
 
@@ -90,12 +96,15 @@ Kode baru butuh kolom `tsvector` (ADR-022) dan tabel relasi Knowledge Graph (ADR
 
 ---
 
-## Fase 4 — Nyalakan kembali & redeploy API sekali
+## Fase 4 — Rapikan deploy API
 
-1. Vercel `techverse-x-api` → **Settings → Git** → **nyalakan kembali** auto-deploy
-   (kebalikan Fase 0).
-2. **Deployments → (⋯) → Redeploy** deployment `main` terbaru (tanpa cache).
-   Kini kode baru + skema baru **sejalan**.
+- **Kalau Fase 0 DILEWATI (jalur biasa):** tidak ada yang perlu dilakukan. API yang
+  sudah hidup (kode baru) akan menemukan kolom/tabel baru pada kueri berikutnya
+  begitu migrasi (Fase 3) selesai — `/cari` pulih sendiri (paling lama setelah cache
+  web 5 menit). Redeploy opsional kalau ingin memastikan.
+- **Kalau Fase 0 DIPAKAI:** Vercel `techverse-x-api` → **Settings → Git** →
+  **nyalakan kembali** auto-deploy, lalu **Deployments → (⋯) → Redeploy** `main`
+  terbaru (tanpa cache).
 
 ---
 
