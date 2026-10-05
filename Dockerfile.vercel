@@ -1,0 +1,80 @@
+# syntax=docker/dockerfile:1
+#
+# Citra API untuk Vercel Container Images — kaki "Vercel kontainer"
+# (ADR-025 bagian 5). Vercel mendeteksi berkas ini otomatis di AKAR proyek dan
+# merutekan seluruh trafik ke citranya.
+#
+# Konteks build = AKAR repo (Root Directory proyek Vercel = akar repo), sama
+# seperti apps/api/Dockerfile — karena Directory.Packages.props memegang versi
+# paket terpusat dan harus ikut ke dalam konteks.
+#
+# ⚠️ TURUNAN dari apps/api/Dockerfile: tahap restore/publish/final harus tetap
+# sinkron dengannya. Satu-satunya beda yang disengaja: tahap-tahap MIGRASI
+# dihilangkan. Di Vercel migrasi TIDAK berjalan di dalam citra (tidak ada
+# pre-deploy command); ia dijalankan terpisah oleh
+# .github/workflows/migrasi-produksi.yml ke Neon. Larangan "migrasi di startup
+# API" (PENYEBARAN.md, ADR-020) tetap berlaku.
+#
+# Port: API mendengarkan di 8080. Setel variabel proyek Vercel `PORT=8080` supaya
+# Vercel merutekan ke port itu (bawaannya 80).
+
+# ---------------------------------------------------------------------------
+# Tahap 1: restore.
+# ---------------------------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS restore
+WORKDIR /src
+
+# global.json + Directory.*.props + .editorconfig harus ada SEBELUM restore, kalau
+# tidak build di dalam citra tidak setara dengan build di CI.
+COPY global.json Directory.Build.props Directory.Packages.props .editorconfig ./
+COPY .config/dotnet-tools.json .config/
+
+# Berkas proyek dulu supaya lapisan restore (paling mahal) bisa dipakai ulang.
+COPY apps/api/TechVerseX.Api.csproj apps/api/
+COPY packages/contracts/TechVerseX.Contracts.csproj packages/contracts/
+COPY services/technology/TechVerseX.TechnologyService.csproj services/technology/
+RUN dotnet restore apps/api/TechVerseX.Api.csproj
+
+COPY apps/api/ apps/api/
+COPY packages/contracts/ packages/contracts/
+COPY services/technology/ services/technology/
+
+# ---------------------------------------------------------------------------
+# Tahap 2: publish.
+# ---------------------------------------------------------------------------
+FROM restore AS publish
+RUN dotnet publish apps/api/TechVerseX.Api.csproj \
+        --configuration Release \
+        --no-restore \
+        --output /app
+
+# ---------------------------------------------------------------------------
+# Tahap 3: citra akhir API.
+# ---------------------------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR /app
+
+# Tambal openssl citra dasar (CVE-2026-84782: libssl3t64 + openssl) sampai
+# aspnet:10.0 diperbarui di hulu — sejajar dengan apps/api/Dockerfile. Dijalankan
+# sebagai root sebelum pindah ke $APP_UID; --only-upgrade tak pernah menambah
+# paket baru.
+RUN apt-get update \
+ && apt-get install -y --only-upgrade openssl libssl3t64 \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY --from=publish /app ./
+
+# Berjalan sebagai pengguna tak-berhak yang sudah disiapkan citra dasar .NET.
+USER $APP_UID
+
+EXPOSE 8080
+ENV ASPNETCORE_HTTP_PORTS=8080
+
+# ConnectionStrings__Postgres WAJIB diisi (variabel proyek Vercel); kalau tidak,
+# API berhenti dengan pesan yang menyebutkan namanya.
+#
+# ConnectionStrings__Redis sengaja TIDAK disetel — ADR-016 memutuskan Redis tidak
+# di-provision di V1, dan kesiapan sudah tahu cara hidup tanpanya.
+#
+# Editorial__WritesEnabled sengaja TIDAK disetel — produksi hanya-baca (ADR-020).
+ENTRYPOINT ["dotnet", "TechVerseX.Api.dll"]
