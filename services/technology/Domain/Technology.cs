@@ -492,7 +492,4 @@ public sealed class Technology
     /// </para>
     /// </remarks>
     private void Touch() => UpdatedAt = DateTimeOffset.UtcNow;
-
-    /// <summary>Mengubah "AI Agents" menjadi "ai-agents". Sekarang meneruskan ke <see cref="Slugs"/>.</summary>
-    public static string Slugify(string value) => Slugs.From(value);
 }

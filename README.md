@@ -112,7 +112,7 @@ Aturan teks pembaca [ADR-024](docs/adr/ADR-024-explore-learn-navigasi-v1.md) —
 
 Ia menuntut API hidup **dan** build produksi web (bukan `next dev` — aturannya memang membedakan keduanya), jadi ia **sengaja di luar `verify`**. Di **CI ia tetap jalan**: job `citra` menyalakan `docker-compose.prod.yml` lalu memanggil pemindai yang sama, di job yang memang sudah membangun ketiga citranya.
 
-Selain memindai teks ia menelusuri dari `/`, membandingkan jumlah halaman `/teknologi/*` yang tercapai dengan yang dikenal API, dan menolak blok *"Topik terhubung"* yang tampil kosong (ADR-023). Angkanya berbeda di dua bentuk, dan keduanya benar:
+Selain memindai teks ia menelusuri dari `/`, membandingkan jumlah halaman `/teknologi/*` yang tercapai dengan **semua** yang dikenal API, menolak blok *"Topik terhubung"* yang tampil kosong (ADR-023), dan menuntut ringkasan setiap alat yang dikirim API benar-benar terlihat di halaman topiknya. Pembandingnya membaca API halaman demi halaman sampai `hasNextPage` salah — sampai 2026-09-28 ia hanya membaca halaman pertama, jadi diam-diam berhenti di 20 topik. Angkanya berbeda di dua bentuk, dan keduanya benar:
 
 | Bentuk | Halaman | `/teknologi/*` |
 |---|---|---|

@@ -1,10 +1,24 @@
 namespace TechVerseX.TechnologyService.Domain;
 
 /// <summary>
-/// Amplop event seperti didefinisikan di KERANGKA.md 4.8.
-/// Bus-nya sendiri (NATS di dev, Kafka di prod) BELUM dipasang — lihat ADR-0005.
-/// Untuk sementara event dikumpulkan di aggregate dan dibaca saat SaveChanges.
+/// Amplop event dari KERANGKA.md 4.8 — <b>belum utuh</b>: <c>correlationId</c> belum ada.
+/// Bus-nya sendiri (NATS di dev, Kafka di prod) BELUM dipasang — lihat ADR-004.
+/// Untuk sementara event dikumpulkan di agregat, lalu dibuang <c>ClearEvents()</c>
+/// sesudah disimpan.
 /// </summary>
+/// <remarks>
+/// ⚠️ <see cref="EventId"/> dan <see cref="OccurredAt"/> tidak punya pembaca di kode
+/// produksi, dan itu keputusan ADR-004 (bentuk sekarang, pengangkutan nanti), bukan
+/// kode mati. Yang perlu diingat saat bus dipasang: amplop ini masih kurang
+/// <c>correlationId</c>, jadi menambahkannya <b>adalah</b> perubahan kontrak —
+/// lihat pembaruan 2026-09-28 di ADR-004.
+/// <para>
+/// Sampai 2026-09-28 ringkasan ini menunjuk "ADR-0005" — nomor yang tidak ada;
+/// ADR-005 membahas Qdrant — dan menulis bahwa event "dibaca saat SaveChanges".
+/// Tidak ada yang membacanya di sana: tidak ada interceptor, tidak ada override,
+/// dan <c>TechnologyConfiguration</c> meng-<c>Ignore</c> daftarnya.
+/// </para>
+/// </remarks>
 public abstract record DomainEvent
 {
     public Guid EventId { get; } = Guid.CreateVersion7();
