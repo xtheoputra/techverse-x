@@ -6,7 +6,10 @@
 # terpisah - MEMBANGUN artefak, dan MEMILIH tempat ia berjalan. Nanti Container
 # Apps, Fly.io, Render, atau Railway tinggal menariknya dari sini.
 #
-# Citranya privat mengikuti repo ini, dan tidak ada akun baru yang perlu dibuat.
+# Citranya privat, dan tidak ada akun baru yang perlu dibuat. Visibilitas paket
+# GHCR TIDAK ikut repo: repo publik sejak 2026-09-28, dan ketiga citra diukur
+# 2026-09-29 tetap menolak tarikan anonim (`UNAUTHORIZED`). Membukanya pilihan
+# pemilik (ADR-026, Pembaruan 2026-09-29).
 
 name: Rilis citra
 
@@ -43,7 +46,7 @@ env:
 jobs:
   rilis:
     name: Bangun dan dorong ke GHCR
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # disematkan - alasannya di ci.yml, job `backend`
 
     permissions:
       contents: read

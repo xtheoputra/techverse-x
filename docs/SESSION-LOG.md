@@ -4,6 +4,109 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-01 — Sesi 19: Sesi 18 ditutup, lalu DB Trivy yang segar menangkap openssl (HIGH) dan RCE Next.js (CRITICAL)
+
+Permintaan pemilik: *"lanjutkan tugas"*.
+
+Sesi 18 (2026-09-29) terputus sesudah commit + push + PR [#71](https://github.com/xtheoputra/techverse-x/pull/71) tapi sebelum catatan sesi. Langkah pertama hari ini: menulis entri Sesi 18 + 🏁 dari transkrip, lalu commit (`63349dd`) dan push. Push itu memicu run CI PR #71 baru — dan di situ **target bergerak yang ADR-026 ramalkan benar-benar bergerak:** satu commit dokumen pun membuat job `citra` merah.
+
+### 🔴 Dua CVE, dari DB Trivy yang segar — bukan dari perubahan kode
+
+Biner Trivy disematkan per digest, tapi **basis data kerentanannya diunduh segar tiap run** — memang itu gunanya. Run `fa61600` hijau 2026-09-29 hanya karena DB-nya lebih tua. Hari ini (DB 2026-10-01):
+
+| Citra | Temuan | Parah | Perbaikan |
+|---|---|---|---|
+| `api` + `migrate` (aspnet / runtime-deps, ubuntu 24.04) | `CVE-2026-84782` — `openssl` + `libssl3t64` `3.0.13-0ubuntu3.15` → fix `-0ubuntu3.16` | **HIGH** (×2 paket) | `apt install --only-upgrade` di tahap final + migrator |
+| `web` (node:22-alpine) | `GHSA-vcvr-r3jv-pc5j` — RCE di `next/og ImageResponse` | **CRITICAL** | `next` 16.3.4 → **16.3.6** |
+
+🔑 **openssl — pilihan pemilik, pola yang sudah ada.** Citra `web` sejak lama menambal openssl basisnya saat build (`apk upgrade libssl3 libcrypto3`, komentarnya: "sampai hulu diperbarui"). Citra `api`/`migrate` tak pernah diberi perlakuan sama karena openssl-nya dulu bersih. Dari empat jalan yang ditimbang (tambal saat build · pin-ulang digest basis · `.trivyignore` · biarkan merah), pemilik memilih pola `web`: `apt install --only-upgrade openssl libssl3t64` sebagai root sebelum pindah ke `$APP_UID`. Terukur dari `noble-updates`: `3.0.13-0ubuntu3.16` terpasang di kedua tahap.
+
+🔑 **Next.js — RCE CRITICAL, satu perbaikan masuk akal.** Bukan isu basis-citra; `next@16.3.4` sendiri rentan, diperbaiki vendor di 16.3.6. Bump tambalan (minor sama); lockfile diperbarui terukur — 40/40 baris, hanya `next` + `@next/*`, tanpa churn lain. Build + tipe + empat rute utuh.
+
+### Ukuran
+
+Ketiga citra dibangun ulang dan dipindai lokal dengan Trivy tersemat (digest sama, `--severity CRITICAL,HIGH --exit-code 1`, DB 2026-10-01): **0 di ketiganya**. `run.ps1 verify` hijau: 309 tautan, 0 peringatan build Release, **104 unit + 65 integrasi**, lint web, build web atas **Next.js 16.3.6**. Lalu dibuktikan di CI, bukan diukur lokal saja: run [`36814987146`](https://github.com/xtheoputra/techverse-x/actions/runs/36814987146) (commit `21739a0`) — **keempat job hijau**, termasuk job `citra` yang Trivy-nya (`--exit-code 1`, DB CI sendiri) lolos di ketiga citra. Pemindai halaman ADR-024 dan gerbang ADR-020 ikut hijau di Next.js 16.3.6 — bump itu tidak mengubah keluaran terlihat.
+
+🐞 **Satu kali `npm ci` di dalam build web gagal "network", hijau saat diulang** — blip jaringan kontainer, bukan lockfile: percobaan kedua `added 373 packages` lalu `Compiled successfully`.
+
+### Yang TIDAK dikerjakan, dan kenapa
+
+- **`brace-expansion` HIGH dari `npm audit`** dibiarkan: transitif `@typescript-eslint`, sebuah **devDependency** — tidak ikut keluaran `standalone`, jadi tidak masuk citra yang Trivy ukur, dan bukan gerbang. Pra-ada, bukan dari bump `next` (diff lockfile hanya `next`/`@next/*`).
+- **Trivy tidak di-`.trivyignore`, basis citra tidak di-pin-ulang ke digest** — openssl ditambal saat build (pola `web`), RCE Next.js ditambal di sumbernya.
+- **Tidak ada ADR baru**: openssl = penerapan kebijakan `web` yang sudah ada; bump Next.js = penambalan rutin. Catatannya di komentar Dockerfile dan entri ini.
+- **Tidak ada yang di-merge, dan tidak dicoba.**
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Rantai PR tak bergeser** — sebelas PR, [#71](https://github.com/xtheoputra/techverse-x/pull/71) di puncak (base #70), `origin/main` masih `52dd79f`, belum ada merge. PR #71 kini memuat di atas `fa61600`: catatan Sesi 18 (`63349dd`), perbaikan CVE (`21739a0`), dan catatan Sesi 19 ini. **CI PR #71 hijau** di `21739a0` (run `36814987146`); catatan Sesi 19 commit terakhir memicu satu run dokumen lagi.
+
+**Issue terbuka** (tak berubah): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68.
+
+**Menunggu pemilik:** sama seperti Sesi 18 — `LICENSE`, buka paket GHCR atau tidak, nama repo privat lama, akun hosting & AI. Belum ada yang bergerak.
+
+**Catatan target bergerak (baru, penting):** DB Trivy segar akan terus menemukan CVE baru di basis citra tanpa satu baris kode berubah — tiap push, termasuk push dokumen. openssl kini ditambal saat build di **kedua** ekosistem (`apt` untuk ubuntu `api`/`migrate`, `apk` untuk alpine `web`); `next` dipin di `package.json` dan harus di-bump saat advisory baru muncul. Job `citra` yang merah tiba-tiba di masa depan kemungkinan besar ini, bukan regresi kode — baca langkah "Pindai ketiga citra" lebih dulu.
+
+**Lingkungan — 2026-10-01:** pohon kerja bersih sesudah commit ini. Docker: `techversex-postgres`/`-redis` hidup, DB termigrasi (14 bidang · 6 topik, "already up to date"); `wellsy-*` milik proyek **lain** pemilik — tak disentuh. Citra uji lokal `techversex-{api,migrate,web}:ci` sudah **dihapus**; citra lama `techversex-prod-*`/`:lokal*`/`:fdd` dari sesi terdahulu dibiarkan (bukan milik sesi ini). Port 3310/5080 kosong.
+
+**Ditutup pemilik** — *"simpan, commit dan push"* (2026-10-01). Diukur saat ditutup: pohon kerja bersih, cabang `fase-1/sesudah-57` sama dengan remote, PR [#71](https://github.com/xtheoputra/techverse-x/pull/71) hijau di `8b065d0` (run `36815389020`), `origin/main` tetap `52dd79f` — belum ada yang di-merge. Commit penutup ini memicu satu run CI dokumen lagi.
+
+---
+
+## 2026-09-29 — Sesi 18: runner disematkan sebelum `ubuntu-latest` berpindah, citra GHCR tak ikut terbuka, dan sebelas klaim basi yang masih menulis #57 mati
+
+Permintaan pemilik: *"lanjutkan tugas"* — melanjutkan dari penutupan Sesi 17 (repo publik, CI berjalan lagi, rantai sepuluh PR hijau).
+
+⚠️ **Percakapan ini terputus 2026-09-29 ~02:45Z — sesudah commit, push, dan PR [#71](https://github.com/xtheoputra/techverse-x/pull/71) dibuka, tepat saat mulai memeriksa run CI-nya, sebelum satu baris catatan sesi pun.** Entri ini direkonstruksi **2026-10-01** dari keluaran perintah yang terekam di transkrip, dan satu-satunya hal yang Sesi 18 tak sempat buktikan — bahwa keempat job PR #71 benar-benar mendarat di `ubuntu-24.04`, bukan label yang terlanjur bergeser — diukur ulang hari ini: run [`36514003980`](https://github.com/xtheoputra/techverse-x/actions/runs/36514003980), keempat job hijau, keempat citra `ubuntu-24.04`. Pola yang sama dengan percakapan pertama Sesi 17 yang juga terputus sebelum commit — kali ini terputus satu langkah lebih jauh, sesudahnya.
+
+### 📌 Runner disematkan sebelum `ubuntu-latest` berpindah
+
+`ubuntu-latest` pindah ke Ubuntu 26.04 **bergilir** 19 Oktober–19 November 2026 ([runner-images #14748](https://github.com/actions/runner-images/issues/14748)) — anotasi yang Sesi 17 catat di run [#69](https://github.com/xtheoputra/techverse-x/pull/69) tanpa ditindak. Sebelum labelnya bergerak, `ci.yml` dijalankan utuh di `ubuntu-26.04` dari cabang sekali pakai di atas `bcbd18c` (kepala #70) lewat `workflow_dispatch` — run `36512838453`. Keempat job hijau dan **sama persis** dengan run 24.04 atas commit yang sama (`36385270062`): 104 unit + 65 integrasi, 6 migrasi dari nol, ADR-020 `200/405`, 16 halaman · 14 dari 14, Trivy 0. Perpindahannya tidak memerahkan `ci.yml` — diukur, bukan diduga dari daftar perangkat lunak citranya. Cabang ujinya dihapus (tak pernah sampai ke remote); run-nya tinggal sebagai bukti.
+
+**Keputusan: keenam `runs-on` di `ci.yml`, `rilis-citra.yml`, dan `migrasi-produksi.yml` disematkan ke `ubuntu-24.04`.** Selama jendela bergilir dua jalan berturut-turut bisa mendarat di dua OS, dan merah di sana punya dua tersangka; `rilis-citra.yml` + `migrasi-produksi.yml` hanya pernah hijau di 24.04 dan tak bisa diuji ulang di 26.04 tanpa mendorong citra ke GHCR dari cabang belum-merge atau secret Neon yang belum ada. Rinci di [ADR-026, Pembaruan 2026-09-29](adr/ADR-026-nol-biaya-gratis-mandiri.md). Yang **tidak** dijamin sematan: citra runner 24.04 tetap diperbarui GitHub tiap minggu — yang disematkan versi OS-nya, bukan isinya; alat penentu hasil disematkan sendiri (`global.json`, `setup-node`, kedua pemindai per digest).
+
+### 🔒 Repo publik tidak membuka paket GHCR-nya
+
+Pertanyaan yang tertinggal dari Sesi 17: repo jadi publik — apakah citra GHCR ikut terbuka? **Tidak**, visibilitas paket terpisah dari repo. Diukur tanpa login: token anonim untuk `api`, `migrate`, dan `web` ditolak `UNAUTHORIZED`, sedangkan citra publik pembanding (`aquasecurity/trivy`) langsung diberi token. Kredensial tarik di [PENYEBARAN](PENYEBARAN.md) karena itu **tetap wajib**. Satu akibat untuk [ADR-025](adr/ADR-025-host-api-pengganti-koyeb.md) dicatat-tidak-diputuskan: Railway Free membangun dari Dockerfile — yang tayang bukan bit yang dipindai Trivy; membuka ketiga paket menutup celah itu tapi membuka artefak yang sampai kini privat. Pilihan pemilik, di samping `LICENSE`.
+
+### 🐞 Sebelas klaim basi: #57 / repo-privat ditulis sebagai keadaan sekarang
+
+Repo kini publik dan #57 terjawab, tapi sepuluh tempat masih menulis keadaan lama. Dikoreksi: README (2), `gerbang-ci-lokal.sh`, `rilis-citra.yml`, PENYEBARAN (2), RENCANA-V1, ADR-023, `api.ts`, dan `page.tsx` (2). Yang menggambarkan keadaan kini dikoreksi di tempat; yang merupakan rekaman diberi catatan bertanggal. 🔴 **Satu di `page.tsx` basi sejak 2026-09-24, bukan karena #57:** pemindai halaman disebut "dijalankan tangan", padahal ia masuk job `citra` CI hari itu — tempat **keempat** yang luput dari koreksi "di tiga tempat" Sesi 15.
+
+### Ukuran
+
+`run.ps1 verify` hijau atas pohon final: 0 peringatan, **104 unit + 65 integrasi**, 306 tautan, lint, build web. Sesudahnya hanya satu baris komentar `api.ts` dibungkus ulang; lint + cek tautan diulang, hijau. CI PR [#71](https://github.com/xtheoputra/techverse-x/pull/71) run [`36514003980`](https://github.com/xtheoputra/techverse-x/actions/runs/36514003980): keempat job **hijau**, keempat di `ubuntu-24.04` (diukur 2026-10-01, dua hari sesudah commit).
+
+### Yang TIDAK dikerjakan, dan kenapa
+
+- **Paket GHCR tidak dibuka** — menutup celah Railway/Trivy, tapi membuka artefak yang kini privat; keputusan pemilik.
+- **Pin tidak dipindah ke 26.04** — label diganti nanti saat `ubuntu-latest` berpindah; yang belum diukur di 26.04 hanya langkah dorong-GHCR dan migrasi-Neon.
+- **Tidak ada yang di-merge, dan tidak dicoba.** `origin/main` tetap `52dd79f`. `make` tetap tidak terpasang; tidak ada target Makefile yang berubah.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Rantai PR, belum satu pun di-merge — urutan merge wajib dari bawah.** Sama dengan Sesi 17, ditambah satu di puncak:
+
+| PR | Cabang | Base |
+|---|---|---|
+| #56 … #70 | *(sepuluh, lihat Sesi 17)* | `main` … #69 |
+| [#71](https://github.com/xtheoputra/techverse-x/pull/71) | `fase-1/sesudah-57` | #70 |
+
+`origin/main` masih `52dd79f`. Sebelas PR terbuka: #56 · #58 · #62 · #63 · #64 · #65 · #66 · #67 · #69 · #70 · #71. CI PR #71 **hijau** di `fa61600`, keempat job mendarat di `ubuntu-24.04`. `.\run.ps1 ci` tetap alat pengembang sebelum push.
+
+**Issue terbuka** (tak berubah dari Sesi 17): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68. #57 tetap tertutup.
+
+**Menunggu pemilik:** `LICENSE` (repo publik tanpa lisensi = *all rights reserved*); **buka paket GHCR atau tidak** (baru sesi ini — menyentuh host ADR-025 dan rantai pasok Trivy); nama repo privat lain di catatan Sesi 14–15 dan komentar #57; akun hosting & AI khusus TechVerse X saat dipakai. Merge rantai #56→#71 kini punya dasar CI hijau.
+
+**Menunggu pemicu tertulis:** tidak bergeser. Jangan jadikan repo privat lagi tanpa pemilik — kuota bersama kembali berlaku.
+
+**Catatan runner:** keenam `runs-on` disematkan `ubuntu-24.04`. Tinjau saat `ubuntu-latest` berpindah (19 Okt–19 Nov 2026); hanya langkah dorong-GHCR dan migrasi-Neon yang belum diukur di 26.04.
+
+**Lingkungan — diukur 2026-10-01 (bukan keadaan 2026-09-29):** pohon kerja bersih, nol *stash*, cabang `fase-1/sesudah-57` = remote. Docker: `techversex-postgres` dan `techversex-redis` hidup; `wellsy-*` milik proyek **lain** pemilik — tidak disentuh. Port 3310 dan 5080 kosong (8080 dipegang proses bukan milik sesi ini, dibiarkan). Proses dev yang mungkin ditinggalkan percakapan 2026-09-29 tidak bisa diukur lagi.
+
+**Tidak ditutup pemilik** — percakapan 2026-09-29 terputus; penutupan ini ditulis sesi lanjutan 2026-10-01 atas keadaan yang terukur, bukan atas aba-aba *"akhiri sesi"*.
+
+---
+
 ## 2026-09-28 — Sesi 17: butir 4–5 #68 — tiga "sampah" yang ternyata janji kontrak, dan pemindai yang buta mulai topik ke-21
 
 Permintaan pemilik: *"lanjutkan semua tugas yang tersisa"*, lalu — sesudah percakapan pertama terputus — *"lanjutkan"*, lalu *"hindari penggunaan yang berbayar, cari semua mandiri dan secara gratis tapi powerfull"* (lihat *Lanjutan*).

@@ -288,6 +288,13 @@ ini: uji Railway R1–R6 → Neon → Vercel (#40 tutup, Bulan 1 selesai) → AD
 dibangun → penghitung `tinjau` akhirnya bisa bergerak. Merge rantai PR menunggu
 #57 pulih.
 
+> ✅ **Diperbarui 2026-09-29 — #57 terjawab, dan merge rantai tinggal menunggu
+> pemilik.** Repo publik sejak 28 September; run `pull_request` kesepuluh PR rantai
+> ([#56](https://github.com/xtheoputra/techverse-x/pull/56) …
+> [#70](https://github.com/xtheoputra/techverse-x/pull/70)) hijau di commit kepalanya
+> masing-masing, jadi merge punya dasar CI yang sungguhan — urutannya tetap dari
+> #56 ke atas. Angka-angka di bagian ini tidak diubah: ia rekaman 25 September.
+
 💡 Bobot per bulan yang sama dipilih karena paling mudah dibantah, bukan karena
 paling tepat — Bulan 5 (AI Mentor) hampir pasti lebih berat daripada Bulan 1.
 Kalau angka ± 24% dikutip, kutip bersama angka resminya.
