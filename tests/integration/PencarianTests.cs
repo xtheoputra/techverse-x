@@ -393,6 +393,43 @@ public sealed class PencarianTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Query_yang_dipulangkan_adalah_yang_DIPAKAI_bukan_yang_dikirim()
+    {
+        // Kontrak `SearchResponse` menulis alasan medan ini dengan kalimatnya
+        // sendiri: "dikirim balik supaya klien menampilkan apa yang DICARI, bukan
+        // apa yang diketik; dua hal itu bisa berbeda". Sampai 2026-09-24 hanya
+        // kasus kata kunci KOSONG yang dijaga uji, dan justru kasus yang membuat
+        // keduanya berbeda - pemotongan panjang - tidak dijaga sama sekali.
+        // 🔑 Angka batasnya SENGAJA tidak disebut di sini, dan bukan karena
+        // `PencarianTeks` internal (ia memang hanya terlihat dari proyek uji unit).
+        // Menuliskan 200 di uji integrasi akan membuat batas itu punya dua sumber,
+        // dan yang kedua bisa hanyut tanpa ada yang merah. Yang dituntut di bawah
+        // sifatnya: DUA masukan berbeda panjang dijepit ke jawaban yang SAMA.
+        using var host = Host();
+        using var client = host.CreateClient();
+
+        const string awalan = "quantum";
+        var panjang = $"  {awalan}{new string('x', 400)}  ";
+        var lebihPanjang = $"  {awalan}{new string('x', 900)}  ";
+
+        var hasil = await CariAsync(client, panjang);
+        var hasilLebihPanjang = await CariAsync(client, lebihPanjang);
+
+        // Dijepit: dua masukan yang berbeda 500 karakter memberi kata kunci identik.
+        Assert.Equal(hasil.Query, hasilLebihPanjang.Query);
+        Assert.True(
+            hasil.Query.Length < panjang.Trim().Length,
+            $"Query yang dipulangkan ({hasil.Query.Length} karakter) tidak lebih pendek daripada yang dikirim "
+            + $"({panjang.Trim().Length}) — pemotongannya tidak terjadi, jadi halaman /cari akan menyebut kata kunci "
+            + "yang tidak pernah dipakai.");
+
+        // Bukan sekadar lebih pendek: ia potongan dari kata kunci yang SUDAH
+        // dipangkas spasinya, bukan dari yang mentah.
+        Assert.StartsWith(awalan, hasil.Query, StringComparison.Ordinal);
+        Assert.Equal(panjang.Trim()[..hasil.Query.Length], hasil.Query);
+    }
+
+    [Fact]
     public async Task Amplop_kosong_memakai_pageSize_yang_SAMA_dengan_amplop_berisi()
     {
         using var host = Host();

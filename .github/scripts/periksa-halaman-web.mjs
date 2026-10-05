@@ -207,6 +207,49 @@ while (antre.length > 0 && dikunjungi.size < BATAS_HALAMAN) {
   }
 }
 
+// ------------------------------------------ sonde: kata kunci yang DIPENDEKKAN
+
+// Satu permintaan yang SENGAJA dibuat, bukan hasil penelusuran — sebab tidak ada
+// tautan di situs ini yang menuju kata kunci sepanjang ini.
+//
+// Aturan yang dijaga tertulis DUA KALI (`SearchResponse.Query` di kontrak dan
+// `SearchResult.query` di klien): *"yang ditampilkan ke pembaca harus kata kunci
+// yang benar-benar dipakai server"*. Sampai 2026-09-24 halaman `/cari` mencetak
+// yang DIKETIK — diukur: 230 karakter dikirim, server memakai 200, dan halaman
+// menampilkan 230 penuh di judul, di kotak cari, dan di kalimat nol-hasil.
+//
+// Sondenya tidak menyebut angka batasnya. Ia mengirim kata kunci yang jelas lebih
+// panjang daripada batas mana pun yang masuk akal, lalu menuntut satu hal saja:
+// teks yang TERLIHAT tidak boleh memuat kata kunci itu utuh. Dengan begitu batasnya
+// tetap milik server, dan gerbang ini tidak jadi sumber kedua yang bisa hanyut.
+//
+// ⚠️ Diperiksa hanya di dalam `<body>`, dan itu pilihan sadar, bukan kelonggaran.
+// `<title>` memantulkan PERMINTAAN pembaca — kata yang ia ketik, yang juga muncul di
+// tab dan riwayat peramban — sementara badan halaman MELAPORKAN hasil pencariannya.
+// Yang dilarang aturan ini adalah laporan yang menyebut kata kunci yang tidak pernah
+// dicari. Halaman `/cari` juga `noindex` (ADR-024), jadi judulnya tidak diindeks.
+{
+  const panjang = 600;
+  const kunci = 'zzq' + 'x'.repeat(panjang);
+  const jalur = `/cari?q=${encodeURIComponent(kunci)}`;
+  try {
+    const { status, html } = await ambil(jalur);
+    const badan = html.slice(Math.max(0, html.search(/<body\b/i)));
+    if (status !== 200) {
+      temuan.push([jalur, `sonde kata kunci panjang: HTTP ${status}`, null]);
+    } else if (teksTerlihat(badan).includes(kunci)) {
+      temuan.push([
+        jalur,
+        'teks terlihat memuat kata kunci UTUH padahal server memendekkannya — ' +
+          'halaman menyebut sesuatu yang tidak pernah dicari',
+        null,
+      ]);
+    }
+  } catch (galat) {
+    temuan.push([jalur, `sonde kata kunci panjang gagal: ${galat.message}`, null]);
+  }
+}
+
 // ---------------------------------------------- pembanding dari API (opsional)
 
 const halamanTeknologi = [...dikunjungi.keys()].filter((j) => j.startsWith('/teknologi/'));
