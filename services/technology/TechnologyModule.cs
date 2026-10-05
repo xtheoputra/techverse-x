@@ -50,6 +50,7 @@ public static class TechnologyModule
         services.AddScoped<SearchHandler>();
         services.AddScoped<EditContentSectionsHandler>();
         services.AddScoped<RequireTopicHandler>();
+        services.AddScoped<RemoveRequirementHandler>();
         services.AddScoped<MarkReviewedHandler>();
         services.AddScoped<CreateToolHandler>();
 

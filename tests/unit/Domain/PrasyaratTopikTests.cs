@@ -152,6 +152,42 @@ public sealed class PrasyaratTopikTests
     }
 
     [Fact]
+    public void RemoveRequirement_membuang_sisi_dan_idempoten()
+    {
+        var mcp = Topik("Model Context Protocol");
+        var toolUse = Topik("Tool Use");
+        mcp.RequireTopic(toolUse.Id, topicRequires: []);
+
+        mcp.RemoveRequirement(toolUse.Id);
+        Assert.Empty(mcp.Relationships);
+
+        // Idempoten: membuang lagi tidak melempar dan tetap kosong — dan begitu pula
+        // membuang sisi yang tidak pernah ada sama sekali.
+        mcp.RemoveRequirement(toolUse.Id);
+        mcp.RemoveRequirement(Guid.NewGuid());
+        Assert.Empty(mcp.Relationships);
+    }
+
+    [Fact]
+    public void RemoveRequirement_TIDAK_menggugurkan_pemeriksaan_manusia()
+    {
+        // Cermin RequireTopic_TIDAK_menggugurkan...: melepas tautan ke topik lain
+        // bukan pembatalan pemeriksaan atas TEKS halaman ini. Kalau pendapat soal ini
+        // berubah, perubahannya harus disengaja.
+        var toolUse = Topik("Tool Use");
+        var mcp = Topik("Model Context Protocol").IsiKelimaBagian();
+        mcp.RequireTopic(toolUse.Id, topicRequires: []);
+        mcp.MarkDrafted();
+        mcp.MarkReviewed("pemilik");
+
+        mcp.RemoveRequirement(toolUse.Id);
+
+        Assert.Empty(mcp.Relationships);
+        Assert.Equal(ContentMaturity.HumanReviewed, mcp.Maturity);
+        Assert.Equal("pemilik", mcp.ReviewedBy);
+    }
+
+    [Fact]
     public void RelationshipKind_V1_hanya_Requires()
     {
         // Menambah jenis menuntut ADR, migrasi (CHECK-nya dibangkitkan dari enum
