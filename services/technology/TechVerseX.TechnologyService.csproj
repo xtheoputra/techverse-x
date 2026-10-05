@@ -14,6 +14,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- PencarianTeks internal dengan sengaja: nama kolom, nama indeks, dan
+         ekspresi kolom terhitung bukan permukaan yang boleh dipakai pemanggil
+         luar. Ujinya tetap harus bisa membacanya - kalau batas panjang kata
+         kunci tidak diuji, yang menjaganya cuma niat baik. -->
+    <InternalsVisibleTo Include="TechVerseX.TechnologyService.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Layanan mendaftarkan endpoint minimal-API-nya sendiri (KERANGKA.md 4.7),
          jadi ia butuh permukaan ASP.NET Core tanpa harus jadi host tersendiri. -->
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NpgsqlTypes;
 using TechVerseX.TechnologyService.Domain;
 
 namespace TechVerseX.TechnologyService.Infrastructure.Persistence;
@@ -42,6 +43,21 @@ internal sealed class TechnologyConfiguration : IEntityTypeConfiguration<Technol
         // adalah kueri yang dipakai untuk mengukur kemajuan proyek
         // (docs/RENCANA-V1.md), jadi ia diberi indeksnya sendiri.
         builder.HasIndex(t => new { t.FieldId, t.Maturity }).HasDatabaseName("ix_technologies_field_maturity");
+
+        // Pencarian teks penuh — tangga V1 di KERANGKA.md 4.6, dan jawaban
+        // ADR-015 bagian 5 atas pencarian hibrida tanpa basis data kedua.
+        // Seluruh alasannya di PencarianTeks dan ADR-022.
+        builder.Property<NpgsqlTsVector>(PencarianTeks.KolomVektor)
+            .HasColumnName(PencarianTeks.NamaKolom)
+            .HasColumnType("tsvector")
+            .HasComputedColumnSql(PencarianTeks.Ekspresi, stored: true);
+
+        // GIN, bukan GiST: isi TechVerse X jauh lebih sering dibaca daripada
+        // ditulis, dan GIN membayar kecepatan bacanya dengan tulisan yang lebih
+        // mahal. Pertukaran itu memang yang diinginkan di sini.
+        builder.HasIndex(PencarianTeks.KolomVektor)
+            .HasMethod("GIN")
+            .HasDatabaseName(PencarianTeks.IndeksTechnologies);
 
         // Restrict, bukan Cascade: membuang satu bidang tidak boleh diam-diam
         // ikut membuang topik-topiknya. Kalau sebuah bidang benar-benar dihapus,

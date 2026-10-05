@@ -123,6 +123,38 @@ bentuk produksi yang **tidak punya permukaan tulis sama sekali**
 dibuka orang lain**. Tiga dari empat butir selesai tidak membuat ukuran itu
 tercapai — ia hanya tercapai kalau butir keempat tercapai.
 
+### Keadaan Bulan 3 per 11 September 2026 — dikerjakan mendahului Bulan 1
+
+Bulan 2 ([#42](../../issues/42)) terkunci di belakang [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md),
+yang sengaja menunggu #40 tutup. Ketiga pendaftaran akun menunggu pemilik.
+**Yang tidak menunggu siapa pun adalah Bulan 3**, jadi ia dikerjakan lebih dulu.
+
+Urutan bulan di tabel atas adalah urutan **prioritas**, bukan kunci — dan
+mendahulukan yang tidak terhalang jelas lebih baik daripada menunggu.
+
+| Butir Bulan 3 | Keadaan |
+|---|---|
+| **Pencarian teks penuh PostgreSQL** | ✅ **mendarat** — [ADR-022](adr/ADR-022-pencarian-teks-penuh.md). Kolom `tsvector` terhitung di `technologies` **dan** `fields`, indeks GIN, `websearch_to_tsquery`, peringkat berbobot, halaman `/cari`, kotak cari di layout. 14 uji integrasi + 8 uji unit baru. |
+| **Knowledge Graph dasar** | 🛑 **belum, dan lebih besar dari yang tertulis** — lihat di bawah |
+
+🔴 **Satu frasa di tabel Bulan 3 ternyata menyesatkan: *"relasi sudah ada di
+skema"*.** Benar tentang skemanya, dan itulah yang membuatnya menyesatkan.
+Diperiksa ke kode: `TechnologyRelationship.Create()` punya **nol pemanggil di
+kode produksi**, agregat `Technology` **tidak punya metode untuk menambah
+relasi** sama sekali, tidak ada endpoint, tidak ada medan di
+`TechnologyResponse`, tidak ada tempat menampilkannya, dan **nol baris** di
+basis data. Yang ada baru tabelnya. Ditagih di
+[#55](../../issues/55), berikut empat keputusan yang harus diambil lebih dulu.
+
+💡 Ini **pengulangan ketiga** pola yang sama di repo ini — sesudah `MarkReviewed()`
+dan `Publish()` di Sesi 11. Sapuan yang menemukan ketiganya sama dan murah:
+*"penegak/entitas ini punya berapa pemanggil di kode produksi?"*
+
+⚠️ Ukuran selesai Bulan 3 di tabel atas — *"orang bisa menemukan halaman tanpa
+menebak URL"* — **sudah tercapai untuk bidang dan topik**. Yang belum tercakup
+pencarian: kelima bagian isi halaman ([#54](../../issues/54)); teks yang
+benar-benar tercetak di situs — *"Dasar HTTP dan JSON-RPC"* — masih menjawab nol.
+
 ---
 
 ### Empat perubahan yang paling menentukan

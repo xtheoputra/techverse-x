@@ -21,7 +21,9 @@ public static class ListFieldsEndpoint
         ListFieldsHandler handler,
         CancellationToken cancellationToken)
     {
-        var result = await handler.HandleAsync(cancellationToken).ConfigureAwait(false);
+        // term: null — endpoint ini memang mengembalikan keempat belas bidang apa
+        // adanya. Penyaringan hanya dipakai pencarian; lihat catatan di handler.
+        var result = await handler.HandleAsync(term: null, cancellationToken).ConfigureAwait(false);
 
         return TypedResults.Ok(result);
     }
