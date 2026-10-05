@@ -20,10 +20,15 @@ namespace TechVerseX.Api.Tests;
 /// <c>SaveChanges</c> akan meluluskan uji ini persis di hari penjaganya rusak.
 /// <para>
 /// Yang dijaga di sini penjaga LAPIS APLIKASI: idempotensi (Include + return awal
-/// domain), aturan dua topik tidak boleh saling mensyaratkan, 400 yang bisa
-/// dibedakan untuk tiap tujuan yang keliru, dan pemuat relasi yang sama di jalan
-/// baca maupun tulis. Penjaga basis datanya ada di
-/// <see cref="PrasyaratTopikPersistenceTests"/>.
+/// domain), aturan prasyarat tidak boleh berputar, 400 yang bisa dibedakan untuk tiap
+/// tujuan yang keliru, dan pemuat relasi yang sama di jalan baca maupun tulis. Penjaga
+/// basis datanya ada di <see cref="PrasyaratTopikPersistenceTests"/>.
+/// <para>
+/// 🔑 <b>Berapa panjang lingkaran yang tertangkap hanya bisa diukur DI SINI.</b>
+/// Agregatnya menerima himpunan rata, jadi uji unit tidak pernah bisa membedakan
+/// "dua lompatan" dari "penutupan" — yang membedakannya kueri berlapis di
+/// <c>RequireTopicHandler</c>, dan kueri butuh PostgreSQL sungguhan.
+/// </para>
 /// </para>
 /// <para>
 /// ⚠️ <b>Urutan pembersihan penting.</b> Ujung tujuan sisi Restrict, jadi
@@ -189,8 +194,75 @@ public sealed class PrasyaratTopikTests : IAsyncLifetime
         var isi = await balik.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.BadRequest, balik.StatusCode);
-        Assert.Contains("saling mensyaratkan", isi, StringComparison.Ordinal);
+        Assert.Contains("tidak boleh berputar", isi, StringComparison.Ordinal);
         Assert.Equal(1, await HitungSisiAsync(a, b));
+    }
+
+    [Fact]
+    public async Task Siklus_bertiga_ditolak_400_dan_tidak_menambah_baris()
+    {
+        // 🔴 Inilah yang LOLOS sampai 2026-09-24. Tujuan langsung A cuma B, jadi
+        // C→A tidak terlihat menutup apa pun — padahal A→B→C→A adalah lingkaran
+        // penuh, dan jalur belajar yang mengurutkan topik lewat sisi Requires akan
+        // berputar di atasnya (ADR-023 bagian 3, ditagih di issue #59).
+        using var host = HostTerbuka();
+        using var client = host.CreateClient();
+
+        var a = await BuatTopikAsync(client, "tiga-a", "ai-agents");
+        var b = await BuatTopikAsync(client, "tiga-b", "ai-machine-learning");
+        var c = await BuatTopikAsync(client, "tiga-c", "ai-agents");
+
+        Assert.Equal(HttpStatusCode.OK, (await RequireAsync(client, a, b)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await RequireAsync(client, b, c)).StatusCode);
+
+        var penutup = await RequireAsync(client, c, a);
+        var isi = await penutup.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.BadRequest, penutup.StatusCode);
+        Assert.Contains("tidak boleh berputar", isi, StringComparison.Ordinal);
+
+        // Kalimatnya TIDAK boleh menyebut "dua topik": yang ditutup lingkaran
+        // bertiga, dan pesan yang salah menyuruh penulisnya mencari sisi yang
+        // tidak ada.
+        Assert.DoesNotContain("saling mensyaratkan", isi, StringComparison.Ordinal);
+
+        // Dua sisi, bukan tiga - dihitung lewat SQL mentah, bukan lewat pemuat
+        // relasi yang bisa ikut salah.
+        Assert.Equal(2, await HitungSisiAsync(a, b, c));
+    }
+
+    [Fact]
+    public async Task Rantai_empat_topik_ditolak_di_lompatan_TERJAUH()
+    {
+        // Yang dibuktikan di sini bukan "siklus ditolak" melainkan bahwa yang
+        // diperiksa PENUTUPAN, bukan dua lompatan. Implementasi yang hanya
+        // menengok satu lompatan lebih jauh tetap meluluskan D→A di bawah.
+        using var host = HostTerbuka();
+        using var client = host.CreateClient();
+
+        var a = await BuatTopikAsync(client, "empat-a", "ai-agents");
+        var b = await BuatTopikAsync(client, "empat-b", "ai-machine-learning");
+        var c = await BuatTopikAsync(client, "empat-c", "ai-agents");
+        var d = await BuatTopikAsync(client, "empat-d", "ai-machine-learning");
+
+        Assert.Equal(HttpStatusCode.OK, (await RequireAsync(client, a, b)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await RequireAsync(client, b, c)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await RequireAsync(client, c, d)).StatusCode);
+
+        // KENDALI, dan bukan hiasan: jalan pintas di dalam rantai yang sama bukan
+        // lingkaran, jadi ia wajib tetap 200. Tanpa kendali ini, pemeriksaan yang
+        // menolak setiap sisi baru di rantai panjang juga akan hijau.
+        Assert.Equal(HttpStatusCode.OK, (await RequireAsync(client, a, c)).StatusCode);
+
+        var penutup = await RequireAsync(client, d, a);
+
+        Assert.Equal(HttpStatusCode.BadRequest, penutup.StatusCode);
+        Assert.Contains(
+            "tidak boleh berputar",
+            await penutup.Content.ReadAsStringAsync(),
+            StringComparison.Ordinal);
+
+        Assert.Equal(4, await HitungSisiAsync(a, b, c, d));
     }
 
     /// <summary>
@@ -289,17 +361,15 @@ public sealed class PrasyaratTopikTests : IAsyncLifetime
             new RequireTopicRequest(tujuan));
 
     /// <summary>
-    /// Baris yang menyentuh salah satu dari dua topik, arah mana pun — dihitung
+    /// Baris yang menyentuh salah satu topik yang disebut, arah mana pun — dihitung
     /// lewat SQL mentah supaya satu baris kebalikan yang diam-diam tersimpan tidak
     /// bersembunyi di balik pemuat relasi.
     /// </summary>
-    private static async Task<int> HitungSisiAsync(string slugA, string slugB)
+    private static async Task<int> HitungSisiAsync(params string[] pasangan)
     {
         using var host = HostBawaan();
         using var scope = host.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<TechnologyDbContext>();
-
-        var pasangan = new[] { slugA, slugB };
 
         return await db.Database
             .SqlQuery<int>(
