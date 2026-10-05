@@ -60,6 +60,12 @@ build: ## Build seluruh solusi .NET
 test: ## Menjalankan uji .NET
 	dotnet test TechVerseX.slnx
 
+# Satu implementasi untuk Linux/WSL/macOS DAN Windows, alasan yang sama dengan
+# `seed`: berkas .mjs yang sama dipanggil Makefile, run.ps1, dan ci.yml.
+.PHONY: cek-tautan
+cek-tautan: ## Memeriksa tautan di berkas Markdown (tanpa jaringan)
+	@node .github/scripts/cek-tautan-markdown.mjs
+
 # `setup-dotnet` menolak `sdk.version` yang bukan versi SDK utuh begitu
 # `rollForward` disebut, sedangkan `dotnet` di mesin yang SDK-nya sudah terpasang
 # menerimanya diam-diam. Selisih itu memerahkan CI sementara verifikasi lokal
@@ -76,7 +82,7 @@ check-global-json: ## Memastikan sdk.version di global.json versi SDK utuh
 	esac
 
 .PHONY: verify
-verify: check-global-json ## Gerbang yang sama dengan CI: build ketat + uji + build web
+verify: check-global-json cek-tautan ## Gerbang yang sama dengan CI: build ketat + uji + build web
 	dotnet build TechVerseX.slnx --configuration Release
 	dotnet test TechVerseX.slnx --no-build --configuration Release
 	npm run lint:web

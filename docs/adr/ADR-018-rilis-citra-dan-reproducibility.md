@@ -1,11 +1,11 @@
 # ADR-018 — Rilis citra: berhenti membangun ulang untuk commit dokumen, dan **tidak** mengejar reproducibility
 
-**Status:** Diterima. Menutup Issue [#32](../../../../issues/32).
+**Status:** Diterima. Menutup Issue [#32](https://github.com/xtheoputra/techverse-x/issues/32).
 **Tanggal:** 2026-09-08
 
 ## Konteks
 
-[Issue #32](../../../../issues/32) lahir dari dua pengukuran, bukan dari dugaan.
+[Issue #32](https://github.com/xtheoputra/techverse-x/issues/32) lahir dari dua pengukuran, bukan dari dugaan.
 
 `rilis-citra.yml` menyala pada **setiap** push ke `main` — tidak ada penyaring
 `paths`. Dua jalannya yang pertama:

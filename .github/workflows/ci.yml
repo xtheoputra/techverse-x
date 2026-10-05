@@ -124,6 +124,12 @@ jobs:
           node-version: 22
           cache: npm
 
+      # Sengaja SEBELUM `npm ci`: pemeriksanya nol dependensi, jadi menaruhnya di
+      # sini membuat gerbang dokumen gagal dalam hitungan detik alih-alih sesudah
+      # pemasangan paket. Alasan aturannya ada di kepala skripnya.
+      - name: Cek tautan Markdown
+        run: npm run cek:tautan
+
       - name: Install
         run: npm ci
 

@@ -1,6 +1,6 @@
 # ADR-010 — Taksonomi: empat belas bidang, dan taksonomi 41 submenu disusun ulang
 
-**Status:** Diterima. Menutup Issue [#3](../../../../issues/3), [#4](../../../../issues/4), [#5](../../../../issues/5), [#6](../../../../issues/6), [#7](../../../../issues/7), [#8](../../../../issues/8).
+**Status:** Diterima. Menutup Issue [#3](https://github.com/xtheoputra/techverse-x/issues/3), [#4](https://github.com/xtheoputra/techverse-x/issues/4), [#5](https://github.com/xtheoputra/techverse-x/issues/5), [#6](https://github.com/xtheoputra/techverse-x/issues/6), [#7](https://github.com/xtheoputra/techverse-x/issues/7), [#8](https://github.com/xtheoputra/techverse-x/issues/8).
 **Tanggal:** 2026-09-04
 
 ## Konteks

@@ -1,6 +1,6 @@
 # ADR-012 — Template halaman, tingkat kematangan konten, dan siapa yang menulis
 
-**Status:** Diterima. Menutup Issue [#10](../../../../issues/10), [#11](../../../../issues/11), [#18](../../../../issues/18), [#19](../../../../issues/19).
+**Status:** Diterima. Menutup Issue [#10](https://github.com/xtheoputra/techverse-x/issues/10), [#11](https://github.com/xtheoputra/techverse-x/issues/11), [#18](https://github.com/xtheoputra/techverse-x/issues/18), [#19](https://github.com/xtheoputra/techverse-x/issues/19).
 **Tanggal:** 2026-09-04
 
 ## Konteks
@@ -39,7 +39,7 @@ kali.
 Alasan memilih B, dan ini yang menentukan: **Versi A menjadikan "Berita terbaru"
 dan "Paper terbaru" sebagai bagian wajib tiap halaman.** Artinya kelengkapan
 setiap halaman bergantung pada pipeline berita — yang justru terganjal
-[Issue #17](../../../../issues/17), pertanyaan hukum yang hanya bisa dijawab
+[Issue #17](https://github.com/xtheoputra/techverse-x/issues/17), pertanyaan hukum yang hanya bisa dijawab
 pemilik sendiri. Satu blocker hukum akan membuat 82 halaman berstatus "belum
 lengkap" selamanya. Dengan B, berita dan paper adalah *resource* — halaman tetap
 utuh tanpa mereka.

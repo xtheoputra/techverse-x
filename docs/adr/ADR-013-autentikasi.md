@@ -1,7 +1,7 @@
 # ADR-013 — Autentikasi: Clerk sebagai Identity Provider, .NET memverifikasi sendiri
 
 **Status:** Diterima sebagai pola. **Implementasi ditunda ke V1.1** — V1 tidak punya login.
-Menutup Issue [#14](../../../../issues/14).
+Menutup Issue [#14](https://github.com/xtheoputra/techverse-x/issues/14).
 **Tanggal:** 2026-09-04
 
 ## Konteks

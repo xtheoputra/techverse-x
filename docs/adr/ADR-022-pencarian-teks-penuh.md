@@ -253,7 +253,7 @@ dipelihara aplikasi. **Ketiganya mengembalikan persis sifat yang dibuang di poin
 
 Keputusan itu belum layak diambil sekarang: hari ini ada **satu** topik yang
 kelima bagiannya terisi, dan itu pun isi contoh. Bentuk yang tepat baru bisa
-dinilai setelah ada isi sungguhan. Ditagih di **[#54](../../../../issues/54)**.
+dinilai setelah ada isi sungguhan. Ditagih di **[#54](https://github.com/xtheoputra/techverse-x/issues/54)**.
 
 ⚠️ **Yang berlaku sekarang: jangan menulis di dokumen mana pun bahwa "pencarian
 mencakup isi halaman".** Ia mencakup nama dan ringkasan — topik maupun bidang.
@@ -276,7 +276,7 @@ mencakup isi halaman".** Ia mencakup nama dan ringkasan — topik maupun bidang.
 - **Ukuran selesai Bulan 3 — *"orang bisa menemukan halaman tanpa menebak
   URL"* — tercapai untuk bidang dan topik.** Dua sasaran Bulan 3 lainnya
   (Knowledge Graph dasar) tidak tersentuh ADR ini; keadaannya ada di
-  [#55](../../../../issues/55).
+  [#55](https://github.com/xtheoputra/techverse-x/issues/55).
 - **14 uji integrasi baru + 8 uji unit baru** (87+18 → 95+32). Yang integrasi tidak bisa
   dipindahkan jadi uji unit: yang diuji hampir seluruhnya perilaku PostgreSQL.
 - **Tidak ada permukaan tulis baru** (ADR-020 utuh), tidak ada dependensi baru,

@@ -10,8 +10,10 @@
  * situs yang sudah tayang.
  *
  *  - **kosong** — hari ini nol topik, dan satu-satunya jalan menaikkannya
- *    ([#42](../../../../issues/42)) masih tertutup. Jadi begitu situsnya tayang
- *    ([#40](../../../../issues/40)), inilah tampilan pembukanya.
+ *    ([#42](https://github.com/xtheoputra/techverse-x/issues/42)) masih tertutup.
+ *    Jadi begitu situsnya tayang
+ *    ([#40](https://github.com/xtheoputra/techverse-x/issues/40)), inilah tampilan
+ *    pembukanya.
  *  - **galat** — instance gratis Koyeb tidur setelah satu jam menganggur
  *    (ADR-019). Keadaan ini bukan kecelakaan langka; ia bagian dari cara kerja
  *    tier yang sengaja dipilih.

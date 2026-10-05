@@ -1929,37 +1929,37 @@ Apa yang saya ubah dari tempelan mentah:
 
 | Issue | Butir | Judul |
 |---|---|---|
-| [#1](../../issues/1) | E1 | Pilih tulang punggung navigasi — bidang atau fungsi 🔴 |
-| [#2](../../issues/2) | E8, E9 | Kunci nama produk |
-| [#3](../../issues/3) | E3, A5 | Nasib 41 submenu setelah bidang jadi 12 🔴 |
-| [#4](../../issues/4) | E2, A5 | Batas AI & Machine Learning vs AI Agents |
-| [#5](../../issues/5) | E6, E12, A3 | Rumah untuk Edge AI dan Data Engineering |
-| [#6](../../issues/6) | E5 | Isi ulang bidang Renewable Energy |
-| [#7](../../issues/7) | E11 | Ganti nama AR/VR menjadi XR? |
-| [#8](../../issues/8) | E4 | Cloud atau Cloud & Infrastructure? |
-| [#9](../../issues/9) | E7, A4 | Rumah untuk enam fitur yang belum kebagian tempat |
-| [#10](../../issues/10) | C1, C2 | Siapa menulis ±287 blok konten 🔴 |
-| [#11](../../issues/11) | B4 | Pilih satu template halaman dari dua versi |
-| [#12](../../issues/12) | D4 | Naikkan ke .NET 10 ⏰ tenggat 10 Nov 2026 |
-| [#13](../../issues/13) | D4 | LangGraph atau Microsoft Agent Framework |
-| [#14](../../issues/14) | D4 | Pola autentikasi Next.js ke backend .NET |
-| [#15](../../issues/15) | D4 | pgvector saja atau Qdrant terpisah |
-| [#16](../../issues/16) | D1, D2 | Peran MCP dan penguncian penyedia AI |
+| [#1](https://github.com/xtheoputra/techverse-x/issues/1) | E1 | Pilih tulang punggung navigasi — bidang atau fungsi 🔴 |
+| [#2](https://github.com/xtheoputra/techverse-x/issues/2) | E8, E9 | Kunci nama produk |
+| [#3](https://github.com/xtheoputra/techverse-x/issues/3) | E3, A5 | Nasib 41 submenu setelah bidang jadi 12 🔴 |
+| [#4](https://github.com/xtheoputra/techverse-x/issues/4) | E2, A5 | Batas AI & Machine Learning vs AI Agents |
+| [#5](https://github.com/xtheoputra/techverse-x/issues/5) | E6, E12, A3 | Rumah untuk Edge AI dan Data Engineering |
+| [#6](https://github.com/xtheoputra/techverse-x/issues/6) | E5 | Isi ulang bidang Renewable Energy |
+| [#7](https://github.com/xtheoputra/techverse-x/issues/7) | E11 | Ganti nama AR/VR menjadi XR? |
+| [#8](https://github.com/xtheoputra/techverse-x/issues/8) | E4 | Cloud atau Cloud & Infrastructure? |
+| [#9](https://github.com/xtheoputra/techverse-x/issues/9) | E7, A4 | Rumah untuk enam fitur yang belum kebagian tempat |
+| [#10](https://github.com/xtheoputra/techverse-x/issues/10) | C1, C2 | Siapa menulis ±287 blok konten 🔴 |
+| [#11](https://github.com/xtheoputra/techverse-x/issues/11) | B4 | Pilih satu template halaman dari dua versi |
+| [#12](https://github.com/xtheoputra/techverse-x/issues/12) | D4 | Naikkan ke .NET 10 ⏰ tenggat 10 Nov 2026 |
+| [#13](https://github.com/xtheoputra/techverse-x/issues/13) | D4 | LangGraph atau Microsoft Agent Framework |
+| [#14](https://github.com/xtheoputra/techverse-x/issues/14) | D4 | Pola autentikasi Next.js ke backend .NET |
+| [#15](https://github.com/xtheoputra/techverse-x/issues/15) | D4 | pgvector saja atau Qdrant terpisah |
+| [#16](https://github.com/xtheoputra/techverse-x/issues/16) | D1, D2 | Peran MCP dan penguncian penyedia AI |
 
 **Milestone `Fase 1 — Fondasi & Konten Awal`**
 
 | Issue | Butir | Judul |
 |---|---|---|
-| [#17](../../issues/17) | D6 | Baca ToS OpenAI & Microsoft sebelum berita tayang 🔴 |
-| [#18](../../issues/18) | A1, A2, C3 | Terapkan koreksi audit ke peta teknologi |
-| [#19](../../issues/19) | B1, B2 | Isi dua roadmap yang masih kosong |
-| [#20](../../issues/20) | B3 | Rancang skema basis data |
-| [#21](../../issues/21) | D3 | Lengkapi rencana 6 bulan |
-| [#22](../../issues/22) | D5 | Hitung anggaran biaya jalan bulanan |
+| [#17](https://github.com/xtheoputra/techverse-x/issues/17) | D6 | Baca ToS OpenAI & Microsoft sebelum berita tayang 🔴 |
+| [#18](https://github.com/xtheoputra/techverse-x/issues/18) | A1, A2, C3 | Terapkan koreksi audit ke peta teknologi |
+| [#19](https://github.com/xtheoputra/techverse-x/issues/19) | B1, B2 | Isi dua roadmap yang masih kosong |
+| [#20](https://github.com/xtheoputra/techverse-x/issues/20) | B3 | Rancang skema basis data |
+| [#21](https://github.com/xtheoputra/techverse-x/issues/21) | D3 | Lengkapi rencana 6 bulan |
+| [#22](https://github.com/xtheoputra/techverse-x/issues/22) | D5 | Hitung anggaran biaya jalan bulanan |
 
 🔴 = berlabel `blocker` · ⏰ = berlabel `tenggat`
 
-**⚠️ Satu butir belum punya issue: E10.** Dari 30 butir di bawah, 29 sudah terpetakan ke 22 issue. Yang tertinggal adalah **E10 — "teknologi baru yang belum muncul": bidang ke-13 atau bagian Future?** Ia kemungkinan besar melebur ke Issue [#3](../../issues/3) (nasib 41 submenu) atau [#1](../../issues/1) (tulang punggung navigasi), tapi itu belum pernah dinyatakan. Perlu diputuskan: buat issue sendiri, atau tempelkan ke salah satu issue yang ada.
+**⚠️ Satu butir belum punya issue: E10.** Dari 30 butir di bawah, 29 sudah terpetakan ke 22 issue. Yang tertinggal adalah **E10 — "teknologi baru yang belum muncul": bidang ke-13 atau bagian Future?** Ia kemungkinan besar melebur ke Issue [#3](https://github.com/xtheoputra/techverse-x/issues/3) (nasib 41 submenu) atau [#1](https://github.com/xtheoputra/techverse-x/issues/1) (tulang punggung navigasi), tapi itu belum pernah dinyatakan. Perlu diputuskan: buat issue sendiri, atau tempelkan ke salah satu issue yang ada.
 
 ---
 

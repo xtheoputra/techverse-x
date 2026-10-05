@@ -246,7 +246,7 @@ Yang ini ada supaya bentuk produksinya bisa dibuktikan **sebelum uang hosting
 keluar**.
 
 Yang benar-benar dibuktikannya, diukur ulang 2026-09-10 (issue
-[#48](../../issues/48)):
+[#48](https://github.com/xtheoputra/techverse-x/issues/48)):
 
 | Klaim | Keadaan |
 |---|---|
@@ -317,7 +317,7 @@ ambang adalah cara paling cepat membuat gerbang ini berhenti menjaga apa pun.
 >
 > Yang berubah di bawah: **langkah 1 dan 2 (Neon) dikoreksi di tempat**, dan
 > proyek Neon yang sungguhan dibuat **sesudah** region host API diketahui. Langkah
-> 3 (Actions) tidak bisa jalan selama [#57](../../../issues/57). Langkah 4 dan 6
+> 3 (Actions) tidak bisa jalan selama [#57](https://github.com/xtheoputra/techverse-x/issues/57). Langkah 4 dan 6
 > (Koyeb) dibiarkan sebagai rekaman; syarat yang dibawanya — SHA lengkap,
 > `ConnectionStrings__Redis` dan `Editorial__WritesEnabled` kosong, `/health/ready`
 > yang hanya menyebut `postgres`, tiga `curl` permukaan tulis — berlaku untuk host
