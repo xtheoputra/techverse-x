@@ -96,6 +96,14 @@ public sealed class Technology
 
     public DateTimeOffset UpdatedAt { get; private set; }
 
+    /// <summary>
+    /// Sisi KELUAR topik ini: topik-topik yang ia butuhkan (ADR-023). Ditulis hanya
+    /// lewat <see cref="RequireTopic"/>.
+    /// </summary>
+    /// <remarks>
+    /// Sisi MASUK ("dibutuhkan oleh") sengaja tidak ada di sini: ia milik agregat
+    /// topik lain, dan diturunkan saat dibaca, bukan disimpan dua kali.
+    /// </remarks>
     public IReadOnlyList<TechnologyRelationship> Relationships => _relationships;
 
     /// <summary>Bagian 2 template, berurut. Langkah <c>0</c> adalah prasyarat (ADR-012).</summary>
@@ -284,6 +292,79 @@ public sealed class Technology
     public void AddResource(ResourceType type, string title, string url)
     {
         _resources.Add(Resource.Create(Id, type, title, url));
+        Touch();
+    }
+
+    /// <summary>
+    /// Mencatat bahwa topik ini <b>membutuhkan</b> topik lain: pelajari
+    /// <paramref name="topicId"/> lebih dulu (ADR-023). Mengulang sisi yang sama
+    /// tidak menambah apa-apa.
+    /// </summary>
+    /// <param name="topicId">Topik yang dibutuhkan. Harus topik lain, bukan topik ini.</param>
+    /// <param name="topicRequires">
+    /// Sisi <see cref="RelationshipKind.Requires"/> milik <paramref name="topicId"/>
+    /// sendiri — hari ini tujuan-tujuan langsungnya. <b>Wajib, tanpa nilai bawaan</b>:
+    /// pemanggil yang bisa melupakannya adalah pemanggil yang bisa melewati aturan
+    /// dua arah di bawah, idiom yang sama dengan sakelar tanpa bawaan di ADR-020.
+    /// </param>
+    /// <remarks>
+    /// 🔑 <b>Bukan bagian template ADR-012.</b> Relasi tidak pernah dihitung
+    /// <see cref="MissingSections"/>: halaman tanpa satu sisi pun tetap lengkap.
+    /// <para>
+    /// 🔴 <b>Dua topik tidak boleh saling mensyaratkan.</b> Kalau topik tujuan sudah
+    /// membutuhkan topik ini, sisi baru itu kontradiksi yang terbaca di dua halaman
+    /// sekaligus, jadi ia ditolak. Siklus yang lebih panjang (A→B→C→A) BELUM
+    /// diperiksa di V1; menaikkannya cukup dengan mengirim penutupan transitif
+    /// sebagai <paramref name="topicRequires"/> — tanda tangan ini tidak berubah.
+    /// Pemicunya tertulis di ADR-023.
+    /// </para>
+    /// <para>
+    /// ⚠️ Seperti <see cref="Touch"/>, ia <b>tidak</b> menurunkan
+    /// <see cref="ContentMaturity.HumanReviewed"/>: menautkan halaman yang sudah
+    /// diperiksa ke topik lain bukan pembatalan pemeriksaan teksnya.
+    /// </para>
+    /// <para>
+    /// Satu-satunya pemanggil produksi: <c>RequireTopicHandler</c>, yang di produksi
+    /// hanya terjangkau lewat jalan ADR-021.
+    /// </para>
+    /// </remarks>
+    public void RequireTopic(Guid topicId, IReadOnlyCollection<Guid> topicRequires)
+    {
+        ArgumentNullException.ThrowIfNull(topicRequires);
+
+        // Diperiksa DI SINI, bukan diserahkan ke TechnologyRelationship.Create:
+        // pesan dan nama medannya harus berbicara bahasa pemanggil (topicSlug di
+        // muatan permintaan), bukan nama parameter internal. Penerjemah galat
+        // mengubah ParamName langsung jadi nama medan ValidationProblem.
+        //
+        // ⚠️ CA2208 dimatikan untuk SATU baris ini saja, dengan sengaja. Aturan itu
+        // benar untuk umumnya: ParamName seharusnya nama parameter metode. Di
+        // agregat ini keduanya kebetulan selalu sama (nameof(url), nameof(name))
+        // karena medan muatannya bernama sama dengan parameternya — kecuali di
+        // sini, tempat yang dikirim pemanggil adalah SLUG sementara domain hanya
+        // mengenal Id. "topicId" di ValidationProblem akan menunjuk medan yang
+        // tidak pernah ada di permintaan mana pun.
+        if (topicId == Id)
+        {
+#pragma warning disable CA2208
+            throw new ArgumentException($"Topik '{Slug}' tidak bisa mensyaratkan dirinya sendiri.", "topicSlug");
+#pragma warning restore CA2208
+        }
+
+        // Idempoten, dan sengaja SEBELUM pemeriksaan dua arah: mengulang
+        // permintaan yang sudah tercatat tidak boleh berubah jadi galat.
+        if (_relationships.Any(r => r.Kind == RelationshipKind.Requires && r.ToTechnologyId == topicId))
+        {
+            return;
+        }
+
+        if (topicRequires.Contains(Id))
+        {
+            throw new InvalidOperationException(
+                $"Topik yang diminta sudah mensyaratkan '{Slug}'. Dua topik tidak boleh saling mensyaratkan (ADR-023).");
+        }
+
+        _relationships.Add(TechnologyRelationship.Create(Id, topicId, RelationshipKind.Requires));
         Touch();
     }
 

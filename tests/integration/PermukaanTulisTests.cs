@@ -87,9 +87,14 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Kedelapan endpoint tulis, dijalankan terhadap topik yang sungguh ada.
+    /// Seluruh endpoint tulis, dijalankan terhadap topik yang sungguh ada.
     /// Slug topiknya disisipkan pemanggil.
     /// </summary>
+    /// <remarks>
+    /// ⚠️ Sengaja tanpa hitungan. Ringkasan ini dulu menyebut jumlahnya, dan angka
+    /// itu basi di endpoint tulis berikutnya. Endpoint tulis baru cukup masuk
+    /// DAFTAR ini; ketiga uji di bawah langsung menjaganya.
+    /// </remarks>
     private static (HttpMethod Method, string Path, object Body)[] SemuaEndpointTulis(string slug) =>
     [
         (HttpMethod.Post, "/api/v1/technologies",
@@ -107,6 +112,12 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
         (HttpMethod.Post, $"/api/v1/technologies/{slug}/resources",
             new ResourceRequest("OfficialDocs", "Sumber uji", "https://contoh.test/spesifikasi")),
         (HttpMethod.Post, $"/api/v1/technologies/{slug}/draf", new { }),
+
+        // Tujuannya sengaja tidak pernah ada: dengan sakelar hidup handlernya
+        // membaca muatan dan membalas 400 (bukan 404, lihat RequireTopicHandler),
+        // dan tidak ada sisi yang tercipta - jadi pembersihan tidak perlu berubah.
+        (HttpMethod.Post, $"/api/v1/technologies/{slug}/requires",
+            new RequireTopicRequest("topik-yang-tidak-pernah-ada")),
     ];
 
     private async Task<string> BuatTopikLewatHostTerbukaAsync()

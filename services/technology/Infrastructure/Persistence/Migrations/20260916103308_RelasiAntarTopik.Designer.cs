@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
@@ -12,9 +13,11 @@ using TechVerseX.TechnologyService.Infrastructure.Persistence;
 namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TechnologyDbContext))]
-    partial class TechnologyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260916103308_RelasiAntarTopik")]
+    partial class RelasiAntarTopik
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -115,7 +118,7 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
                             Name = "Cloud & Infrastructure",
                             Priority = "Core",
                             Slug = "cloud-infrastructure",
-                            Summary = "Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering."
+                            Summary = "Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering. Nama lebar dipertahankan dengan sengaja - lihat ADR-010."
                         },
                         new
                         {
@@ -187,7 +190,7 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
                             Name = "Renewable Energy",
                             Priority = "Supporting",
                             Slug = "renewable-energy",
-                            Summary = "Solar PV, angin, panas bumi, hidro, bioenergi & SAF, hidrogen hijau, integrasi jaringan & penyimpanan, ekonomi & kebijakan. Fusi nuklir tidak termasuk."
+                            Summary = "Solar PV, angin, panas bumi, hidro, bioenergi & SAF, hidrogen hijau, integrasi jaringan & penyimpanan, ekonomi & kebijakan. Fusi TIDAK di sini - lihat ADR-010."
                         },
                         new
                         {
@@ -205,7 +208,7 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
                             Name = "XR (AR/VR/MR)",
                             Priority = "Peripheral",
                             Slug = "xr",
-                            Summary = "Realitas diperluas. Dipertahankan sebagai pintu pencarian, tapi sengaja tidak diinvestasikan."
+                            Summary = "Realitas diperluas. Dipertahankan sebagai pintu pencarian, tapi sengaja tidak diinvestasikan - lihat ADR-010."
                         });
                 });
 

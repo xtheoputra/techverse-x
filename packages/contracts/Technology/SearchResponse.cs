@@ -11,10 +11,10 @@ namespace TechVerseX.Contracts.Technology;
 /// <c>/teknologi/&lt;slug&gt;</c> melayani keduanya. Hasil pencarian yang cuma
 /// memuat topik akan menyembunyikan separuh halaman yang sebenarnya ada.
 /// <para>
-/// Dan hari ini bukan separuh, melainkan hampir seluruhnya: ada 14 bidang dan
-/// nol sampai lima topik. Pencarian yang hanya menjawab topik akan membalas
-/// "tidak ada hasil" untuk hampir setiap kata — termasuk kata yang tercetak di
-/// halaman muka.
+/// Dan selama isinya masih sedikit, yang tersembunyi bukan separuh melainkan
+/// hampir seluruhnya: bidangnya jauh lebih banyak daripada topiknya. Pencarian
+/// yang hanya menjawab topik akan membalas "tidak ada hasil" untuk hampir setiap
+/// kata — termasuk kata yang tercetak di halaman muka.
 /// </para>
 /// <para>
 /// ⚠️ <see cref="Fields"/> sengaja <b>tidak</b> berhalaman. Daftar bidang

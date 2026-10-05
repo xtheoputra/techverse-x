@@ -4,6 +4,183 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-09-17 — Sesi 14 (lanjutan): sisa Bulan 3 mendarat, dan halaman JADINYA menemukan yang tidak akan ditemukan membaca kode
+
+Permintaan pemilik: *"lanjutkan tugas yang belum selesai"*.
+
+### Yang diwarisi — dibaca dari transkrip, bukan diingat
+
+Sesi kemarin berakhir **di tengah tahap**. Transkrip dan catatan kerjanya memperlihatkan keadaan persisnya:
+
+| | Keadaan saat sesi ini mulai |
+|---|---|
+| Langkah 4 ADR-023 (endpoint `/requires`) | kode dan seluruh bukti merahnya selesai, **belum di-commit**; `run.ps1 verify` **terputus di Lint web** |
+| Langkah 5 (seed), 6 (web), 8 (dokumen) | belum disentuh |
+| Riset pengganti Koyeb (#39) | penyapuan dan peringkat selesai, **pemeriksa-pembantahnya tidak pernah kembali** |
+
+🔑 **Tidak satu pun diterima begitu saja.** `verify` diulang penuh sebelum langkah 4 di-commit (hijau: 0 peringatan, 102 unit, 47 integrasi, lint, build web), dan laporan tahapnya disusun ulang dari keluaran perintah yang tercatat — bukan dari ringkasan.
+
+### Yang dibangun
+
+| Commit | Isi |
+|---|---|
+| `35ca3a3` | Langkah 4: irisan `RequireTopic`, `POST …/requires` di bawah batas tulis ADR-020 |
+| `3ef78ce` | Langkah 5: `database/seeds/seed.mjs` jadi satu-satunya seed; contoh keenam Tool Use dan sisi pertama |
+| `5bf0b07` | Tiga ringkasan bidang berhenti menyebut ADR — **temuan garis dasar web**, migrasi `RingkasanBidangTanpaRujukanADR` |
+| `ae74e68` | Langkah 6: blok "Topik terhubung", fallback selisih versi, aturan teks pembaca, `not-found.tsx`, `typedRoutes` |
+| `84eb82e` | Langkah 8: [ADR-023](adr/ADR-023-knowledge-graph-dasar.md), [ADR-024](adr/ADR-024-explore-learn-navigasi-v1.md), Pembaruan bertanggal di ADR-006/009/012/015/020/021/022, README, RENCANA-V1 |
+
+### 🔴 Garis dasar merah menemukan DATA, bukan kode
+
+Aturan teks pembaca ADR-024 dibuktikan dengan memindai teks yang **terlihat** di build produksi. Garis dasarnya diambil dari kode lama lebih dulu — dan halaman muka memberi **9 kena**, bukan enam yang diramal rancangan:
+
+| Kena | Asal |
+|---|---|
+| "Bulan 1", "menyusul", "beranda sementara", ADR-009/010/012 | spanduk halaman muka — **diramal** |
+| **tiga "lihat ADR-010"** | **ringkasan BIDANG** Cloud & Infrastructure, Renewable Energy, XR — disemai migrasi dari `FieldCatalog` |
+
+Rancangannya memindai kode web, dan dari sana ketiganya **tidak akan pernah terlihat**. Selama produksi nol topik, keempat belas kartu itulah isi utama halaman muka — dan tiga di antaranya menyuruh pengunjung membuka dokumen di repositori privat.
+
+Diperbaiki dengan migrasi, bukan dengan menyaring teks di web. Buktinya: `ModelMigrasiTests` **merah** sesudah `FieldCatalog` diubah dan sebelum scaffold; Up/Down masing-masing tepat tiga `UpdateData`; dev DB 3 → 0 ringkasan menyebut ADR dan `search_vector` ikut dihitung ulang sendiri (`cloud @@ 'lebar'` true → false); Down → 3 lagi; dari nol 6 migrasi, 9 tabel, 14 bidang; `technology.sql` dijalankan dua kali ke basis data kosong, keduanya exit 0; kelima belas kata kunci ADR-022 identik.
+
+💡 **Aturan tentang teks yang TERLIHAT harus diukur di halaman jadinya.** Kode web hanya salah satu sumber teksnya.
+
+### 🐞 Alat ukur saya sendiri berbohong — lagi, dua kali
+
+1. **Versi pertama `seed.mjs` menulis galat ke stderr.** `.\run.ps1 seed` biasa benar: penjelasan ADR-020, exit 1. Tapi **`.\run.ps1 seed 2>&1` di Windows PowerShell 5.1 berhenti dengan `NativeCommandError` berpesan KOSONG, tanpa satu baris penjelasan pun** — 5.1 membungkus stderr program native jadi galat begitu dialihkan, dan `run.ps1` menyetel `ErrorActionPreference Stop`. Blok PowerShell lama tidak pernah kena karena hanya memakai `Write-Host`. Sekarang semua keluaran ke stdout; `2>&1` dan `*>&1` diukur ulang: penjelasan tercetak, `LASTEXITCODE` 1. 💡 *Cacatnya hanya muncul persis saat keluarannya disimpan untuk dibaca belakangan — keadaan yang tidak pernah dicoba kalau cuma menjalankannya di terminal.*
+2. **Sabotase W6 di rancangan tidak bisa dikompilasi.** "Buang `?? []`" menggagalkan `next build` (`TS2322 … 'TechnologySummary[] | undefined' is not assignable`) sebelum ada yang bisa diukur saat berjalan. Itu dicatat sebagai **penjaga kedua** (tipe), dan bukti runtime-nya memakai cast: API lama tiruan → **HTTP 500**, `Cannot read properties of undefined (reading 'length')`.
+
+### Seed: satu berkas, dibuktikan dari nol
+
+- **S1** (dev DB berisi lima contoh lama), dua kali: jalan 1 `dibuat Tool Use` + `sisi model-context-protocol butuh tool-use`; jalan 2 hanya `ada`. Nol duplikat, roadmap MCP 0·1·2.
+- **Dari nol** (`CREATE DATABASE gladi_seed`, API :5091 tulis hidup): semua `dibuat`, 6 topik, MCP `MachineDrafted`, 1 sisi; jalan kedua semua `ada`. Pembandingnya pengukuran kemarin: `seed.sh` ke basis data kosong → **2 topik dan tiga `ada` palsu**.
+- **S2**: API tulis mati (`--no-launch-profile`, dan `docker-compose.prod.yml`) → exit 1 dengan penjelasan ADR-020, lewat `node` maupun `run.ps1`.
+- **S3 merah**: contoh sementara ber-slug `ai-agents` → `BENTROK ai-agents … (GET HTTP 404)`, exit 1, berhenti sebelum bagian isi. **Kendali** dengan logika lama (409 = "ada" tanpa GET) → `ada AI Agents`, exit 0, jalan terus.
+- **S4**: keluaran Git Bash sama persis dengan `run.ps1 seed`. `make` tidak terpasang di mesin ini — `make seed` **tidak** dijalankan, dan tidak diklaim.
+- **Kata kunci ADR-022**: hanya `ai` (topik 3 → 4) dan `agent` (1 → 2) bergeser, keduanya `+tool-use`. SQL membuktikan `tool-use` cocok **hanya lewat bidangnya** — dugaan rancangan, kini terukur.
+
+### Web: diukur di tiga keadaan API
+
+| Keadaan | Hasil |
+|---|---|
+| **API dev** (6 topik + 1 sisi) | 37 cek halaman lulus; teks terlihat **0 kena** di enam halaman (dari 9); `/cari` `id="q"` 1× dan `id="q-halaman"` 1× (dari 2× `q`); rute build identik; **nol cast** untuk `typedRoutes` |
+| **API mati** (fetch-cache dihapus) | halaman topik "Halaman ini belum bisa diambil.", tanpa `localhost`/`5080` di HTML; sebabnya di stdout next; kendali API hidup → blok kembali |
+| **API lama** tiruan (tanpa kedua larik) | 200, template utuh, tanpa blok relasi, nol galat |
+
+**Penelusuran dari `/`** — ukuran selesai Bulan 3 yang kini diukur, bukan diklaim: **20 dari 20** di pengembangan (14 bidang + 6 topik), **14 dari 14** di bentuk produksi.
+
+**Bentuk produksi** (`docker-compose.prod.yml`, volume baru, lalu `down -v`): `migrate` menerapkan **6 migrasi dari nol**, exit 0; 14 bidang, 0 topik, **0 sisi**, 0 ringkasan menyebut ADR, kelima constraint relasi ada; `POST …/requires` **404**, `POST /api/v1/technologies` **405**; teks terlihat 0 kena.
+
+Bukti merah web, masing-masing dipulihkan dan diff-nya dicek sama dengan referensi bersih:
+
+| Penjaga | Sabotase | Teramati |
+|---|---|---|
+| Blok tersembunyi saat kosong | buang return awal | qiskit memuat "Topik terhubung Pelajari lebih dulu Dibutuhkan oleh" berdaftar kosong |
+| Penelusuran | buang `<Link>` topik di halaman bidang dan daftar muka | 14 tercapai, **keenam topik hilang**, exit 1 |
+| `typedRoutes` | `<Link href="/learn">` | `next build` gagal `TS2322 '"/learn"' is not assignable to type 'UrlObject \| RouteImpl<"/learn">'` |
+| Pemberitahuan pemotongan | `pageSize` 1 | "6 topik tercatat menampilkan 1 teratas", "Menampilkan 1 dari 2 topik." |
+| Fallback selisih versi | lihat 🐞 butir 2 | HTTP 500 / `TS2322` |
+
+⚠️ **Satu yang diukur dan SENGAJA tidak diperbaiki:** `notFound()` dari `/teknologi/[slug]` tetap **404 + `noindex`**, tapi HTML-nya kerangka galat Next berbadan kosong; halaman 404-nya baru tergambar sesudah JavaScript. **Garis dasar sama persis** (dulu teks bawaan Inggris). Itu harga status 404 sungguhan — Next hanya bisa mengirim status sebelum badan dialirkan — dan dicatat di `not-found.tsx` serta ADR-024.
+
+### 🧹 GitHub: PR bertumpuk, dan satu kelas cacat yang ketahuan saat menulis issue
+
+- **PR [#58](../../pull/58)** dibuka dengan base `fase-2/pencarian-teks-penuh`, berlabel dan bermilestone. CI-nya merah dalam **3–4 detik** dengan **`steps: 0`** dan anotasi billing yang sama — #57, bukan kodenya; diperiksa per job, bukan dianggap.
+- Komentar: [#55](../../issues/55) — keempat pertanyaannya dipetakan ke ADR-023, ditutup saat #58 di-merge, bukan sebelumnya; [#56](../../pull/56) — badan #40 wajib disunting **sesudah** #56 masuk, sebab `main` hari ini **masih** mencetak *"Keempat belas bidang di bawah tetap bisa dibuka"* (diperiksa ke `git show main:`), jadi menyuntingnya sekarang adalah klaim yang mendahului kenyataan; [#54](../../issues/54) — kalimat batas di `/cari` wajib diubah bersamanya.
+- Issue baru: [#59](../../issues/59) pemicu Learn; [#60](../../issues/60) jenis sumber ber-angka.
+- 🔴 **Dan [#61](../../issues/61) lahir dari memeriksa klaim #60 sebelum menulisnya.** Kemarin yang diukur hanya `"type":"0"`; issue-nya mau menyebut `"1"`–`"3"` juga. Diukur dulu: `"3"` → `Repository`, `" 1 "` → `Video`, `"5"` → 400 — dan **`"type": 0` sebagai angka JSON → 500**. Menyusul lima permintaan lain: `name` berupa angka, `topicSlug` berupa angka, JSON terpotong, `title` boolean, `name` larik — **keenamnya 500** di lima endpoint tulis berbeda. `BadHttpRequestException` membawa status 400, tapi `UseExceptionHandler()` menangkapnya lebih dulu. Ini kelas cacat #26 (*"500 untuk muatan yang salah"*) yang kembali lewat **bentuk** muatan, bukan nilainya. Produksi tidak terdampak (tidak ada rute berbadan JSON di sana); alur ADR-021 kelak terdampak. Tabel status ADR-023 diberi catatan supaya tidak mengklaim lebih dari yang benar.
+- Deskripsi milestone Bulan 3 diperbarui: yang sudah dibangun, produksi nol sisi, dan kenapa ia **sengaja tetap terbuka** (#54, #59). Audit akhir: **issue tanpa label 0 · issue tanpa milestone 0 · PR tanpa label 0 · PR tanpa milestone 0**.
+
+💡 *Klaim di badan issue diperiksa seperti klaim di kode: mengukur satu kasus lagi sebelum menulisnya menemukan cacat yang lebih besar daripada yang sedang ditulis.*
+
+### Ukuran
+
+**102 unit + 47 integrasi** (dari 95 + 32 di ujung #56), build Release 0 peringatan, `run.ps1 verify` hijau. Dev DB ditinggalkan: 6 migrasi, 6 topik contoh, 1 sisi, nol sisa uji; tidak ada basis data `gladi%`, tidak ada proses latar.
+
+### Yang TIDAK dikerjakan, dan kenapa
+
+- **Tidak ada yang di-merge**, dan PR #58 tetap ditumpuk di atas #56. Syarat merge-nya tertulis: #57 selesai, #56 masuk, CI hijau di PR ini — termasuk *"Migrasi bisa dijalankan dari nol"* yang kini menghadapi **tiga** migrasi baru di atas `main`.
+- **Harness JS untuk `apps/web`.** Aturan teks pembaca dan tampilan relasi hanya bertahan selama pemindaiannya diulang tangan (ADR-024). Itu keputusan tersendiri.
+- **Riset Bulan 4 (arus arXiv)** selesai sebagai riset kemarin, tapi **tidak dituangkan ke ADR**: kritiknya sendiri membantah klaim terkuat rancangannya — jalur produksi pertamanya tetap butuh *Rilis citra* dan *Migrasi produksi*, dua workflow Actions yang mati di bawah #57.
+
+---
+
+## 2026-09-16 — Sesi 14: CI terbukti bisa ditiru lokal, Koyeb berhenti gratis, dan Knowledge Graph dirancang tiga kali sebelum satu baris ditulis
+
+Permintaan pemilik: *"lanjutkan semua fase dan tugas yang belum selesai sesuai dokumen"*.
+
+### 📏 CI masih mati — dan sebabnya kini terukur, bukan ditebak dari anotasinya
+
+Jalan-ulang run `34582888286` (PR #56): merah dalam **3 detik**, `steps: []`. Sebabnya diambil dari API billing ([komentar #57](../../issues/57#issuecomment-5695424090)):
+
+| Repo (privat kecuali disebut) | Menit Actions September |
+|---|---|
+| `wellsy` | 1.053 |
+| `techverse-x` | 558 |
+| `zarastrade` | 527 |
+| `think-mate` | 4 |
+| `jago-bahasa` (**publik**, tidak masuk kuota, tidak terdampak) | 43 |
+
+**Menit repo privat 2.142 > kuota 2.000 akun Free** — pemblokiran se-AKUN, bukan repo ini. 🔑 *"recent account payments have failed"* **menyesatkan**: akunnya tidak punya kartu; yang terjadi kuota gratis habis dengan anggaran $0. Perkiraan pulih tanpa membayar **1 Oktober 2026** — kesimpulan dari bentuk API-nya, **belum terbukti**. `push` CI di cabang `fase-*` makan ±26% menit repo ini, tapi **sengaja tidak diubah**: perubahan pemicu CI tidak bisa dibuktikan selama CI tidak berjalan, dan selisihnya terhadap batas kuota terlalu tipis untuk diklaim sebagai obat.
+
+### 🧪 Premis Sesi 13 keliru: kelima gerbang "yang tidak bisa ditiru lokal" cuma butuh Docker
+
+Keenam job `ci.yml` **dijalankan** terhadap `739bbd8` ([komentar PR #56](../../pull/56#issuecomment-5695423679)):
+
+| Job | Hasil |
+|---|---|
+| Backend — host Windows **dan** peti kemas `dotnet/sdk:10.0` (Linux) | 0 peringatan · **95 unit + 32 integrasi** di kedua OS · migrasi dari nol ke Postgres **tanpa skrip init**: skema `technology` 0 → 9 tabel, 14 bidang, 0 topik |
+| Frontend — host Windows **dan** `node:22` | `npm ci` · lint · build |
+| Pindai rahasia | gitleaks atas **seluruh riwayat** (54 commit non-merge) · no leaks |
+| Citra | build ketiganya · gerbang ADR-020 `health/live=200 POST=405` · Trivy CRITICAL+HIGH **0/0/0** |
+
+🐞 **Gerbang ADR-020 sempat merah duluan, dan salahnya di alat ukur saya.** `health/live=000` padahal peti kemasnya `Now listening`. Skrip tiruan saya mengekspor `MSYS_NO_PATHCONV=1` secara global, dan itu merusak `curl -o /dev/null` di skrip gerbangnya. Dibuktikan dengan skrip yang sama, satu-satunya beda variabel itu: tanpa → 200/405; dengan → 000/000. Kendali `/health/live` **bekerja** — ia menolak meluluskan apa pun saat alat ukurnya buta; hanya diagnosisnya yang salah alamat.
+
+⚖️ **Merge #56 DICOBA dan DITOLAK pengaman izin sesi** (*merge tanpa review*). **Tidak diakali.** Bukti dan pilihannya diserahkan ke pemilik di PR #56, dan pekerjaan Bulan 3 ditumpuk di cabang `fase-2/knowledge-graph-dasar` di atas `fase-2/pencarian-teks-penuh`.
+
+### 🔴 Kembaran `make seed` sudah menyimpang — dibuktikan dengan dijalankan
+
+Dua basis data kosong, dua API tulis hidup. `seed.sh` → `ada AI Agents`, `ada Edge AI`, `ada Quantum Computing`, `dibuat Digital Twin`, `dibuat Cybersecurity Berbasis AI`: **2 topik, 0 bagian**, dan ketiga `ada` itu **bohong** — 409 slug-milik-bidang dibaca "sudah ada". `run.ps1 seed` ke basis data kosong yang lain → 5 topik, 1 draf. README berbunyi *"isi run.ps1 dan Makefile sengaja dijaga sama"*. Diperbaiki di sesi lanjutan.
+
+### 🔴 Koyeb berhenti gratis untuk akun BARU — tujuh bulan sebelum ADR-019 ditulis
+
+Ditemukan saat meriset Bulan 4, lalu diperiksa ke sumber primer: pengumuman Koyeb **17 Februari 2026** — *"new users will only be able to sign up for those plans"* (Pro USD 29/bulan ke atas), sedangkan organisasi lama tidak berubah. Tabel survei ADR-019 dan badan #39 (*"gratis, biasanya tanpa kartu"*) ditulis 8 September — **klaimnya basi sejak hari ditulis**. Diposting ke [#39](../../issues/39#issuecomment-5695998488): **jangan mendaftar dan jangan memasukkan kartu dulu**. Riset penggantinya dijalankan hari itu juga, tapi **belum selesai** saat sesi berakhir.
+
+### Knowledge Graph (#55): tiga rancangan, tiga penilai, satu sintesis
+
+Tiga rancangan independen (*minimal dan jujur* · *integritas domain* · *pembaca*) dinilai tiga penilai (*konsistensi ADR* · *bisa dibangun dan diuji* · *jujur, tidak setengah jadi*), lalu disintesis jadi satu spesifikasi yang diperiksa ulang ke kode. Dasarnya rancangan *minimal dan jujur*, dicangkok dari dua lainnya — sebab **tidak satu rancangan pun benar di semua butir**:
+
+- 🔴 **`TechnologyRelationship.Id` bertanda `ValueGeneratedOnAdd` padahal domain mengisinya** — sisi ke topik yang sudah tersimpan jadi `UPDATE` lalu 500 di tulis pertama. **Hanya satu dari tiga rancangan (*integritas domain*) yang menangkapnya**; penilai memverifikasi dua lainnya akan membalas 500.
+- 🔴 **Ujung tujuan tanpa kunci asing** sejak `InitialTechnologySchema` — dan salah satu rancangan yang menambahkannya memilih `CASCADE`, melanggar kebiasaan repo untuk tautan ke agregat lain (Restrict).
+- Baris header "Pelajari dulu" (dua rancangan) bertabrakan dengan ADR-012 bagian 1; tautan di dalam bagian roadmap (rancangan ketiga) mematahkan kontrak "Belum diisi." dan menyembunyikan sisi di halaman kurasi.
+
+### Yang dibangun hari itu, dan dibuktikan merah
+
+**`6ebc906` — domain.** `RelationshipKind` tinggal `Requires`; buktinya bukan grep: uji lama yang masih menyebut `Uses` gagal `CS0117` di **satu** baris, proyek layanan lolos. `Technology.RequireTopic(topicId, topicRequires)` dengan parameter kedua wajib. U1–U7 masing-masing dibuktikan merah (tukar From/To, buang return awal → 2 sisi, buang cek diri sendiri → ParamName `toTechnologyId`, buang cek dua arah → tidak melempar, sisipkan `MachineDrafted`, tambah `Uses = 1`, `MissingSections` menuntut "Relations"). ⚠️ `ArgumentException(…, "topicSlug")` ditolak **CA2208** — dimatikan untuk satu baris itu, alasannya tertulis.
+
+**`388e054` — persistensi.** Migrasi `RelasiAntarTopik`: FK tujuan `RESTRICT` + indeks, dua CHECK (SQL `Kind` dibangkitkan dari enum), `ValueGeneratedNever`. Up/Down tepat empat operasi, nol churn.
+- `ModelMigrasiTests` ditulis **dulu** dan hijau di model lama; **merah** sesudah konfigurasi berubah sebelum scaffold dan saat `Uses = 1`; dan **tetap hijau** saat `ValueGeneratedNever` dibuang — jadi ia bukan penjaga baris itu, dan komentarnya bilang begitu. `dotnet ef database update` terhadap model yang berbeda: exit 1 `PendingModelChangesWarning`, 0 tabel.
+- P1–P4 **merah semua lewat migrasi Down sungguhan** ("No exception was thrown"), hijau lagi sesudah `run.ps1 migrate` — sekaligus bukti Down bekerja. P2 juga merah saat FK tujuan ditukar `CASCADE` di basis data.
+- `ValueGeneratedNever` dikomentari → P2 `DbUpdateConcurrencyException`.
+- Baris `Uses` yang disisipkan SQL ke skema lama **meledak saat dibaca**: `Cannot convert string value 'Uses' … to any value in the mapped 'RelationshipKind' enum` — alasan CHECK dari enum.
+- Dari nol (`gladi_s14`): 5 migrasi, 9 tabel, 14 bidang, 0 topik. `technology.sql` ternyata baru memuat 3 migrasi; dibangkitkan ulang ke 5, dijalankan dua kali ke basis data kosong, exit 0.
+- 🐞 `ExecuteSqlRawAsync(sql, slugs.ToArray())` mengikat `{0}` ke slug **pertama** (`string[]` kovarian ke `params object[]`); `DisposeAsync` gagal dan meninggalkan lima topik + satu sisi di dev DB — dibersihkan, diganti `ExecuteSqlAsync` berinterpolasi.
+
+**`9b23d4a` — kontrak.** `Requires`/`RequiredBy` bertipe `TechnologySummaryResponse`, pemuat `TopikTerhubung`, dan jalur mutasi pindah dari irisan template ke `TopicMutation`. Parameter `related` tanpa bawaan dibuktikan: membuang argumennya → `CS7036`, menaruhnya sesudah parameter opsional → `CS1737`.
+
+**Langkah 4 — selesai dan terbukti hari itu, di-commit keesokan harinya (`35ca3a3`).**
+- `ValueGeneratedNever` dikomentari → 5 dari 10 uji endpoint **500**. Include `Relationships` dibuang, dan terpisah return awal domain dibuang → pengulangan 500 (`23505 ix_technology_relationships_edge`). Handler memberi `[]` → arah berlawanan 200, dan lewat API hidup halaman A berbunyi `requires=[B]` sekaligus `requiredBy=[B]`.
+- `MapRequireTopic` di atas batas → uji ADR-020 gagal *".../requires membalas 400"*; kendali alamat salah → 404 dan merah.
+- Kontrak lewat `curl`: idempoten, 400 berpesan untuk tiap tujuan keliru, 404 hanya untuk sumber, `DELETE` topik tujuan ditolak FK. `"type":"0"` di `POST …/resources` tersimpan sebagai `OfficialDocs` — celah `Enum.TryParse` yang disebut komentar kode memang nyata.
+- ⚠️ **Temuan yang tidak diramal:** cabang tujuan-tak-ada dibuang dengan `topicId!.Value` **di dalam** lambda mutasi menjawab **400 `{"body":["Nullable object must have a value."]}`**, bukan 500 — `TopicMutation` menerjemahkan `InvalidOperationException` apa pun dari lambda. Aturannya kini tertulis di sana: pencarian selesai sebelum `RunAsync`.
+- 🐞 **Dan alat ukurnya bohong sekali lagi:** pemulih sabotase memakai `copyFileSync`, yang di Windows mempertahankan mtime cadangan. MSBuild melewati kompilasi, DLL masih memuat sabotase, dan uji tetap merah sesudah "dipulihkan". 💡 *"Hijau lagi" hanya berarti sesuatu kalau yang dijalankan sungguh berubah.*
+
+### 💡 Pola yang berulang, dan kali ini menutup #55
+
+Sapuan *"penegak/entitas ini punya berapa pemanggil di kode produksi?"* — yang menemukan `MarkReviewed()`, `Publish()`, lalu tabel relasi — kini **menutup** temuan ketiganya: tabel relasi punya produsen, pembaca, dan tampilan. Tapi membangun produsennya membongkar bahwa tabel yang dianggap "sudah ada" pun tidak utuh. 💡 *Entitas tanpa pemanggil bukan cuma belum dipakai — ia belum pernah diuji oleh satu penulis sungguhan.*
+
+---
+
 ## 2026-09-11 — Sesi 13: papan kerja buntu, jadi Bulan 3 dikerjakan duluan — dan pengukurannya yang memilih tiap keputusan
 
 Permintaan pemilik: *"lanjutkan semua tugas dan fase"*.
