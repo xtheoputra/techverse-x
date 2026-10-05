@@ -295,6 +295,43 @@ public sealed class Technology
         Touch();
     }
 
+    // ---- Membuang bagian isi (ADR-012) ------------------------------------
+    // Jalan perbaikan isi yang keliru di produksi, pasangan dari metode tambah di
+    // atas. Ketiganya IDEMPOTEN (membuang yang tidak ada = tanpa-operasi), dan —
+    // seperti Touch dan kebalikannya (menambah bagian) — SENGAJA TIDAK menurunkan
+    // HumanReviewed: ADR-012 menalar bahwa memperbaiki satu tautan mati (buang lalu
+    // tambah) tidak boleh membuang seluruh nilai kerja pemeriksanya. Membuang LANGKAH
+    // ROADMAP belum ada di sini: nomornya berurut tanpa lubang (lihat AddRoadmapStep),
+    // jadi membuang satu langkah menuntut keputusan penomoran ulang tersendiri
+    // (ADR-012 Pembaruan 2026-10-02).
+
+    /// <summary>Melepas tautan ke sebuah alat (bukan menghapus alat katalognya). Idempoten.</summary>
+    public void DetachTool(Guid toolId)
+    {
+        if (_tools.RemoveAll(t => t.ToolId == toolId) > 0)
+        {
+            Touch();
+        }
+    }
+
+    /// <summary>Membuang satu Mini Project — bagian 4 template. Idempoten.</summary>
+    public void RemoveProject(Guid projectId)
+    {
+        if (_projects.RemoveAll(p => p.Id == projectId) > 0)
+        {
+            Touch();
+        }
+    }
+
+    /// <summary>Membuang satu sumber belajar — bagian 5 template. Idempoten.</summary>
+    public void RemoveResource(Guid resourceId)
+    {
+        if (_resources.RemoveAll(r => r.Id == resourceId) > 0)
+        {
+            Touch();
+        }
+    }
+
     /// <summary>
     /// Mencatat bahwa topik ini <b>membutuhkan</b> topik lain: pelajari
     /// <paramref name="topicId"/> lebih dulu (ADR-023). Mengulang sisi yang sama

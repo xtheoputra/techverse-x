@@ -186,7 +186,9 @@ produk/privasi tersendiri; ADR ini hanya membangun jalan yang MENULIS nama itu,
 dan uji membacanya langsung dari DB. Jalan membuang **sisi** (Pembaruan
 2026-09-17) dibangun menyusul — lihat
 [ADR-023 Pembaruan 2026-10-02](ADR-023-knowledge-graph-dasar.md); jalan membuang
-**bagian isi** masih belum ada.
+**bagian isi** (sumber, proyek, tautan alat) juga — lihat
+[ADR-012 Pembaruan 2026-10-02](ADR-012-template-halaman.md); hanya membuang
+**langkah roadmap** yang masih belum ada (perlu keputusan penomoran ulang).
 
 **Terukur, bukan diklaim:** 106 uji unit + 69 uji integrasi hijau. Satu topik
 dibawa dari kosong sampai `tinjau` lewat HTTP (`TinjauEndpointTests`), dan nama

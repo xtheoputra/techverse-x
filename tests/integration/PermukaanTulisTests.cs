@@ -142,6 +142,13 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
             new ResourceRequest("OfficialDocs", "Sumber uji", "https://contoh.test/spesifikasi")),
         (HttpMethod.Post, $"/api/v1/technologies/{slug}/draf", null),
 
+        // Pasangan DELETE bagian isi (ADR-012): tujuannya tak pernah ada, jadi sakelar
+        // hidup tanpa-operasi 200, sakelar mati 404. Tanpa badan -> ikut dilewati uji
+        // muatan cacat #61, sama seperti /draf.
+        (HttpMethod.Delete, $"/api/v1/technologies/{slug}/tools/alat-tak-pernah-ada", null),
+        (HttpMethod.Delete, $"/api/v1/technologies/{slug}/projects/00000000-0000-0000-0000-000000000000", null),
+        (HttpMethod.Delete, $"/api/v1/technologies/{slug}/resources/00000000-0000-0000-0000-000000000000", null),
+
         // Tujuannya sengaja tidak pernah ada: dengan sakelar hidup handlernya
         // membaca muatan dan membalas 400 (bukan 404, lihat RequireTopicHandler),
         // dan tidak ada sisi yang tercipta - jadi pembersihan tidak perlu berubah.

@@ -132,4 +132,47 @@ public sealed class EditContentSectionsHandler(TechnologyDbContext db)
     /// </summary>
     public Task<TopicMutationOutcome> MarkDraftedAsync(string slug, CancellationToken cancellationToken)
         => TopicMutation.RunAsync(db, slug, technology => technology.MarkDrafted(), cancellationToken);
+
+    // ---- Membuang bagian isi (ADR-012) ------------------------------------
+    // Pasangan DELETE dari tambah di atas, dan semuanya IDEMPOTEN — seperti DELETE
+    // sisi ADR-023: membuang yang tidak ada bukan kekeliruan melainkan keadaan yang
+    // sudah tercapai. Langkah ROADMAP sengaja tidak punya pasangan buang: nomornya
+    // berurut tanpa lubang, jadi membuang satu langkah menuntut penomoran ulang
+    // (ADR-012 Pembaruan 2026-10-02).
+
+    public Task<TopicMutationOutcome> RemoveResourceAsync(string slug, Guid resourceId, CancellationToken cancellationToken)
+        => TopicMutation.RunAsync(db, slug, technology => technology.RemoveResource(resourceId), cancellationToken);
+
+    public Task<TopicMutationOutcome> RemoveProjectAsync(string slug, Guid projectId, CancellationToken cancellationToken)
+        => TopicMutation.RunAsync(db, slug, technology => technology.RemoveProject(projectId), cancellationToken);
+
+    public async Task<TopicMutationOutcome> DetachToolAsync(string slug, string toolSlug, CancellationToken cancellationToken)
+    {
+        if (!Slugs.TryFrom(toolSlug, out var slugAlat))
+        {
+            return TopicMutationOutcome.Invalid("toolSlug", $"Slug alat '{toolSlug}' bukan slug yang sah.");
+        }
+
+        // Pencarian selesai SEBELUM RunAsync (aturan TopicMutation). Alat yang tak ada
+        // di katalog tak mungkin tertaut, jadi melepasnya tanpa-operasi 200 — bukan 400
+        // seperti AttachTool, yang MENEGASKAN adanya alat.
+        var toolId = await db.Tools
+            .AsNoTracking()
+            .Where(t => t.Slug == slugAlat)
+            .Select(t => (Guid?)t.Id)
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        return await TopicMutation.RunAsync(
+            db,
+            slug,
+            technology =>
+            {
+                if (toolId is Guid id)
+                {
+                    technology.DetachTool(id);
+                }
+            },
+            cancellationToken).ConfigureAwait(false);
+    }
 }

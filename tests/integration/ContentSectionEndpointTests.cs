@@ -385,4 +385,129 @@ public sealed class ContentSectionEndpointTests : IAsyncLifetime
         // Tanpa Location pun jawabannya tetap menyebut apa yang dibuat.
         Assert.Equal(slugAlat, (await alat.Content.ReadFromJsonAsync<ToolResponse>())!.Slug);
     }
+
+    // ---- Membuang bagian isi (ADR-012) ------------------------------------
+
+    [Fact]
+    public async Task Membuang_sumber_proyek_dan_alat_lewat_HTTP_mengosongkan_bagiannya()
+    {
+        using var host = Host();
+        using var client = host.CreateClient();
+        var slug = await BuatTopikAsync(client);
+
+        // Sumber: tambah, ambil Id dari respons, lalu buang.
+        var tambahSumber = await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/resources", UriKind.Relative),
+            new ResourceRequest("OfficialDocs", "Dokumentasi", "https://example.com/docs"));
+        var sumberId = Assert.Single((await tambahSumber.Content.ReadFromJsonAsync<TechnologyResponse>())!.Resources).Id;
+        var buangSumber = await client.DeleteAsync(new Uri($"/api/v1/technologies/{slug}/resources/{sumberId}", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.OK, buangSumber.StatusCode);
+        Assert.Empty((await buangSumber.Content.ReadFromJsonAsync<TechnologyResponse>())!.Resources);
+
+        // Proyek: sama.
+        var tambahProyek = await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/projects", UriKind.Relative),
+            new ProjectRequest("Proyek", "Sesuatu yang jalan."));
+        var proyekId = Assert.Single((await tambahProyek.Content.ReadFromJsonAsync<TechnologyResponse>())!.Projects).Id;
+        var buangProyek = await client.DeleteAsync(new Uri($"/api/v1/technologies/{slug}/projects/{proyekId}", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.OK, buangProyek.StatusCode);
+        Assert.Empty((await buangProyek.Content.ReadFromJsonAsync<TechnologyResponse>())!.Projects);
+
+        // Alat: ditautkan lewat slug, dilepas lewat slug (identitas katalognya).
+        var toolSlug = Unik("alat");
+        _alatDibuat.Add(toolSlug);
+        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync(
+            new Uri("/api/v1/tools", UriKind.Relative),
+            new CreateToolRequest("Alat Uji", "Dipakai uji.", "https://example.com", toolSlug))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/tools", UriKind.Relative),
+            new AttachToolRequest(toolSlug, "catatan"))).StatusCode);
+
+        var buangAlat = await client.DeleteAsync(new Uri($"/api/v1/technologies/{slug}/tools/{toolSlug}", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.OK, buangAlat.StatusCode);
+        Assert.Empty((await buangAlat.Content.ReadFromJsonAsync<TechnologyResponse>())!.Tools);
+
+        // Melepas tautan TIDAK menghapus alat dari katalog — ia masih bisa ditautkan lagi.
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/tools", UriKind.Relative),
+            new AttachToolRequest(toolSlug, "lagi"))).StatusCode);
+    }
+
+    [Fact]
+    public async Task Membuang_bagian_idempoten_dan_topik_tak_ada_404()
+    {
+        using var host = Host();
+        using var client = host.CreateClient();
+        var slug = await BuatTopikAsync(client);
+
+        // Id dan slug yang tak pernah ada: idempoten 200, bukan 404 — DELETE
+        // menegaskan ketiadaan, dan itu sudah benar.
+        Assert.Equal(HttpStatusCode.OK, (await client.DeleteAsync(
+            new Uri($"/api/v1/technologies/{slug}/resources/{Guid.NewGuid()}", UriKind.Relative))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.DeleteAsync(
+            new Uri($"/api/v1/technologies/{slug}/projects/{Guid.NewGuid()}", UriKind.Relative))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.DeleteAsync(
+            new Uri($"/api/v1/technologies/{slug}/tools/alat-tak-pernah-ada", UriKind.Relative))).StatusCode);
+
+        // Topik di ALAMAT yang tak ada tetap 404.
+        Assert.Equal(HttpStatusCode.NotFound, (await client.DeleteAsync(
+            new Uri($"/api/v1/technologies/{Unik("tidak-ada")}/resources/{Guid.NewGuid()}", UriKind.Relative))).StatusCode);
+    }
+
+    [Fact]
+    public async Task Membuang_bagian_TIDAK_menggugurkan_tinjau()
+    {
+        // End-to-end: bawa topik ke tinjau, tambah sumber ekstra, buang ekstra itu —
+        // halamannya tetap HumanReviewed. ADR-012: memperbaiki tautan mati tidak boleh
+        // membuang kerja pemeriksa. Endpoint /tinjau tersedia karena cabang ini
+        // ditumpuk di atas #72.
+        using var host = Host();
+        using var client = host.CreateClient();
+        var slug = await BuatTopikAsync(client);
+
+        Assert.Equal(HttpStatusCode.OK, (await client.PutAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/roadmap/prasyarat", UriKind.Relative),
+            new RoadmapStepRequest("Dasar", "Bisa menulis fungsi."))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/roadmap", UriKind.Relative),
+            new RoadmapStepRequest("Langkah", "Menjalankan contoh."))).StatusCode);
+
+        var toolSlug = Unik("alat");
+        _alatDibuat.Add(toolSlug);
+        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync(
+            new Uri("/api/v1/tools", UriKind.Relative),
+            new CreateToolRequest("Alat Uji", "Dipakai uji.", "https://example.com", toolSlug))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/tools", UriKind.Relative),
+            new AttachToolRequest(toolSlug))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/projects", UriKind.Relative),
+            new ProjectRequest("Proyek", "Contoh minimal."))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/resources", UriKind.Relative),
+            new ResourceRequest("OfficialDocs", "Docs", "https://example.com/docs"))).StatusCode);
+
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsync(
+            new Uri($"/api/v1/technologies/{slug}/draf", UriKind.Relative), null)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/tinjau", UriKind.Relative),
+            new MarkReviewedRequest("pemilik"))).StatusCode);
+
+        // Sumber ekstra, lalu dibuang — halaman tetap lengkap, yang diuji murni
+        // efek buang pada kematangan.
+        var tambah = await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/resources", UriKind.Relative),
+            new ResourceRequest("Video", "Ekstra", "https://example.com/v"));
+        var sesudahTambah = (await tambah.Content.ReadFromJsonAsync<TechnologyResponse>())!;
+        Assert.Equal("HumanReviewed", sesudahTambah.Maturity);
+        var ekstraId = sesudahTambah.Resources[^1].Id;
+
+        var buang = await client.DeleteAsync(
+            new Uri($"/api/v1/technologies/{slug}/resources/{ekstraId}", UriKind.Relative));
+        Assert.Equal(HttpStatusCode.OK, buang.StatusCode);
+
+        var sesudahBuang = await client.GetFromJsonAsync<TechnologyResponse>(
+            new Uri($"/api/v1/technologies/{slug}", UriKind.Relative));
+        Assert.Equal("HumanReviewed", sesudahBuang!.Maturity);
+    }
 }
