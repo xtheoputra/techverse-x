@@ -1,23 +1,43 @@
 # Runbook — Merge tumpukan Bulan 3 + migrasi terkoordinasi
 
-**Dibuat:** 2026-10-05. **Status:** siap dieksekusi pemilik.
+**Dibuat:** 2026-10-05. **Diperbarui:** 2026-10-06.
+**Status:** Fase 1–3 **sudah dijalankan** (2026-10-05, bukti di tiap fase). Fase 4 di versi
+pertama runbook ini **salah premis** dan sudah diganti — lihat bagian berikut.
+
 **Konteks:** situs sudah **TAYANG** (web + API Vercel kontainer + Neon). Operasi ini
 membawa `main` naik dari Sesi 12 ke Sesi 20 dan menyalakan **pencarian teks-penuh +
 Knowledge Graph** di situs yang hidup.
 
-> ⚠️ Baca seluruhnya dulu. Kode baru menuntut migrasi skema yang belum ada di Neon,
-> dan API di Vercel **otomatis bangun ulang dari `main`** tiap kali ada merge.
->
-> ✅ **De-risk (diperiksa 2026-10-05 di kode tumpukan):** API **tidak** migrasi/
-> validasi skema saat startup, dan `/health/ready` hanya cek konektivitas. Jadi
-> kalau tumpukan ter-merge **sebelum** migrasi, **API tetap hidup** — homepage,
-> 14 bidang, dan halaman bidang jalan normal; **hanya `/cari`** (pencarian teks-
-> penuh baru) yang 500 sampai migrasi dijalankan. Situs **tidak** rusak total.
-> Karena itu **Fase 0 di bawah OPSIONAL.**
+---
+
+## ⚠️ Koreksi 2026-10-06 — Vercel TIDAK membangun dari repo ini
+
+Versi pertama runbook menulis: *"API di Vercel otomatis bangun ulang dari `main` tiap
+kali ada merge."* **Itu tidak benar**, dan baru ketahuan setelah 14 merge selesai dan
+`/api/v1/search` tetap 404.
+
+Kedua proyek Vercel ternyata membangun dari repo privat **salinan** repo ini, bukan dari
+repo ini. Salinan itu dibuat otomatis saat proyeknya dibuat (mekanisme tepatnya
+disimpulkan dari data di bawah, bukan dari dokumentasi Vercel):
+
+| Proyek Vercel | Repo yang dibangun | Salinan dibuat | Isi |
+|---|---|---|---|
+| `techverse-x-api` | `xtheoputra/techverse-x-api` | 2026-10-05 06:24 UTC | 1 commit "Initial commit", `2f88402` |
+| `techverse-x-web` | `xtheoputra/techverse-x-app` | 2026-10-05 07:49 UTC | 1 commit "Initial commit", `f608825` |
+
+Diukur: kedua repo dibuat 7–8 detik **sebelum** proyek Vercel-nya; isinya `main`@`57d3e94`
+dikurangi tiga berkas `.github/workflows/*`; bukan fork. Jadi mereka **cuplikan beku** —
+merge ke `xtheoputra/techverse-x` tidak pernah sampai ke sana. Nama `techverse-x-app`
+tampaknya berasal dari nama awal proyek web: deployment lamanya masih tercatat atas nama
+itu di daftar deployment Vercel.
+
+**Akibatnya** setelah Fase 1–3 selesai: Neon sudah dimigrasi ke skema baru, tetapi kode
+yang tayang masih Sesi 12 + tambalan Next.js 16.3.6. `/api/v1/fields` dan `/health/ready`
+tetap 200 (migrasinya aditif), hanya `/cari` dan `/api/v1/search` yang 404.
 
 ---
 
-## Keadaan awal (per 2026-10-05)
+## Keadaan awal (per 2026-10-05, sebelum eksekusi)
 
 - `main` = **Sesi 12** (10 Sep). ADR-022–026, pencarian, Knowledge Graph, navigasi —
   semuanya di **14 PR yang belum di-merge**.
@@ -29,115 +49,117 @@ Knowledge Graph** di situs yang hidup.
 
 - Live: web `techverse-x-web.vercel.app`, API `techverse-x-api.vercel.app`, Neon
   (9 tabel, 14 bidang, 0 topik).
-- Dua commit yang **sudah** di main dan belum ada di tumpukan: tambalan Next.js
-  16.3.6 (#76) dan `Dockerfile.vercel` (#75). Karena itu tiap PR perlu **"Update
-  branch"** sebelum merge.
+- Dua commit yang sudah di `main` dan belum ada di tumpukan: tambalan Next.js 16.3.6
+  (#76) dan `Dockerfile.vercel` (#75).
+
+> ✅ **De-risk (diperiksa 2026-10-05 di kode tumpukan, dan terbukti benar):** API
+> **tidak** migrasi/validasi skema saat startup, dan `/health/ready` hanya cek
+> konektivitas. Jadi kode baru yang tayang **sebelum** migrasi tidak menjatuhkan API —
+> hanya `/cari` yang 500. Karena itu menjeda deploy API (dulu "Fase 0") **tidak
+> diperlukan** dan tidak dilakukan.
 
 ---
 
-## Fase 0 — (OPSIONAL) Hentikan auto-deploy API
+## Fase 1 — Merge 14 PR, dasar ke puncak ✅ SELESAI 2026-10-05
 
-**Tidak wajib** (lihat de-risk di atas: API tidak crash; hanya `/cari` yang 500
-sementara). Lakukan **hanya** kalau Anda ingin `/cari` tetap mulus selama proses
-merge. Untuk situs pra-luncur tanpa pengguna nyata, **melewati fase ini aman** —
-`/cari` akan pulih sendiri begitu Fase 3 (migrasi) selesai.
+Untuk **tiap** PR, dari #56 ke atas: ubah basisnya ke `main`, tunggu CI hijau, merge.
+Jangan loncat urutan.
 
-Kalau tetap mau menjeda: Vercel → proyek **`techverse-x-api`** → **Settings → Git**
-→ setel **"Ignored Build Step"** ke perintah yang membatalkan build, lalu kosongkan
-lagi di Fase 4. (Mekanismenya agak fiddly — kalau ragu, **lewati saja fase ini.**)
+**Terukur:** keempat belas PR berstatus MERGED antara 09:37 dan 10:21 UTC; ujung `main`
+= `90a4115` (merge #74). Push-push itu memicu 14 run CI dan 13 run "Rilis citra", semuanya hijau.
 
 ---
 
-## Fase 1 — Merge 14 PR, dasar ke puncak
+## Fase 2 — Citra API baru terbit ✅ SELESAI 2026-10-05
 
-Untuk **tiap** PR dalam urutan di atas (mulai #56), lakukan tepat tiga langkah:
+Merge terakhir memicu `rilis-citra.yml`: bangun, pindai Trivy, dorong ke GHCR.
 
-1. Buka PR-nya → klik **"Update branch"** (menarik `main` terbaru: Next.js 16.3.6 +
-   `Dockerfile.vercel`). Ini yang membuat CI hijau; tanpa ini gerbang "Citra peti
-   kemas" merah karena Next.js lama.
-2. **Tunggu CI hijau** (±3 menit). Semua cek ✓.
-3. **Merge pull request** → **Confirm merge**.
-
-Lalu lanjut ke PR berikutnya (basisnya otomatis berpindah ke `main` setelah yang di
-bawahnya ter-merge).
-
-> 💡 Jangan loncat urutan. Kalau satu PR konflik saat "Update branch" (kemungkinan
-> kecil, paling-paling di `package-lock.json`), berhenti dan minta bantuan sebelum
-> lanjut.
->
-> 💡 Percepatan opsional: gerbang "Citra peti kemas" **bukan cek wajib**, jadi secara
-> teknis bisa merge tanpa "Update branch". **Tidak disarankan** — "Update branch"
-> memastikan yang di-merge benar-benar hijau dengan tambalan Next.js.
-
-Selesai Fase 1 → `main` sudah memuat seluruh Bulan 3 (Sesi 13–20).
+**Terukur:** run `37296086996` pada `90a4115`, hijau. SHA yang dipakai fase berikutnya:
+`90a4115`.
 
 ---
 
-## Fase 2 — Tunggu citra API baru terbit
-
-Merge terakhir memicu `rilis-citra.yml` di `main`.
-
-1. Tab **Actions** → tunggu run **"Rilis citra"** teratas **hijau**. Ia membangun,
-   memindai (kini bebas RCE Next.js), dan mendorong citra `api` baru ke GHCR.
-2. Catat **SHA** `main` terbaru (dari ringkasan run, atau `git log`). Sebut **`<SHA>`**.
-
----
-
-## Fase 3 — Migrasi Neon dengan citra baru
+## Fase 3 — Migrasi Neon dengan citra baru ✅ SELESAI 2026-10-05
 
 Kode baru butuh kolom `tsvector` (ADR-022) dan tabel relasi Knowledge Graph (ADR-023).
 
-1. Jalankan (dari terminal Anda):
-   ```
-   gh workflow run migrasi-produksi.yml --ref main -f sha=<SHA>
-   ```
-2. Pantau sampai **hijau** (`Done.`). Ini menambah migrasi baru ke Neon — **aditif**,
-   tidak menghapus data. (Beri tahu saya `<SHA>`-nya, saya pantau untuk Anda.)
+```
+gh workflow run migrasi-produksi.yml --ref main -f sha=<SHA>
+```
+
+**Terukur:** run `37296775982`, 10:28 UTC, hijau, `Done.`; dua migrasi baru mendarat
+(`PencarianTeksPenuh`, `RelasiAntarTopik`). Aditif — tidak menghapus data. Pemicunya
+harus pemilik (penjaga izin menolak sesi agen menyentuh produksi).
 
 ---
 
-## Fase 4 — Rapikan deploy API
+## Fase 4 — Sambungkan Vercel ke repo yang benar, lalu picu build baru
 
-- **Kalau Fase 0 DILEWATI (jalur biasa):** tidak ada yang perlu dilakukan. API yang
-  sudah hidup (kode baru) akan menemukan kolom/tabel baru pada kueri berikutnya
-  begitu migrasi (Fase 3) selesai — `/cari` pulih sendiri (paling lama setelah cache
-  web 5 menit). Redeploy opsional kalau ingin memastikan.
-- **Kalau Fase 0 DIPAKAI:** Vercel `techverse-x-api` → **Settings → Git** →
-  **nyalakan kembali** auto-deploy, lalu **Deployments → (⋯) → Redeploy** `main`
-  terbaru (tanpa cache).
+*(Menggantikan Fase 4 versi pertama, yang berasumsi auto-deploy dari `main`.)*
+
+**Satu kali, untuk tiap proyek Vercel** (`techverse-x-api`, lalu `techverse-x-web`):
+
+1. Settings → Git → **Disconnect** repo salinan.
+2. **Connect** ke `xtheoputra/techverse-x` (repo asli, tanpa akhiran `-api`/`-app`).
+3. Cek **Root Directory** tidak ikut berubah: API = `./` (akar; `Dockerfile.vercel` ada
+   di akar), web = `apps/web`.
+4. Cek variabel lingkungan masih ada: API → `PORT=8080` dan `ConnectionStrings__Postgres`;
+   web → `API_BASE_URL`.
+
+**Lalu picu build dengan commit BARU di `main`** (mis. merge PR berikutnya).
+
+> 🔴 **Jangan memakai Redeploy pada deployment lama.** Redeploy meng-*clone* ulang
+> commit yang sama. Ketiga deployment API yang ada semuanya meng-clone `2f88402`, commit
+> yang hanya ada di repo salinan. Sesudah repo diganti, Redeploy akan membangun ulang
+> kode lama atau gagal karena commitnya tak ada. Menyambung ulang saja juga **tidak**
+> memicu build — Vercel hanya membangun saat ada push.
+
+**Bukti yang benar** ada di log build Vercel (`vercel inspect <url> --logs`), baris
+pertama harus berbunyi:
+
+```
+Cloning github.com/xtheoputra/techverse-x (Branch: main, Commit: <SHA main>)
+```
+
+Kalau yang muncul `techverse-x-api` atau `techverse-x-app`, proyek itu masih membangun
+dari salinan beku.
 
 ---
 
-## Fase 5 — Verifikasi (saya bisa jalankan `curl`-nya untuk Anda)
+## Fase 5 — Verifikasi
 
 1. **Pencarian teks-penuh hidup:**
    ```
    curl -s "https://techverse-x-api.vercel.app/api/v1/search?q=quantum" | head -c 200
    ```
-   Harus memuat **`quantum-computing`** (sebelumnya 404 karena endpoint belum ada).
-2. **Situs:** `https://techverse-x-web.vercel.app/cari` terbuka, dan homepage tetap
-   menampilkan **14 bidang**.
+   Harus 200 dan memuat **`quantum-computing`** — itu **bidang**, bukan topik: pencarian
+   menjawab bidang dan topik sekaligus, dan Neon masih 0 topik, jadi daftar topiknya
+   kosong. Sebelumnya 404 karena rutenya belum ada di kode yang tayang.
+2. **Situs:** `https://techverse-x-web.vercel.app/cari` terbuka (bukan 404), dan homepage
+   tetap menampilkan **14 bidang**.
 3. **API baca lama tetap jalan:** `/api/v1/fields` → 200; tulis → 405.
+4. **Asal build** (Fase 4): log kedua proyek meng-clone `xtheoputra/techverse-x`.
 
 ---
 
 ## Kalau ada yang salah (rollback)
 
-- **Situs live rusak saat di tengah jalan:** Vercel → `techverse-x-api` →
-  **Instant Rollback** ke deployment terakhir yang baik (yang sekarang hidup).
-  Migrasi bersifat aditif, jadi skema lama tetap kompatibel dengan kode lama.
+- **Situs live rusak:** Vercel → proyek terkait → **Instant Rollback** ke deployment
+  terakhir yang baik. Migrasi bersifat aditif, jadi skema lama tetap kompatibel dengan
+  kode lama.
 - **Migrasi gagal:** baca lognya — `Couldn't set …` = parameter string, `SSL
   connection requested…` = transport. Skema tidak berubah separuh (EF bundel
   transaksional per migrasi).
-- **Satu PR tak mau hijau setelah "Update branch":** berhenti, jangan paksa merge
-  PR di atasnya — seluruh tumpukan lurus, jadi yang di atas ikut terhambat.
+- **Build Vercel gagal setelah repo diganti:** periksa Root Directory dan variabel
+  lingkungan dulu (Fase 4, butir 3–4), lalu baca log build-nya.
 
 ---
 
 ## Setelah selesai
 
-- `main` naik ke Sesi 20; ADR-025 (host API = Vercel kontainer) kini ADA di `main`.
-- Pencarian + Knowledge Graph hidup di situs.
+- Repo salinan `techverse-x-api` dan `techverse-x-app` **tidak punya isi unik** (identik
+  dengan `main`@`57d3e94` dikurangi `.github/workflows`) dan boleh dihapus pemilik —
+  `techverse-x-app` hanya sesudah proyek web terbukti membangun dari `techverse-x`.
 - **Ukuran resmi (topik `tinjau`) masih 0** — langkah berikutnya: jalan ADR-021
   (menaikkan topik ke `tinjau`) + menulis konten AI Agents. Itu yang akhirnya
   menggerakkan angka resmi dari nol.

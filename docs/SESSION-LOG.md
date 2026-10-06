@@ -4,6 +4,68 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-05 — Sesi 21: situs tayang di Vercel + Neon, empat belas PR masuk `main`, dan "otomatis dari `main`" ternyata tidak ada
+
+Permintaan pemilik, berurutan: *"berapa % proyek ini jadi?"* → *"apa yang dapat dikerjakan saat ini?"* → *"berarti 3 akun, … berikan langkah langkahnya"* → *"vercel kontainer"* → *"tambal"* → merge PR satu per satu.
+
+Entri ini ditulis **2026-10-06** dari transkrip dan pengukuran ulang, karena dua percakapan 5 Oktober tertutup sebelum ada catatan: yang pertama berhenti setelah pemilik memutus Git proyek API di Vercel dan belum menyambungkannya kembali; yang kedua menerima *"simpan, commit dan push, saya lanjut besok"* tapi berhenti sebelum menulis apa pun (tak ada commit atau cabang baru — diukur).
+
+### Akun: Neon dan Vercel ada, host API pindah ke Vercel kontainer
+
+- **Neon.** Secret `NEON_DATABASE_URL` pertama kali tersimpan **kosong**, jadi migrasi pertama (03:36 UTC) gagal. Sesudah diisi ulang, migrasi 03:55 UTC (run `37261328785`) hijau: 9 tabel, 14 bidang, 0 topik.
+- **Host API.** Pemilik bertanya adakah pilihan selain Railway ("jika akun trial, sangat disayangkan") dan memilih **Vercel kontainer** — kaki yang [ADR-025](adr/ADR-025-host-api-pengganti-koyeb.md) sudah siapkan. [PR #75](https://github.com/xtheoputra/techverse-x/pull/75) menambah `Dockerfile.vercel`.
+- **CI merah di #75 bukan salah Dockerfile.** Itu RCE Next.js baru (`GHSA-vcvr-r3jv-pc5j`) yang `main` belum tambal — tambalannya hidup di tumpukan yang belum ter-merge. [PR #76](https://github.com/xtheoputra/techverse-x/pull/76) menaikkan `next` 16.3.4 → 16.3.6 langsung di `main`. Pemilik me-merge #75 (06:10 UTC) dan #76 (06:18 UTC).
+- **API di Vercel** (proyek dibuat 06:24 UTC): sempat 500 `FUNCTION_INVOCATION_FAILED` sampai `ConnectionStrings__Postgres` terisi dan di-redeploy (07:32 UTC); sesudahnya baca 200, tulis 405, `/health/ready` 200.
+- **Web di Vercel** (proyek dibuat 07:49 UTC): Root Directory awalnya akar repo, jadi Vercel membangun `Dockerfile.vercel` (API) alih-alih Next.js dan web 500. Setelah Root Directory = `apps/web`, deployment hijau (08:22 UTC). **URL publik pertama tayang.**
+
+### Empat belas PR masuk `main`
+
+`main` tertinggal delapan sesi (Sesi 12), jadi merge tumpukan diperlakukan sebagai operasi terkoordinasi: [runbook](RUNBOOK-merge-tumpukan-bulan3.md) ditulis ([PR #77](https://github.com/xtheoputra/techverse-x/pull/77)), lalu pemilik me-merge #56 → #74 satu per satu antara **09:37 dan 10:21 UTC**, tiap kali basis PR berikutnya dipindah ke `main`. Terukur: keempat belas MERGED, ujung `main` = `90a4115`, 14 run CI dan 13 run "Rilis citra" hijau, citra `90a4115` terbit. Migrasi `migrasi-produksi.yml` (run `37296775982`, 10:28 UTC) hijau dan memasang `PencarianTeksPenuh` + `RelasiAntarTopik` ke Neon.
+
+### 🔴 "Vercel otomatis membangun dari `main`" — klaim runbook awal, dan tidak benar
+
+Verifikasi sesudah migrasi: `/api/v1/search?q=quantum` → **404**, padahal rutenya ada di `main` (`TechnologyModule.cs:109`). Ditelusuri dari tangkapan layar dasbor sampai log build:
+
+| Proyek | Membangun dari | Commit | Salinan dibuat | Proyek dibuat |
+|---|---|---|---|---|
+| `techverse-x-api` | `xtheoputra/techverse-x-api` (privat) | `2f88402` "Initial commit" | 06:24:08 UTC | 06:24:15 UTC |
+| `techverse-x-web` | `xtheoputra/techverse-x-app` (privat) | `f608825` "Initial commit" | 07:49:27 UTC | 07:49:35 UTC |
+
+Keduanya **bukan fork**, dan isinya identik dengan `main`@`57d3e94` dikurangi tiga berkas `.github/workflows/*`. Jadi mereka cuplikan beku yang dibuat Vercel sendiri tepat sebelum proyeknya (mekanisme persisnya kesimpulan dari data ini, bukan dari dokumentasi Vercel). **Empat belas merge tak pernah sampai ke produksi**; Neon kini lebih maju daripada kode yang tayang. Aman karena migrasinya aditif dan API tak memvalidasi skema saat startup: `/api/v1/fields` dan `/health/ready` tetap 200, hanya `/cari` dan `/api/v1/search` yang 404.
+
+🔑 **Kesalahan di runbook awal, bukan di eksekusinya:** klaim auto-deploy ditulis tanpa memeriksa repo mana yang disambungkan ke Vercel — pemeriksaan yang makan satu panggilan CLI. "Fase 0" (jeda deploy API) berdiri di premis yang sama, sehingga ikut gugur.
+
+### Lanjutan 2026-10-06 — *"sudah sampai mana kemarin?"*
+
+Dijawab dari `git status` (bersih), lalu transkrip kedua percakapan kemarin, Actions, dan Vercel CLI. Dua hal yang baru terukur hari ini:
+
+- **Menyambung ulang saja tidak memicu build.** Sesudah pemilik menyambungkan `techverse-x-api` ke `techverse-x`, deployment teratas tetap yang dari 17:36 WIB kemarin, dari repo salinan. Vercel hanya membangun saat ada push.
+- **Redeploy deployment lama adalah jebakan.** Ketiga deployment API meng-*clone* commit yang sama, `2f88402`, yang hanya ada di repo salinan. Redeploy akan membangun ulang kode lama atau gagal.
+
+Pemilik menyambungkan juga proyek web ke `techverse-x` (menurut pemilik; **belum terukur** — belum ada deployment baru). Runbook ditulis ulang di [PR #77](https://github.com/xtheoputra/techverse-x/pull/77): Fase 1–3 ditandai selesai dengan bukti, Fase 4 diganti prosedur yang benar, `origin/main` digabung ke cabangnya dengan merge (bukan rebase, supaya tak perlu push paksa). **Merge #77 menjadi commit baru di `main` — pemicu build Vercel pertama dari repo asli.**
+
+### Yang TIDAK dikerjakan, dan kenapa
+
+- **Tidak ada yang di-merge atau dihapus oleh sesi ini.** Repo salinan `techverse-x-api`/`techverse-x-app` tak berisi apa pun yang unik, tapi menghapusnya keputusan pemilik — dan `techverse-x-app` jangan dihapus sebelum web terbukti membangun dari `techverse-x`.
+- **#38 / #39 / #40 tetap terbuka** walau Neon, host API, dan web sudah ada. Komentar terakhir ketiganya bertanggal 9–17 September dan kriterianya belum diperiksa satu per satu terhadap keadaan sekarang.
+- **#60 / #61 juga masih terbuka** padahal cabang perbaikannya (#63) sudah masuk `main`. Belum diperiksa apakah memang harus ditutup.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**`origin/main` = `90a4115`** (Sesi 20 + keempat belas PR). Satu-satunya PR terbuka: [#77](https://github.com/xtheoputra/techverse-x/pull/77) (runbook dikoreksi + entri ini).
+
+**Langkah yang menggerakkan segalanya:** pemilik me-merge #77 → Vercel membangun API dan web dari `techverse-x` untuk pertama kali → verifikasi [Fase 5 runbook](RUNBOOK-merge-tumpukan-bulan3.md). Bukti yang dicari ada di log build, bukan di status "Ready": baris `Cloning github.com/xtheoputra/techverse-x (Branch: main, Commit: …)`.
+
+**Belum terukur:** bahwa kedua proyek Vercel benar-benar tersambung ke `techverse-x` (hanya kata pemilik; tak terbaca dari CLI), dan bahwa Root Directory + variabel lingkungan (`PORT`, `ConnectionStrings__Postgres`, `API_BASE_URL`) bertahan sesudah disambung ulang. Terukur 2026-10-06 ±10:10 WIB: `/api/v1/search` dan `/cari` masih 404.
+
+**Issue terbuka** (10, tak berubah): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68. Lihat butir "tidak dikerjakan" untuk #38–#40 dan #60/#61.
+
+**Menunggu pemilik:** merge #77; hapus repo salinan sesudah terbukti tak terpakai; putuskan menutup #38/#39/#40; dan sisa dari Sesi 20 (`LICENSE`, buka paket GHCR, akun AI). **Pemicu tertulis Sesi 20** — jalankan workflow `tinjau` begitu #40 tutup + secret Neon ada — kini tinggal satu syarat: secret Neon sudah ada, tersisa #40 ditutup.
+
+**Lingkungan — 2026-10-06:** pohon kerja bersih sesudah commit ini. Sesi ini tak menyalakan proses apa pun yang perlu dimatikan.
+
+---
+
 ## 2026-10-02 — Sesi 20: *"berapa %?"* dijawab, lalu jalan `tinjau` ADR-021 dibangun mendahului #40
 
 Permintaan pemilik: *"berapa % proyek ini jadi?"*, lalu *"kerjakan secara bertahap deliverable rencananya"*.
