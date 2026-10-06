@@ -93,6 +93,20 @@ Hanya yang pertama menjadi kode, di cabang `fase-1/ganti-teks-menurunkan-tinjau`
 
 Satu kesalahan sesi ini, supaya terbaca: pengukuran awal `Update()` tanpa pemanggil saya tulis sebagai temuan baru padahal sudah ada di Sesi 15 dan #68; dikoreksi di #79 dan di catatan ini, dan aturannya ditambahkan ke memori kerja.
 
+### Lanjutan 4 — *"78, 80, 81 sudah di-merge, apa lagi?"*: tiga PR ter-merge, tetapi dua isinya tidak sampai ke `main`
+
+Diukur sebelum menjawab, bukan dari status "MERGED":
+
+| PR | Basis saat di-merge | Waktu merge (UTC) | Sampai ke `main`? |
+|---|---|---|---|
+| #81 | `fase-1/jalan-isi-adr-027` | 06:27:35 | tidak — masuk cabang #80 |
+| #78 | `main` | 06:28:01 | ya (`9bc2177`) |
+| #80 | `fase-1/sesi-21-terverifikasi` | 06:28:41 | **tidak** — masuk cabang #78, **sesudah** #78 sudah masuk `main` |
+
+`git ls-tree origin/main` tak memuat `isi/`, `.github/workflows/isi.yml`, `ADR-027`, maupun `ExpireReview` (0 kemunculan di `Technology.cs`); cabang `fase-1/sesi-21-terverifikasi` memuat semuanya (`9f22adf`, 8 commit dan 22 berkas di depan `main`). Akibatnya workflow **Pasang isi** belum ada di `main`, jadi langkah 2–5 di 🏁 belum bisa dijalankan. Tak ada yang hilang: kodenya utuh di cabang itu, dan CI-nya hijau di setiap langkah.
+
+🔑 **Kesalahan dari sisi saya, bukan dari eksekusi pemilik:** 🏁 dan badan PR saya menulis *"Merge #78 → #80 → #81"* tanpa langkah yang [runbook](RUNBOOK-merge-tumpukan-bulan3.md) sudah tulis untuk rantai ini: *ubah basis PR berikutnya ke `main` sebelum di-merge*. Urutan saja tak cukup — PR yang basisnya cabang PR lain, bila di-merge, masuk ke cabang itu, bukan ke `main`. Perbaikannya [#82](https://github.com/xtheoputra/techverse-x/pull/82): satu PR dari `fase-1/sampaikan-80-81-ke-main` (turunan `9f22adf`) ke `main`, yang membawa kedelapan commit itu. Saya tidak mem-merge-nya.
+
 ### Yang TIDAK dikerjakan, dan kenapa
 
 - **Tidak ada yang di-merge oleh sesi ini.** Repo salinan dihapus pemilik, bukan saya.
@@ -104,7 +118,7 @@ Satu kesalahan sesi ini, supaya terbaca: pengukuran awal `Update()` tanpa pemang
 
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
-**Rantai PR tiga:** [#78](https://github.com/xtheoputra/techverse-x/pull/78) (`fase-1/sesi-21-terverifikasi`, hasil verifikasi produksi, dasar `main`) → [#80](https://github.com/xtheoputra/techverse-x/pull/80) (`fase-1/jalan-isi-adr-027`, dasar #78) → [#81](https://github.com/xtheoputra/techverse-x/pull/81) (`fase-1/ganti-teks-menurunkan-tinjau`, dasar #80). Merge **#78 → #80 → #81**. `origin/main` = `fa9b4fa`.
+**Rantai PR tiga — sudah ter-merge, tetapi #80 dan #81 BELUM sampai ke `main`** (lihat Lanjutan 4): #78 masuk `main` (`9bc2177`); #80 dan #81 masuk **cabang** `fase-1/sesi-21-terverifikasi` (`9f22adf`). Penyampainya: [#82](https://github.com/xtheoputra/techverse-x/pull/82) (`fase-1/sampaikan-80-81-ke-main`, dasar `main`). `origin/main` = `9bc2177` sampai #82 di-merge.
 
 **Produksi kini** (terukur 2026-10-06): situs publik tayang dari repo asli; pencarian dan `/cari` hidup; 14 bidang, **0 topik**; permukaan tulis tertutup. Ukuran resmi **0 dari 22**.
 
