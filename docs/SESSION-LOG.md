@@ -130,6 +130,8 @@ Langkah 1 (merge #82) **diverifikasi dari isi `main`**, bukan dari status PR: `m
 
 **#39 ditutup** dengan bukti di atas (host API di Vercel kontainer sehat, membaca Neon, tulis tertutup).
 
+**#54 — data pertama, belum pemicu:** kata yang hanya ada di bagian isi topik pilot (`Inspector`, `SDK`, `Schema`) menjawab **0** topik di `/search`; `JSON-RPC` dan `stateless` ketemu hanya karena ringkasannya memuatnya ([komentar](https://github.com/xtheoputra/techverse-x/issues/54#issuecomment-6011295710)). Dengan satu topik ini petunjuk, bukan frekuensi; pemicu tertulis (*sesudah #42 jalan dan tujuh topik ditulis*) tetap berlaku dan tak ada kode berubah.
+
 Satu catatan jujur: pemantau saya sekali salah tulis (ekspresi `jq` yang tak pernah berhenti) dan membuang sekitar 8 menit menunggu run yang sudah selesai. Rute bidang yang pertama saya tebak (`/bidang/ai-agents`, 404) keliru; rute sebenarnya diambil dari tautan di halaman topik.
 
 ### Yang TIDAK dikerjakan, dan kenapa
