@@ -80,6 +80,19 @@ Pemilik menghapus kedua repo salinan lebih dulu (terukur: `GET /repos/…/techve
 | `run.ps1 verify` | **hijau**: 116 unit + 76 integrasi, lint dan build web |
 | Gerbang CI di **runner sungguhan** (run `37415552163`, PR #80) | Frontend `Cek berkas isi` dan Backend `Isi sungguhan dipasang dari nol, dua kali` **hijau**; log runner: pasang pertama `selesai`, kedua `ada … sudah sama dengan berkas`, `SIAP: 1 topik terpasang dari nol, sama dengan berkas, berstatus draf.` Semua cek PR hijau, status CLEAN |
 
+### Lanjutan 3 — *"keputusan apa, berikan kemari"*: tiga keputusan dijawab, satu dibangun
+
+Pemilik minta keputusan yang tersisa disajikan di percakapan, dengan rekomendasi. Tiga yang mengubah pekerjaan berikutnya, dan jawabannya: **mengganti teks menurunkan tinjau** (rekomendasi diikuti), **enam topik menunggu penilaian pilot** (rekomendasi diikuti), **`LICENSE` tetap kosong dulu** (bukan rekomendasi saya: saya menawarkan MIT dan Apache-2.0).
+
+Hanya yang pertama menjadi kode, di cabang `fase-1/ganti-teks-menurunkan-tinjau` ([#81](https://github.com/xtheoputra/techverse-x/pull/81), ditumpuk di atas #80):
+
+- `SetPrerequisite` dan `AttachTool` kini memanggil `ExpireReview()` — satu pembantu privat yang juga dipakai `Update()` — **hanya** bila isi tersimpan diganti dengan isi yang **berbeda** sesudah dipangkas. Mengulang isi sama, menautkan alat baru, dan topik yang belum diperiksa tak berubah. Rute `PUT` topik tidak dibangun (keputusan terpisah di #79).
+- **Merah dulu, di dua lapis:** unit — 11 uji baru, 4 merah di domain lama dan 7 pagar hijau sejak awal; HTTP — 2 uji integrasi baru, keduanya merah tanpa perubahan domain (`Expected: "MachineDrafted" / Actual: "HumanReviewed"`), hijau dengannya, lewat `TopicMutation` sungguhan sehingga yang terbukti termasuk bahwa penurunannya **tersimpan**. Domain diambil-kembalikan dengan `git stash` untuk bukti merah HTTP; tak ada yang tertinggal.
+- `run.ps1 verify` **hijau**: 127 unit + 78 integrasi (dari 116 + 76), build ketat 0 peringatan.
+- [ADR-012 Pembaruan 2026-10-06](adr/ADR-012-template-halaman.md) mencatat batasnya.
+
+Satu kesalahan sesi ini, supaya terbaca: pengukuran awal `Update()` tanpa pemanggil saya tulis sebagai temuan baru padahal sudah ada di Sesi 15 dan #68; dikoreksi di #79 dan di catatan ini, dan aturannya ditambahkan ke memori kerja.
+
 ### Yang TIDAK dikerjakan, dan kenapa
 
 - **Tidak ada yang di-merge oleh sesi ini.** Repo salinan dihapus pemilik, bukan saya.
@@ -91,7 +104,7 @@ Pemilik menghapus kedua repo salinan lebih dulu (terukur: `GET /repos/…/techve
 
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
-**Rantai PR dua:** [#78](https://github.com/xtheoputra/techverse-x/pull/78) (`fase-1/sesi-21-terverifikasi`, hasil verifikasi produksi, dasar `main`) → PR jalan-isi (`fase-1/jalan-isi-adr-027`, dasar #78). Merge **#78 dulu**, lalu yang kedua. `origin/main` = `fa9b4fa`.
+**Rantai PR tiga:** [#78](https://github.com/xtheoputra/techverse-x/pull/78) (`fase-1/sesi-21-terverifikasi`, hasil verifikasi produksi, dasar `main`) → [#80](https://github.com/xtheoputra/techverse-x/pull/80) (`fase-1/jalan-isi-adr-027`, dasar #78) → [#81](https://github.com/xtheoputra/techverse-x/pull/81) (`fase-1/ganti-teks-menurunkan-tinjau`, dasar #80). Merge **#78 → #80 → #81**. `origin/main` = `fa9b4fa`.
 
 **Produksi kini** (terukur 2026-10-06): situs publik tayang dari repo asli; pencarian dan `/cari` hidup; 14 bidang, **0 topik**; permukaan tulis tertutup. Ukuran resmi **0 dari 22**.
 
@@ -99,7 +112,7 @@ Pemilik menghapus kedua repo salinan lebih dulu (terukur: `GET /repos/…/techve
 
 **Menunggu pemilik, berurutan — inilah yang menggerakkan angka resmi dari nol:**
 
-1. Merge #78, lalu PR jalan-isi (baca dulu `isi/ai-agents/model-context-protocol.json` di diff — itu **langkah baca-manusia pertama**, bukan formalitas: nilai mutunya, karena enam topik lain mengikuti cetakannya).
+1. Merge #78, lalu #80 (jalan isi; lalu #81 yang kecil dan tak bergantung pada penilaian pilot) (baca dulu `isi/ai-agents/model-context-protocol.json` di diff — itu **langkah baca-manusia pertama**, bukan formalitas: nilai mutunya, karena enam topik lain mengikuti cetakannya).
 2. Tunggu run "Rilis citra" hijau di `main`; catat SHA-nya.
 3. Actions → **Pasang isi** (`--ref main`, `sha` = langkah 2, `slug` = `model-context-protocol`) → topik `draf`, tampil berlabel di situs.
 4. Baca halaman jadinya di `/teknologi/model-context-protocol`.
@@ -107,11 +120,13 @@ Pemilik menghapus kedua repo salinan lebih dulu (terukur: `GET /repos/…/techve
 
 **Menunggu pemicu tertulis:** pemicu Sesi 20 (jalankan `tinjau` begitu #40 tutup + secret Neon ada) kini **terpenuhi** — #40 tutup dan secret ada — tinggal topiknya ada di produksi (langkah 3). #59 (Learn) menunggu satu roadmap terisi di produksi: MCP-lah calonnya. #54 menunggu isi sungguhan.
 
-**Menunggu keputusan pemilik:** apakah enam topik AI Agents sisanya (Tool use, A2A, Memori agen, Evals & observability, Keamanan agen, Human-in-the-loop) ditulis sekarang atau sesudah mutu pilot dinilai; dan sisa dari Sesi 20 (`LICENSE`, buka paket GHCR, akun AI).
+**Keputusan pemilik, dijawab 2026-10-06:** (1) *mengganti* teks pada topik `tinjau` **menurunkan** statusnya (dibangun di #81); (2) enam topik AI Agents sisanya (Tool use, A2A, Memori agen, Evals & observability, Keamanan agen, Human-in-the-loop) **ditulis sesudah pilot MCP dinilai**, jadi tak ada yang ditulis sebelum #80 ter-merge dan MCP terpasang; (3) `LICENSE`: **tetap tanpa lisensi untuk sekarang** (repo publik = *all rights reserved*; lisensi untuk `isi/` adalah soal terpisah dari kode dan belum ditanyakan).
+
+**Masih menunggu pemilik, tanpa tenggat:** buka paket GHCR atau tidak (belum diperiksa apakah masih relevan sesudah host API pindah ke Vercel kontainer, yang membangun langsung dari repo), akun AI, [#68](https://github.com/xtheoputra/techverse-x/issues/68) butir 2 (`ReviewedBy` tak terbaca) dan 3 (tiga status yang tak pernah tercapai), serta rute `PUT` topik di [#79](https://github.com/xtheoputra/techverse-x/issues/79).
 
 **Belum terukur:** `isi.yml` terhadap Neon dan citra yang terbit (hanya terbukti terhadap API di Postgres lokal dan service container).
 
-**Terukur sesudahnya (2026-10-06, komentar di [#79](https://github.com/xtheoputra/techverse-x/issues/79#issuecomment-6009756440)):** API **tidak** menurunkan `tinjau` pada perubahan bagian isi apa pun; hanya `Technology.Update()` yang menurunkan. Bahwa `Update()` **tak punya pemanggil produksi** bukan temuan baru: Sesi 15 sudah mengukurnya dan [#68](https://github.com/xtheoputra/techverse-x/issues/68) butir 1 memuatnya sejak 2026-09-24 (saya menulisnya sebagai temuan baru lebih dulu, karena tak menyapu catatan lama sebelum mengukur; dikoreksi di komentar kedua #79). **Yang baru hanya ukuran dua kasus mengganti teks:** `SetPrerequisite` (teks langkah 0) dan catatan `AttachTool` pada topik `tinjau` tidak menurunkan status, dan tak ada tes yang menjaganya (tes ADR-012 hanya menjaga tambah dan buang). Diukur dengan tes domain sementara yang tidak di-commit; tak ada kode berubah. Keputusan tetap di pemilik; rute `PUT` topik yang diusulkan #79 sekaligus menutup #68 butir 1.
+**Terukur sesudahnya (2026-10-06, komentar di [#79](https://github.com/xtheoputra/techverse-x/issues/79#issuecomment-6009756440)):** API **tidak** menurunkan `tinjau` pada perubahan bagian isi apa pun; hanya `Technology.Update()` yang menurunkan. Bahwa `Update()` **tak punya pemanggil produksi** bukan temuan baru: Sesi 15 sudah mengukurnya dan [#68](https://github.com/xtheoputra/techverse-x/issues/68) butir 1 memuatnya sejak 2026-09-24 (saya menulisnya sebagai temuan baru lebih dulu, karena tak menyapu catatan lama sebelum mengukur; dikoreksi di komentar kedua #79). **Yang baru hanya ukuran dua kasus mengganti teks:** `SetPrerequisite` (teks langkah 0) dan catatan `AttachTool` pada topik `tinjau` tidak menurunkan status, dan tak ada tes yang menjaganya. Pemilik memutuskan keduanya **harus menurunkan**; dibangun di [#81](https://github.com/xtheoputra/techverse-x/pull/81) (lihat Lanjutan 3). Rute `PUT` topik tetap belum dibangun.
 
 **Lingkungan — 2026-10-06:** pohon kerja bersih sesudah commit ini. Basis data sekali pakai `techversex_isi` dan API di port 5099 dibuat sesi ini **dan sudah dihapus/dihentikan** (PID dicocokkan dengan baris perintah dan waktu mulainya dulu). Container `techversex-postgres`/`-redis` sehat dan tak disentuh selain basis data sekali pakai tadi; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
 
