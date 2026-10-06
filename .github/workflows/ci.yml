@@ -133,6 +133,79 @@ jobs:
       - name: Uji unit + integrasi
         run: dotnet test TechVerseX.slnx --no-build --configuration Release --verbosity normal
 
+      # 🔑 GERBANG ADR-027: isi SUNGGUHAN (berkas di isi/) bisa dipasang ke API
+      # sungguhan, dari nol, dua kali.
+      #
+      # Kenapa gerbang tersendiri dan bukan cukup `cek:isi` di job frontend: pemeriksa
+      # itu mencerminkan batas panjang dan aturan bentuk, dan cermin bisa menyimpang
+      # dari server. Di sini SERVERNYA yang menilai — validator, aturan domain, dan
+      # `MarkDrafted` yang menolak bagian kosong. Jalan produksi (isi.yml) tidak bisa
+      # diuji tanpa secret Neon, jadi inilah satu-satunya tempat berkas isi bertemu API
+      # sebelum ia bertemu produksi.
+      #
+      # Basis data TERPISAH (techversex_isi) di service container yang sama: uji integrasi
+      # di atas sudah menulis ke `techversex`, dan "dari nol" tak boleh bergantung pada
+      # sisa uji lain. Pemasangan KEDUA harus tidak menulis apa pun — pemasang yang
+      # menggandakan langkah pada pemasangan ulang adalah cacat yang sudah pernah
+      # menggigit seed (database/seeds/seed.mjs).
+      - name: Isi sungguhan dipasang dari nol, dua kali (ADR-027)
+        env:
+          PGPASSWORD: techversex_dev
+          ConnectionStrings__Postgres: "Host=localhost;Port=5432;Database=techversex_isi;Username=techversex;Password=techversex_dev"
+          ConnectionStrings__Redis: "localhost:6379"
+          Editorial__WritesEnabled: "true"
+          API_BASE_URL: "http://127.0.0.1:5099"
+        run: |
+          psql -h localhost -U techversex -d techversex -c 'CREATE DATABASE techversex_isi'
+          dotnet ef database update \
+            --project services/technology/TechVerseX.TechnologyService.csproj \
+            --startup-project apps/api/TechVerseX.Api.csproj
+
+          dotnet run --project apps/api/TechVerseX.Api.csproj --no-build --configuration Release \
+            --no-launch-profile --urls "$API_BASE_URL" > "$RUNNER_TEMP/api-isi.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/api-isi.pid"
+
+          siap=""
+          for _ in $(seq 1 30); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' "$API_BASE_URL/health/ready")" = "200" ]; then
+              siap="ya"
+              break
+            fi
+            sleep 2
+          done
+          if [ -z "$siap" ]; then
+            echo "::error::API tidak pernah SIAP dalam 60 detik. Log-nya dicetak di langkah Bersihkan."
+            exit 1
+          fi
+
+          echo "=== Pemasangan pertama (dari nol)"
+          node database/isi/pasang.mjs --semua
+
+          echo "=== Pemasangan kedua (tak boleh menulis apa pun)"
+          node database/isi/pasang.mjs --semua | tee "$RUNNER_TEMP/pasang-kedua.txt"
+          if grep -E '^  (dibuat|langkah|proyek|sumber|sisi|draf)' "$RUNNER_TEMP/pasang-kedua.txt"; then
+            echo "::error::Pemasangan kedua menulis sesuatu. Pemasang harus idempoten: berkas yang sama, server yang sama, nol tulisan."
+            exit 1
+          fi
+
+          # Invarian inti ADR-027: pemasang membawa topik paling jauh ke draf. Tak satu
+          # topik pun boleh keluar dari sini berstatus tinjau atau berpemeriksa.
+          jumlah=0
+          for berkas in isi/*/*.json; do
+            slug="$(basename "$berkas" .json)"
+            badan="$(curl -s "$API_BASE_URL/api/v1/technologies/$slug")"
+            echo "$badan" | grep -q '"maturity":"MachineDrafted"' || { echo "::error::$slug tidak berstatus draf: $badan"; exit 1; }
+            echo "$badan" | grep -q '"reviewedAt":null' || { echo "::error::$slug punya reviewedAt — pemasang tak boleh menandai diperiksa."; exit 1; }
+            jumlah=$((jumlah + 1))
+          done
+          echo "SIAP: $jumlah topik terpasang dari nol, sama dengan berkas, berstatus draf."
+
+      - name: Bersihkan API isi
+        if: always()
+        run: |
+          tail -n 40 "$RUNNER_TEMP/api-isi.log" 2>/dev/null || true
+          if [ -f "$RUNNER_TEMP/api-isi.pid" ]; then kill "$(cat "$RUNNER_TEMP/api-isi.pid")" 2>/dev/null || true; fi
+
   frontend:
     name: Frontend (Next.js)
     runs-on: ubuntu-24.04 # disematkan - alasannya di job `backend`
@@ -151,6 +224,12 @@ jobs:
       # pemasangan paket. Alasan aturannya ada di kepala skripnya.
       - name: Cek tautan Markdown
         run: npm run cek:tautan
+
+      # Sama alasannya: nol dependensi, jadi berkas isi yang cacat gagal dalam hitungan
+      # detik, sebelum `npm ci`. Ia memeriksa SEMUA berkas isi/ (ADR-027); bahwa server
+      # sungguhan menerimanya dibuktikan job `backend`, langkah "Isi sungguhan".
+      - name: Cek berkas isi
+        run: npm run cek:isi
 
       - name: Install
         run: npm ci

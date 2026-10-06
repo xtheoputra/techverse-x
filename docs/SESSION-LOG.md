@@ -44,38 +44,105 @@ Dijawab dari `git status` (bersih), lalu transkrip kedua percakapan kemarin, Act
 
 Pemilik menyambungkan **kedua** proyek ke `techverse-x`, dan itu **terukur** begitu cabang ini di-push (`55ff84c`): kedua proyek membangun preview, dan log keduanya berbunyi `Cloning github.com/xtheoputra/techverse-x (Branch: fase-1/runbook-merge-tumpukan, Commit: 55ff84c)`. Web: `next build` lolos dengan Root Directory `apps/web`. API: citra `Dockerfile.vercel` dari akar terbangun dan Ready, dengan openssl 3.0.13-0ubuntu3.16 (tambalan CVE-2026-84782 ikut). Preview itu dilindungi Vercel Authentication (302 tanpa login), jadi rute `/search` dan `/cari` **belum bisa diuji sebelum merge**. Runbook ditulis ulang di [PR #77](https://github.com/xtheoputra/techverse-x/pull/77): Fase 1–3 ditandai selesai dengan bukti, Fase 4 diganti prosedur yang benar, `origin/main` digabung ke cabangnya dengan merge (bukan rebase, supaya tak perlu push paksa). **Merge #77 menjadi commit baru di `main` — pemicu build Vercel pertama dari repo asli.**
 
+### Lanjutan 2 — *"lanjutkan progress"*: rapikan issue, lalu jalan isi dibangun
+
+Pemilik menghapus kedua repo salinan lebih dulu (terukur: `GET /repos/…/techverse-x-api` dan `…/techverse-x-app` membalas 404; produksi tetap 200). Dua pertanyaan dijawab sebelum membangun, karena [ADR-010](adr/ADR-010-taksonomi-bidang.md) ("prioritas 1 ditulis manusia sampai tuntas") dan [#42](https://github.com/xtheoputra/techverse-x/issues/42) ("asisten menyusun sampai `draf`") membaca berbeda: **pilot satu topik**, dan **tutup issue yang terbukti**.
+
+**Issue — diperiksa dengan bukti, bukan ditebak.** Ditutup dengan komentar berisi buktinya: **#38** (Neon: migrasi hijau dua kali, run `37261328785` dan `37296775982`; API menjawab dari Neon), **#40** (web 200, 14 bidang berlabel *"Target: …"*, Root Directory `apps/web`), **#60** dan **#61** (perbaikan #63 ada di `main` `90a4115` — `Enum.GetNames<ResourceType>()` di `Handler.cs:80`, `ThrowOnBadRequest` di `Program.cs:68`; separuh #61 yang berlaku di produksi diukur: `?pageSize=abc` dan `?page=abc` → 400 yang menyebut parameternya). **#39** ditutup lewat PR ini: host API yang tayang tercapai, tapi ADR-025 masih berbunyi *"belum dipilih"* — sekarang tidak lagi ([Pembaruan 2026-10-05](adr/ADR-025-host-api-pengganti-koyeb.md#pembaruan-2026-10-05--host-api-dipilih-vercel-kontainer)). Issue baru: **[#79](https://github.com/xtheoputra/techverse-x/issues/79)** — isi yang sudah terpasang tak punya jalan diubah.
+
+**Celah yang ditemukan: tak ada jalan membawa tulisan ke produksi.** Permukaan tulis mati ([ADR-020](adr/ADR-020-permukaan-tulis-api.md)) dan `tinjau.yml` hanya menaikkan topik yang **sudah ada**. Pencacah resmi tak bisa bergerak dari nol bukan karena belum ada yang menulis. [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md) sengaja meninggalkan pertanyaannya (*"dari mana isi sungguhan datang"*); ia kini dijawab di **[ADR-027](adr/ADR-027-jalan-isi-sungguhan.md)**.
+
+**Yang dibangun** (cabang `fase-1/jalan-isi-adr-027`, ditumpuk di atas [#78](https://github.com/xtheoputra/techverse-x/pull/78)):
+
+- `isi/<bidang>/<slug>.json` — isi sebagai berkas, bentuk sama dengan muatan API, dibaca di diff PR. Pilot: **Model Context Protocol** (9 langkah roadmap, 4 alat, 1 proyek dengan kriteria selesai, 8 sumber).
+- `database/isi/pasang.mjs` — `--cek`, `<slug>`, `--semua`. **Tidak pernah menimpa diam-diam, tidak pernah ke `tinjau`.**
+- `.github/workflows/isi.yml` — meniru `tinjau.yml`: hanya dari `main`, hanya `sha` + `slug`, citra `api` di `127.0.0.1`. Action-nya disematkan per SHA (rahasia Neon).
+- `IsiWorkflowGuardTests` (+4 unit) dan `WorkflowYaml` — pembaca YAML yang kini dipakai bersama `TinjauWorkflowGuardTests` (satu implementasi, bukan dua).
+- Dua gerbang CI: `cek:isi` (frontend) dan **"Isi sungguhan dipasang dari nol, dua kali"** (backend).
+- `run.ps1 isi` / `isi-pasang`, target Makefile yang sepadan (tidak diukur: mesin ini tanpa `make`), [`isi/README.md`](../isi/README.md).
+
+**Isinya diverifikasi ke sumber primer saat ditulis — dan itu menangkap saya.** Pengetahuan model penyusun menyebut MCP berjabat tangan `initialize`; spesifikasi yang tayang (`2026-07-28`) *stateless*: tiap permintaan membawa versi protokol dan kapabilitasnya di `_meta`, dan `server/discover` bersifat opsional. Jabat tangan `initialize` memang benar — untuk revisi `2025-06-18`, yang dibaca terpisah dan disebut di langkah 3 roadmap sebagai pembanding. Semua tautan sumber dicek HTTP 200; alamat tak-bertanggal (`/specification/latest`) dipilih supaya tak basi.
+
+**Terukur, bukan diklaim:**
+
+| Yang dibuktikan | Hasil |
+|---|---|
+| Pasang dari nol ke API sungguhan | semua bagian terpasang → `draf`, `selesai … sama dengan berkas` |
+| Pasang ulang | `ada … sudah sama dengan berkas`, **nol tulisan** |
+| Server punya sumber ekstra | `BEDA`, exit 1, **tak ada yang ditulis**; setelah `DELETE`, sama lagi |
+| Sebagian terpasang (satu proyek dan satu sumber dibuang) | pemasang menambah **hanya** yang kurang |
+| Ringkasan berkas diubah | `BEDA summary … tak ada endpoint untuk mengubahnya`, exit 1 |
+| Topik sudah `tinjau` | sama dengan berkas → no-op; berkas ditambah sumber → `TERKUNCI`, exit 1 |
+| Berkas cacat sengaja (kunci salah ketik, slug ≠ nama berkas, folder ≠ `fieldSlug`, judul ganda, `ftp://`, daftar kosong, relasi ke berkas tak ada, ke diri sendiri, alat berdefinisi ganda) | **10 masalah** dilaporkan sekaligus |
+| Urutan `--semua` dan siklus | prasyarat dipasang lebih dulu walau namanya terurut belakangan; siklus `A→B→A` ditolak di `--cek` |
+| Penjaga di bawah sabotase | input ketiga → merah; `/tinjau` di pemasang → merah; pemeriksaan `main` dicabut → merah; dipulihkan identik (`cmp`) → hijau |
+| Skrip gerbang CI | diekstrak dari `ci.yml` dan dijalankan ulang di basis data kosong: `SIAP: 1 topik terpasang dari nol, sama dengan berkas, berstatus draf` |
+| `run.ps1 verify` | **hijau**: 116 unit + 76 integrasi, lint dan build web |
+| Gerbang CI di **runner sungguhan** (run `37415552163`, PR #80) | Frontend `Cek berkas isi` dan Backend `Isi sungguhan dipasang dari nol, dua kali` **hijau**; log runner: pasang pertama `selesai`, kedua `ada … sudah sama dengan berkas`, `SIAP: 1 topik terpasang dari nol, sama dengan berkas, berstatus draf.` Semua cek PR hijau, status CLEAN |
+
+### Lanjutan 3 — *"keputusan apa, berikan kemari"*: tiga keputusan dijawab, satu dibangun
+
+Pemilik minta keputusan yang tersisa disajikan di percakapan, dengan rekomendasi. Tiga yang mengubah pekerjaan berikutnya, dan jawabannya: **mengganti teks menurunkan tinjau** (rekomendasi diikuti), **enam topik menunggu penilaian pilot** (rekomendasi diikuti), **`LICENSE` tetap kosong dulu** (bukan rekomendasi saya: saya menawarkan MIT dan Apache-2.0).
+
+Hanya yang pertama menjadi kode, di cabang `fase-1/ganti-teks-menurunkan-tinjau` ([#81](https://github.com/xtheoputra/techverse-x/pull/81), ditumpuk di atas #80):
+
+- `SetPrerequisite` dan `AttachTool` kini memanggil `ExpireReview()` — satu pembantu privat yang juga dipakai `Update()` — **hanya** bila isi tersimpan diganti dengan isi yang **berbeda** sesudah dipangkas. Mengulang isi sama, menautkan alat baru, dan topik yang belum diperiksa tak berubah. Rute `PUT` topik tidak dibangun (keputusan terpisah di #79).
+- **Merah dulu, di dua lapis:** unit — 11 uji baru, 4 merah di domain lama dan 7 pagar hijau sejak awal; HTTP — 2 uji integrasi baru, keduanya merah tanpa perubahan domain (`Expected: "MachineDrafted" / Actual: "HumanReviewed"`), hijau dengannya, lewat `TopicMutation` sungguhan sehingga yang terbukti termasuk bahwa penurunannya **tersimpan**. Domain diambil-kembalikan dengan `git stash` untuk bukti merah HTTP; tak ada yang tertinggal.
+- `run.ps1 verify` **hijau**: 127 unit + 78 integrasi (dari 116 + 76), build ketat 0 peringatan.
+- [ADR-012 Pembaruan 2026-10-06](adr/ADR-012-template-halaman.md) mencatat batasnya.
+
+Satu kesalahan sesi ini, supaya terbaca: pengukuran awal `Update()` tanpa pemanggil saya tulis sebagai temuan baru padahal sudah ada di Sesi 15 dan #68; dikoreksi di #79 dan di catatan ini, dan aturannya ditambahkan ke memori kerja.
+
+### Lanjutan 4 — *"78, 80, 81 sudah di-merge, apa lagi?"*: tiga PR ter-merge, tetapi dua isinya tidak sampai ke `main`
+
+Diukur sebelum menjawab, bukan dari status "MERGED":
+
+| PR | Basis saat di-merge | Waktu merge (UTC) | Sampai ke `main`? |
+|---|---|---|---|
+| #81 | `fase-1/jalan-isi-adr-027` | 06:27:35 | tidak — masuk cabang #80 |
+| #78 | `main` | 06:28:01 | ya (`9bc2177`) |
+| #80 | `fase-1/sesi-21-terverifikasi` | 06:28:41 | **tidak** — masuk cabang #78, **sesudah** #78 sudah masuk `main` |
+
+`git ls-tree origin/main` tak memuat `isi/`, `.github/workflows/isi.yml`, `ADR-027`, maupun `ExpireReview` (0 kemunculan di `Technology.cs`); cabang `fase-1/sesi-21-terverifikasi` memuat semuanya (`9f22adf`, 8 commit dan 22 berkas di depan `main`). Akibatnya workflow **Pasang isi** belum ada di `main`, jadi langkah 2–5 di 🏁 belum bisa dijalankan. Tak ada yang hilang: kodenya utuh di cabang itu, dan CI-nya hijau di setiap langkah.
+
+🔑 **Kesalahan dari sisi saya, bukan dari eksekusi pemilik:** 🏁 dan badan PR saya menulis *"Merge #78 → #80 → #81"* tanpa langkah yang [runbook](RUNBOOK-merge-tumpukan-bulan3.md) sudah tulis untuk rantai ini: *ubah basis PR berikutnya ke `main` sebelum di-merge*. Urutan saja tak cukup — PR yang basisnya cabang PR lain, bila di-merge, masuk ke cabang itu, bukan ke `main`. Perbaikannya [#82](https://github.com/xtheoputra/techverse-x/pull/82): satu PR dari `fase-1/sampaikan-80-81-ke-main` (turunan `9f22adf`) ke `main`, yang membawa kedelapan commit itu. Saya tidak mem-merge-nya.
+
 ### Yang TIDAK dikerjakan, dan kenapa
 
-- **Tidak ada yang di-merge atau dihapus oleh sesi ini.** Repo salinan `techverse-x-api`/`techverse-x-app` tak berisi apa pun yang unik, tapi menghapusnya keputusan pemilik — dan `techverse-x-app` jangan dihapus sebelum web terbukti membangun dari `techverse-x`.
-- **#38 / #39 / #40 tetap terbuka** walau Neon, host API, dan web sudah ada. Komentar terakhir ketiganya bertanggal 9–17 September dan kriterianya belum diperiksa satu per satu terhadap keadaan sekarang.
-- **#60 / #61 juga masih terbuka** padahal cabang perbaikannya (#63) sudah masuk `main`. Belum diperiksa apakah memang harus ditutup.
+- **Tidak ada yang di-merge oleh sesi ini.** Repo salinan dihapus pemilik, bukan saya.
+- **`isi.yml` belum pernah DIJALANKAN di produksi** — butuh pemicu pemilik, dan hanya bisa dari `main` sesudah PR ini ter-merge. Yang terbukti hanya: dari nol ke API sungguhan, ulang tanpa tulisan, dan penjaganya merah di bawah sabotase.
+- **Enam topik AI Agents lainnya tidak ditulis** — pilihan pemilik: satu pilot dulu, supaya mutunya dinilai sebelum sisanya. Relasi `requires` (MCP butuh Tool Use) baru bisa dicatat sesudah topik prasyaratnya ada.
+- **Tak ada jalan mengubah isi yang sudah terpasang** ([#79](https://github.com/xtheoputra/techverse-x/issues/79)). Sengaja tidak dibangun: ia keputusan tersendiri, dan biayanya masih nol selagi produksi nol topik.
+- **`PENYEBARAN.md` hanya diberi spanduk**, bukan ditulis ulang: bagian Koyeb-nya rekaman dan sekarang berkata begitu; urutan yang benar ada di runbook.
+- **Makefile tidak diukur** (`make` tak terpasang di mesin ini; hanya `run.ps1`).
 
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
-**`origin/main` = `fa9b4fa`** (merge [#77](https://github.com/xtheoputra/techverse-x/pull/77), 2026-10-06 04:15 UTC; Sesi 20 + keempat belas PR + runbook dikoreksi). Satu-satunya PR terbuka: yang membawa pembaruan entri ini.
+**Rantai PR tiga — sudah ter-merge, tetapi #80 dan #81 BELUM sampai ke `main`** (lihat Lanjutan 4): #78 masuk `main` (`9bc2177`); #80 dan #81 masuk **cabang** `fase-1/sesi-21-terverifikasi` (`9f22adf`). Penyampainya: [#82](https://github.com/xtheoputra/techverse-x/pull/82) (`fase-1/sampaikan-80-81-ke-main`, dasar `main`). `origin/main` = `9bc2177` sampai #82 di-merge.
 
-**Terukur sesudah merge #77 — produksi kini menayangkan kode Bulan 3.** Merge itu memicu build Production pertama dari repo asli di kedua proyek; log keduanya berbunyi `Cloning github.com/xtheoputra/techverse-x (Branch: main, Commit: fa9b4fa)`, keduanya Ready dalam ±1 menit. Diperiksa pada alamat produksi:
+**Produksi kini** (terukur 2026-10-06): situs publik tayang dari repo asli; pencarian dan `/cari` hidup; 14 bidang, **0 topik**; permukaan tulis tertutup. Ukuran resmi **0 dari 22**.
 
-| Pemeriksaan | Sebelum | Sesudah |
-|---|---|---|
-| `/api/v1/search?q=quantum` | 404 | **200**, memuat bidang `quantum-computing`; `technologies` kosong (Neon masih 0 topik) |
-| web `/cari?q=quantum` | 404 | **200**, memuat "Quantum Computing" |
-| web `/cari` tanpa kata kunci | 404 | 200 |
-| `/health/ready`, `/api/v1/fields` | 200 | 200 |
-| `POST /api/v1/technologies` | 405 | 405 (produksi tetap hanya-baca) |
-| beranda | 14 bidang | 14 tautan `/teknologi/<bidang>` |
+**Issue terbuka** (6): #42 · #54 · #55 · #59 · #68 · **#79** (baru). Ditutup sesi ini: #38 · #40 · #60 · #61, dan **#39** begitu PR jalan-isi ter-merge.
 
-Variabel lingkungan produksi (`PORT`, `ConnectionStrings__Postgres`, `API_BASE_URL`) **bertahan** sesudah disambung ulang — yang tadinya satu-satunya hal belum terukur kini terukur, lewat API yang menjawab dari Neon.
+**Menunggu pemilik, berurutan — inilah yang menggerakkan angka resmi dari nol:**
 
-🔑 **Pelajaran yang terbukti:** merge hijau, citra terbit, dan migrasi hijau — semuanya benar sementara kode lama tetap melayani. `/health/ready` hanya cek konektivitas dan `/api/v1/fields` ada di kedua versi, jadi tak satu penjaga pun merah; celahnya hanya kelihatan karena verifikasi menanyakan rute yang **baru**. Verifikasi pasca-merge harus selalu memuat sedikitnya satu rute yang hanya ada di kode baru.
+1. Merge #78, lalu #80 (jalan isi; lalu #81 yang kecil dan tak bergantung pada penilaian pilot) (baca dulu `isi/ai-agents/model-context-protocol.json` di diff — itu **langkah baca-manusia pertama**, bukan formalitas: nilai mutunya, karena enam topik lain mengikuti cetakannya).
+2. Tunggu run "Rilis citra" hijau di `main`; catat SHA-nya.
+3. Actions → **Pasang isi** (`--ref main`, `sha` = langkah 2, `slug` = `model-context-protocol`) → topik `draf`, tampil berlabel di situs.
+4. Baca halaman jadinya di `/teknologi/model-context-protocol`.
+5. Actions → **Naikkan ke tinjau** (sha yang sama, slug yang sama) → **angka resmi menjadi 1 dari 22.**
 
-**Issue terbuka** (10, tak berubah): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68. Lihat butir "tidak dikerjakan" untuk #38–#40 dan #60/#61.
+**Menunggu pemicu tertulis:** pemicu Sesi 20 (jalankan `tinjau` begitu #40 tutup + secret Neon ada) kini **terpenuhi** — #40 tutup dan secret ada — tinggal topiknya ada di produksi (langkah 3). #59 (Learn) menunggu satu roadmap terisi di produksi: MCP-lah calonnya. #54 menunggu isi sungguhan.
 
-**Menunggu pemilik:** hapus repo salinan `techverse-x-api` (kini tak dipakai proyek mana pun) dan, sesudahnya, `techverse-x-app` — keduanya sudah terbukti tak terpakai karena kedua build produksi meng-*clone* `techverse-x`; putuskan menutup #38/#39/#40; dan sisa dari Sesi 20 (`LICENSE`, buka paket GHCR, akun AI). **Pemicu tertulis Sesi 20** — jalankan workflow `tinjau` begitu #40 tutup + secret Neon ada — kini tinggal satu syarat: secret Neon sudah ada, tersisa #40 ditutup.
+**Keputusan pemilik, dijawab 2026-10-06:** (1) *mengganti* teks pada topik `tinjau` **menurunkan** statusnya (dibangun di #81); (2) enam topik AI Agents sisanya (Tool use, A2A, Memori agen, Evals & observability, Keamanan agen, Human-in-the-loop) **ditulis sesudah pilot MCP dinilai**, jadi tak ada yang ditulis sebelum #80 ter-merge dan MCP terpasang; (3) `LICENSE`: **tetap tanpa lisensi untuk sekarang** (repo publik = *all rights reserved*; lisensi untuk `isi/` adalah soal terpisah dari kode dan belum ditanyakan).
 
-**Langkah bermakna berikutnya:** ukuran resmi (topik `tinjau`) masih **0 dari 22**. Pencarian dan Knowledge Graph kini hidup tetapi menjawab dari 14 bidang tanpa topik. Yang menggerakkan angka itu adalah jalan [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md) (workflow `tinjau`) ditambah isi topik AI Agents.
+**Masih menunggu pemilik, tanpa tenggat:** buka paket GHCR atau tidak (belum diperiksa apakah masih relevan sesudah host API pindah ke Vercel kontainer, yang membangun langsung dari repo), akun AI, [#68](https://github.com/xtheoputra/techverse-x/issues/68) butir 2 (`ReviewedBy` tak terbaca) dan 3 (tiga status yang tak pernah tercapai), serta rute `PUT` topik di [#79](https://github.com/xtheoputra/techverse-x/issues/79).
 
-**Lingkungan — 2026-10-06:** pohon kerja bersih sesudah commit ini. Sesi ini tak menyalakan proses apa pun yang perlu dimatikan.
+**Belum terukur:** `isi.yml` terhadap Neon dan citra yang terbit (hanya terbukti terhadap API di Postgres lokal dan service container).
+
+**Terukur sesudahnya (2026-10-06, komentar di [#79](https://github.com/xtheoputra/techverse-x/issues/79#issuecomment-6009756440)):** API **tidak** menurunkan `tinjau` pada perubahan bagian isi apa pun; hanya `Technology.Update()` yang menurunkan. Bahwa `Update()` **tak punya pemanggil produksi** bukan temuan baru: Sesi 15 sudah mengukurnya dan [#68](https://github.com/xtheoputra/techverse-x/issues/68) butir 1 memuatnya sejak 2026-09-24 (saya menulisnya sebagai temuan baru lebih dulu, karena tak menyapu catatan lama sebelum mengukur; dikoreksi di komentar kedua #79). **Yang baru hanya ukuran dua kasus mengganti teks:** `SetPrerequisite` (teks langkah 0) dan catatan `AttachTool` pada topik `tinjau` tidak menurunkan status, dan tak ada tes yang menjaganya. Pemilik memutuskan keduanya **harus menurunkan**; dibangun di [#81](https://github.com/xtheoputra/techverse-x/pull/81) (lihat Lanjutan 3). Rute `PUT` topik tetap belum dibangun.
+
+**Lingkungan — 2026-10-06:** pohon kerja bersih sesudah commit ini. Basis data sekali pakai `techversex_isi` dan API di port 5099 dibuat sesi ini **dan sudah dihapus/dihentikan** (PID dicocokkan dengan baris perintah dan waktu mulainya dulu). Container `techversex-postgres`/`-redis` sehat dan tak disentuh selain basis data sekali pakai tadi; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
 
 ---
 
