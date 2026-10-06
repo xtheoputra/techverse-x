@@ -399,3 +399,116 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260911075051_PencarianTeksPenuh') THEN
+    ALTER TABLE technology.technologies ADD search_vector tsvector GENERATED ALWAYS AS (setweight(to_tsvector('english', coalesce("Name", '')), 'A') || setweight(to_tsvector('english', coalesce("Summary", '')), 'B')) STORED;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260911075051_PencarianTeksPenuh') THEN
+    ALTER TABLE technology.fields ADD search_vector tsvector GENERATED ALWAYS AS (setweight(to_tsvector('english', coalesce("Name", '')), 'A') || setweight(to_tsvector('english', coalesce("Summary", '')), 'B')) STORED;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260911075051_PencarianTeksPenuh') THEN
+    CREATE INDEX ix_technologies_search_vector ON technology.technologies USING GIN (search_vector);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260911075051_PencarianTeksPenuh') THEN
+    CREATE INDEX ix_fields_search_vector ON technology.fields USING GIN (search_vector);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260911075051_PencarianTeksPenuh') THEN
+    INSERT INTO technology.__ef_migrations_history ("MigrationId", "ProductVersion")
+    VALUES ('20260911075051_PencarianTeksPenuh', '10.0.4');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260916103308_RelasiAntarTopik') THEN
+    CREATE INDEX ix_technology_relationships_to_technology_id ON technology.technology_relationships ("ToTechnologyId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260916103308_RelasiAntarTopik') THEN
+    ALTER TABLE technology.technology_relationships ADD CONSTRAINT ck_technology_relationships_bukan_diri_sendiri CHECK ("FromTechnologyId" <> "ToTechnologyId");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260916103308_RelasiAntarTopik') THEN
+    ALTER TABLE technology.technology_relationships ADD CONSTRAINT ck_technology_relationships_kind CHECK ("Kind" IN ('Requires'));
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260916103308_RelasiAntarTopik') THEN
+    ALTER TABLE technology.technology_relationships ADD CONSTRAINT "FK_technology_relationships_technologies_ToTechnologyId" FOREIGN KEY ("ToTechnologyId") REFERENCES technology.technologies ("Id") ON DELETE RESTRICT;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260916103308_RelasiAntarTopik') THEN
+    INSERT INTO technology.__ef_migrations_history ("MigrationId", "ProductVersion")
+    VALUES ('20260916103308_RelasiAntarTopik', '10.0.4');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260917024242_RingkasanBidangTanpaRujukanADR') THEN
+    UPDATE technology.fields SET "Summary" = 'Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering.'
+    WHERE "Id" = 'f1e10000-0000-7000-8000-000000000004';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260917024242_RingkasanBidangTanpaRujukanADR') THEN
+    UPDATE technology.fields SET "Summary" = 'Solar PV, angin, panas bumi, hidro, bioenergi & SAF, hidrogen hijau, integrasi jaringan & penyimpanan, ekonomi & kebijakan. Fusi nuklir tidak termasuk.'
+    WHERE "Id" = 'f1e10000-0000-7000-8000-00000000000c';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260917024242_RingkasanBidangTanpaRujukanADR') THEN
+    UPDATE technology.fields SET "Summary" = 'Realitas diperluas. Dipertahankan sebagai pintu pencarian, tapi sengaja tidak diinvestasikan.'
+    WHERE "Id" = 'f1e10000-0000-7000-8000-00000000000e';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20260917024242_RingkasanBidangTanpaRujukanADR') THEN
+    INSERT INTO technology.__ef_migrations_history ("MigrationId", "ProductVersion")
+    VALUES ('20260917024242_RingkasanBidangTanpaRujukanADR', '10.0.4');
+    END IF;
+END $EF$;
+COMMIT;
+

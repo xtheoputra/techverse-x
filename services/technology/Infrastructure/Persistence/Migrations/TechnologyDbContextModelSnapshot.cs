@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using NpgsqlTypes;
 using TechVerseX.TechnologyService.Infrastructure.Persistence;
 
 #nullable disable
@@ -42,6 +43,12 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<NpgsqlTsVector>("SearchVector")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("tsvector")
+                        .HasColumnName("search_vector")
+                        .HasComputedColumnSql("setweight(to_tsvector('english', coalesce(\"Name\", '')), 'A') || setweight(to_tsvector('english', coalesce(\"Summary\", '')), 'B')", true);
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(120)
@@ -61,6 +68,11 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
                     b.HasIndex("Name")
                         .IsUnique()
                         .HasDatabaseName("ix_fields_name");
+
+                    b.HasIndex("SearchVector")
+                        .HasDatabaseName("ix_fields_search_vector");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchVector"), "GIN");
 
                     b.HasIndex("Slug")
                         .IsUnique()
@@ -103,7 +115,7 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
                             Name = "Cloud & Infrastructure",
                             Priority = "Core",
                             Slug = "cloud-infrastructure",
-                            Summary = "Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering. Nama lebar dipertahankan dengan sengaja - lihat ADR-010."
+                            Summary = "Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering."
                         },
                         new
                         {
@@ -175,7 +187,7 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
                             Name = "Renewable Energy",
                             Priority = "Supporting",
                             Slug = "renewable-energy",
-                            Summary = "Solar PV, angin, panas bumi, hidro, bioenergi & SAF, hidrogen hijau, integrasi jaringan & penyimpanan, ekonomi & kebijakan. Fusi TIDAK di sini - lihat ADR-010."
+                            Summary = "Solar PV, angin, panas bumi, hidro, bioenergi & SAF, hidrogen hijau, integrasi jaringan & penyimpanan, ekonomi & kebijakan. Fusi nuklir tidak termasuk."
                         },
                         new
                         {
@@ -193,14 +205,13 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
                             Name = "XR (AR/VR/MR)",
                             Priority = "Peripheral",
                             Slug = "xr",
-                            Summary = "Realitas diperluas. Dipertahankan sebagai pintu pencarian, tapi sengaja tidak diinvestasikan - lihat ADR-010."
+                            Summary = "Realitas diperluas. Dipertahankan sebagai pintu pencarian, tapi sengaja tidak diinvestasikan."
                         });
                 });
 
             modelBuilder.Entity("TechVerseX.TechnologyService.Domain.Project", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("Brief")
@@ -229,7 +240,6 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("TechVerseX.TechnologyService.Domain.Resource", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -264,7 +274,6 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("TechVerseX.TechnologyService.Domain.RoadmapStep", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -324,6 +333,12 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
+                    b.Property<NpgsqlTsVector>("SearchVector")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("tsvector")
+                        .HasColumnName("search_vector")
+                        .HasComputedColumnSql("setweight(to_tsvector('english', coalesce(\"Name\", '')), 'A') || setweight(to_tsvector('english', coalesce(\"Summary\", '')), 'B')", true);
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasMaxLength(160)
@@ -347,6 +362,11 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
                     b.HasIndex("FieldId")
                         .HasDatabaseName("ix_technologies_field_id");
 
+                    b.HasIndex("SearchVector")
+                        .HasDatabaseName("ix_technologies_search_vector");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("SearchVector"), "GIN");
+
                     b.HasIndex("Slug")
                         .IsUnique()
                         .HasDatabaseName("ix_technologies_slug");
@@ -360,7 +380,6 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("TechVerseX.TechnologyService.Domain.TechnologyRelationship", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -379,11 +398,19 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ToTechnologyId")
+                        .HasDatabaseName("ix_technology_relationships_to_technology_id");
+
                     b.HasIndex("FromTechnologyId", "ToTechnologyId", "Kind")
                         .IsUnique()
                         .HasDatabaseName("ix_technology_relationships_edge");
 
-                    b.ToTable("technology_relationships", "technology");
+                    b.ToTable("technology_relationships", "technology", t =>
+                        {
+                            t.HasCheckConstraint("ck_technology_relationships_bukan_diri_sendiri", "\"FromTechnologyId\" <> \"ToTechnologyId\"");
+
+                            t.HasCheckConstraint("ck_technology_relationships_kind", "\"Kind\" IN ('Requires')");
+                        });
                 });
 
             modelBuilder.Entity("TechVerseX.TechnologyService.Domain.TechnologyTool", b =>
@@ -488,6 +515,12 @@ namespace TechVerseX.TechnologyService.Infrastructure.Persistence.Migrations
                         .WithMany("Relationships")
                         .HasForeignKey("FromTechnologyId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TechVerseX.TechnologyService.Domain.Technology", null)
+                        .WithMany()
+                        .HasForeignKey("ToTechnologyId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

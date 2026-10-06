@@ -1,6 +1,6 @@
 # ADR-007 — Orkestrasi agen belum dipilih
 
-**Status:** Diterima. Issue [#13](../../../../issues/13) ditutup 2026-09-04: **Microsoft Agent Framework**.
+**Status:** Diterima. Issue [#13](https://github.com/xtheoputra/techverse-x/issues/13) ditutup 2026-09-04: **Microsoft Agent Framework**.
 **Tanggal:** 2026-09-03
 
 ## Konteks
@@ -15,13 +15,13 @@ Alternatif asli .NET yang matang: **Microsoft Agent Framework**.
 
 Tidak memilih apa pun sekarang, dan **tidak memasang kode AI apa pun** di Fase 1. Tidak ada `apps/ai-gateway`, tidak ada `agents/`, tidak ada panggilan ke penyedia model.
 
-Alasannya: keputusan ini bergantung pada dua issue lain yang juga masih terbuka — peran MCP dan penguncian penyedia AI (Issue [#16](../../../../issues/16)). Menulis satu baris kode agen sekarang berarti mengunci ketiganya diam-diam.
+Alasannya: keputusan ini bergantung pada dua issue lain yang juga masih terbuka — peran MCP dan penguncian penyedia AI (Issue [#16](https://github.com/xtheoputra/techverse-x/issues/16)). Menulis satu baris kode agen sekarang berarti mengunci ketiganya diam-diam.
 
 ## Konsekuensi
 
 - Direktori `agents/` yang ada di 4.7 sengaja **belum dibuat**. Folder kosong yang menunggu keputusan hanya memberi ilusi kemajuan.
 - Yang sudah aman diketahui apa pun keputusannya: SDK C# resmi `ModelContextProtocol` sudah stabil, jadi MCP bukan alasan untuk pindah ke Python.
-- Kalau nanti jatuh ke opsi Agent Server LangGraph, audit mengingatkan ada **lisensi LangSmith/Plus/Enterprise** yang mudah terlewat saat prototipe — itu masuk hitungan biaya Issue [#22](../../../../issues/22).
+- Kalau nanti jatuh ke opsi Agent Server LangGraph, audit mengingatkan ada **lisensi LangSmith/Plus/Enterprise** yang mudah terlewat saat prototipe — itu masuk hitungan biaya Issue [#22](https://github.com/xtheoputra/techverse-x/issues/22).
 
 ---
 

@@ -1,6 +1,6 @@
 # ADR-005 — Qdrant belum dipakai; pgvector pun belum dipasang
 
-**Status:** Diterima. Issue [#15](../../../../issues/15) ditutup 2026-09-04: **pgvector, tanpa Qdrant**.
+**Status:** Diterima. Issue [#15](https://github.com/xtheoputra/techverse-x/issues/15) ditutup 2026-09-04: **pgvector, tanpa Qdrant**.
 **Tanggal:** 2026-09-03
 
 ## Konteks

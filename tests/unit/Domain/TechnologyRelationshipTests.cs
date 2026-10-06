@@ -22,6 +22,6 @@ public sealed class TechnologyRelationshipTests
     {
         var id = Guid.CreateVersion7();
 
-        Assert.Throws<ArgumentException>(() => TechnologyRelationship.Create(id, id, RelationshipKind.Uses));
+        Assert.Throws<ArgumentException>(() => TechnologyRelationship.Create(id, id, RelationshipKind.Requires));
     }
 }

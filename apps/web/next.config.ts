@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
   // apps/web, lalu melewatkan node_modules yang di-hoist ke akar repo - dan
   // citranya baru gagal saat DIJALANKAN, bukan saat dibangun.
   outputFileTracingRoot: path.join(import.meta.dirname, "../.."),
+
+  // <Link> ke rute yang tidak ada jadi galat `next build`, bukan 404 yang baru
+  // ketahuan saat diklik. Ia menjaga KEBERADAAN rute saja: aturan ADR-024 bahwa
+  // sebuah bagian masuk menu hanya kalau halamannya berisi di produksi tetap
+  // tidak dijaga kode apa pun.
+  typedRoutes: true,
 };
 
 export default nextConfig;

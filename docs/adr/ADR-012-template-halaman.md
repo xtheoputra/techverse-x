@@ -1,6 +1,6 @@
 # ADR-012 — Template halaman, tingkat kematangan konten, dan siapa yang menulis
 
-**Status:** Diterima. Menutup Issue [#10](../../../../issues/10), [#11](../../../../issues/11), [#18](../../../../issues/18), [#19](../../../../issues/19).
+**Status:** Diterima. Menutup Issue [#10](https://github.com/xtheoputra/techverse-x/issues/10), [#11](https://github.com/xtheoputra/techverse-x/issues/11), [#18](https://github.com/xtheoputra/techverse-x/issues/18), [#19](https://github.com/xtheoputra/techverse-x/issues/19).
 **Tanggal:** 2026-09-04
 
 ## Konteks
@@ -39,7 +39,7 @@ kali.
 Alasan memilih B, dan ini yang menentukan: **Versi A menjadikan "Berita terbaru"
 dan "Paper terbaru" sebagai bagian wajib tiap halaman.** Artinya kelengkapan
 setiap halaman bergantung pada pipeline berita — yang justru terganjal
-[Issue #17](../../../../issues/17), pertanyaan hukum yang hanya bisa dijawab
+[Issue #17](https://github.com/xtheoputra/techverse-x/issues/17), pertanyaan hukum yang hanya bisa dijawab
 pemilik sendiri. Satu blocker hukum akan membuat 82 halaman berstatus "belum
 lengkap" selamanya. Dengan B, berita dan paper adalah *resource* — halaman tetap
 utuh tanpa mereka.
@@ -131,3 +131,58 @@ membantahnya tetap menyebarkannya.
 - Ukuran kemajuan proyek berubah dari "berapa halaman ada" menjadi **"berapa
   halaman berstatus `tinjau`"**. Angka pertama mudah dipalsukan mesin; angka
   kedua tidak bisa.
+
+---
+
+## Pembaruan 2026-09-17 - relasi antar-topik bukan bagian keenam
+
+[ADR-023](ADR-023-knowledge-graph-dasar.md) menambah blok **"Topik terhubung"** di
+halaman topik. Supaya bagian 1 ADR ini tetap benar, aturannya ditulis di sini:
+
+- Blok itu dirender **SESUDAH** kelima bagian template dan **tidak pernah**
+  dihitung di `missingSections`. Ia disembunyikan kalau kosong - pengecualian
+  sadar dari *"bagian kosong tetap ditampilkan"*, sebab relasi bukan sesuatu yang
+  wajib diisi, dan baris "belum ada relasi" akan menandai setiap halaman tidak
+  lengkap secara palsu.
+- **Langkah 0 roadmap tetap satu-satunya prasyarat PROSA**: keterampilan yang
+  belum tentu punya halaman di situs ini.
+- **Sisi `Requires` adalah navigasi ke halaman yang ADA.** Topik yang sudah jadi
+  tujuan sisi **tidak diulang** di langkah 0 - itu yang menjaga alasan bagian 1
+  (*"membuat pembaca membacanya dua kali dan penulis menulisnya dua kali"*) tetap
+  berlaku.
+- Setiap judul yang ditautkan membawa **label kematangannya sendiri**. Aturan keras
+  bagian 2 berlaku sampai ke tautan, dan dijamin tipe
+  (`TechnologySummaryResponse`), bukan ketelitian.
+
+---
+
+## Pembaruan 2026-10-02 — bagian isi bisa dibuang (jalan perbaikan), roadmap belum
+
+Alur bergerbang [ADR-021](ADR-021-jalan-menuju-tinjau.md) dibangun mendahului
+[#40](https://github.com/xtheoputra/techverse-x/issues/40), dan ADR-021 menandai bahwa
+jalan **membuang bagian isi** harus ikut ada — tanpanya, bagian yang keliru ditulis ke
+produksi lewat gerbang tidak punya jalan perbaikan. Tiga dari empat bagian kini bisa
+dibuang:
+
+- `DELETE …/resources/{id}` dan `DELETE …/projects/{id}` (Id-nya dari respons),
+  `DELETE …/tools/{toolSlug}` (slug katalognya — **melepas TAUTAN, bukan menghapus
+  alat**; alatnya masih bisa ditautkan lagi).
+- Semua **idempoten** (tujuan tak ada → 200 tanpa-operasi, seperti DELETE sisi
+  [ADR-023](ADR-023-knowledge-graph-dasar.md)), di bawah cabang `editorialWrites`
+  (ADR-020), masuk `SemuaEndpointTulis` → ketiga uji ADR-020 langsung menjaganya.
+- **Tidak menurunkan `HumanReviewed`.** `Touch` dan bagian Konsekuensi ADR ini sudah
+  menalarnya untuk MENAMBAH (*"memperbaiki satu tautan mati tidak boleh membuang nilai
+  kerja pemeriksanya"*); buang adalah separuh lain dari "memperbaiki tautan mati", jadi
+  ia mengikuti aturan yang sama. ⚠️ Satu akibat jujur: topik `tinjau` bisa menjadi
+  tak-lengkap (`MissingSections` terisi) tanpa turun tingkat — re-review tanggung jawab
+  penyunting, persis seperti menambah bagian tidak otomatis menaikkan tingkat.
+
+🔴 **Langkah ROADMAP belum bisa dibuang.** Nomor langkah berurut tanpa lubang (bagian 1:
+*"roadmap berlubang mustahil"*), jadi membuang satu langkah menuntut keputusan penomoran
+ulang (geser 1..n, atau biarkan lubang dan ubah `AddRoadmapStep` ke `max+1`) yang belum
+diambil. Mengganti prasyarat tetap lewat `PUT …/roadmap/prasyarat`. Ditinggalkan sebagai
+langkah berikutnya.
+
+**Terukur:** +4 uji unit (`BagianIsiHalamanTests`) + 3 uji integrasi
+(`ContentSectionEndpointTests`, termasuk end-to-end *buang tidak menggugurkan tinjau*).
+Hitungan repo → **112 unit + 76 integrasi**, `run.ps1 verify` hijau.

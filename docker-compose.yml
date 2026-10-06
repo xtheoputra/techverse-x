@@ -2,11 +2,16 @@
 # "Development pakai Docker Compose. Jangan membuat production architecture
 #  dan local architecture identik."
 #
-# Yang SENGAJA belum ada di sini, karena keputusannya belum diambil:
-#   - Qdrant / pgvector   → Issue #15 masih terbuka
-#   - Neo4j               → EPIC 10, belum waktunya
-#   - NATS / Kafka        → ADR-0005, bus belum dipasang
-#   - OpenSearch          → Search masih V1
+# Yang SENGAJA tidak ada di sini — masing-masing sudah DIPUTUSKAN, bukan terlupa.
+# (Sampai 2026-09-28 baris ini menulis "keputusannya belum diambil", menyebut
+# #15 masih terbuka padahal tutup 2026-09-04, dan menunjuk "ADR-0005" yang tidak
+# ada.)
+#   - Qdrant / pgvector   → ADR-005: pgvector tanpa Qdrant (#15), dipasang saat
+#                           embedding pertama perlu disimpan; image di bawah
+#                           sengaja postgres polos
+#   - Neo4j               → ADR-006: sisi graf disimpan di PostgreSQL untuk V1
+#   - NATS / Kafka        → ADR-004: event dikumpulkan di agregat, bus belum dipasang
+#   - OpenSearch          → ADR-022: V1 memakai full-text search PostgreSQL
 
 name: techversex
 

@@ -6,17 +6,23 @@ using TechVerseX.TechnologyService.Infrastructure.Persistence;
 namespace TechVerseX.TechnologyService.Features.EditContentSections;
 
 /// <summary>
-/// Kelima operasi yang mengisi bagian template ADR-012 pada satu topik.
+/// Operasi yang mengisi bagian template ADR-012 pada satu topik, plus
+/// menaikkannya ke <c>draf</c>.
 /// </summary>
 /// <remarks>
-/// <b>Kenapa kelimanya satu irisan, bukan lima folder.</b> Pola vertical slice
-/// memisahkan berdasarkan <em>alasan berubah</em>, dan kelima operasi ini berubah
-/// karena alasan yang sama: template ADR-012. Ketiganya juga berbagi tiga langkah
-/// yang identik — muat agregat berikut keempat koleksinya, panggil satu metode
-/// agregat, kembalikan bentuk lengkap supaya <c>MissingSections</c> yang menyusut
-/// langsung terlihat. Memecahnya jadi lima folder akan menyalin ketiga langkah itu
-/// lima kali, dan salinan yang menyimpang adalah cacat yang sudah dua kali digigit
-/// repo ini.
+/// <b>Kenapa keenamnya satu irisan, bukan enam folder.</b> Pola vertical slice
+/// memisahkan berdasarkan <em>alasan berubah</em>, dan keenam operasi ini —
+/// prasyarat, langkah roadmap, alat, proyek, sumber, dan <c>MarkDrafted</c> —
+/// berubah karena alasan yang sama: template ADR-012.
+/// <para>
+/// <b>Jalur yang mereka pakai bersama TIDAK tinggal di sini lagi.</b> Muat
+/// agregat berikut koleksinya, panggil satu metode agregat, terjemahkan galatnya,
+/// kembalikan bentuk lengkap supaya <c>MissingSections</c> yang menyusut langsung
+/// terlihat — semua itu kini <see cref="TopicMutation"/>. Irisan yang berubah
+/// karena alasan LAIN (<c>RequireTopic</c> untuk ADR-023, lalu <c>/tinjau</c>
+/// ADR-021) memakai jalur yang sama alih-alih menyalinnya; salinan yang menyimpang
+/// adalah cacat yang sudah dua kali digigit repo ini.
+/// </para>
 /// <para>
 /// 🔑 <b>Tidak ada satu pun metode di sini yang menerima nomor langkah roadmap.</b>
 /// Itu bukan kelalaian kontrak — <c>AddRoadmapStep</c> memberi nomor sendiri, dan
@@ -25,64 +31,78 @@ namespace TechVerseX.TechnologyService.Features.EditContentSections;
 /// </remarks>
 public sealed class EditContentSectionsHandler(TechnologyDbContext db)
 {
-    public Task<Outcome> SetPrerequisiteAsync(string slug, RoadmapStepRequest request, CancellationToken cancellationToken)
+    public Task<TopicMutationOutcome> SetPrerequisiteAsync(string slug, RoadmapStepRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        return MutateAsync(
+        return TopicMutation.RunAsync(
+            db,
             slug,
             technology => technology.SetPrerequisite(request.Title, request.Description),
             cancellationToken);
     }
 
-    public Task<Outcome> AddRoadmapStepAsync(string slug, RoadmapStepRequest request, CancellationToken cancellationToken)
+    public Task<TopicMutationOutcome> AddRoadmapStepAsync(string slug, RoadmapStepRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        return MutateAsync(
+        return TopicMutation.RunAsync(
+            db,
             slug,
             technology => technology.AddRoadmapStep(request.Title, request.Description),
             cancellationToken);
     }
 
-    public Task<Outcome> AddProjectAsync(string slug, ProjectRequest request, CancellationToken cancellationToken)
+    public Task<TopicMutationOutcome> AddProjectAsync(string slug, ProjectRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        return MutateAsync(
+        return TopicMutation.RunAsync(
+            db,
             slug,
             technology => technology.AddProject(request.Title, request.Brief),
             cancellationToken);
     }
 
-    public Task<Outcome> AddResourceAsync(string slug, ResourceRequest request, CancellationToken cancellationToken)
+    public Task<TopicMutationOutcome> AddResourceAsync(string slug, ResourceRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         // Jenis sumber enum, bukan teks bebas (ADR-012). Diurai DI SINI supaya
         // "Vidio" membalas 400 yang menyebutkan pilihan yang sah - bukan 500, dan
         // bukan pula diam-diam jatuh ke anggota pertama enum.
-        if (!Enum.TryParse<ResourceType>(request.Type, ignoreCase: true, out var type)
-            || !Enum.IsDefined(type))
+        //
+        // 🔴 BERDASARKAN NAMA SAJA (#60), tanpa peka huruf besar-kecil. Enum.TryParse
+        // tidak bisa dipakai di sini: ia juga menerima teks ANGKA ("0" tersimpan
+        // sebagai OfficialDocs, " 1 " sebagai Video) dan gabungan BENDERA
+        // ("Video, Paper" tersimpan sebagai Repository, 1 | 2). Enum.IsDefined
+        // tidak menolak keduanya, sebab hasilnya memang anggota yang sah.
+        var nama = Enum.GetNames<ResourceType>()
+            .FirstOrDefault(n => string.Equals(n, request.Type, StringComparison.OrdinalIgnoreCase));
+
+        if (nama is null)
         {
-            return Task.FromResult(Outcome.Invalid(
+            return Task.FromResult(TopicMutationOutcome.Invalid(
                 "type",
                 $"Jenis sumber '{request.Type}' tidak dikenal. Yang sah: {string.Join(", ", Enum.GetNames<ResourceType>())}."));
         }
 
-        return MutateAsync(
+        var type = Enum.Parse<ResourceType>(nama);
+
+        return TopicMutation.RunAsync(
+            db,
             slug,
             technology => technology.AddResource(type, request.Title, request.Url),
             cancellationToken);
     }
 
-    public async Task<Outcome> AttachToolAsync(string slug, AttachToolRequest request, CancellationToken cancellationToken)
+    public async Task<TopicMutationOutcome> AttachToolAsync(string slug, AttachToolRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
 
         if (!Slugs.TryFrom(request.ToolSlug, out var toolSlug))
         {
-            return Outcome.Invalid("toolSlug", $"Slug alat '{request.ToolSlug}' bukan slug yang sah.");
+            return TopicMutationOutcome.Invalid("toolSlug", $"Slug alat '{request.ToolSlug}' bukan slug yang sah.");
         }
 
         var tool = await db.Tools
@@ -94,12 +114,13 @@ public sealed class EditContentSectionsHandler(TechnologyDbContext db)
         {
             // 400, bukan 404: yang tidak ditemukan ada di dalam MUATAN, bukan di
             // alamat yang diminta - sama persis dengan alasan fieldSlug tak dikenal.
-            return Outcome.Invalid(
+            return TopicMutationOutcome.Invalid(
                 "toolSlug",
                 $"Alat '{request.ToolSlug}' belum ada di katalog. Tambahkan lewat POST /api/v1/tools lebih dulu.");
         }
 
-        return await MutateAsync(
+        return await TopicMutation.RunAsync(
+            db,
             slug,
             technology => technology.AttachTool(tool.Id, request.Note),
             cancellationToken).ConfigureAwait(false);
@@ -109,85 +130,49 @@ public sealed class EditContentSectionsHandler(TechnologyDbContext db)
     /// Menaikkan isi ke <c>draf</c>. Gagal kalau kelima bagian belum terisi, dan
     /// pesannya menyebut bagian mana.
     /// </summary>
-    public Task<Outcome> MarkDraftedAsync(string slug, CancellationToken cancellationToken)
-        => MutateAsync(slug, technology => technology.MarkDrafted(), cancellationToken);
+    public Task<TopicMutationOutcome> MarkDraftedAsync(string slug, CancellationToken cancellationToken)
+        => TopicMutation.RunAsync(db, slug, technology => technology.MarkDrafted(), cancellationToken);
 
-    private async Task<Outcome> MutateAsync(string slug, Action<Technology> mutate, CancellationToken cancellationToken)
+    // ---- Membuang bagian isi (ADR-012) ------------------------------------
+    // Pasangan DELETE dari tambah di atas, dan semuanya IDEMPOTEN — seperti DELETE
+    // sisi ADR-023: membuang yang tidak ada bukan kekeliruan melainkan keadaan yang
+    // sudah tercapai. Langkah ROADMAP sengaja tidak punya pasangan buang: nomornya
+    // berurut tanpa lubang, jadi membuang satu langkah menuntut penomoran ulang
+    // (ADR-012 Pembaruan 2026-10-02).
+
+    public Task<TopicMutationOutcome> RemoveResourceAsync(string slug, Guid resourceId, CancellationToken cancellationToken)
+        => TopicMutation.RunAsync(db, slug, technology => technology.RemoveResource(resourceId), cancellationToken);
+
+    public Task<TopicMutationOutcome> RemoveProjectAsync(string slug, Guid projectId, CancellationToken cancellationToken)
+        => TopicMutation.RunAsync(db, slug, technology => technology.RemoveProject(projectId), cancellationToken);
+
+    public async Task<TopicMutationOutcome> DetachToolAsync(string slug, string toolSlug, CancellationToken cancellationToken)
     {
-        var technology = await db.Technologies
-            .AsSplitQuery()
-            .Include(t => t.Roadmap)
-            .Include(t => t.Tools)
-            .Include(t => t.Projects)
-            .Include(t => t.Resources)
-            .FirstOrDefaultAsync(t => t.Slug == slug, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (technology is null)
+        if (!Slugs.TryFrom(toolSlug, out var slugAlat))
         {
-            return Outcome.NotFound();
+            return TopicMutationOutcome.Invalid("toolSlug", $"Slug alat '{toolSlug}' bukan slug yang sah.");
         }
 
-        try
-        {
-            mutate(technology);
-        }
-        catch (ArgumentException ex)
-        {
-            // Agregat menjaga bentuknya sendiri dan melempar untuk muatan yang
-            // cacat - judul kosong, URL bukan http. Tugas lapisan ini mengubahnya
-            // jadi 400, persis seperti yang ditulis komentar di Tool.Create.
-            return Outcome.Invalid(ex.ParamName ?? "body", ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            // Bukan muatan yang cacat melainkan URUTAN yang salah - menambah
-            // langkah roadmap sebelum ada prasyarat, atau menaikkan ke draf saat
-            // bagiannya belum lengkap. Tetap 400: yang keliru permintaannya.
-            return Outcome.Invalid("body", ex.Message);
-        }
-
-        await db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        technology.ClearEvents();
-
-        var field = await db.Fields
+        // Pencarian selesai SEBELUM RunAsync (aturan TopicMutation). Alat yang tak ada
+        // di katalog tak mungkin tertaut, jadi melepasnya tanpa-operasi 200 — bukan 400
+        // seperti AttachTool, yang MENEGASKAN adanya alat.
+        var toolId = await db.Tools
             .AsNoTracking()
-            .FirstOrDefaultAsync(f => f.Id == technology.FieldId, cancellationToken)
+            .Where(t => t.Slug == slugAlat)
+            .Select(t => (Guid?)t.Id)
+            .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        if (field is null)
-        {
-            return Outcome.NotFound();
-        }
-
-        var toolIds = technology.Tools.Select(link => link.ToolId).ToArray();
-
-        var catalog = toolIds.Length == 0
-            ? []
-            : await db.Tools
-                .AsNoTracking()
-                .Where(tool => toolIds.Contains(tool.Id))
-                .ToDictionaryAsync(tool => tool.Id, cancellationToken)
-                .ConfigureAwait(false);
-
-        return Outcome.Ok(TechnologyResponseFactory.From(technology, field, catalog));
-    }
-
-    /// <summary>
-    /// Tiga akhir yang mungkin, dan tidak ada yang keempat: topiknya tidak ada
-    /// (404), permintaannya keliru (400), atau berhasil dengan bentuk lengkap
-    /// topik itu sesudah diubah.
-    /// </summary>
-    public sealed record Outcome(TechnologyResponse? Value, bool Missing, string? Field, string? Message)
-    {
-        public bool IsNotFound => Missing;
-
-        public bool IsInvalid => Message is not null;
-
-        public static Outcome Ok(TechnologyResponse value) => new(value, false, null, null);
-
-        public static Outcome NotFound() => new(null, true, null, null);
-
-        public static Outcome Invalid(string field, string message) => new(null, false, field, message);
+        return await TopicMutation.RunAsync(
+            db,
+            slug,
+            technology =>
+            {
+                if (toolId is Guid id)
+                {
+                    technology.DetachTool(id);
+                }
+            },
+            cancellationToken).ConfigureAwait(false);
     }
 }

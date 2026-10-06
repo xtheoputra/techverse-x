@@ -9,6 +9,9 @@ using TechVerseX.TechnologyService.Features.CreateTool;
 using TechVerseX.TechnologyService.Features.EditContentSections;
 using TechVerseX.TechnologyService.Features.GetTechnology;
 using TechVerseX.TechnologyService.Features.ListFields;
+using TechVerseX.TechnologyService.Features.MarkReviewed;
+using TechVerseX.TechnologyService.Features.RequireTopic;
+using TechVerseX.TechnologyService.Features.Search;
 using TechVerseX.TechnologyService.Features.SearchTechnology;
 using TechVerseX.TechnologyService.Infrastructure.Persistence;
 
@@ -44,7 +47,11 @@ public static class TechnologyModule
         services.AddScoped<ListFieldsHandler>();
         services.AddScoped<GetTechnologyHandler>();
         services.AddScoped<SearchTechnologyHandler>();
+        services.AddScoped<SearchHandler>();
         services.AddScoped<EditContentSectionsHandler>();
+        services.AddScoped<RequireTopicHandler>();
+        services.AddScoped<RemoveRequirementHandler>();
+        services.AddScoped<MarkReviewedHandler>();
         services.AddScoped<CreateToolHandler>();
 
         services.AddScoped<IValidator<CreateTechnologyCommand>, CreateTechnologyValidator>();
@@ -96,6 +103,13 @@ public static class TechnologyModule
 
         fields.MapListFields();
 
+        // Pencarian punya grupnya sendiri: jawabannya memuat BIDANG dan TOPIK
+        // sekaligus, jadi menaruhnya di bawah salah satunya akan menyiratkan
+        // kepemilikan yang tidak ada.
+        var search = routes.MapGroup("/api/v1/search").WithTags("Search");
+
+        search.MapSearch();
+
         // ---- Batas antara MEMBACA dan MENULIS -------------------------------
         // Segala yang di atas melayani situsnya; segala yang di bawah mengubah
         // isinya. Bentuk produksi V1 adalah terbitan yang hanya bisa dibaca.
@@ -109,6 +123,21 @@ public static class TechnologyModule
         // Bagian isi halaman bersarang di bawah topiknya — mereka tidak punya
         // hidup di luar topik itu, sama seperti mereka tidak punya DbSet sendiri.
         technologies.MapEditContentSections();
+
+        // Relasi antar-topik juga tulisan REDAKSI, jadi ia ikut hilang di produksi
+        // bersama semua rute di bawah batas ini (ADR-020, ADR-023). Produsen
+        // produksinya kelak alur bergerbang ADR-021, yang memanggil rute yang sama.
+        // SemuaEndpointTulis di PermukaanTulisTests memuatnya: memasang baris ini
+        // di atas batas memerahkan gerbangnya.
+        technologies.MapRequireTopic();
+
+        // Menaikkan topik ke `tinjau` juga tulisan REDAKSI — satu-satunya jalan ke
+        // HumanReviewed, dan ia menuntut nama pemeriksa (ADR-012). Ia duduk di bawah
+        // batas ini bersama endpoint bagian isi dan /requires: di produksi rutenya
+        // tidak dipasang sama sekali, dan produsennya kelak alur bergerbang ADR-021
+        // yang memanggil rute yang sama dari localhost dalam runner. SemuaEndpointTulis
+        // memuatnya — memasang baris ini di atas batas memerahkan gerbangnya.
+        technologies.MapMarkReviewed();
 
         // Katalog alat punya grup sendiri, BUKAN sub-rute topik: satu alat dipakai
         // banyak topik, dan menempatkannya di bawah salah satunya akan menyiratkan

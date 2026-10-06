@@ -31,8 +31,8 @@ apa pun:
 | `POST …/draf` | menaikkan halaman ke `draf` tanpa ada yang memintanya |
 
 Ini bukan risiko teoretis yang menunggu fitur berikutnya. Ia menyala **tepat pada
-langkah yang sedang dikerjakan**: issue [#39](../../../../issues/39) memasang API
-di Koyeb dan [#40](../../../../issues/40) memberi situsnya URL publik. Sejak menit
+langkah yang sedang dikerjakan**: issue [#39](https://github.com/xtheoputra/techverse-x/issues/39) memasang API
+di Koyeb dan [#40](https://github.com/xtheoputra/techverse-x/issues/40) memberi situsnya URL publik. Sejak menit
 itu, `https://….koyeb.app` menerima kedelapan permintaan di atas dari siapa pun.
 Alamatnya tidak rahasia — ia tercatat di log Certificate Transparency, dan
 `PENYEBARAN.md` sendiri menyuruh menaruhnya di `API_BASE_URL`.
@@ -101,7 +101,7 @@ Yang **belum** diputuskan, dan sengaja dibiarkan terbuka:
 - **`MarkReviewed()` dan `Publish()` sampai hari ini nol pemanggil di kode
   produksi** — bukan endpoint, bukan skrip, bukan UI; hanya uji unit. Artinya
   target Bulan 2 ("tujuh topik AI Agents berstatus `tinjau`",
-  issue [#42](../../../../issues/42)) hari ini **tidak bisa dicapai siapa pun**,
+  issue [#42](https://github.com/xtheoputra/techverse-x/issues/42)) hari ini **tidak bisa dicapai siapa pun**,
   bukan hanya oleh asisten. Itu soal terpisah, dan keputusan ini tidak
   memperburuknya: jalan yang ditutup di sini memang tidak pernah ada.
 
@@ -144,3 +144,72 @@ Yang **belum** diputuskan, dan sengaja dibiarkan terbuka:
   `tests/integration/PermukaanTulisTests.cs`. Membalikkannya sadar itu murah;
   yang mahal adalah membalikkannya tanpa sadar, dan itu yang dicegah parameter
   tanpa nilai bawaan.
+
+---
+
+## Pembaruan 2026-09-17 - endpoint tulis kesembilan, tanpa satu uji baru
+
+`POST /api/v1/technologies/{slug}/requires` ([ADR-023](ADR-023-knowledge-graph-dasar.md))
+dipasang di bawah cabang `editorialWrites` dan masuk `SemuaEndpointTulis`. Ketiga
+uji ADR ini langsung menjaganya - persis yang dijanjikan bagian Konsekuensi.
+
+- **Dibuktikan merah:** memasang rutenya di ATAS batas membuat
+  `Bawaan_TIDAK_memasang_satu_pun_endpoint_tulis` gagal
+  *".../requires membalas 400"*. Kendali arah berlawanan juga: alamat di daftar uji
+  diubah jadi `/require`, dan uji sakelar-hidup gagal dengan 404.
+- **Tujuannya di BADAN, bukan di alamat**, supaya probe dari luar tetap terbaca:
+  sakelar hidup **400**, sakelar mati **404**. Diukur di `--no-launch-profile` dan
+  di `docker-compose.prod.yml`.
+- Gerbang tingkat citra **tidak berubah**: ia memeriksa satu rute penjaga
+  (`POST /api/v1/technologies` → 405).
+
+Angka *"delapan endpoint"* di Konteks dan Konsekuensi di atas adalah rekaman
+2026-09-09; sejak ADR-023 jumlahnya sembilan. Ringkasan daftar ujinya sengaja
+berhenti menyebut jumlah - angka itu basi di endpoint tulis berikutnya.
+
+---
+
+## Pembaruan 2026-09-17 (kedua) - muatan yang tidak bisa diikat: dua jalan ASP.NET jadi satu
+
+[#61](https://github.com/xtheoputra/techverse-x/issues/61): JSON yang terpotong, kosong, atau bertipe salah
+(`{"type":0}`, `{"name":123}`) membalas **500** di endpoint tulis. Diukur ulang
+sebelum diperbaiki, dan ternyata separuh ceritanya belum tertulis di issue itu:
+
+| Lingkungan | Muatan cacat ke 8 endpoint berbadan | `GET /api/v1/technologies?pageSize=abc` |
+|---|---|---|
+| `Development` | **500** dan baris log `fail` | **500** |
+| `Production` | 400 **tanpa satu kata pun tentang sebabnya** | 400 tanpa sebab |
+
+Sebabnya satu sakelar. `RouteHandlerOptions.ThrowOnBadRequest` bawaannya hidup
+**hanya** di `Development`: di sana pengikatan melempar `BadHttpRequestException`
+yang ditelan `UseExceptionHandler()` jadi 500, sedangkan di lingkungan lain ia
+diam-diam menulis 400 dan menaruh sebabnya di log tingkat `Debug`. 🔴 **Seluruh
+uji integrasi berjalan di `Development`, jadi jalan yang dipakai produksi tidak
+pernah dilihat satu uji pun.** Kolom kedua juga berarti permukaan BACA — yang
+tayang — ikut terkena.
+
+**Diputuskan:** `ThrowOnBadRequest` dinyalakan di semua lingkungan, dan
+`PermintaanCacatHandler` (`apps/api/Platform`) memetakan exception itu ke statusnya
+sendiri, dengan `detail` berisi pesan kerangka kerja apa adanya — yang menyebut
+parameter dan jalur JSON-nya (`Path: $.type`). Karena exception itu ditangani
+`IExceptionHandler`, baris `fail` palsu hilang dari log.
+
+- **Daftar `SemuaEndpointTulis` kini menjaga sifat keempat.** Tiap entri berbadan
+  menerima tiga muatan cacat yang **diturunkan** dari muatannya yang sah, di kedua
+  lingkungan, dan harus menjawab 400 yang menyebut sebabnya. `Body` `null` kini
+  berarti *"endpoint ini tidak menerima badan"* (`/draf`), bukan jalan pintas.
+- **Dibuktikan merah:** kode lama → 24 jawaban keliru di tiap lingkungan
+  (Development 500, Production 400 tanpa sebab), plus keempat baris
+  `?page=`/`?pageSize=`.
+- **Sabotase, masing-masing dipulihkan identik (sha256):**
+
+  | Yang dibuang | Development | Production |
+  |---|---|---|
+  | baris `ThrowOnBadRequest` | hijau | 🔴 400 tanpa sebab (24 + 2) |
+  | pendaftaran handler | 🔴 500 | 🔴 **500** - sakelar tanpa handler memperburuk produksi |
+  | pesan `JsonException` di `detail` | 🔴 8 (bertipe salah) | 🔴 8 |
+
+  Baris kedua yang membuat kedua baris di `Program.cs` dicatat sebagai **satu
+  kesatuan**.
+- Gerbang tingkat citra **tidak berubah**: probenya mengirim JSON yang bentuknya
+  sah (`{"name":"",…}`), jadi validator tetap yang menjawab 400.

@@ -1,7 +1,7 @@
 # ADR-016 — Pagu biaya bulanan, dan aturan penerbitan ulang sumber luar
 
-**Status:** Diterima. Menutup Issue [#22](../../../../issues/22) dan — sejak 8 Sep 2026 —
-Issue [#17](../../../../issues/17): **keempat dokumen ketentuan layanan sudah dibaca**
+**Status:** Diterima. Menutup Issue [#22](https://github.com/xtheoputra/techverse-x/issues/22) dan — sejak 8 Sep 2026 —
+Issue [#17](https://github.com/xtheoputra/techverse-x/issues/17): **keempat dokumen ketentuan layanan sudah dibaca**
 dan **batas kutipan sumber non-arXiv sudah ditetapkan**. Lihat butir 4.
 **Tanggal:** 2026-09-04
 
@@ -182,3 +182,13 @@ Dijaga oleh uji integrasi pertama repo ini
 dulu**. Bukti akhirnya diambil dengan menjalankan API sungguhan berlingkungan
 `Production` **selagi Redis pengembangan tetap menyala di 6379** — tanpa kendali
 itu, hijaunya tidak membuktikan apa pun.
+
+## Pembaruan 2026-09-28 - pagu turun ke nol
+
+Pagu **USD 60 per bulan** di butir 1 **dibatalkan** oleh
+[ADR-026](ADR-026-nol-biaya-gratis-mandiri.md), atas arahan pemilik: tidak ada pos
+berbayar, dan yang mandiri didahulukan. Pos-pos di tabel butir 1 kini:
+PostgreSQL → Neon Free; OpenAI → tier gratis Groq dan Cloudflare Workers AI;
+domain → `*.vercel.app`. Butir 2–5 tetap — terutama butir 4 (arXiv saja, tanpa ringkasan
+AI), yang alasan hukumnya tidak bergantung pada biaya. Rinciannya hanya di ADR-026,
+supaya tidak ada dua versi yang hanyut sendiri.

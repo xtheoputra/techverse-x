@@ -96,6 +96,14 @@ public sealed class Technology
 
     public DateTimeOffset UpdatedAt { get; private set; }
 
+    /// <summary>
+    /// Sisi KELUAR topik ini: topik-topik yang ia butuhkan (ADR-023). Ditulis hanya
+    /// lewat <see cref="RequireTopic"/>.
+    /// </summary>
+    /// <remarks>
+    /// Sisi MASUK ("dibutuhkan oleh") sengaja tidak ada di sini: ia milik agregat
+    /// topik lain, dan diturunkan saat dibaca, bukan disimpan dua kali.
+    /// </remarks>
     public IReadOnlyList<TechnologyRelationship> Relationships => _relationships;
 
     /// <summary>Bagian 2 template, berurut. Langkah <c>0</c> adalah prasyarat (ADR-012).</summary>
@@ -287,6 +295,163 @@ public sealed class Technology
         Touch();
     }
 
+    // ---- Membuang bagian isi (ADR-012) ------------------------------------
+    // Jalan perbaikan isi yang keliru di produksi, pasangan dari metode tambah di
+    // atas. Ketiganya IDEMPOTEN (membuang yang tidak ada = tanpa-operasi), dan —
+    // seperti Touch dan kebalikannya (menambah bagian) — SENGAJA TIDAK menurunkan
+    // HumanReviewed: ADR-012 menalar bahwa memperbaiki satu tautan mati (buang lalu
+    // tambah) tidak boleh membuang seluruh nilai kerja pemeriksanya. Membuang LANGKAH
+    // ROADMAP belum ada di sini: nomornya berurut tanpa lubang (lihat AddRoadmapStep),
+    // jadi membuang satu langkah menuntut keputusan penomoran ulang tersendiri
+    // (ADR-012 Pembaruan 2026-10-02).
+
+    /// <summary>Melepas tautan ke sebuah alat (bukan menghapus alat katalognya). Idempoten.</summary>
+    public void DetachTool(Guid toolId)
+    {
+        if (_tools.RemoveAll(t => t.ToolId == toolId) > 0)
+        {
+            Touch();
+        }
+    }
+
+    /// <summary>Membuang satu Mini Project — bagian 4 template. Idempoten.</summary>
+    public void RemoveProject(Guid projectId)
+    {
+        if (_projects.RemoveAll(p => p.Id == projectId) > 0)
+        {
+            Touch();
+        }
+    }
+
+    /// <summary>Membuang satu sumber belajar — bagian 5 template. Idempoten.</summary>
+    public void RemoveResource(Guid resourceId)
+    {
+        if (_resources.RemoveAll(r => r.Id == resourceId) > 0)
+        {
+            Touch();
+        }
+    }
+
+    /// <summary>
+    /// Mencatat bahwa topik ini <b>membutuhkan</b> topik lain: pelajari
+    /// <paramref name="topicId"/> lebih dulu (ADR-023). Mengulang sisi yang sama
+    /// tidak menambah apa-apa.
+    /// </summary>
+    /// <param name="topicId">Topik yang dibutuhkan. Harus topik lain, bukan topik ini.</param>
+    /// <param name="topicRequires">
+    /// Segala yang <paramref name="topicId"/> butuhkan lewat sisi
+    /// <see cref="RelationshipKind.Requires"/> — <b>penutupan transitifnya</b>, bukan
+    /// tujuan langsungnya. <b>Wajib, tanpa nilai bawaan</b>: pemanggil yang bisa
+    /// melupakannya adalah pemanggil yang bisa melewati aturan siklus di bawah, idiom
+    /// yang sama dengan sakelar tanpa bawaan di ADR-020.
+    /// <para>
+    /// ⚠️ Agregat ini <b>tidak bisa tahu</b> apakah sebuah Id di dalamnya tujuan
+    /// langsung atau ujung rantai — yang diterimanya himpunan rata. Itu yang membentuk
+    /// kata-kata galatnya, dan alasan ia tidak menyebut "dua topik".
+    /// </para>
+    /// </param>
+    /// <remarks>
+    /// 🔑 <b>Bukan bagian template ADR-012.</b> Relasi tidak pernah dihitung
+    /// <see cref="MissingSections"/>: halaman tanpa satu sisi pun tetap lengkap.
+    /// <para>
+    /// 🔴 <b>Prasyarat tidak boleh berputar.</b> Kalau topik tujuan sudah membutuhkan
+    /// topik ini — langsung, atau lewat rantai sepanjang apa pun — sisi baru itu
+    /// menutup lingkaran, jadi ia ditolak. Sampai 2026-09-24 hanya lingkaran berdua
+    /// yang tertangkap, sebab yang diserahkan pemanggil cuma tujuan langsung tujuan;
+    /// A→B→C→A lolos. Yang berubah memang hanya isi <paramref name="topicRequires"/>,
+    /// seperti yang diramal ADR-023 — <b>tapi kalimat galatnya ikut berubah</b>: "dua
+    /// topik tidak boleh saling mensyaratkan" adalah pernyataan yang salah ketika yang
+    /// ditutup lingkaran bertiga.
+    /// </para>
+    /// <para>
+    /// ⚠️ Seperti <see cref="Touch"/>, ia <b>tidak</b> menurunkan
+    /// <see cref="ContentMaturity.HumanReviewed"/>: menautkan halaman yang sudah
+    /// diperiksa ke topik lain bukan pembatalan pemeriksaan teksnya.
+    /// </para>
+    /// <para>
+    /// Satu-satunya pemanggil produksi: <c>RequireTopicHandler</c>, yang di produksi
+    /// hanya terjangkau lewat jalan ADR-021.
+    /// </para>
+    /// </remarks>
+    public void RequireTopic(Guid topicId, IReadOnlyCollection<Guid> topicRequires)
+    {
+        ArgumentNullException.ThrowIfNull(topicRequires);
+
+        // Diperiksa DI SINI, bukan diserahkan ke TechnologyRelationship.Create:
+        // pesan dan nama medannya harus berbicara bahasa pemanggil (topicSlug di
+        // muatan permintaan), bukan nama parameter internal. Penerjemah galat
+        // mengubah ParamName langsung jadi nama medan ValidationProblem.
+        //
+        // ⚠️ CA2208 dimatikan untuk SATU baris ini saja, dengan sengaja. Aturan itu
+        // benar untuk umumnya: ParamName seharusnya nama parameter metode. Di
+        // agregat ini keduanya kebetulan selalu sama (nameof(url), nameof(name))
+        // karena medan muatannya bernama sama dengan parameternya — kecuali di
+        // sini, tempat yang dikirim pemanggil adalah SLUG sementara domain hanya
+        // mengenal Id. "topicId" di ValidationProblem akan menunjuk medan yang
+        // tidak pernah ada di permintaan mana pun.
+        if (topicId == Id)
+        {
+#pragma warning disable CA2208
+            throw new ArgumentException($"Topik '{Slug}' tidak bisa mensyaratkan dirinya sendiri.", "topicSlug");
+#pragma warning restore CA2208
+        }
+
+        // Idempoten, dan sengaja SEBELUM pemeriksaan siklus: mengulang permintaan
+        // yang sudah tercatat tidak boleh berubah jadi galat.
+        //
+        // ⚠️ Versi pertama komentar ini mengklaim urutan itu jadi LEBIH penting
+        // sesudah penutupan transitif dipakai, sebab "sisi A→B yang sudah tersimpan
+        // menaruh A di dalam penutupan B". Itu KELIRU: penutupan B berisi yang
+        // DIBUTUHKAN B, dan A tidak ada di sana kecuali lingkarannya memang sudah
+        // tertutup. Yang benar lebih sempit, dan hanya mengenai baris yang tersimpan
+        // SEBELUM aturan ini ada: kalau B→C→A sudah ada, mengulang A→B kini melihat A
+        // di penutupan B (dulu tidak, sebab tujuan langsung B cuma C) - jadi jalan
+        // keluar di atas inilah yang menjaga permintaan ulang tetap 200 di data lama
+        // yang sudah berputar.
+        if (_relationships.Any(r => r.Kind == RelationshipKind.Requires && r.ToTechnologyId == topicId))
+        {
+            return;
+        }
+
+        if (topicRequires.Contains(Id))
+        {
+            throw new InvalidOperationException(
+                $"Topik yang diminta sudah mensyaratkan '{Slug}', langsung atau lewat rantai prasyarat. Prasyarat tidak boleh berputar (ADR-023).");
+        }
+
+        _relationships.Add(TechnologyRelationship.Create(Id, topicId, RelationshipKind.Requires));
+        Touch();
+    }
+
+    /// <summary>
+    /// Membuang sisi <b>"membutuhkan"</b> ke <paramref name="topicId"/> (ADR-023).
+    /// <b>Idempoten</b>: membuang sisi yang tidak ada tidak mengubah apa pun dan tidak
+    /// melempar.
+    /// </summary>
+    /// <remarks>
+    /// 🔑 <b>Jalan perbaikan sisi yang keliru di produksi.</b> Tanpa ini, sisi yang
+    /// salah ditulis lewat alur ADR-021 tidak punya jalan perbaikan sama sekali — hal
+    /// yang ADR-021 Pembaruan 2026-09-17 sebut harus ikut diputuskan saat alur itu
+    /// dibangun.
+    /// <para>
+    /// ⚠️ Seperti <see cref="RequireTopic"/> dan <see cref="Touch"/>, ia <b>tidak</b>
+    /// menurunkan <see cref="ContentMaturity.HumanReviewed"/>: melepas tautan ke topik
+    /// lain bukan pembatalan pemeriksaan atas TEKS halaman ini.
+    /// </para>
+    /// <para>
+    /// Satu-satunya pemanggil produksi: <c>RemoveRequirementHandler</c>, yang di
+    /// produksi hanya terjangkau lewat alur ADR-021.
+    /// </para>
+    /// </remarks>
+    public void RemoveRequirement(Guid topicId)
+    {
+        var dibuang = _relationships.RemoveAll(r => r.Kind == RelationshipKind.Requires && r.ToTechnologyId == topicId);
+        if (dibuang > 0)
+        {
+            Touch();
+        }
+    }
+
     /// <summary>
     /// Menaikkan isi ke tingkat draf mesin — <b>kelima bagian terisi</b>, belum
     /// diperiksa.
@@ -393,7 +558,4 @@ public sealed class Technology
     /// </para>
     /// </remarks>
     private void Touch() => UpdatedAt = DateTimeOffset.UtcNow;
-
-    /// <summary>Mengubah "AI Agents" menjadi "ai-agents". Sekarang meneruskan ke <see cref="Slugs"/>.</summary>
-    public static string Slugify(string value) => Slugs.From(value);
 }

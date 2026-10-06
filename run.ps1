@@ -4,7 +4,8 @@
 
 .DESCRIPTION
     Kembaran Makefile untuk mesin tanpa `make`. Keduanya sengaja dijaga sama:
-    Makefile dipakai CI dan Linux/WSL, berkas ini dipakai di Windows.
+    Makefile untuk Linux/WSL/macOS, berkas ini untuk Windows. CI tidak memanggil
+    keduanya - ci.yml menjalankan perintahnya sendiri.
 
 .EXAMPLE
     .\run.ps1 up
@@ -14,7 +15,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'api', 'web', 'build', 'test', 'verify')]
+    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'api', 'web', 'build', 'test', 'tautan', 'halaman', 'verify', 'ci')]
     [string]$Command = 'help',
 
     [Parameter(Position = 1)]
@@ -68,7 +69,10 @@ switch ($Command) {
             @{ n = 'web';       d = 'Menjalankan web di http://localhost:3000' }
             @{ n = 'build';     d = 'Build solusi .NET' }
             @{ n = 'test';      d = 'Menjalankan uji .NET (uji integrasi butuh up + migrate)' }
+            @{ n = 'tautan';    d = 'Memeriksa tautan di berkas Markdown (tanpa jaringan)' }
+            @{ n = 'halaman';   d = 'Gerbang ADR-024 di halaman jadinya (butuh web + API hidup)' }
             @{ n = 'verify';    d = 'Gerbang yang sama dengan CI (butuh up + migrate)' }
+            @{ n = 'ci';        d = 'Seluruh gerbang ci.yml sebelum push: verify + rahasia + citra (butuh Docker)' }
         ) | ForEach-Object { Write-Host ('  {0,-12} {1}' -f $_.n, $_.d) }
         Write-Host ''
         Write-Host '  Uji integrasi MENULIS BARIS ke PostgreSQL sungguhan, jadi jalankan' -ForegroundColor DarkGray
@@ -109,142 +113,14 @@ switch ($Command) {
     }
 
     'seed' {
-        $api = if ($env:API_BASE_URL) { $env:API_BASE_URL } else { 'http://localhost:5080' }
-        Write-Host "Mengisi contoh ke $api ..." -ForegroundColor Cyan
-
-        # fieldSlug harus salah satu dari 14 bidang ADR-010 - lihat GET /api/v1/fields.
-        #
-        # PENTING: nama contoh di sini TIDAK BOLEH sama dengan nama bidang.
-        # /teknologi/<slug> dipakai bersama bidang dan topik (ADR-009), jadi topik
-        # bernama 'AI Agents' akan menuntut slug 'ai-agents' yang sudah dipegang
-        # bidangnya. Sampai Sesi 10 seed ini memang membuat tiga tabrakan seperti
-        # itu - 'AI Agents', 'Edge AI', 'Quantum Computing' - dan sejak API
-        # menolaknya, ketiganya diganti nama topik yang sebenarnya.
-        #
-        # Ini juga taksonomi yang lebih jujur: topik hidup DI BAWAH bidang, ia
-        # bukan bidang itu sendiri.
-        $samples = @(
-            @{ name = 'Model Context Protocol'; summary = 'Protokol terbuka yang menstandarkan cara model bahasa menjangkau alat dan data.'; fieldSlug = 'ai-agents' }
-            @{ name = 'Kuantisasi Model'; summary = 'Memampatkan bobot model supaya muat dan cepat di perangkat.'; fieldSlug = 'edge-ai' }
-            @{ name = 'Qiskit'; summary = 'Kerangka kerja Python untuk menyusun dan menjalankan sirkuit kuantum.'; fieldSlug = 'quantum-computing' }
-            @{ name = 'Digital Twin'; summary = 'Kembaran digital dari objek atau sistem nyata.'; fieldSlug = 'iot' }
-            @{ name = 'Cybersecurity Berbasis AI'; summary = 'Ancaman otomatis, maka pertahanannya ikut otomatis.'; fieldSlug = 'cybersecurity' }
-        )
-
-        foreach ($sample in $samples) {
-            try {
-                Invoke-RestMethod -Uri "$api/api/v1/technologies" -Method Post -ContentType 'application/json' -Body ($sample | ConvertTo-Json) | Out-Null
-                Write-Host ('  dibuat  {0}' -f $sample.name)
-            }
-            catch {
-                $code = $_.Exception.Response.StatusCode.value__
-                if ($code -eq 409) { Write-Host ('  ada     {0}' -f $sample.name) }
-                elseif ($code -eq 404 -or $code -eq 405) {
-                    # 404/405 di sini hampir selalu berarti satu hal, dan tanpa
-                    # kalimat ini gejalanya menyesatkan: endpointnya BUKAN hilang,
-                    # ia memang sengaja tidak dipasang (ADR-020). Jangan biarkan
-                    # orang menebak - dan jangan teruskan sisa seed-nya.
-                    Write-Host ''
-                    Write-Host ('  Endpoint tulis tidak dipasang di {0} (HTTP {1}).' -f $api, $code) -ForegroundColor Yellow
-                    Write-Host '  Itu bentuk PRODUKSI menurut ADR-020 - dan seed memang tidak boleh jalan di sana.' -ForegroundColor Yellow
-                    Write-Host '  Untuk pengembangan: jalankan APInya dengan `run.ps1 api` (dotnet run membaca' -ForegroundColor Yellow
-                    Write-Host '  launchSettings.json, yang menyalakan Editorial__WritesEnabled). API yang dijalankan' -ForegroundColor Yellow
-                    Write-Host '  lewat peti kemas atau --no-launch-profile TIDAK menyalakannya.' -ForegroundColor Yellow
-                    exit 1
-                }
-                else { Write-Host ('  GAGAL   {0} (HTTP {1})' -f $sample.name, $code) -ForegroundColor Red }
-            }
-        }
-
-        # Satu topik diisi LENGKAP kelima bagiannya.
-        #
-        # Tanpa ini halaman /teknologi/<slug> memang bisa dibuka, tapi setiap
-        # bagiannya berbunyi 'Belum diisi' - dan bentuk halaman yang sudah jadi
-        # tidak pernah terlihat oleh siapa pun yang menjalankan proyek ini di
-        # mesinnya sendiri.
-        $isi = 'model-context-protocol'
-        Write-Host "Mengisi kelima bagian $isi ..." -ForegroundColor Cyan
-
-        function Invoke-Isi($method, $path, $body) {
-            try {
-                Invoke-RestMethod -Uri "$api$path" -Method $method -ContentType 'application/json' -Body ($body | ConvertTo-Json) | Out-Null
-                return $true
-            }
-            catch {
-                $code = $_.Exception.Response.StatusCode.value__
-                Write-Host ('  lewat   {0} (HTTP {1})' -f $path, $code) -ForegroundColor DarkGray
-                return $false
-            }
-        }
-
-        # PENTING: SEED HARUS BISA DIJALANKAN BERKALI-KALI, dan sampai 2026-09-09 bagian
-        # ini TIDAK bisa.
-        #
-        # Membuat topiknya memang sudah idempoten sejak awal - 409 dibaca sebagai
-        # 'ada'. Mengisi bagiannya tidak: dari kelima bagian, hanya prasyarat (PUT,
-        # mengganti langkah 0) dan tautan alat (AttachTool memperbarui catatan,
-        # tidak menambah baris kedua) yang aman diulang. Tiga sisanya menambah di
-        # ujung, jadi menjalankan `run.ps1 seed` dua kali meninggalkan langkah
-        # roadmap, proyek, dan sumber yang KEMBAR - persis di halaman yang dibuat
-        # untuk memperlihatkan bentuk halaman yang sudah jadi.
-        #
-        # KENAPA LOLOS SELAMA INI: `MarkDrafted()` tetap hijau. Ia
-        # memeriksa bagian yang KOSONG, bukan yang kembar, jadi baris terakhir
-        # tetap mencetak 'kelima bagian terisi' di atas halaman yang rusak.
-        # Ketahuannya bukan dari uji - dari MENJALANKAN seed dua kali.
-        #
-        # Diperbaiki di sini, bukan dengan melarang duplikat di domain: dua sumber
-        # ber-URL sama memang layak ditolak, tapi itu aturan baru yang menuntut
-        # keputusan tersendiri. Yang jelas salah adalah seed yang menjanjikan
-        # 'ada' lalu menggandakan.
-        $sekarang = $null
-        try { $sekarang = Invoke-RestMethod -Uri "$api/api/v1/technologies/$isi" } catch { $sekarang = $null }
-
-        function Test-SudahAda($daftar, $medan, $nilai) {
-            if ($null -eq $daftar) { return $false }
-            return [bool]($daftar | Where-Object { $_.$medan -eq $nilai })
-        }
-
-        # Alat dulu: menautkan menuntut alatnya sudah ada di katalog.
-        Invoke-Isi 'Post' '/api/v1/tools' @{ name = 'MCP Inspector'; summary = 'Alat memeriksa server MCP secara interaktif.'; homepage = 'https://modelcontextprotocol.io' } | Out-Null
-
-        # Prasyarat WAJIB lebih dulu - AddRoadmapStep menolak dipanggil sebelum
-        # langkah 0 ada, dan nomor langkahnya tidak pernah dikirim dari sini.
-        # PUT, jadi mengulanginya mengganti langkah 0, bukan menambah.
-        Invoke-Isi 'Put' "/api/v1/technologies/$isi/roadmap/prasyarat" @{ title = 'Dasar HTTP dan JSON-RPC'; description = 'Paham request/response dan bentuk pesan JSON-RPC.' } | Out-Null
-
-        # Urutan langkah ditentukan server dari posisi, jadi tambahkan berurutan
-        # dan lewati yang judulnya sudah ada.
-        $langkah = @(
-            @{ title = 'Menjalankan server MCP pertama'; description = 'Pasang SDK, jalankan server contoh, sambungkan ke klien.' }
-            @{ title = 'Menulis tool sendiri'; description = 'Deklarasikan skema masukan dan tangani pemanggilannya.' }
-        )
-        foreach ($l in $langkah) {
-            if (Test-SudahAda $sekarang.roadmap 'title' $l.title) { continue }
-            Invoke-Isi 'Post' "/api/v1/technologies/$isi/roadmap" $l | Out-Null
-        }
-
-        # AttachTool sengaja upsert - aman diulang, dan catatannya ikut diperbarui.
-        Invoke-Isi 'Post' "/api/v1/technologies/$isi/tools" @{ toolSlug = 'mcp-inspector'; note = 'Dipakai sejak langkah pertama untuk melihat pesan yang lewat.' } | Out-Null
-
-        $proyek = @{ title = 'Server MCP untuk catatan lokal'; brief = 'Bangun server yang mengekspos folder catatan sebagai resource, lalu bacalah dari klien.' }
-        if (-not (Test-SudahAda $sekarang.projects 'title' $proyek.title)) {
-            Invoke-Isi 'Post' "/api/v1/technologies/$isi/projects" $proyek | Out-Null
-        }
-
-        # Sumber dikenali dari URL-nya, bukan judulnya: judul boleh ditulis ulang,
-        # alamatnya yang menentukan ia sumber yang sama.
-        $sumber = @{ type = 'OfficialDocs'; title = 'Spesifikasi Model Context Protocol'; url = 'https://modelcontextprotocol.io/specification' }
-        if (-not (Test-SudahAda $sekarang.resources 'url' $sumber.url)) {
-            Invoke-Isi 'Post' "/api/v1/technologies/$isi/resources" $sumber | Out-Null
-        }
-
-        # Naik ke draf. Ia menolak kalau ada satu bagian pun yang masih kosong,
-        # jadi berhasilnya baris ini sekaligus bukti keenam panggilan di atas
-        # benar-benar mendarat.
-        if (Invoke-Isi 'Post' "/api/v1/technologies/$isi/draf" @{}) {
-            Write-Host '  draf    kelima bagian terisi' -ForegroundColor Green
-        }
+        # Satu implementasi untuk Windows DAN Linux/WSL/macOS: database/seeds/seed.mjs.
+        # Sampai 2026-09-17 blok ini punya kembaran sendiri di seed.sh, dan
+        # kembaran itu menyimpang tanpa ada yang merah - dijalankan ke basis data
+        # kosong, ia mencetak 'ada' untuk tiga contoh yang tidak pernah dibuat.
+        # Seluruh alasan yang dulu tinggal di blok ini pindah ke kepala berkas itu.
+        # API_BASE_URL diwariskan ke node apa adanya.
+        node database/seeds/seed.mjs
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 
     'api'   { dotnet run --project $ApiProject }
@@ -252,17 +128,74 @@ switch ($Command) {
     'build' { Invoke-Step 'Build' { dotnet build TechVerseX.slnx } }
     'test'  { Invoke-Step 'Uji' { dotnet test TechVerseX.slnx } }
 
+    'tautan' {
+        # Satu implementasi untuk Windows DAN Linux/WSL/macOS, alasan yang sama
+        # dengan `seed`: berkas .mjs yang sama dipanggil run.ps1, Makefile, dan
+        # ci.yml, jadi ketiganya tidak bisa menyimpang diam-diam.
+        node .github/scripts/cek-tautan-markdown.mjs
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+
+    'halaman' {
+        # SENGAJA di luar `verify`: ia menuntut web yang sudah dibangun DAN API
+        # yang hidup, sama seperti `seed`. Di CI ia TETAP jalan - job `citra`
+        # menyalakan docker-compose.prod.yml lalu memanggil pemindai yang sama,
+        # jadi bentuk produksinya dijaga otomatis; perintah di bawah untuk bentuk
+        # PENGEMBANGAN, yang punya topik contoh dan karena itu punya relasi.
+        # Urutan yang dituntutnya:
+        #   .\run.ps1 up  ->  .\run.ps1 migrate  ->  .\run.ps1 api
+        #   lalu, di jendela lain: npm run build:web
+        #   lalu: cd apps/web; $env:API_BASE_URL='http://localhost:5080'
+        #         npx next start -p 3310
+        # Bentuk PRODUKSI yang diukur, bukan `next dev` - aturan teks pembaca
+        # ADR-024 memang membedakan keduanya (lihat apps/web/src/lib/lingkungan.ts).
+        if (-not $env:WEB_BASE_URL) { $env:WEB_BASE_URL = 'http://localhost:3310' }
+        if (-not $env:API_BASE_URL) { $env:API_BASE_URL = 'http://localhost:5080' }
+        node .github/scripts/periksa-halaman-web.mjs
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+
     'verify' {
         # BUKAN lewat Invoke-Step: pemeriksa ini fungsi PowerShell murni yang tidak
         # menyentuh $LASTEXITCODE, dan $LASTEXITCODE masih kosong di langkah pertama.
         Write-Host 'Periksa global.json' -ForegroundColor Cyan
         Test-GlobalJson
 
+        Invoke-Step 'Cek tautan Markdown' { node .github/scripts/cek-tautan-markdown.mjs }
         Invoke-Step 'Build ketat (Release)' { dotnet build TechVerseX.slnx --configuration Release }
         Invoke-Step 'Uji .NET' { dotnet test TechVerseX.slnx --no-build --configuration Release }
         Invoke-Step 'Lint web' { npm run lint:web }
         Invoke-Step 'Build web' { npm run build:web }
         Write-Host ''
         Write-Host 'Semua gerbang hijau.' -ForegroundColor Green
+    }
+
+    'ci' {
+        # Seluruh gerbang ci.yml di mesin pengembang, SEBELUM push (ADR-026).
+        # Alat pengembang, bukan pengganti CI. `verify` menanggung job backend dan
+        # frontend; skrip bash-nya menanggung pindai rahasia dan job `citra`. Satu skrip untuk Windows
+        # (Git Bash) DAN Linux/WSL/macOS, alasan yang sama dengan `seed`.
+        & $PSCommandPath verify
+        if (-not $?) { exit 1 }
+
+        # GIT BASH, bukan `bash`. Di Windows `bash` di PATH adalah
+        # C:\Windows\System32\bash.exe - bash WSL - dan distro WSL belum tentu
+        # punya `node`: diukur 2026-09-28, di mesin ini tidak ada, jadi pemindai
+        # halaman pasti gagal di sana. Git Bash selalu ada di samping git.
+        $gitRoot = Split-Path (Split-Path (Get-Command git).Source)
+        $gitBash = @("$gitRoot\bin\bash.exe", "$gitRoot\usr\bin\bash.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
+        if (-not $gitBash) { throw "Git Bash tidak ditemukan di $gitRoot" }
+
+        # gitleaks dan docker menulis log ke stderr. PowerShell 5.1 mengubah
+        # setiap baris stderr program native jadi galat begitu keluarannya
+        # dialihkan, dan dengan 'Stop' baris INF pertama gitleaks menghentikan
+        # gerbang yang sebenarnya lulus - terjadi 2026-09-28. Yang menentukan
+        # tetap exit code skripnya.
+        Write-Host '-> Gerbang ci.yml: pindai rahasia + job citra' -ForegroundColor Cyan
+        $ErrorActionPreference = 'Continue'
+        & $gitBash .github/scripts/gerbang-ci-lokal.sh
+        $kode = $LASTEXITCODE
+        $ErrorActionPreference = 'Stop'
+        if ($kode -ne 0) { throw "Gagal: gerbang ci.yml (exit $kode)" }
     }
 }

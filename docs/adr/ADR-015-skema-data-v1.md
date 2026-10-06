@@ -1,7 +1,7 @@
 # ADR-015 — Skema data V1: entitas, dua sumbu status, dan penyimpanan vektor
 
 **Status:** Diterima. **Sebagian sudah mendarat** - lihat bagian Pembaruan di kaki berkas ini.
-Menutup Issue [#20](../../../../issues/20).
+Menutup Issue [#20](https://github.com/xtheoputra/techverse-x/issues/20).
 **Tanggal:** 2026-09-04
 
 ## Konteks
@@ -252,3 +252,22 @@ menyimpan angka 160 tanpa saling tahu; keduanya kini satu konstanta
 Skema di ADR ini karena itu **sepenuhnya mendarat di `main`** - `Field`,
 `ContentMaturity`, dan penegaknya - dan bisa diperiksa langsung, bukan lewat
 cabang.
+
+---
+
+## Pembaruan 2026-09-17 - bagian 3 setengah benar, kini ditegakkan basis data
+
+Bagian 3 menulis tabel relasi *"sudah memuat penjaga"*: kunci unik
+`(From, To, Kind)` **dan** penolakan simpul berelasi dengan dirinya sendiri.
+Diukur saat produsen pertamanya dibangun ([ADR-023](ADR-023-knowledge-graph-dasar.md)):
+kunci uniknya memang ada, **penolakan diri sendiri hanya di domain**, dan **ujung
+tujuan sama sekali tidak berkunci asing**. Migrasi `RelasiAntarTopik` menegakkan
+ketiganya di basis data - FK tujuan `RESTRICT` + indeks, CHECK diri sendiri, CHECK
+`Kind` dari enum - dan `Id` berhenti `ValueGeneratedOnAdd`, yang tanpa itu membuat
+tulis pertama membalas 500.
+
+Baris `TechnologyRelationship` di tabel entitas (*"Sudah ada. Sisi Knowledge
+Graph."*) kini berarti lebih dari tabel: **produsen** (endpoint tulis
+pengembangan; di produksi hanya alur [ADR-021](ADR-021-jalan-menuju-tinjau.md)),
+**pembaca** (`requires`/`requiredBy` di respons topik), dan **tampilan** ada sejak
+ADR-023, dan `RelationshipKind` dipangkas ke `Requires`. **Produksi nol sisi.**

@@ -53,6 +53,21 @@ builder.Logging.AddSimpleConsole(options =>
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
+// Permintaan yang tidak bisa diikat - JSON terpotong, bertipe salah, kosong, atau
+// ?pageSize=abc - dijawab 400 berikut sebabnya, bukan 500 (#61).
+//
+// 🔴 ThrowOnBadRequest dinyalakan di SEMUA lingkungan, bukan hanya Development
+// (bawaannya). Tanpa baris ini ASP.NET menempuh dua jalan: Development melempar,
+// lingkungan lain diam-diam menulis 400 tanpa sebab - dan seluruh uji integrasi, yang
+// berjalan di Development, tidak pernah melihat jalan milik produksi. Dengan baris
+// ini keduanya satu jalan: PermintaanCacatHandler.
+//
+// ⚠️ Kedua baris ini SATU KESATUAN. Terukur: sakelar tanpa handler mengubah 400
+// produksi jadi 500 di kedelapan endpoint berbadan; handler tanpa sakelar membiarkan
+// produksi menjawab 400 tanpa sebab.
+builder.Services.Configure<RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
+builder.Services.AddExceptionHandler<PermintaanCacatHandler>();
+
 if (redisTerpasang)
 {
     builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>

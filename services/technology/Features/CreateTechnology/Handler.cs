@@ -66,7 +66,11 @@ public sealed class CreateTechnologyHandler(TechnologyDbContext db)
         // Event sudah terkumpul di aggregate; penerbitannya menunggu bus (ADR-004).
         technology.ClearEvents();
 
-        return Result.Created(TechnologyResponseFactory.From(technology, field));
+        // Kosong DITULIS, bukan dimuat: topik yang lahir di permintaan ini belum
+        // bisa dirujuk sisi mana pun — kedua ujung sisi berkunci asing, dan sisi
+        // hanya bisa ditambahkan ke topik yang sudah ada (ADR-023). Memuatnya dari
+        // basis data cuma dua kueri untuk jawaban yang sudah pasti.
+        return Result.Created(TechnologyResponseFactory.From(technology, field, TopikTerhubung.Kosong));
     }
 
     public sealed record Result(

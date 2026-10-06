@@ -42,7 +42,7 @@ db-script: ## Menulis SQL migrasi idempoten ke database/migrations/
 
 .PHONY: seed
 seed: ## Mengisi contoh isi lewat API (API harus sudah jalan)
-	@sh database/seeds/seed.sh
+	@node database/seeds/seed.mjs
 
 .PHONY: api
 api: ## Menjalankan API di http://localhost:5080
@@ -60,6 +60,22 @@ build: ## Build seluruh solusi .NET
 test: ## Menjalankan uji .NET
 	dotnet test TechVerseX.slnx
 
+# Satu implementasi untuk Linux/WSL/macOS DAN Windows, alasan yang sama dengan
+# `seed`: berkas .mjs yang sama dipanggil Makefile, run.ps1, dan ci.yml.
+.PHONY: cek-tautan
+cek-tautan: ## Memeriksa tautan di berkas Markdown (tanpa jaringan)
+	@node .github/scripts/cek-tautan-markdown.mjs
+
+# SENGAJA di luar `verify`: menuntut web yang sudah dibangun DAN API yang hidup,
+# sama seperti `seed`. Di CI ia TETAP jalan - job `citra` menyalakan
+# docker-compose.prod.yml lalu memanggil pemindai yang sama. Bentuk PRODUKSI yang
+# diukur, bukan `next dev` - aturan teks pembaca ADR-024 membedakan keduanya.
+.PHONY: cek-halaman
+cek-halaman: ## Gerbang ADR-024 di halaman jadinya (butuh web + API hidup)
+	@WEB_BASE_URL=$${WEB_BASE_URL:-http://localhost:3310} \
+	 API_BASE_URL=$${API_BASE_URL:-http://localhost:5080} \
+	 node .github/scripts/periksa-halaman-web.mjs
+
 # `setup-dotnet` menolak `sdk.version` yang bukan versi SDK utuh begitu
 # `rollForward` disebut, sedangkan `dotnet` di mesin yang SDK-nya sudah terpasang
 # menerimanya diam-diam. Selisih itu memerahkan CI sementara verifikasi lokal
@@ -76,8 +92,15 @@ check-global-json: ## Memastikan sdk.version di global.json versi SDK utuh
 	esac
 
 .PHONY: verify
-verify: check-global-json ## Gerbang yang sama dengan CI: build ketat + uji + build web
+verify: check-global-json cek-tautan ## Gerbang yang sama dengan CI: build ketat + uji + build web
 	dotnet build TechVerseX.slnx --configuration Release
 	dotnet test TechVerseX.slnx --no-build --configuration Release
 	npm run lint:web
 	npm run build:web
+
+# Seluruh gerbang ci.yml di mesin pengembang, SEBELUM push (ADR-026). Alat
+# pengembang, bukan pengganti CI. `verify` menanggung job backend dan frontend;
+# skrip bash-nya menanggung pindai rahasia dan job `citra`. Skrip yang sama dipanggil run.ps1.
+.PHONY: ci
+ci: verify ## Seluruh gerbang ci.yml sebelum push: verify + rahasia + citra (butuh Docker)
+	bash .github/scripts/gerbang-ci-lokal.sh

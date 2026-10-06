@@ -66,6 +66,15 @@ RUN dotnet restore apps/api/TechVerseX.Api.csproj --runtime linux-x64 \
 
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0 AS migrator
 WORKDIR /migrate
+
+# `apt upgrade` menambal openssl citra dasar (CVE-2026-84782: libssl3t64 +
+# openssl) sampai runtime-deps:10.0 sendiri diperbarui di hulu — sejajar dengan
+# `apk upgrade libssl3 libcrypto3` di citra web. Dijalankan sebagai root, sebelum
+# pindah ke $APP_UID; `--only-upgrade` tidak pernah menambah paket baru.
+RUN apt-get update \
+ && apt-get install -y --only-upgrade openssl libssl3t64 \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY --from=migrations-build /migrate/ ./
 USER $APP_UID
 # Bundel membaca ConnectionStrings__Postgres dari lingkungan, sama seperti API.
@@ -107,6 +116,15 @@ RUN dotnet tool restore \
 # ---------------------------------------------------------------------------
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+
+# `apt upgrade` menambal openssl citra dasar (CVE-2026-84782: libssl3t64 +
+# openssl) sampai aspnet:10.0 sendiri diperbarui di hulu — sejajar dengan
+# `apk upgrade libssl3 libcrypto3` di citra web. Dijalankan sebagai root, sebelum
+# pindah ke $APP_UID; `--only-upgrade` tidak pernah menambah paket baru.
+RUN apt-get update \
+ && apt-get install -y --only-upgrade openssl libssl3t64 \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY --from=publish /app ./
 
 # Bundel migrasi ikut, TIDAK dijalankan sendiri. Lihat catatan tahap 3b.

@@ -1,6 +1,6 @@
 # ADR-014 — Peran MCP ke dalam dulu, dan penyedia AI tidak dikunci
 
-**Status:** Diterima. Menutup Issue [#16](../../../../issues/16).
+**Status:** Diterima. Menutup Issue [#16](https://github.com/xtheoputra/techverse-x/issues/16).
 **Tanggal:** 2026-09-04
 
 ## Konteks
@@ -60,3 +60,23 @@ diambil, apalagi ketika tidak mengambilnya gratis.
 - Server MCP ke luar, kalau nanti dibangun, **hanya menyajikan halaman berstatus
   `tinjau`**. Status halaman jadi penjaga distribusi, bukan sekadar label
   tampilan.
+
+---
+
+## Pembaruan 2026-09-28 - bawaan pindah ke tier gratis, tanpa kartu
+
+*"Default V1 tetap OpenAI"* dibatalkan oleh
+[ADR-026](ADR-026-nol-biaya-gratis-mandiri.md): nol biaya, dan proyek tidak bergantung
+pada mesin siapa pun. Bawaannya kini dua tier gratis tanpa kartu yang sama-sama
+menjanjikan **tidak melatih** model dengan input dan output kita — **Groq** untuk draf
+dari sumber terkurasi, **Cloudflare Workers AI** untuk AI Mentor dan embedding — dan
+keduanya saling jadi cadangan. Keduanya lewat endpoint yang kompatibel OpenAI, jadi
+keputusan inti halaman ini justru yang membuat perpindahan itu murah: kode bicara ke
+abstraksi, penyedia dan model tetap konfigurasi.
+
+Tier gratis Gemini, Mistral, dan model `:free` OpenRouter **tidak** boleh menerima
+pertanyaan pembaca - syarat datanya ada di ADR-026.
+
+Satu batas yang ADR-026 ukur dan berlaku untuk penyedia mana pun: model **hanya
+menulis dari sumber yang sudah dikurasi**. Tanpa sumber, model kecil menjawab *"apa
+itu MCP?"* salah dengan tata bahasa yang meyakinkan.

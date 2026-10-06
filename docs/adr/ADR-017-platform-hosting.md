@@ -1,13 +1,15 @@
 # ADR-017 — Platform hosting V1, dan kenapa bentuk citra `migrate` ikut diputuskan di sini
 
 **Status:** ⛔ **DIGANTIKAN [ADR-019](ADR-019-hosting-gratis-tanpa-kartu.md)** pada hari yang sama.
-Menutup Issue [#33](../../../../issues/33).
+Menutup Issue [#33](https://github.com/xtheoputra/techverse-x/issues/33).
 **Tanggal:** 2026-09-08
 
 > 🔴 **JANGAN pakai ADR ini sebagai keputusan yang berlaku.** Pemilik membatalkan
 > Render beberapa jam setelah ia diterima: *"jangan render, akun gratis pilihannya
 > pada apa"*. Yang berlaku sekarang **Vercel + Koyeb + Neon** — lihat
-> [ADR-019](ADR-019-hosting-gratis-tanpa-kartu.md).
+> [ADR-019](ADR-019-hosting-gratis-tanpa-kartu.md). *(2026-09-17: kaki Koyeb-nya
+> gugur untuk akun baru; penggantinya diuji menurut
+> [ADR-025](ADR-025-host-api-pengganti-koyeb.md).)*
 >
 > **Ia dibiarkan utuh, bukan dihapus,** karena dua bagiannya masih dipakai dan
 > masih benar: (a) pemeriksaan empat syarat yang menemukan bahwa **bentuk citra

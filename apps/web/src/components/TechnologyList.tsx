@@ -40,8 +40,26 @@ export default async function TechnologyList() {
         ) : (
           <>
             <p className="font-medium">Daftar topik belum bisa dimuat.</p>
+            {/*
+              🔴 Kalimat kedua di sini dulu berbunyi "Keempat belas bidang DI BAWAH
+              tetap bisa dibuka", dan itu keliru dua kali sekaligus — ketahuan dari
+              MENJALANKAN halaman ini dengan API dimatikan, bukan dari uji:
+
+                1. Bidangnya ada DI ATAS, bukan di bawah. FieldGrid dirender lebih
+                   dulu di page.tsx; diukur di HTML jadinya, bukan ditebak.
+                2. Dan janjinya sendiri tidak bisa ditepati. Daftar bidang datang
+                   dari API yang sama; kalau ia tak terjangkau, kartu bidang di
+                   atas JUGA sedang memberi pesan galat, dan halaman
+                   /teknologi/<slug> ikut gagal karena ia pun memanggil listFields.
+
+              Kalimat itu lahir di PR #50 — yaitu di perbaikan yang justru dibuat
+              untuk membuang bahan pengembang dari halaman ini. Pola yang sama
+              persis dengan PR #51: PERBAIKANNYA SENDIRI menanam klaim yang
+              berhenti benar. Jangan menjanjikan apa pun yang datang dari API yang
+              sama dengan yang barusan gagal.
+            */}
             <p className="mt-1 text-neutral-600 dark:text-neutral-400">
-              Coba muat ulang beberapa saat lagi. Keempat belas bidang di bawah tetap bisa dibuka.
+              Coba muat ulang beberapa saat lagi.
             </p>
           </>
         )}
@@ -61,7 +79,10 @@ export default async function TechnologyList() {
               Isi contoh: <code className="rounded bg-neutral-200 px-1 py-0.5 dark:bg-neutral-800">run.ps1 seed</code>
             </>
           ) : (
-            <>Itu keadaan yang jujur, bukan galat — Bulan 1 mengejar taksonominya lebih dulu.</>
+            // Teks pembaca ADR-024: kalimat ini dulu ditutup "Bulan 1 mengejar
+            // taksonominya lebih dulu" - nama bulan rencana, di keadaan yang
+            // justru NORMAL untuk produksi hari ini.
+            <>Itu keadaan yang jujur, bukan galat.</>
           )}
         </p>
       </div>
@@ -70,7 +91,16 @@ export default async function TechnologyList() {
 
   return (
     <section>
-      <h2 className="mb-3 text-lg font-semibold">{totalItems} topik tercatat</h2>
+      <h2 className="mb-3 text-lg font-semibold">
+        {totalItems} topik tercatat
+        {/* pageSize 24 memotong DIAM-DIAM tanpa keterangan ini. Markah yang sama
+            dengan TopikCocok di cari/page.tsx. */}
+        {totalItems > items.length ? (
+          <span className="ml-2 text-sm font-normal text-neutral-500">
+            menampilkan {items.length} teratas
+          </span>
+        ) : null}
+      </h2>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((technology) => (
           <li

@@ -13,7 +13,10 @@ pilihannya belum diambil, dan tidak ada di halaman ini yang mengunci pilihan itu
 
 Diterbitkan ke GitHub Container Registry oleh
 [`rilis-citra.yml`](../.github/workflows/rilis-citra.yml) setiap kali `main`
-bergerak. Citranya **privat**, mengikuti repo ini.
+bergerak. Citranya **privat** — dan visibilitas paket GHCR **tidak** ikut repo:
+repo publik sejak 2026-09-28, sedangkan ketiga citra diukur 2026-09-29 tetap
+menolak tarikan anonim (`UNAUTHORIZED`). Kredensial di bagian berikutnya karena
+itu tetap wajib.
 
 | Citra | Peran |
 |---|---|
@@ -164,6 +167,12 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST https://<api>/api/v1/technologi
 
 curl -s -o /dev/null -w '%{http_code}\n' https://<api>/api/v1/fields
 # harus 200   - kendalinya: yang tertutup MENULIS, bukan seluruh API
+
+curl -s "https://<api>/api/v1/search?q=quantum" | head -c 200
+# harus memuat "quantum-computing"   - pencarian permukaan BACA (ADR-022),
+# jadi ia ikut tayang. Kata kunci ini dipilih karena jawabannya datang dari
+# BIDANG, yang disemai migrasi - jadi ia benar bahkan saat belum ada satu
+# topik pun.
 ```
 
 Log startup juga menyebutkannya. `Editorial:WritesEnabled mati` adalah bentuk
@@ -211,6 +220,16 @@ Pasang **`/health/ready`** sebagai probe kesiapan dan **`/health/live`** sebagai
 probe keaktifan. Menukarnya adalah kesalahan yang mahal: Postgres yang sedang
 bermasalah akan terus-menerus me-restart aplikasi yang sebenarnya sehat.
 
+🔴 **Pemantau dari luar — *uptime monitor*, ping terjadwal — memanggil
+`/health/live`, BUKAN `/health/ready`.** Yang kedua menyentuh Postgres, dan Neon
+Free menjatah waktu basis data terjaga: **100 CU-jam per bulan**, sedangkan 0,25 CU
+yang terjaga sebulan penuh memakan 180. Pemantau yang memanggil `/health/ready`
+lebih sering dari lima menit sekali membuat Neon tidak pernah tidur, dan sekitar
+hari ke-16 basis datanya *"suspended until the next billing period"* — halaman
+ikut kosong sampai bulan berikutnya. Probe kesiapan yang hanya dijalankan platform
+saat menyebar tidak kena. Diperiksa 2026-09-17,
+[ADR-025](adr/ADR-025-host-api-pengganti-koyeb.md#koreksi-untuk-dua-kaki-yang-tetap).
+
 Balasan `/health/ready` memuat nama tiap dependensi dan statusnya, jadi kegagalan
 bisa dibaca tanpa masuk ke peti kemas.
 
@@ -230,7 +249,7 @@ Yang ini ada supaya bentuk produksinya bisa dibuktikan **sebelum uang hosting
 keluar**.
 
 Yang benar-benar dibuktikannya, diukur ulang 2026-09-10 (issue
-[#48](../../issues/48)):
+[#48](https://github.com/xtheoputra/techverse-x/issues/48)):
 
 | Klaim | Keadaan |
 |---|---|
@@ -277,13 +296,20 @@ dari citra dasarnya — 17 MB yang tidak pernah dipanggil `node server.js`, teta
 menyumbang **11 dari 13 temuan CRITICAL/HIGH**, termasuk satu-satunya CRITICAL.
 Membuangnya, plus menambal openssl citra dasar, membawa hitungannya **13 → 0**.
 
-Menjalankan pemindaian yang sama di mesin sendiri:
+Menjalankan pemindaian yang sama di mesin sendiri — atau seluruh gerbang CI
+sekaligus lewat `.\run.ps1 ci` / `make ci` ([ADR-026](adr/ADR-026-nol-biaya-gratis-mandiri.md)):
 
 ```
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-  aquasec/trivy:latest image --scanners vuln \
-  --severity CRITICAL,HIGH --exit-code 1 <nama-citra>
+  aquasec/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969 \
+  image --scanners vuln --severity CRITICAL,HIGH --exit-code 1 <nama-citra>
 ```
+
+🔴 **Per digest, bukan `:latest`.** Maret 2026 Trivy disusupi
+(CVE-2026-33634): citra v0.69.4–v0.69.6 — dan `latest` selama jendela paparan —
+membawa pencuri kredensial, dan perintah di atas memasang soket Docker ke
+dalamnya. Sampai 2026-09-28 baris ini, `ci.yml`, dan `rilis-citra.yml` menarik
+`:latest`.
 
 ⚠️ Kalau suatu hari gerbang ini merah karena kerentanan baru di citra dasar,
 **perbaiki akarnya** — perbarui citra dasar atau tambal paketnya. Menurunkan
@@ -292,6 +318,26 @@ ambang adalah cara paling cepat membuat gerbang ini berhenti menjaga apa pun.
 ---
 
 ## Menyebarkan: Vercel + Koyeb + Neon
+
+> 🔴 **Diperbarui 2026-09-17 — kaki Koyeb di bagian ini TIDAK berlaku untuk akun
+> baru.** Sejak 17 Februari 2026 Koyeb mewajibkan paket berbayar dan metode
+> pembayaran bagi pendaftar baru. Penggantinya **belum dipilih**; ia diuji menurut
+> [ADR-025](adr/ADR-025-host-api-pengganti-koyeb.md) — Railway Free lebih dulu,
+> lengkap dengan syarat lulus tiap langkahnya.
+>
+> Yang berubah di bawah: **langkah 1 dan 2 (Neon) dikoreksi di tempat**, dan
+> proyek Neon yang sungguhan dibuat **sesudah** region host API diketahui. Langkah
+> 3 (Actions) tidak bisa jalan selama [#57](https://github.com/xtheoputra/techverse-x/issues/57). Langkah 4 dan 6
+> (Koyeb) dibiarkan sebagai rekaman; syarat yang dibawanya — SHA lengkap,
+> `ConnectionStrings__Redis` dan `Editorial__WritesEnabled` kosong, `/health/ready`
+> yang hanya menyebut `postgres`, tiga `curl` permukaan tulis — berlaku untuk host
+> mana pun.
+>
+> ✅ **Diperbarui 2026-09-29 — langkah 3 bisa jalan lagi.** #57 terjawab: repo
+> publik sejak 2026-09-28, dan Actions kembali menjalankan langkahnya. Yang kini
+> ditunggu langkah 3 hanya secret `NEON_DATABASE_URL`
+> ([#38](https://github.com/xtheoputra/techverse-x/issues/38)) — diukur hari ini,
+> repo belum punya secret satu pun.
 
 Platformnya diputuskan di [ADR-019](adr/ADR-019-hosting-gratis-tanpa-kartu.md):
 **tiga tempat gratis, tak satu pun menuntut kartu.** Segala yang di atas tetap
@@ -310,10 +356,17 @@ langkah `migrate` dijalankan dari GitHub Actions memakai **citra `api` yang sama
 persis** — bukan dari kode sumber, sebab itu akan memigrasi dari bit yang berbeda
 dari yang tayang.
 
-1. **Neon** — buat proyek, salin *connection string*. Bentuknya URI
+1. **Neon** — buat proyek **di region AWS terdekat dengan host API**; region itu
+   tidak bisa diubah sesudah proyeknya ada. Salin *connection string* dengan
+   sakelar **Connection pooling MATI**. 🔴 Sakelar itu menyala secara bawaan untuk
+   proyek baru, sedangkan Neon sendiri menulis *"Migrations must use a direct
+   (non-pooled) Neon connection string"* — string yang host-nya berakhiran
+   `-pooler` adalah yang **salah** untuk langkah 3. Bentuknya URI
    (`postgresql://…`); aplikasi menerimanya apa adanya
-   (`PostgresConnectionString`), jadi jangan dirakit ulang dengan tangan.
-2. **GitHub → Settings → Secrets** — isi `NEON_DATABASE_URL` dengan URI itu.
+   (`PostgresConnectionString`), jadi jangan dirakit ulang dengan tangan: **yang
+   dipilih sakelarnya, bukan huruf di string-nya.**
+2. **GitHub → Settings → Secrets** — isi `NEON_DATABASE_URL` dengan URI *direct*
+   itu.
 3. **Actions → *Migrasi produksi* → Run workflow**, isi SHA-nya (pendek maupun
    penuh — langkah ini mengkanonikalkannya sendiri). Ini langkah `migrate`. Ia
    harus **hijau** sebelum lanjut, dan ringkasannya mencetak **ref citra
@@ -486,6 +539,15 @@ dihubungi"*.
 kosong. Batas waktu fetch sengaja 30 detik untuk itu. Fetch yang **gagal** tidak
 ikut ter-cache, jadi galatnya tidak bertahan lima menit.
 
+⚠️ **Diperbarui 2026-09-17: alasan di atas ditulis untuk host yang tidur sesudah
+SATU JAM.** Kedua kandidat pengganti Koyeb tidur jauh lebih cepat — Railway Free
+5–10 menit, Vercel 5 menit — jadi penyegaran lima menit web hampir selalu mengenai
+instans yang sedang tidur. Cache tetap melindungi halaman yang **sudah pernah**
+diambil; yang tidak terlindungi adalah permintaan yang belum pernah ter-cache,
+terutama `/cari?q=` dengan kata kunci baru. Railway menulisnya sendiri: *"The first
+request sent to a slept service may return a 502 Bad Gateway response."* Seberapa
+sering itu terjadi **diukur** di uji ADR-025 (langkah R6), bukan diandaikan.
+
 ### Tiga batas yang sudah diketahui
 
 1. 🔴 **Vercel Hobby hanya untuk pemakaian NON-KOMERSIAL.** Begitu TechVerse X
@@ -495,18 +557,23 @@ ikut ter-cache, jadi galatnya tidak bertahan lima menit.
    *"pasang tag SHA"* kini hanya berlaku untuk API.
 3. **Koyeb gratis hanya Frankfurt atau Washington** — tidak ada Asia. Latensi ke
    pembaca Indonesia tinggi, dan itu tidak terasa justru karena cachenya: yang
-   jauh cuma penyegaran di latar.
+   jauh cuma penyegaran di latar. *(2026-09-17: gugur bersama kaki Koyeb. Region
+   host penggantinya baru diketahui sesudah diuji — paket Free Railway tidak
+   memberi pilihan region — dan region Neon mengikutinya.)*
 
 ---
 
 
 ## Yang belum ada
 
-- **Pilihan platform.** ✅ **Sudah diputuskan** —
-  [ADR-019](adr/ADR-019-hosting-gratis-tanpa-kartu.md): Vercel + Koyeb + Neon,
-  gratis dan tanpa kartu. ⛔ [ADR-017](adr/ADR-017-platform-hosting.md) (Render
-  berbayar) **sudah digantikan**; ia dibiarkan utuh karena pemeriksaan empat
-  syaratnya masih benar dan masih dipakai.
+- **Pilihan platform.** 🟡 **Dua dari tiga sudah diputuskan** —
+  [ADR-019](adr/ADR-019-hosting-gratis-tanpa-kartu.md): Vercel (web) dan Neon
+  (PostgreSQL), gratis dan tanpa kartu. 🔴 **Host API dibuka lagi:** Koyeb tidak
+  gratis untuk akun baru sejak 17 Februari 2026, dan penggantinya diuji menurut
+  [ADR-025](adr/ADR-025-host-api-pengganti-koyeb.md). ⛔
+  [ADR-017](adr/ADR-017-platform-hosting.md) (Render berbayar) **sudah
+  digantikan**; ia dibiarkan utuh karena pemeriksaan empat syaratnya masih benar
+  dan masih dipakai.
 - 🔴 **Temuan ADR-017 yang paling menyentuh halaman ini tetap berlaku:** bagian
   *Urutan yang mengikat* di atas menuntut **citra `migrate` yang BERBEDA**
   berjalan sampai selesai — dan *pre-deploy command* milik Render maupun Railway,
@@ -516,4 +583,4 @@ ikut ter-cache, jadi galatnya tidak bertahan lima menit.
   melahirkan `/app/efbundle` di citra `api` — dan di Koyeb, yang tidak punya
   pre-deploy sama sekali, ia dipanggil dari GitHub Actions.
 - **Domain.** Belum dibeli. Sementara ini alamatnya `*.vercel.app`.
-- **HTTPS/sertifikat.** Diurus Vercel dan Koyeb, tapi tetap harus dibuktikan.
+- **HTTPS/sertifikat.** Diurus Vercel dan host API, tapi tetap harus dibuktikan.
