@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { connection } from 'next/server';
+import { ArrowRight } from '@/components/Icons';
 import MaturityBadge from '@/components/MaturityBadge';
 import { searchTechnologies } from '@/lib/api';
 import { mesinPengembang } from '@/lib/lingkungan';
@@ -25,21 +26,21 @@ export default async function TechnologyList() {
 
   if (!result.ok) {
     return (
-      <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
+      <div className="glass border-amber/40 p-5 text-sm">
         {mesinPengembang ? (
           <>
             {/* Frasa ini dikutip sebagai gejala di issue #40 - jangan diubah
                 tanpa ikut menyapu issue itu. */}
-            <p className="font-medium">API belum bisa dihubungi.</p>
-            <p className="mt-1 text-neutral-600 dark:text-neutral-400">{result.reason}</p>
-            <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-              Jalankan <code className="rounded bg-neutral-200 px-1 py-0.5 dark:bg-neutral-800">run.ps1 up</code> lalu{' '}
-              <code className="rounded bg-neutral-200 px-1 py-0.5 dark:bg-neutral-800">run.ps1 api</code>.
+            <p className="font-medium text-amber">API belum bisa dihubungi.</p>
+            <p className="mt-1 text-fg-soft">{result.reason}</p>
+            <p className="mt-2 text-fg-soft">
+              Jalankan <code className="rounded bg-surface-strong px-1 py-0.5 font-mono">run.ps1 up</code> lalu{' '}
+              <code className="rounded bg-surface-strong px-1 py-0.5 font-mono">run.ps1 api</code>.
             </p>
           </>
         ) : (
           <>
-            <p className="font-medium">Daftar topik belum bisa dimuat.</p>
+            <p className="font-medium text-amber">Daftar topik belum bisa dimuat.</p>
             {/*
               🔴 Kalimat kedua di sini dulu berbunyi "Keempat belas bidang DI BAWAH
               tetap bisa dibuka", dan itu keliru dua kali sekaligus — ketahuan dari
@@ -58,9 +59,7 @@ export default async function TechnologyList() {
               berhenti benar. Jangan menjanjikan apa pun yang datang dari API yang
               sama dengan yang barusan gagal.
             */}
-            <p className="mt-1 text-neutral-600 dark:text-neutral-400">
-              Coba muat ulang beberapa saat lagi.
-            </p>
+            <p className="mt-1 text-fg-soft">Coba muat ulang beberapa saat lagi.</p>
           </>
         )}
       </div>
@@ -71,12 +70,12 @@ export default async function TechnologyList() {
 
   if (items.length === 0) {
     return (
-      <div className="rounded-lg border border-neutral-300 bg-white p-4 text-sm dark:border-neutral-700 dark:bg-neutral-900">
-        <p className="font-medium">Belum ada satu topik pun.</p>
-        <p className="mt-1 text-neutral-600 dark:text-neutral-400">
+      <div className="glass p-5 text-sm">
+        <p className="font-medium text-fg">Belum ada satu topik pun.</p>
+        <p className="mt-1 text-fg-soft">
           {mesinPengembang ? (
             <>
-              Isi contoh: <code className="rounded bg-neutral-200 px-1 py-0.5 dark:bg-neutral-800">run.ps1 seed</code>
+              Isi contoh: <code className="rounded bg-surface-strong px-1 py-0.5 font-mono">run.ps1 seed</code>
             </>
           ) : (
             // Teks pembaca ADR-024: kalimat ini dulu ditutup "Bulan 1 mengejar
@@ -90,39 +89,38 @@ export default async function TechnologyList() {
   }
 
   return (
-    <section>
-      <h2 className="mb-3 text-lg font-semibold">
-        {totalItems} topik tercatat
-        {/* pageSize 24 memotong DIAM-DIAM tanpa keterangan ini. Markah yang sama
-            dengan TopikCocok di cari/page.tsx. */}
-        {totalItems > items.length ? (
-          <span className="ml-2 text-sm font-normal text-neutral-500">
-            menampilkan {items.length} teratas
-          </span>
-        ) : null}
-      </h2>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <section id="topik" aria-labelledby="judul-topik">
+      <div className="mb-8">
+        <p className="eyebrow">Topik</p>
+        <h2 id="judul-topik" className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+          {totalItems} topik tercatat
+          {/* pageSize 24 memotong DIAM-DIAM tanpa keterangan ini. Markah yang sama
+              dengan TopikCocok di cari/page.tsx. */}
+          {totalItems > items.length ? (
+            <span className="ml-3 align-middle text-sm font-normal text-fg-mute">
+              menampilkan {items.length} teratas
+            </span>
+          ) : null}
+        </h2>
+      </div>
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((technology) => (
-          <li
-            key={technology.id}
-            className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
-          >
-            <p className="text-xs uppercase tracking-wide text-neutral-500">{technology.fieldName}</p>
-            <h3 className="mt-1 font-semibold">
-              <Link href={`/teknologi/${technology.slug}`} className="underline underline-offset-2">
+          <li key={technology.id} className="glass glass-hover reveal group relative flex flex-col p-5">
+            <p className="eyebrow !text-violet">{technology.fieldName}</p>
+            <h3 className="mt-2 text-xl font-semibold tracking-tight">
+              <Link href={`/teknologi/${technology.slug}`} className="stretched-link">
                 {technology.name}
               </Link>
             </h3>
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{technology.summary}</p>
+            <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-fg-soft">{technology.summary}</p>
 
             {/* Aturan keras ADR-012: kematangan isi selalu ikut tampil. Kontrak
                 API-nya sendiri yang menjamin datanya ada — lihat
                 TechnologySummaryResponse. */}
-            <p className="mt-2">
+            <div className="mt-auto flex items-center justify-between gap-3 pt-5">
               <MaturityBadge maturity={technology.maturity} />
-            </p>
-
-            <p className="mt-2 font-mono text-xs text-neutral-400">/teknologi/{technology.slug}</p>
+              <ArrowRight className="size-5 shrink-0 text-fg-mute transition group-hover:translate-x-1 group-hover:text-cyan" />
+            </div>
           </li>
         ))}
       </ul>

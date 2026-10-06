@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { connection } from 'next/server';
+import { ArrowRight, FieldIcon } from '@/components/Icons';
 import { listFields } from '@/lib/api';
 import { mesinPengembang } from '@/lib/lingkungan';
 
@@ -31,6 +32,13 @@ const PRIORITY_LABEL = {
   Peripheral: 'Target: kurasi tautan',
 } as const;
 
+/** Warna ikon mengikuti prioritas: cyan–violet untuk inti, violet untuk pendukung, netral untuk pinggiran. */
+const PRIORITY_ICON = {
+  Core: 'border-cyan/40 bg-gradient-to-br from-cyan/20 to-violet/20 text-cyan',
+  Supporting: 'border-violet/35 bg-violet/10 text-violet',
+  Peripheral: 'border-line bg-surface text-fg-soft',
+} as const;
+
 export default async function FieldGrid() {
   // Sama seperti TechnologyList: tanpa ini Next.js 16 memanggang halaman saat
   // build, dan yang tersimpan adalah jawaban API pada saat build.
@@ -40,9 +48,9 @@ export default async function FieldGrid() {
 
   if (!result.ok) {
     return (
-      <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
-        <p className="font-medium">Daftar bidang belum bisa diambil.</p>
-        <p className="mt-1 text-neutral-600 dark:text-neutral-400">
+      <div className="glass border-amber/40 p-5 text-sm">
+        <p className="font-medium text-amber">Daftar bidang belum bisa diambil.</p>
+        <p className="mt-1 text-fg-soft">
           {/* `result.reason` menyebut alamat API internal - bahan diagnosis, bukan
               kalimat untuk pembaca. Lihat lib/lingkungan.ts. */}
           {mesinPengembang ? result.reason : 'Coba muat ulang beberapa saat lagi.'}
@@ -55,34 +63,51 @@ export default async function FieldGrid() {
   const reviewed = fields.reduce((total, field) => total + field.reviewedTopicCount, 0);
 
   return (
-    <section>
-      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-lg font-semibold">{fields.length} bidang teknologi</h2>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          <strong>{reviewed}</strong> topik sudah diperiksa manusia
+    <section id="bidang" aria-labelledby="judul-bidang">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <div>
+          <p className="eyebrow">Jelajahi</p>
+          <h2 id="judul-bidang" className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+            {fields.length} bidang teknologi
+          </h2>
+        </div>
+        <p className="text-sm text-fg-soft">
+          <strong className="font-mono text-base text-mint">{reviewed}</strong> topik sudah diperiksa manusia
         </p>
       </div>
 
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {fields.map((field) => (
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {fields.map((field, i) => (
           <li
             key={field.id}
-            className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
+            style={{ '--d': `${Math.min(i, 8) * 0.04}s` } as React.CSSProperties}
+            className="glass glass-hover reveal group relative flex flex-col p-5"
           >
-            <div className="flex items-baseline justify-between gap-2">
-              <h3 className="font-semibold">
-                <Link href={`/teknologi/${field.slug}`} className="underline underline-offset-2">
-                  {field.name}
-                </Link>
-              </h3>
-              <span className="shrink-0 text-xs text-neutral-500">{PRIORITY_LABEL[field.priority]}</span>
+            <div className="flex items-start justify-between gap-3">
+              <span className={`grid size-12 place-items-center rounded-xl border ${PRIORITY_ICON[field.priority]}`}>
+                <FieldIcon slug={field.slug} className="size-6" />
+              </span>
+              <span className="rounded-full border border-line px-2.5 py-0.5 text-[0.7rem] text-fg-mute">
+                {PRIORITY_LABEL[field.priority]}
+              </span>
             </div>
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{field.summary}</p>
-            <p className="mt-2 text-xs text-neutral-500">
-              {field.topicCount} topik · {field.reviewedTopicCount} diperiksa manusia
-            </p>
-            {/* Alamatnya berhenti jadi teks mati: rute /teknologi/<slug> kini ada. */}
-            <p className="mt-1 font-mono text-xs text-neutral-400">/teknologi/{field.slug}</p>
+
+            <h3 className="mt-4 text-lg font-semibold tracking-tight">
+              {/* Alamatnya berhenti jadi teks mati: rute /teknologi/<slug> kini ada.
+                  Tautannya membentang di seluruh kartu (stretched-link), jadi satu
+                  tautan tetap satu sasaran klik besar. */}
+              <Link href={`/teknologi/${field.slug}`} className="stretched-link">
+                {field.name}
+              </Link>
+            </h3>
+            <p className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-fg-soft">{field.summary}</p>
+
+            <div className="mt-auto flex items-center justify-between pt-5">
+              <p className="font-mono text-xs text-fg-mute">
+                {field.topicCount} topik · {field.reviewedTopicCount} diperiksa manusia
+              </p>
+              <ArrowRight className="size-5 text-fg-mute transition group-hover:translate-x-1 group-hover:text-cyan" />
+            </div>
           </li>
         ))}
       </ul>

@@ -2,8 +2,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 import type { Metadata } from 'next';
+import { ArrowRight, FieldIcon } from '@/components/Icons';
 import MaturityBadge from '@/components/MaturityBadge';
-import TopicSections from '@/components/TopicSections';
+import SectionNav from '@/components/SectionNav';
+import TopicSections, { bagianNav } from '@/components/TopicSections';
 import TopikTerhubung from '@/components/TopikTerhubung';
 import {
   getTechnology,
@@ -90,28 +92,35 @@ export default async function TeknologiPage({ params }: Params) {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-5 py-12 sm:px-8">
       <Breadcrumb />
-      <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
-        <p className="font-medium">Halaman ini belum bisa diambil.</p>
-        {mesinPengembang ? (
-          <p className="mt-1 text-neutral-600 dark:text-neutral-400">{resolved.reason}</p>
-        ) : null}
-        <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-          Ini bukan berarti alamatnya salah — muat ulang beberapa detik lagi.
-        </p>
+      <div className="glass border-amber/40 p-5 text-sm">
+        <p className="font-medium text-amber">Halaman ini belum bisa diambil.</p>
+        {mesinPengembang ? <p className="mt-1 text-fg-soft">{resolved.reason}</p> : null}
+        <p className="mt-2 text-fg-soft">Ini bukan berarti alamatnya salah — muat ulang beberapa detik lagi.</p>
       </div>
     </main>
   );
 }
 
-function Breadcrumb({ trail }: { trail?: string }) {
+function Breadcrumb({ trail, trailHref }: { trail?: string; trailHref?: `/teknologi/${string}` }) {
   return (
-    <nav className="mb-6 text-sm text-neutral-500">
-      <Link href="/" className="underline underline-offset-2 hover:text-neutral-800 dark:hover:text-neutral-200">
+    <nav aria-label="Remah roti" className="mb-8 flex flex-wrap items-center gap-2 text-sm text-fg-mute">
+      <Link href="/" className="transition hover:text-cyan">
         TechVerse X
       </Link>
-      {trail ? <span> · {trail}</span> : null}
+      {trail ? (
+        <>
+          <span aria-hidden="true">/</span>
+          {trailHref ? (
+            <Link href={trailHref} className="transition hover:text-cyan">
+              {trail}
+            </Link>
+          ) : (
+            <span className="text-fg-soft">{trail}</span>
+          )}
+        </>
+      ) : null}
     </nav>
   );
 }
@@ -120,84 +129,130 @@ async function FieldView({ field }: { field: Field }) {
   const topics = await searchTechnologies({ field: field.slug, pageSize: 50 });
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-5xl px-5 pb-8 pt-10 sm:px-8 sm:pt-14">
       <Breadcrumb trail="Bidang" />
 
-      <header className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">{field.name}</h1>
-        <p className="mt-2 text-neutral-600 dark:text-neutral-400">{field.summary}</p>
-        <p className="mt-3 text-sm text-neutral-500">
-          {field.topicCount} topik · <strong>{field.reviewedTopicCount}</strong> sudah diperiksa manusia
-        </p>
+      <header className="glass relative overflow-hidden p-6 sm:p-10">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-16 -top-16 size-72 rounded-full bg-gradient-to-br from-cyan/25 to-violet/25 blur-3xl"
+        />
+        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-start">
+          <span className="grid size-16 shrink-0 place-items-center rounded-2xl border border-cyan/40 bg-gradient-to-br from-cyan/20 to-violet/20 text-cyan">
+            <FieldIcon slug={field.slug} className="size-8" />
+          </span>
+          <div>
+            <p className="eyebrow">Bidang</p>
+            <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">{field.name}</h1>
+            <p className="prose-tv mt-4 max-w-[60ch] text-lg">{field.summary}</p>
+            <p className="mt-5 font-mono text-sm text-fg-mute">
+              {field.topicCount} topik · <strong className="text-mint">{field.reviewedTopicCount}</strong> sudah
+              diperiksa manusia
+            </p>
+          </div>
+        </div>
       </header>
 
-      {!topics.ok ? (
-        <p className="text-sm text-neutral-500">
-          Daftar topik belum bisa diambil.{mesinPengembang ? ` ${topics.reason}` : ''}
-        </p>
-      ) : topics.data.items.length === 0 ? (
-        <p className="rounded-lg border border-neutral-200 bg-white p-4 text-sm text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400">
-          {/* Teks pembaca ADR-024: kalimat ini dulu ditutup "Bulan 1 mengejar
-              taksonominya lebih dulu" - nama bulan rencana yang basi sendiri. */}
-          Bidang ini belum punya satu topik pun. Itu keadaan yang jujur, bukan galat.
-        </p>
-      ) : (
-        <>
-          {/* pageSize 50 memotong DIAM-DIAM tanpa kalimat ini - dan penelusuran di
-              skala pengembangan tidak akan pernah melihatnya. */}
-          {topics.data.totalItems > topics.data.items.length ? (
-            <p className="mb-3 text-sm text-neutral-500">
-              Menampilkan {topics.data.items.length} dari {topics.data.totalItems} topik.
-            </p>
-          ) : null}
+      <div className="mt-10">
+        {!topics.ok ? (
+          <p className="text-sm text-fg-mute">
+            Daftar topik belum bisa diambil.{mesinPengembang ? ` ${topics.reason}` : ''}
+          </p>
+        ) : topics.data.items.length === 0 ? (
+          <p className="glass p-5 text-sm text-fg-soft">
+            {/* Teks pembaca ADR-024: kalimat ini dulu ditutup "Bulan 1 mengejar
+                taksonominya lebih dulu" - nama bulan rencana yang basi sendiri. */}
+            Bidang ini belum punya satu topik pun. Itu keadaan yang jujur, bukan galat.
+          </p>
+        ) : (
+          <>
+            {/* pageSize 50 memotong DIAM-DIAM tanpa kalimat ini - dan penelusuran di
+                skala pengembangan tidak akan pernah melihatnya. */}
+            {topics.data.totalItems > topics.data.items.length ? (
+              <p className="mb-3 text-sm text-fg-mute">
+                Menampilkan {topics.data.items.length} dari {topics.data.totalItems} topik.
+              </p>
+            ) : null}
 
-          <ul className="space-y-3">
-            {topics.data.items.map((topic: TechnologySummary) => (
-              <li
-                key={topic.id}
-                className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
-              >
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="font-semibold">
-                    <Link href={`/teknologi/${topic.slug}`} className="underline underline-offset-2">
+            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {topics.data.items.map((topic: TechnologySummary) => (
+                <li key={topic.id} className="glass glass-hover reveal group relative flex flex-col p-5">
+                  <h2 className="text-xl font-semibold tracking-tight">
+                    <Link href={`/teknologi/${topic.slug}`} className="stretched-link">
                       {topic.name}
                     </Link>
                   </h2>
-                  <MaturityBadge maturity={topic.maturity} />
-                </div>
-                <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{topic.summary}</p>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+                  <p className="mt-2 line-clamp-4 text-sm leading-relaxed text-fg-soft">{topic.summary}</p>
+                  <div className="mt-auto flex items-center justify-between gap-3 pt-5">
+                    <MaturityBadge maturity={topic.maturity} />
+                    <ArrowRight className="size-5 shrink-0 text-fg-mute transition group-hover:translate-x-1 group-hover:text-cyan" />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
     </main>
   );
 }
 
-function TopicView({ topic }: { topic: TechnologyDetail }) {
-  return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <Breadcrumb trail={topic.fieldName} />
+const tanggal = new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeZone: 'UTC' });
 
-      <header className="mb-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">{topic.name}</h1>
-          {/* ADR-012: label kematangan tidak pernah opsional. */}
-          <MaturityBadge maturity={topic.maturity} />
+function TopicView({ topic }: { topic: TechnologyDetail }) {
+  const stat: { nilai: number; label: string }[] = [
+    { nilai: topic.roadmap.length, label: 'Langkah belajar' },
+    { nilai: topic.tools.length, label: 'Alat' },
+    { nilai: topic.projects.length, label: 'Proyek mini' },
+    { nilai: topic.resources.length, label: 'Sumber' },
+  ];
+
+  return (
+    <main className="mx-auto max-w-6xl px-5 pb-8 pt-10 sm:px-8 sm:pt-14">
+      <Breadcrumb trail={topic.fieldName} trailHref={`/teknologi/${topic.fieldSlug}`} />
+
+      <header className="glass relative overflow-hidden p-6 sm:p-10">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-20 -top-24 size-80 rounded-full bg-gradient-to-br from-cyan/25 to-violet/30 blur-3xl"
+        />
+        <div className="relative">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <Link href={`/teknologi/${topic.fieldSlug}`} className="eyebrow transition hover:brightness-125">
+              {topic.fieldName}
+            </Link>
+            {/* ADR-012: label kematangan tidak pernah opsional. */}
+            <MaturityBadge maturity={topic.maturity} />
+          </div>
+          <h1 className="gradient-text mt-4 max-w-[22ch] text-4xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">
+            {topic.name}
+          </h1>
+
+          <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {stat.map((s) => (
+              <div key={s.label} className="rounded-xl border border-line bg-bg/40 px-4 py-3">
+                <dt className="text-xs text-fg-mute">{s.label}</dt>
+                <dd className="mt-1 font-pixel text-3xl leading-none text-fg">{s.nilai}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <p className="mt-6 font-mono text-xs text-fg-mute">
+            Diperbarui {tanggal.format(new Date(topic.updatedAt))}
+          </p>
         </div>
-        <p className="mt-2 text-sm text-neutral-500">
-          Bidang:{' '}
-          <Link href={`/teknologi/${topic.fieldSlug}`} className="underline underline-offset-2">
-            {topic.fieldName}
-          </Link>
-        </p>
       </header>
 
-      <TopicSections topic={topic} />
+      <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12">
+        <SectionNav items={bagianNav(topic)} />
 
-      {/* SESUDAH template, bukan di dalamnya: relasi bukan bagian ADR-012. */}
-      <TopikTerhubung topic={topic} />
+        <div className="min-w-0">
+          <TopicSections topic={topic} />
+
+          {/* SESUDAH template, bukan di dalamnya: relasi bukan bagian ADR-012. */}
+          <TopikTerhubung topic={topic} />
+        </div>
+      </div>
     </main>
   );
 }

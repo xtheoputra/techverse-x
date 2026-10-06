@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { connection } from 'next/server';
 import type { Metadata } from 'next';
+import { FieldIcon } from '@/components/Icons';
 import KotakCari from '@/components/KotakCari';
 import MaturityBadge from '@/components/MaturityBadge';
 import { cari, type Field, type TechnologySummary } from '@/lib/api';
@@ -42,18 +43,19 @@ export default async function CariPage({ searchParams }: Params) {
   const q = kataKunci((await searchParams).q);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="text-2xl font-bold tracking-tight">Cari</h1>
-      <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+    <main className="mx-auto max-w-4xl px-5 py-12 sm:px-8 sm:py-16">
+      <p className="eyebrow">Pencarian</p>
+      <h1 className="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">Cari</h1>
+      <p className="mt-3 text-fg-soft">
         Bidang dan topik dicari sekaligus. Keduanya punya halaman sendiri.
       </p>
 
-      <div className="mt-4">
+      <div className="mt-6 max-w-2xl">
         {/* id sendiri: kotak di kepala halaman (layout) sudah memakai id "q". */}
-        <KotakCari id="q-halaman" defaultValue={q} autoFocus />
+        <KotakCari id="q-halaman" defaultValue={q} autoFocus besar />
       </div>
 
-      <div className="mt-8">
+      <div className="mt-10">
         <Hasil q={q} />
       </div>
     </main>
@@ -63,7 +65,7 @@ export default async function CariPage({ searchParams }: Params) {
 async function Hasil({ q }: { q: string }) {
   if (q.length === 0) {
     return (
-      <p className="text-sm text-neutral-600 dark:text-neutral-400">
+      <p className="text-sm text-fg-soft">
         Ketik kata kuncinya di atas. Coba nama bidang (<em>cybersecurity</em>, <em>quantum</em>) atau nama
         teknologi.
       </p>
@@ -74,9 +76,9 @@ async function Hasil({ q }: { q: string }) {
 
   if (!result.ok) {
     return (
-      <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm dark:border-amber-800 dark:bg-amber-950/40">
-        <p className="font-medium">Pencarian belum bisa dijalankan.</p>
-        <p className="mt-1 text-neutral-600 dark:text-neutral-400">
+      <div className="glass border-amber/40 p-5 text-sm">
+        <p className="font-medium text-amber">Pencarian belum bisa dijalankan.</p>
+        <p className="mt-1 text-fg-soft">
           {/* Sebabnya dicatat ke log server oleh lib/api.ts, bukan dicetak ke
               pembaca — lihat lib/lingkungan.ts. */}
           {mesinPengembang ? result.reason : 'Coba muat ulang beberapa saat lagi.'}
@@ -103,14 +105,14 @@ async function Hasil({ q }: { q: string }) {
 
   if (isEmpty) {
     return (
-      <div className="rounded-lg border border-neutral-300 bg-white p-4 text-sm dark:border-neutral-700 dark:bg-neutral-900">
-        <p className="font-medium">Tidak ada yang cocok dengan “{dicari}”.</p>
+      <div className="glass p-5 text-sm">
+        <p className="font-medium text-fg">Tidak ada yang cocok dengan “{dicari}”.</p>
         {dipendekkan ? (
-          <p className="mt-1 text-neutral-600 dark:text-neutral-400">
+          <p className="mt-1 text-fg-soft">
             Kata kuncinya dipendekkan sebelum dicari.
           </p>
         ) : null}
-        <p className="mt-1 text-neutral-600 dark:text-neutral-400">
+        <p className="mt-1 text-fg-soft">
           {/*
             🔴 Kalimat ini menyebut BATAS pencarian hari ini, dan #54 wajib
             mengubahnya di PR yang sama begitu isi halaman ikut dicari.
@@ -121,7 +123,7 @@ async function Hasil({ q }: { q: string }) {
           */}
           Pencarian mencocokkan nama dan ringkasan bidang serta topik, belum isi halamannya. Semua bidang
           bisa ditelusuri dari{' '}
-          <Link href="/" className="underline underline-offset-2">
+          <Link href="/" className="text-cyan underline decoration-cyan/40 underline-offset-2 hover:decoration-cyan">
             halaman muka
           </Link>
           .
@@ -135,7 +137,7 @@ async function Hasil({ q }: { q: string }) {
       {/* Juga di jalan yang BERHASIL, bukan cuma saat nol hasil: kalau yang dicari
           bukan yang diketik, hasil yang tampil pun bukan jawaban atas yang diketik. */}
       {dipendekkan ? (
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+        <p className="text-sm text-fg-soft">
           Hasil untuk “{dicari}” — kata kuncinya dipendekkan sebelum dicari.
         </p>
       ) : null}
@@ -150,22 +152,24 @@ async function Hasil({ q }: { q: string }) {
 function BidangCocok({ fields }: { fields: Field[] }) {
   return (
     <section>
-      <h2 className="mb-3 text-lg font-semibold">
-        {fields.length} bidang
-      </h2>
-      <ul className="space-y-3">
+      <h2 className="mb-4 text-2xl font-semibold tracking-tight">{fields.length} bidang</h2>
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {fields.map((field) => (
-          <li
-            key={field.id}
-            className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
-          >
-            <h3 className="font-semibold">
-              <Link href={`/teknologi/${field.slug}`} className="underline underline-offset-2">
-                {field.name}
-              </Link>
-            </h3>
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{field.summary}</p>
-            <p className="mt-2 text-xs text-neutral-500">
+          <li key={field.id} className="glass glass-hover group relative flex flex-col p-5">
+            <div className="flex items-start gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-cyan/40 bg-gradient-to-br from-cyan/20 to-violet/20 text-cyan">
+                <FieldIcon slug={field.slug} className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold tracking-tight">
+                  <Link href={`/teknologi/${field.slug}`} className="stretched-link">
+                    {field.name}
+                  </Link>
+                </h3>
+                <p className="mt-1 line-clamp-3 text-sm leading-relaxed text-fg-soft">{field.summary}</p>
+              </div>
+            </div>
+            <p className="mt-4 font-mono text-xs text-fg-mute">
               {field.topicCount} topik · {field.reviewedTopicCount} diperiksa manusia
             </p>
           </li>
@@ -178,33 +182,30 @@ function BidangCocok({ fields }: { fields: Field[] }) {
 function TopikCocok({ items, total }: { items: TechnologySummary[]; total: number }) {
   return (
     <section>
-      <h2 className="mb-3 text-lg font-semibold">
+      <h2 className="mb-4 text-2xl font-semibold tracking-tight">
         {total} topik
         {total > items.length ? (
-          <span className="ml-2 text-sm font-normal text-neutral-500">
+          <span className="ml-3 align-middle text-sm font-normal text-fg-mute">
             menampilkan {items.length} teratas
           </span>
         ) : null}
       </h2>
-      <ul className="space-y-3">
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {items.map((topic) => (
-          <li
-            key={topic.id}
-            className="rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
-          >
-            <p className="text-xs uppercase tracking-wide text-neutral-500">{topic.fieldName}</p>
-            <div className="mt-1 flex flex-wrap items-baseline justify-between gap-2">
-              <h3 className="font-semibold">
-                <Link href={`/teknologi/${topic.slug}`} className="underline underline-offset-2">
-                  {topic.name}
-                </Link>
-              </h3>
+          <li key={topic.id} className="glass glass-hover group relative flex flex-col p-5">
+            <p className="eyebrow !text-violet">{topic.fieldName}</p>
+            <h3 className="mt-2 text-xl font-semibold tracking-tight">
+              <Link href={`/teknologi/${topic.slug}`} className="stretched-link">
+                {topic.name}
+              </Link>
+            </h3>
+            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-fg-soft">{topic.summary}</p>
 
-              {/* Aturan keras ADR-012: kematangan isi ikut tampil di mana pun
-                  judulnya tampil — termasuk di hasil pencarian. */}
+            {/* Aturan keras ADR-012: kematangan isi ikut tampil di mana pun
+                judulnya tampil — termasuk di hasil pencarian. */}
+            <p className="mt-auto pt-5">
               <MaturityBadge maturity={topic.maturity} />
-            </div>
-            <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{topic.summary}</p>
+            </p>
           </li>
         ))}
       </ul>

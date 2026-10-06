@@ -134,6 +134,38 @@ Langkah 1 (merge #82) **diverifikasi dari isi `main`**, bukan dari status PR: `m
 
 Satu catatan jujur: pemantau saya sekali salah tulis (ekspresi `jq` yang tak pernah berhenti) dan membuang sekitar 8 menit menunggu run yang sudah selesai. Rute bidang yang pertama saya tebak (`/bidang/ai-agents`, 404) keliru; rute sebenarnya diambil dari tautan di halaman topik.
 
+### Lanjutan 6 — penilaian pemilik atas halaman pilot: *"kurang detail, kaku … UI harus benar benar futuristik"*
+
+Pemilik melakukan langkah 4 (membaca halaman jadinya) dan menilai: *"kontennya kurang detail, tidak readable sangat kaku. website yang saya inginkan adalah website teknologi futuristik, UI harus benar benar futuristik, isinya bermutu, detail bagus berisi gambar/video atau apapun sebagai informasi."*
+
+**Diukur sebelum dirancang jawabannya** — dan ia bukan hanya soal gaya:
+
+| Yang diukur | Hasil |
+|---|---|
+| Isi halaman pilot | **~1.074 kata** seluruhnya (ringkasan 138, rata-rata 58 kata per langkah, proyek 110) |
+| Bentuk isi | teks polos satu blok per bagian; tak ada paragraf, daftar, kode, kutipan, atau tabel |
+| Batas kolom | ringkasan dan uraian langkah **2.000** karakter, proyek 4.000, catatan alat 500; tak ada entitas untuk gambar, diagram, atau video |
+| Tampilan | CSS bawaan starter Next.js (putih/hitam, Arial) |
+
+Keempat jawaban pemilik atas pertanyaan arah, semuanya mengikuti rekomendasi kecuali satu pilihan yang diperluas: **gaya gelap-neon/aurora**; **isi = Markdown terbatas + blok media di data** (bukan MDX); **media dari keempat sumber** (diagram SVG buatan sendiri, video resmi, tangkapan layar open-source, foto stok seperlunya — tanpa AI berbayar); **jalan ubah ([#79](https://github.com/xtheoputra/techverse-x/issues/79)) dibangun lebih dulu**. Pemicu #79 (*"sebelum isi ke-2 diperbaiki"*) kini terpenuhi. Tercatat di [ADR-028](adr/ADR-028-antarmuka-futuristik-dan-isi-kaya.md), berikut tahapnya: 0 keputusan · **1 antarmuka** · 2 jalan ubah · 3 isi kaya · 4 tulis ulang pilot. **Tiap PR berdiri sendiri di atas `main`**, tanpa tumpukan, karena tumpukan sudah sekali membuat dua PR tak sampai ke `main` (Lanjutan 4).
+
+**Yang dibangun sesi ini: Tahap 0 dan 1** (cabang `fase-1/ui-futuristik-fondasi`, [#84](https://github.com/xtheoputra/techverse-x/pull/84)): satu berkas token + sembilan komponen untuk beranda, bidang, topik (kartu judul, statistik, daftar isi lengket, roadmap sebagai garis waktu, alat sebagai kartu, sumber dikelompokkan per jenis), pencarian, dan halaman 404; font `geist` disajikan dari berkas sendiri. Semuanya CSS murni; satu-satunya komponen klien (penyorot daftar isi) hanya memperindah.
+
+**Terukur, bukan diklaim:**
+
+| Yang dibuktikan | Hasil |
+|---|---|
+| `run.ps1 verify` | hijau: 127 unit + 78 integrasi, build ketat 0 peringatan, lint dan build web, cek tautan, cek berkas isi |
+| Pemindai halaman jadi (`periksa-halaman-web.mjs`, build produksi, API produksi) | **15 dari 15** halaman `/teknologi/*` tercapai, **4** ringkasan alat tampil (sonde tidak vakum), **0** teks terlarang, semua 200 |
+| Tampilan | dilihat di Chrome pada build produksi: beranda, bidang, topik (bagian demi bagian), pencarian; layar lebar dan iframe 390 px |
+| Ponsel | `scrollWidth = clientWidth` (380/380) di halaman topik dan beranda |
+
+**Empat cacat yang hanya ketahuan karena halamannya dijalankan dan dilihat**, bukan dibaca dari kode: (1) halaman topik **meluber ke samping di ponsel** — kolom grid satu-kolom bawaan melebar mengikuti deretan pil daftar isi; diperbaiki dengan `grid-cols-1` di semua grid dan `min-w-0` pada daftar isi; (2) penyorot daftar isi versi pertama **menyorot bagian yang salah** (`IntersectionObserver` melapor beberapa bagian sekaligus setelah gulir jauh dan yang paling atas menang) — diganti penghitungan posisi, dan diuji ulang ke lima bagian; (3) server dev yang dibuka lewat alamat jaringan lokal **memblokir hidrasi** (`allowedDevOrigins`), jadi komponen klien tampak mati — bukan cacat kode, tetapi pemeriksaan dipindah ke build produksi; (4) mengubah ukuran jendela peramban tidak mengubah viewport halaman, jadi ukuran ponsel diuji lewat iframe selebar 390 px. Satu lagi kekeliruan saya sendiri: perintah shell dengan dua heredoc bertingkat gagal diurai dan tak menjalankan apa pun — ketahuan karena berkasnya tak berubah, lalu ditulis ulang dengan alat Write.
+
+**Belum dan tidak diklaim:** Tahap 2–4. **Isi pilot belum berubah** — halaman MCP masih ~1.074 kata teks polos; keluhan *"kurang detail"* baru terjawab di Tahap 3–4. Safari dan Firefox belum dicoba; tak ada uji regresi visual otomatis (yang otomatis hanya teks dan struktur); pratinjau Vercel untuk PR ini belum saya lihat.
+
+Server lokal di port 3401 (dev, lalu produksi) saya mulai dan hentikan sendiri; PID dicocokkan dengan baris perintah dan waktu mulainya sebelum dihentikan.
+
 ### Yang TIDAK dikerjakan, dan kenapa
 
 - **Tidak ada yang di-merge oleh sesi ini.** Repo salinan dihapus pemilik, bukan saya.
@@ -156,8 +188,8 @@ Satu catatan jujur: pemantau saya sekali salah tulis (ekspresi `jq` yang tak per
 1. ✅ *Selesai.* Merge #78, lalu #80 (jalan isi; lalu #81 yang kecil dan tak bergantung pada penilaian pilot) (baca dulu `isi/ai-agents/model-context-protocol.json` di diff — itu **langkah baca-manusia pertama**, bukan formalitas: nilai mutunya, karena enam topik lain mengikuti cetakannya).
 2. ✅ *Selesai.* Tunggu run "Rilis citra" hijau di `main`; catat SHA-nya. → `424d5215b59ec9a68d6647c8871db23d22bd503e`, run `37425324422`.
 3. ✅ *Selesai (Lanjutan 5).* Actions → **Pasang isi** (`--ref main`, `sha` = langkah 2, `slug` = `model-context-protocol`) → topik `draf`, tampil berlabel di situs.
-4. **← berikutnya, pemilik.** Baca halaman jadinya di `/teknologi/model-context-protocol`.
-5. Actions → **Naikkan ke tinjau** (sha yang sama, slug yang sama) → **angka resmi menjadi 1 dari 22.**
+4. ✅ *Selesai — dan hasilnya mengubah rencana.* Pemilik membaca halamannya dan menilai isinya *kurang detail, kaku, tidak readable*, dan tampilannya harus *benar-benar futuristik* dengan gambar/video (Lanjutan 6).
+5. ⏸ **Tahan.** Rekomendasi saya (belum jawaban pemilik): jangan menaikkan versi pilot yang sekarang ke `tinjau`. Pilot akan ditulis ulang di Tahap 4 ([ADR-028](adr/ADR-028-antarmuka-futuristik-dan-isi-kaya.md)), dan mengganti teksnya akan menurunkan statusnya lagi ([ADR-012 Pembaruan 2026-10-06](adr/ADR-012-template-halaman.md)), jadi `tinjau` sekarang hanya meminjam kepercayaan atas teks yang akan hilang.
 
 **Menunggu pemicu tertulis:** pemicu Sesi 20 (jalankan `tinjau` begitu #40 tutup + secret Neon ada) kini **terpenuhi** — #40 tutup dan secret ada — tinggal topiknya ada di produksi (langkah 3). #59 (Learn) menunggu satu roadmap terisi di produksi: MCP-lah calonnya. #54 menunggu isi sungguhan.
 

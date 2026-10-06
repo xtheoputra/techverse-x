@@ -1,26 +1,442 @@
 @import "tailwindcss";
 
+/*
+  Sistem desain TechVerse X — gelap-neon / aurora (ADR-028).
+
+  🔑 SATU tema, gelap, bukan dua. Pemilik meminta situs teknologi futuristik, dan
+  tema ganda berarti dua permukaan yang harus diuji kontrasnya untuk tiap komponen.
+  `color-scheme: dark` juga membuat kontrol bawaan peramban (kotak cari, bilah
+  gulir) ikut gelap tanpa gaya tambahan.
+
+  🔑 SEMUA efek di sini CSS murni — tak ada satu baris JavaScript pun yang
+  dibutuhkan untuk melihat situsnya benar. Itu bukan selera: tier gratis sering
+  melayani halaman sebelum bundel JS sempat dimuat (ADR-019), dan kotak cari sengaja
+  `<form>` biasa supaya bekerja tanpa JS. Efek yang butuh JS (penanda bagian aktif
+  di daftar isi) hanya boleh MEMPERCANTIK, tidak pernah dibutuhkan.
+
+  ⚠️ Keterbacaan lebih tinggi daripada gaya. Teks isi 17px+ dengan jarak baris
+  ~1.8 dan lebar baris dibatasi ~68 karakter (`.prose-tv`); teks sekunder diukur
+  ≥ 7:1 terhadap latar. Keluhan yang melahirkan sistem ini justru "kaku dan tidak
+  readable" — gaya yang mengorbankan itu mengulangi kesalahannya.
+*/
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+
+  --bg: #04050b;
+  --bg-raised: #090c18;
+
+  /* Permukaan kaca: putih tipis di atas gelap. Tingkatnya tiga, tak lebih. */
+  --surface: rgb(255 255 255 / 0.045);
+  --surface-strong: rgb(255 255 255 / 0.08);
+  --line: rgb(255 255 255 / 0.1);
+  --line-strong: rgb(255 255 255 / 0.2);
+
+  /* Teks. --fg-soft ≈ 11:1 dan --fg-mute ≈ 7:1 terhadap --bg. */
+  --fg: #eef2ff;
+  --fg-soft: #c3cce6;
+  --fg-mute: #98a3c4;
+
+  /* Aksen. Cyan dan violet adalah identitas; sisanya hanya membawa MAKNA. */
+  --cyan: #22d3ee;
+  --violet: #8b5cf6;
+  --magenta: #e879f9;
+  --mint: #34d399;
+  --amber: #fbbf24;
+  --sky: #38bdf8;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-fg-soft: var(--fg-soft);
+  --color-fg-mute: var(--fg-mute);
+  --color-cyan: var(--cyan);
+  --color-violet: var(--violet);
+  --color-magenta: var(--magenta);
+  --color-mint: var(--mint);
+  --color-amber: var(--amber);
+  --color-sky: var(--sky);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+  /* Hanya untuk angka besar dan nomor bagian (aksen) — tidak pernah untuk teks baca. */
+  --font-pixel: var(--font-geist-pixel-square), var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
+  /* Judul bagian tidak tertutup kepala halaman yang lengket saat melompat dari daftar isi. */
+  scroll-padding-top: 5.5rem;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: transparent;
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgb(34 211 238 / 0.32);
+  color: #fff;
+}
+
+/* Cincin fokus yang terlihat untuk papan ketik — bagian dari desain, bukan tambahan. */
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 0.375rem;
+}
+
+/* Bilah gulir tipis yang menyatu dengan tema (Firefox + WebKit). */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.22) transparent;
+}
+
+@layer components {
+  /* ---------------------------------------------------------------- latar */
+
+  /*
+    Aurora + grid. Satu elemen tetap di belakang segalanya; tiga lapis:
+    gradasi radial (cahaya), grid garis halus yang memudar ke bawah, dan dua gumpal
+    cahaya yang melayang pelan. Tanpa gambar, tanpa JS.
+  */
+  .aurora {
+    position: fixed;
+    inset: 0;
+    z-index: -10;
+    overflow: hidden;
+    pointer-events: none;
+    background:
+      radial-gradient(1100px 620px at 12% -8%, rgb(34 211 238 / 0.16), transparent 60%),
+      radial-gradient(900px 560px at 92% -4%, rgb(139 92 246 / 0.2), transparent 58%),
+      radial-gradient(800px 600px at 50% 112%, rgb(232 121 249 / 0.1), transparent 60%),
+      var(--bg);
+  }
+
+  .aurora::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 85% 70% at 50% 0%, #000 25%, transparent 78%);
+  }
+
+  .aurora-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(90px);
+    opacity: 0.55;
+    animation: drift 26s ease-in-out infinite alternate;
+  }
+
+  .aurora-blob--a {
+    top: -12%;
+    left: 8%;
+    width: 38rem;
+    height: 38rem;
+    background: radial-gradient(circle, rgb(34 211 238 / 0.5), transparent 65%);
+  }
+
+  .aurora-blob--b {
+    top: 6%;
+    right: -6%;
+    width: 34rem;
+    height: 34rem;
+    background: radial-gradient(circle, rgb(139 92 246 / 0.55), transparent 65%);
+    animation-duration: 32s;
+    animation-delay: -9s;
+  }
+
+  /* ---------------------------------------------------------------- kaca */
+
+  .glass {
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.065), rgb(255 255 255 / 0.025));
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.07),
+      0 18px 50px -28px rgb(0 0 0 / 0.9);
+  }
+
+  .glass-hover {
+    transition:
+      transform 0.28s cubic-bezier(0.2, 0.7, 0.2, 1),
+      border-color 0.28s ease,
+      box-shadow 0.28s ease;
+  }
+
+  .glass-hover:hover,
+  .glass-hover:focus-within {
+    transform: translateY(-3px);
+    border-color: rgb(34 211 238 / 0.5);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.09),
+      0 0 0 1px rgb(34 211 238 / 0.22),
+      0 24px 70px -26px rgb(34 211 238 / 0.5);
+  }
+
+  /* Tautan yang membentang di seluruh kartu: satu sasaran klik besar. */
+  .stretched-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  /* -------------------------------------------------------------- tipografi */
+
+  .gradient-text {
+    background: linear-gradient(100deg, #ffffff 0%, #a5f3fc 32%, #c4b5fd 66%, #f0abfc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+
+  /*
+    Teks baca. Dipakai untuk paragraf pembuka dan, di tahap isi kaya, untuk badan
+    bagian. Lebar baris dibatasi di pembungkusnya (`max-w-[68ch]`), bukan di sini,
+    supaya kode dan tabel bisa melebar tanpa memutus ritme paragraf.
+  */
+  .prose-tv {
+    font-size: 1.0625rem;
+    line-height: 1.8;
+    color: var(--fg-soft);
+  }
+
+  .prose-tv > * + * {
+    margin-top: 1.15em;
+  }
+
+  .prose-tv strong {
+    color: var(--fg);
+    font-weight: 600;
+  }
+
+  .prose-tv a {
+    color: var(--cyan);
+    text-decoration: underline;
+    text-decoration-color: rgb(34 211 238 / 0.4);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.2s;
+  }
+
+  .prose-tv a:hover {
+    text-decoration-color: var(--cyan);
+  }
+
+  .prose-tv h3 {
+    margin-top: 1.9em;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+    color: var(--fg);
+  }
+
+  .prose-tv h4 {
+    margin-top: 1.6em;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--fg);
+  }
+
+  .prose-tv ul,
+  .prose-tv ol {
+    padding-left: 1.4em;
+  }
+
+  .prose-tv ul {
+    list-style: none;
+  }
+
+  .prose-tv ul > li {
+    position: relative;
+  }
+
+  .prose-tv ul > li::before {
+    content: "";
+    position: absolute;
+    left: -1.1em;
+    top: 0.78em;
+    width: 0.42em;
+    height: 0.42em;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    box-shadow: 0 0 10px rgb(34 211 238 / 0.7);
+  }
+
+  .prose-tv ol {
+    list-style: decimal;
+  }
+
+  .prose-tv ol > li::marker {
+    font-family: var(--font-mono);
+    color: var(--cyan);
+  }
+
+  .prose-tv li + li {
+    margin-top: 0.4em;
+  }
+
+  .prose-tv :not(pre) > code {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    padding: 0.14em 0.42em;
+    border-radius: 0.375rem;
+    background: rgb(255 255 255 / 0.08);
+    border: 1px solid var(--line);
+    color: #e0e7ff;
+  }
+
+  .prose-tv pre {
+    overflow-x: auto;
+    padding: 1.1rem 1.25rem;
+    border-radius: 0.875rem;
+    border: 1px solid var(--line);
+    background: rgb(2 3 8 / 0.8);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: #dbe4ff;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  }
+
+  .prose-tv blockquote {
+    padding: 0.9rem 1.15rem;
+    border-left: 3px solid var(--cyan);
+    border-radius: 0 0.75rem 0.75rem 0;
+    background: linear-gradient(90deg, rgb(34 211 238 / 0.1), rgb(34 211 238 / 0.02));
+    color: var(--fg-soft);
+  }
+
+  .prose-tv table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+
+  .prose-tv th,
+  .prose-tv td {
+    padding: 0.6rem 0.85rem;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .prose-tv th {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--fg-mute);
+  }
+
+  /* ------------------------------------------------------------------ gerak */
+
+  /* Grafik orbit hero (SVG): cincin berputar pelan, simpul berdenyut. Hanya hiasan. */
+  .orbit-ring {
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+    animation: orbit 70s linear infinite;
+  }
+
+  .orbit-ring--rev {
+    animation-direction: reverse;
+    animation-duration: 95s;
+  }
+
+  .node-pulse {
+    animation: pulse-node 3.4s ease-in-out infinite;
+    animation-delay: var(--d, 0s);
+  }
+
+  .rise {
+    animation: rise 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--d, 0s);
+  }
+
+  /*
+    Muncul saat digulir — animasi berbasis gulir bawaan CSS, tanpa JS. Peramban
+    yang tak mendukungnya (`@supports`) cukup menampilkan elemennya apa adanya:
+    gerak hanya hiasan, isi tak pernah bergantung padanya.
+  */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: rise 1s linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6%, 8%, 0) scale(1.18);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-node {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
