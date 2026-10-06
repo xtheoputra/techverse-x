@@ -107,6 +107,31 @@ Diukur sebelum menjawab, bukan dari status "MERGED":
 
 🔑 **Kesalahan dari sisi saya, bukan dari eksekusi pemilik:** 🏁 dan badan PR saya menulis *"Merge #78 → #80 → #81"* tanpa langkah yang [runbook](RUNBOOK-merge-tumpukan-bulan3.md) sudah tulis untuk rantai ini: *ubah basis PR berikutnya ke `main` sebelum di-merge*. Urutan saja tak cukup — PR yang basisnya cabang PR lain, bila di-merge, masuk ke cabang itu, bukan ke `main`. Perbaikannya [#82](https://github.com/xtheoputra/techverse-x/pull/82): satu PR dari `fase-1/sampaikan-80-81-ke-main` (turunan `9f22adf`) ke `main`, yang membawa kedelapan commit itu. Saya tidak mem-merge-nya.
 
+### Lanjutan 5 — *"1. selesai, lanjutkan progress berurutan"*: langkah 2 dan 3 dijalankan, topik pilot kini di produksi
+
+Langkah 1 (merge #82) **diverifikasi dari isi `main`**, bukan dari status PR: `main` = `424d521` memuat `isi/`, `isi.yml`, ADR-027, dan `ExpireReview` (5 kemunculan). Lalu berurutan:
+
+- **Langkah 2.** Run "Rilis citra" `37425324422` untuk `424d5215b59ec9a68d6647c8871db23d22bd503e`: **sukses** (06:43:11 → 06:46:45 UTC), termasuk gerbang "Citra API menolak menulis (ADR-020)"; CI `main` (`37425324391`) hijau. Produksi (API dan web, kedua deployment Vercel `success`) tetap 200 sebelum langkah 3, topiknya 0, `POST` 405.
+- **Langkah 3 — izin dulu.** Ia menulis ke Neon produksi, dan sebelumnya saya serahkan ke pemilik; kata "lanjutkan berurutan" saya anggap belum cukup, jadi saya tanyakan. Pemilik memilih opsi **"Saya yang jalankan, sekarang"** — artinya Claude yang men-dispatch, bukan pemilik. Saya dispatch `Pasang isi` dari `main` dengan `sha=424d521`, `slug=model-context-protocol`: run **`37427804388`**, 07:08:13 → 07:08:46 UTC, **sukses**.
+
+**Terukur, bukan hanya "success":**
+
+| Yang diukur | Hasil |
+|---|---|
+| Log pemasang | dibuat topik, **4 alat**, langkah 0 + **9 langkah**, **1 proyek**, **8 sumber**; `draf  kelima bagian terisi`; `selesai  model-context-protocol sama dengan berkas` |
+| `GET /technologies` di API Vercel | `totalItems: 1`, `model-context-protocol`, `MachineDrafted` — yaitu topik yang ditulis ke Neon dibaca API publik, jadi host API memang memakai Neon yang sama |
+| `GET /technologies/model-context-protocol` | `Status: Draft`, `reviewedAt: null`, `missingSections: []`, roadmap 10, alat 4, proyek 1, sumber 8 |
+| `/teknologi/model-context-protocol` (web) | 200; judul bagian *Overview · Learning Roadmap · Tools · Mini Project · Resources*; label **"Draf — belum diperiksa manusia"** |
+| `/teknologi/ai-agents` (halaman bidang) | 200; **"1 topik · 0 sudah diperiksa manusia"**, topiknya terdaftar berlabel Draf |
+| `/api/v1/search?q=model context protocol` | menemukan topiknya |
+| `POST /technologies` | **405** — tak ada permukaan tulis yang bocor |
+
+**Tidak ada yang dinaikkan ke `tinjau`:** workflow ini tak punya jalan ke sana (dijaga `IsiWorkflowGuardTests`), dan `tinjau` memuat nama pemeriksa manusia dari `github.actor` — bukan sesuatu yang saya jalankan.
+
+**#39 ditutup** dengan bukti di atas (host API di Vercel kontainer sehat, membaca Neon, tulis tertutup).
+
+Satu catatan jujur: pemantau saya sekali salah tulis (ekspresi `jq` yang tak pernah berhenti) dan membuang sekitar 8 menit menunggu run yang sudah selesai. Rute bidang yang pertama saya tebak (`/bidang/ai-agents`, 404) keliru; rute sebenarnya diambil dari tautan di halaman topik.
+
 ### Yang TIDAK dikerjakan, dan kenapa
 
 - **Tidak ada yang di-merge oleh sesi ini.** Repo salinan dihapus pemilik, bukan saya.
@@ -118,18 +143,18 @@ Diukur sebelum menjawab, bukan dari status "MERGED":
 
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
-**Rantai PR tiga — sudah ter-merge, tetapi #80 dan #81 BELUM sampai ke `main`** (lihat Lanjutan 4): #78 masuk `main` (`9bc2177`); #80 dan #81 masuk **cabang** `fase-1/sesi-21-terverifikasi` (`9f22adf`). Penyampainya: [#82](https://github.com/xtheoputra/techverse-x/pull/82) (`fase-1/sampaikan-80-81-ke-main`, dasar `main`). `origin/main` = `9bc2177` sampai #82 di-merge.
+**Rantai PR — selesai:** #78, #80, dan #81 ter-merge; dua yang terakhir sampai ke `main` lewat [#82](https://github.com/xtheoputra/techverse-x/pull/82) (Lanjutan 4). `origin/main` = `424d521` (diukur 2026-10-06).
 
-**Produksi kini** (terukur 2026-10-06): situs publik tayang dari repo asli; pencarian dan `/cari` hidup; 14 bidang, **0 topik**; permukaan tulis tertutup. Ukuran resmi **0 dari 22**.
+**Produksi kini** (terukur 2026-10-06 ~07:10 UTC, sesudah Lanjutan 5): situs publik tayang dari `main`; pencarian dan `/cari` hidup; 14 bidang, **1 topik** (`model-context-protocol`, `draf`, tampil berlabel *"Draf — belum diperiksa manusia"*); permukaan tulis tertutup (`POST` → 405). Ukuran resmi **tetap 0 dari 22**: hanya `tinjau` yang dihitung.
 
-**Issue terbuka** (6): #42 · #54 · #55 · #59 · #68 · **#79** (baru). Ditutup sesi ini: #38 · #40 · #60 · #61, dan **#39** begitu PR jalan-isi ter-merge.
+**Issue terbuka** (6): #42 · #54 · #55 · #59 · #68 · **#79** (baru). Ditutup sesi ini: #38 · #40 · #60 · #61 · **#39** (Lanjutan 5, dengan bukti).
 
 **Menunggu pemilik, berurutan — inilah yang menggerakkan angka resmi dari nol:**
 
-1. Merge #78, lalu #80 (jalan isi; lalu #81 yang kecil dan tak bergantung pada penilaian pilot) (baca dulu `isi/ai-agents/model-context-protocol.json` di diff — itu **langkah baca-manusia pertama**, bukan formalitas: nilai mutunya, karena enam topik lain mengikuti cetakannya).
-2. Tunggu run "Rilis citra" hijau di `main`; catat SHA-nya.
-3. Actions → **Pasang isi** (`--ref main`, `sha` = langkah 2, `slug` = `model-context-protocol`) → topik `draf`, tampil berlabel di situs.
-4. Baca halaman jadinya di `/teknologi/model-context-protocol`.
+1. ✅ *Selesai.* Merge #78, lalu #80 (jalan isi; lalu #81 yang kecil dan tak bergantung pada penilaian pilot) (baca dulu `isi/ai-agents/model-context-protocol.json` di diff — itu **langkah baca-manusia pertama**, bukan formalitas: nilai mutunya, karena enam topik lain mengikuti cetakannya).
+2. ✅ *Selesai.* Tunggu run "Rilis citra" hijau di `main`; catat SHA-nya. → `424d5215b59ec9a68d6647c8871db23d22bd503e`, run `37425324422`.
+3. ✅ *Selesai (Lanjutan 5).* Actions → **Pasang isi** (`--ref main`, `sha` = langkah 2, `slug` = `model-context-protocol`) → topik `draf`, tampil berlabel di situs.
+4. **← berikutnya, pemilik.** Baca halaman jadinya di `/teknologi/model-context-protocol`.
 5. Actions → **Naikkan ke tinjau** (sha yang sama, slug yang sama) → **angka resmi menjadi 1 dari 22.**
 
 **Menunggu pemicu tertulis:** pemicu Sesi 20 (jalankan `tinjau` begitu #40 tutup + secret Neon ada) kini **terpenuhi** — #40 tutup dan secret ada — tinggal topiknya ada di produksi (langkah 3). #59 (Learn) menunggu satu roadmap terisi di produksi: MCP-lah calonnya. #54 menunggu isi sungguhan.
