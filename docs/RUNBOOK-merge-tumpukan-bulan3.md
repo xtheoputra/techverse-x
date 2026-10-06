@@ -1,8 +1,9 @@
 # Runbook — Merge tumpukan Bulan 3 + migrasi terkoordinasi
 
 **Dibuat:** 2026-10-05. **Diperbarui:** 2026-10-06.
-**Status:** Fase 1–3 **sudah dijalankan** (2026-10-05, bukti di tiap fase). Fase 4 di versi
-pertama runbook ini **salah premis** dan sudah diganti — lihat bagian berikut.
+**Status:** **SELESAI.** Fase 1–3 dijalankan 2026-10-05; Fase 4–5 dijalankan 2026-10-06
+(bukti di tiap fase). Fase 4 di versi pertama runbook ini **salah premis** dan sudah
+diganti — lihat bagian berikut.
 
 **Konteks:** situs sudah **TAYANG** (web + API Vercel kontainer + Neon). Operasi ini
 membawa `main` naik dari Sesi 12 ke Sesi 20 dan menyalakan **pencarian teks-penuh +
@@ -93,9 +94,14 @@ harus pemilik (penjaga izin menolak sesi agen menyentuh produksi).
 
 ---
 
-## Fase 4 — Sambungkan Vercel ke repo yang benar, lalu picu build baru
+## Fase 4 — Sambungkan Vercel ke repo yang benar, lalu picu build baru ✅ SELESAI 2026-10-06
 
 *(Menggantikan Fase 4 versi pertama, yang berasumsi auto-deploy dari `main`.)*
+
+**Terukur:** pemilik menyambungkan kedua proyek; merge [PR #77](https://github.com/xtheoputra/techverse-x/pull/77)
+(`fa9b4fa`, 04:15 UTC) memicu build Production di keduanya, dan log keduanya berbunyi
+`Cloning github.com/xtheoputra/techverse-x (Branch: main, Commit: fa9b4fa)`. Variabel
+lingkungan produksi bertahan.
 
 **Satu kali, untuk tiap proyek Vercel** (`techverse-x-api`, lalu `techverse-x-web`):
 
@@ -126,7 +132,12 @@ dari salinan beku.
 
 ---
 
-## Fase 5 — Verifikasi
+## Fase 5 — Verifikasi ✅ SELESAI 2026-10-06
+
+**Terukur** sesudah build `fa9b4fa`: `/api/v1/search?q=quantum` 200 dan memuat bidang
+`quantum-computing`; web `/cari?q=quantum` 200 dan memuat "Quantum Computing";
+`/health/ready` dan `/api/v1/fields` 200; `POST /api/v1/technologies` 405; beranda 14
+tautan bidang. Rinciannya di [SESSION-LOG Sesi 21](SESSION-LOG.md).
 
 1. **Pencarian teks-penuh hidup:**
    ```

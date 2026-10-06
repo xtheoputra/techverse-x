@@ -52,17 +52,28 @@ Pemilik menyambungkan **kedua** proyek ke `techverse-x`, dan itu **terukur** beg
 
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
-**`origin/main` = `90a4115`** (Sesi 20 + keempat belas PR). Satu-satunya PR terbuka: [#77](https://github.com/xtheoputra/techverse-x/pull/77) (runbook dikoreksi + entri ini).
+**`origin/main` = `fa9b4fa`** (merge [#77](https://github.com/xtheoputra/techverse-x/pull/77), 2026-10-06 04:15 UTC; Sesi 20 + keempat belas PR + runbook dikoreksi). Satu-satunya PR terbuka: yang membawa pembaruan entri ini.
 
-**Langkah yang menggerakkan segalanya:** pemilik me-merge #77 → Vercel membangun API dan web dari `techverse-x` untuk pertama kali → verifikasi [Fase 5 runbook](RUNBOOK-merge-tumpukan-bulan3.md). Bukti yang dicari ada di log build, bukan di status "Ready": baris `Cloning github.com/xtheoputra/techverse-x (Branch: main, Commit: …)`.
+**Terukur sesudah merge #77 — produksi kini menayangkan kode Bulan 3.** Merge itu memicu build Production pertama dari repo asli di kedua proyek; log keduanya berbunyi `Cloning github.com/xtheoputra/techverse-x (Branch: main, Commit: fa9b4fa)`, keduanya Ready dalam ±1 menit. Diperiksa pada alamat produksi:
 
-**Terukur:** kedua proyek Vercel meng-*clone* `techverse-x` (log build preview `55ff84c`), dan Root Directory keduanya bertahan (build lolos). Produksi 2026-10-06 ±10:10 WIB: `/api/v1/search` dan `/cari` masih 404.
+| Pemeriksaan | Sebelum | Sesudah |
+|---|---|---|
+| `/api/v1/search?q=quantum` | 404 | **200**, memuat bidang `quantum-computing`; `technologies` kosong (Neon masih 0 topik) |
+| web `/cari?q=quantum` | 404 | **200**, memuat "Quantum Computing" |
+| web `/cari` tanpa kata kunci | 404 | 200 |
+| `/health/ready`, `/api/v1/fields` | 200 | 200 |
+| `POST /api/v1/technologies` | 405 | 405 (produksi tetap hanya-baca) |
+| beranda | 14 bidang | 14 tautan `/teknologi/<bidang>` |
 
-**Belum terukur:** bahwa variabel lingkungan **produksi** (`PORT`, `ConnectionStrings__Postgres`, `API_BASE_URL`) bertahan sesudah disambung ulang — preview terlindungi login, jadi satu-satunya ujian yang jujur adalah build produksi sesudah merge #77.
+Variabel lingkungan produksi (`PORT`, `ConnectionStrings__Postgres`, `API_BASE_URL`) **bertahan** sesudah disambung ulang — yang tadinya satu-satunya hal belum terukur kini terukur, lewat API yang menjawab dari Neon.
+
+🔑 **Pelajaran yang terbukti:** merge hijau, citra terbit, dan migrasi hijau — semuanya benar sementara kode lama tetap melayani. `/health/ready` hanya cek konektivitas dan `/api/v1/fields` ada di kedua versi, jadi tak satu penjaga pun merah; celahnya hanya kelihatan karena verifikasi menanyakan rute yang **baru**. Verifikasi pasca-merge harus selalu memuat sedikitnya satu rute yang hanya ada di kode baru.
 
 **Issue terbuka** (10, tak berubah): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68. Lihat butir "tidak dikerjakan" untuk #38–#40 dan #60/#61.
 
-**Menunggu pemilik:** merge #77; hapus repo salinan sesudah terbukti tak terpakai; putuskan menutup #38/#39/#40; dan sisa dari Sesi 20 (`LICENSE`, buka paket GHCR, akun AI). **Pemicu tertulis Sesi 20** — jalankan workflow `tinjau` begitu #40 tutup + secret Neon ada — kini tinggal satu syarat: secret Neon sudah ada, tersisa #40 ditutup.
+**Menunggu pemilik:** hapus repo salinan `techverse-x-api` (kini tak dipakai proyek mana pun) dan, sesudahnya, `techverse-x-app` — keduanya sudah terbukti tak terpakai karena kedua build produksi meng-*clone* `techverse-x`; putuskan menutup #38/#39/#40; dan sisa dari Sesi 20 (`LICENSE`, buka paket GHCR, akun AI). **Pemicu tertulis Sesi 20** — jalankan workflow `tinjau` begitu #40 tutup + secret Neon ada — kini tinggal satu syarat: secret Neon sudah ada, tersisa #40 ditutup.
+
+**Langkah bermakna berikutnya:** ukuran resmi (topik `tinjau`) masih **0 dari 22**. Pencarian dan Knowledge Graph kini hidup tetapi menjawab dari 14 bidang tanpa topik. Yang menggerakkan angka itu adalah jalan [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md) (workflow `tinjau`) ditambah isi topik AI Agents.
 
 **Lingkungan — 2026-10-06:** pohon kerja bersih sesudah commit ini. Sesi ini tak menyalakan proses apa pun yang perlu dimatikan.
 
