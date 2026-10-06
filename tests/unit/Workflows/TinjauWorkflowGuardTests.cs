@@ -47,7 +47,7 @@ public sealed class TinjauWorkflowGuardTests
     {
         var lines = File.ReadAllLines(JalurWorkflow());
 
-        var dideklarasikan = InputKeys(lines);
+        var dideklarasikan = WorkflowYaml.InputKeys(lines, "tinjau.yml");
         Assert.True(
             dideklarasikan.SetEquals(InputYangDiizinkan),
             "workflow_dispatch.inputs harus TEPAT { sha, slug }. Input lain — terutama yang menamai pemeriksa — "
@@ -56,125 +56,11 @@ public sealed class TinjauWorkflowGuardTests
         // Pertahanan kedua: tidak ada ${{ inputs.X }} / github.event.inputs.X selain
         // sha & slug yang terpakai di mana pun — menjaga reviewer tak pernah dirangkai
         // dari sebuah input walau deklarasinya entah bagaimana lolos.
-        var dipakai = InputRefs(File.ReadAllText(JalurWorkflow()));
+        var dipakai = WorkflowYaml.InputRefs(File.ReadAllText(JalurWorkflow()));
         Assert.True(
             dipakai.IsSubsetOf(InputYangDiizinkan),
             $"hanya inputs.sha & inputs.slug yang boleh dirujuk. Ditemukan: [{string.Join(", ", dipakai)}].");
     }
 
-    /// <summary>Kunci-kunci langsung di bawah <c>workflow_dispatch.inputs</c>.</summary>
-    private static HashSet<string> InputKeys(string[] lines)
-    {
-        var keys = new HashSet<string>(StringComparer.Ordinal);
-
-        var inputsIdx = -1;
-        for (var i = 0; i < lines.Length; i++)
-        {
-            if (lines[i].Trim() == "inputs:")
-            {
-                inputsIdx = i;
-                break;
-            }
-        }
-
-        Assert.True(inputsIdx >= 0, "tinjau.yml harus punya blok workflow_dispatch.inputs.");
-
-        var inputsIndent = Indent(lines[inputsIdx]);
-        var keyIndent = -1;
-
-        for (var i = inputsIdx + 1; i < lines.Length; i++)
-        {
-            var line = lines[i];
-            if (line.Trim().Length == 0)
-            {
-                continue;
-            }
-
-            var indent = Indent(line);
-            if (indent <= inputsIndent)
-            {
-                break; // keluar dari blok inputs
-            }
-
-            var trimmed = line.TrimStart(' ');
-            if (trimmed.StartsWith('#'))
-            {
-                continue;
-            }
-
-            if (keyIndent == -1)
-            {
-                keyIndent = indent;
-            }
-
-            if (indent != keyIndent)
-            {
-                continue; // baris di dalam definisi sebuah input (description, type, ...)
-            }
-
-            var colon = trimmed.IndexOf(':');
-            if (colon > 0)
-            {
-                var key = trimmed[..colon];
-                if (!key.Contains(' '))
-                {
-                    keys.Add(key);
-                }
-            }
-        }
-
-        return keys;
-    }
-
-    /// <summary>Semua nama input yang dirujuk <c>inputs.X</c> di mana pun di berkas.</summary>
-    private static HashSet<string> InputRefs(string teks)
-    {
-        var refs = new HashSet<string>(StringComparer.Ordinal);
-        const string penanda = "inputs.";
-
-        var idx = teks.IndexOf(penanda, StringComparison.Ordinal);
-        while (idx >= 0)
-        {
-            var j = idx + penanda.Length;
-            var start = j;
-            while (j < teks.Length && (char.IsLetterOrDigit(teks[j]) || teks[j] == '_' || teks[j] == '-'))
-            {
-                j++;
-            }
-
-            if (j > start)
-            {
-                refs.Add(teks[start..j]);
-            }
-
-            idx = teks.IndexOf(penanda, j, StringComparison.Ordinal);
-        }
-
-        return refs;
-    }
-
-    private static int Indent(string line) => line.Length - line.TrimStart(' ').Length;
-
-    /// <summary>
-    /// Menyusuri ke atas dari direktori keluaran uji sampai menemukan
-    /// <c>.github/workflows/tinjau.yml</c>. Gagal keras kalau tidak ketemu — penjaga
-    /// yang diam-diam tidak membaca berkasnya sama saja dengan tidak ada.
-    /// </summary>
-    private static string JalurWorkflow()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null)
-        {
-            var kandidat = Path.Combine(dir.FullName, ".github", "workflows", "tinjau.yml");
-            if (File.Exists(kandidat))
-            {
-                return kandidat;
-            }
-
-            dir = dir.Parent;
-        }
-
-        throw new FileNotFoundException(
-            "Tidak menemukan .github/workflows/tinjau.yml dengan menyusuri ke atas dari " + AppContext.BaseDirectory);
-    }
+    private static string JalurWorkflow() => WorkflowYaml.JalurWorkflow("tinjau.yml");
 }

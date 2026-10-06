@@ -1,0 +1,127 @@
+{
+  "slug": "model-context-protocol",
+  "name": "Model Context Protocol",
+  "fieldSlug": "ai-agents",
+  "summary": "Model Context Protocol (MCP) adalah standar terbuka untuk menyambungkan aplikasi AI ke sistem di luar dirinya — sumber data, alat, dan alur kerja — lewat satu protokol yang sama. Dokumentasi resminya memakai analogi port USB-C: satu cara baku menyambungkan perangkat yang berbeda-beda. Sebuah host (aplikasi AI seperti Claude Code atau Visual Studio Code) membuat satu client untuk setiap server yang disambungkannya. Server menawarkan tiga primitif: tools (fungsi yang dipanggil model), resources (data konteks), dan prompts (templat interaksi). Pesannya JSON-RPC 2.0, dibawa lewat dua transport: stdio untuk server lokal dan Streamable HTTP untuk server jarak jauh. Pada revisi spesifikasi 2026-07-28 protokolnya stateless: setiap permintaan membawa versi protokol dan kapabilitas kliennya sendiri. Halaman ini mengajarkan cara berpikir dan cara membangun server MCP pertama, bukan daftar server siap pakai. Spesifikasinya masih bergerak — cocokkan selalu dengan revisi terbaru sebelum menyalin contoh.",
+  "prerequisite": {
+    "title": "Dasar JSON-RPC 2.0 dan JSON Schema",
+    "description": "Pahami bentuk pesan JSON-RPC 2.0 (request dengan id, method, params; response dengan result atau error; notification tanpa id) dan cara menulis JSON Schema sederhana (type, properties, required). Keduanya persis yang dipakai MCP. Sebaiknya kamu juga sudah pernah memanggil sebuah LLM lewat API dan paham gagasan function calling."
+  },
+  "roadmap": [
+    {
+      "title": "Pahami arsitektur: host, client, server",
+      "description": "Gambar sendiri siapa membuat siapa: satu host mengelola banyak client, setiap client memegang satu koneksi ke satu server. Bedakan server lokal (stdio, biasanya melayani satu client) dari server jarak jauh (Streamable HTTP, biasanya melayani banyak client). Bedakan juga lapisan data (JSON-RPC dan primitifnya) dari lapisan transport."
+    },
+    {
+      "title": "Kenali tiga primitif server",
+      "description": "Tools adalah fungsi yang dapat dipanggil model, resources adalah data yang memberi konteks, prompts adalah templat interaksi. Untuk tiap primitif, catat metode penemuannya (tools/list dan sejenisnya) dan, khusus tools, metode pemanggilannya (tools/call). Perhatikan bahwa daftar ini dinamis: klien menemukannya saat berjalan, bukan dari konfigurasi tetap."
+    },
+    {
+      "title": "Pahami protokol stateless dan penemuan kapabilitas",
+      "description": "Sejak revisi 2026-07-28 setiap permintaan membawa versi protokol dan kapabilitas kliennya di bidang _meta, sehingga server memproses tiap permintaan sendiri-sendiri. Setiap server wajib menjawab server/discover, yang boleh dikirim klien sebelum permintaan lain untuk mengetahui versi, kapabilitas, dan identitas server. Baca bagian Statelessness di spesifikasi, lalu bandingkan dengan revisi 2025-06-18 yang masih memakai jabat tangan initialize dan notifikasi initialized — tutorial dan SDK lama bisa menggambarkan model yang itu."
+    },
+    {
+      "title": "Bangun server MCP pertama dengan SDK resmi",
+      "description": "Ikuti tutorial resmi Build an MCP server (server cuaca dengan tool get_alerts dan get_forecast) memakai satu bahasa SDK pilihanmu. Aturan yang paling sering menjebak: pada server stdio, jangan pernah menulis ke stdout selain pesan protokol — keluaran apa pun di sana merusak pesan JSON-RPC. Tulis log ke stderr atau ke berkas."
+    },
+    {
+      "title": "Periksa servermu dengan MCP Inspector",
+      "description": "Jalankan npx @modelcontextprotocol/inspector, sambungkan ke servermu, lalu kirim tools/list dan tools/call dan baca pesan mentahnya. Mengintip pesan JSON yang sebenarnya lewat adalah cara tercepat memahami apa yang SDK sembunyikan darimu. Inspector menyimpan rahasia seperti token OAuth, jadi perlakukan ia sebagai alat pengembangan, bukan alat yang dibagikan."
+    },
+    {
+      "title": "Rancang tool yang bisa dipakai model",
+      "description": "Beri nama unik per server (1–128 karakter; huruf, angka, garis bawah, tanda hubung, titik), tulis description yang menjelaskan apa yang dilakukan tool dan kapan dipakai, dan deklarasikan inputSchema sebagai JSON Schema. Bedakan dua jenis galat: galat protokol (tool tak dikenal, permintaan cacat) dan galat eksekusi yang dikembalikan sebagai hasil dengan isError true supaya model bisa membaca sebabnya dan memperbaiki panggilannya."
+    },
+    {
+      "title": "Sambungkan ke host sungguhan dan amati persetujuan manusia",
+      "description": "Daftarkan servermu ke sebuah host (tutorial resmi memakai Claude for Desktop) dan amati kapan model memilih memanggil tool-mu. Spesifikasi menyarankan agar selalu ada manusia yang dapat menolak pemanggilan tool: aplikasi sebaiknya menampilkan tool mana yang terpapar ke model, menandai saat tool dipanggil, dan meminta konfirmasi untuk operasi yang berdampak."
+    },
+    {
+      "title": "Amankan: validasi, akses, dan ketidakpercayaan",
+      "description": "Server wajib memvalidasi semua masukan tool, menerapkan kendali akses, membatasi laju pemanggilan, dan membersihkan keluaran. Klien sebaiknya menampilkan masukan tool kepada pengguna sebelum memanggil server dan memeriksa hasilnya sebelum diteruskan ke LLM. Anotasi tool dari server yang tidak tepercaya harus dianggap tidak tepercaya. Baca halaman Security best practices di dokumentasi resmi."
+    },
+    {
+      "title": "Naik ke server jarak jauh",
+      "description": "Pindahkan servermu ke transport Streamable HTTP. Untuk transport berbasis HTTP, ikuti kerangka otorisasi di spesifikasi (OAuth direkomendasikan untuk memperoleh token); untuk stdio, kredensial diambil dari lingkungan proses, bukan dari kerangka itu. Catat konsekuensinya: server jarak jauh melayani banyak client, jadi desain tool yang menyimpan keadaan lewat pegangan eksplisit, bukan lewat koneksi."
+    }
+  ],
+  "tools": [
+    {
+      "slug": "mcp-inspector",
+      "name": "MCP Inspector",
+      "summary": "Alat pengembang resmi untuk memeriksa server MCP: antarmuka web, CLI untuk otomasi, dan TUI.",
+      "homepage": "https://github.com/modelcontextprotocol/inspector",
+      "note": "Dipakai sejak server pertama berjalan, untuk melihat pesan JSON-RPC yang sebenarnya lewat."
+    },
+    {
+      "slug": "mcp-typescript-sdk",
+      "name": "MCP TypeScript SDK",
+      "summary": "SDK resmi MCP untuk TypeScript — salah satu SDK Tier 1 menurut daftar resmi.",
+      "homepage": "https://github.com/modelcontextprotocol/typescript-sdk",
+      "note": "Pilihan bila servermu ditulis dengan Node.js."
+    },
+    {
+      "slug": "mcp-python-sdk",
+      "name": "MCP Python SDK",
+      "summary": "SDK resmi MCP untuk Python — salah satu SDK Tier 1 menurut daftar resmi.",
+      "homepage": "https://github.com/modelcontextprotocol/python-sdk",
+      "note": "Pilihan bila servermu ditulis dengan Python."
+    },
+    {
+      "slug": "mcp-csharp-sdk",
+      "name": "MCP C# SDK",
+      "summary": "SDK resmi MCP untuk C# — salah satu SDK Tier 1 menurut daftar resmi.",
+      "homepage": "https://github.com/modelcontextprotocol/csharp-sdk",
+      "note": "Pilihan bila servermu ditulis dengan .NET."
+    }
+  ],
+  "projects": [
+    {
+      "title": "Server MCP untuk catatan lokal",
+      "brief": "Bangun server stdio yang mengekspos satu folder catatan Markdown. Sediakan dua tool: cari_catatan(kata) yang mengembalikan judul catatan yang cocok, dan tambah_catatan(judul, isi) yang menulis berkas baru. Sediakan juga satu resource yang membaca isi satu catatan. Periksa semuanya dengan MCP Inspector, lalu sambungkan ke satu host dan minta model mencari sebuah catatan. Selesai bila: (1) model berhasil menemukan catatan lewat tool-mu, (2) kamu bisa menunjukkan di host-mu bagaimana seorang manusia dapat menolak pemanggilan tambah_catatan sebelum ia menulis, dan (3) percobaan menulis di luar folder catatan ditolak dengan galat eksekusi (isError true) yang menjelaskan sebabnya — bukan dengan server yang mati. Pastikan servermu tidak menulis apa pun ke stdout selain pesan protokol."
+    }
+  ],
+  "resources": [
+    {
+      "type": "OfficialDocs",
+      "title": "Apa itu Model Context Protocol? (pengantar resmi)",
+      "url": "https://modelcontextprotocol.io/docs/getting-started/intro"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Spesifikasi MCP — revisi terbaru (sumber kebenaran protokol)",
+      "url": "https://modelcontextprotocol.io/specification/latest"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Build an MCP server — tutorial resmi",
+      "url": "https://modelcontextprotocol.io/docs/develop/build-server"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Daftar SDK resmi dan tingkatannya",
+      "url": "https://modelcontextprotocol.io/docs/sdk"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Security best practices untuk MCP",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "type": "Repository",
+      "title": "MCP Inspector — alat memeriksa server",
+      "url": "https://github.com/modelcontextprotocol/inspector"
+    },
+    {
+      "type": "Repository",
+      "title": "Implementasi server referensi MCP",
+      "url": "https://github.com/modelcontextprotocol/servers"
+    },
+    {
+      "type": "Repository",
+      "title": "Kode lengkap tutorial resmi (quickstart-resources)",
+      "url": "https://github.com/modelcontextprotocol/quickstart-resources"
+    }
+  ],
+  "requires": []
+}

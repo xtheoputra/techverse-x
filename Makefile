@@ -44,6 +44,14 @@ db-script: ## Menulis SQL migrasi idempoten ke database/migrations/
 seed: ## Mengisi contoh isi lewat API (API harus sudah jalan)
 	@node database/seeds/seed.mjs
 
+.PHONY: cek-isi
+cek-isi: ## Memeriksa berkas isi/ (tanpa jaringan, ADR-027)
+	@node database/isi/pasang.mjs --cek
+
+.PHONY: isi-pasang
+isi-pasang: ## Memasang SEMUA isi/ lewat API pengembangan (API harus jalan)
+	@node database/isi/pasang.mjs --semua
+
 .PHONY: api
 api: ## Menjalankan API di http://localhost:5080
 	dotnet run --project $(API_PROJECT)
@@ -92,7 +100,7 @@ check-global-json: ## Memastikan sdk.version di global.json versi SDK utuh
 	esac
 
 .PHONY: verify
-verify: check-global-json cek-tautan ## Gerbang yang sama dengan CI: build ketat + uji + build web
+verify: check-global-json cek-tautan cek-isi ## Gerbang yang sama dengan CI: build ketat + uji + build web
 	dotnet build TechVerseX.slnx --configuration Release
 	dotnet test TechVerseX.slnx --no-build --configuration Release
 	npm run lint:web

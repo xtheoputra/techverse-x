@@ -1,0 +1,199 @@
+# Memasang isi satu topik ke PRODUKSI — jalan isi sungguhan, ADR-027.
+#
+# Kenapa ini ada sebagai workflow, bukan endpoint publik: sama dengan `tinjau.yml`
+# (ADR-021). Permukaan tulis MATI di produksi (ADR-020), jadi satu-satunya jalan
+# isi masuk ke Neon adalah menyalakan citra `api` yang SAMA PERSIS dengan yang
+# tayang, di dalam runner, dengan `Editorial__WritesEnabled=true` terikat ke
+# 127.0.0.1, memanggilnya lewat localhost, lalu membuangnya. Yang tayang di host
+# API tetap tidak memasang satu pun endpoint tulis.
+#
+# 🔑 Isi yang dipasang adalah BERKAS di repo (`isi/<bidang>/<slug>.json`), dibaca
+# dari `main` — bukan dari input. Pemilik membacanya di diff PR sebelum merge; itu
+# titik baca-manusia pertama. Neon hanya proyeksi dari berkas itu.
+#
+# 🔴 WORKFLOW INI TIDAK PERNAH MENAIKKAN KE `tinjau`. Ia paling jauh membawa topik
+# ke `draf`. `tinjau` adalah satu-satunya klaim kepercayaan produk ini ("sudah
+# diperiksa manusia") dan punya jalannya sendiri, `tinjau.yml`, dengan nama
+# pemeriksa dari github.actor. Karena itu tidak ada nama pemeriksa di sini, dan
+# `IsiWorkflowGuardTests` menolak keduanya kalau muncul.
+#
+# ⚠️ SENGAJA MANUAL (workflow_dispatch) dan SENGAJA HANYA DARI `main`: ia menulis
+# data produksi. Isi yang belum ter-merge belum dibaca siapa pun.
+
+name: Pasang isi
+
+on:
+  workflow_dispatch:
+    inputs:
+      # ⚠️ HANYA dua input — sama dengan tinjau.yml. Isinya datang dari berkas di
+      # `main`, bukan dari kotak teks; input ketiga yang membawa isi atau nama
+      # orang akan membuka jalan memasang teks yang tak pernah dibaca di PR.
+      # IsiWorkflowGuardTests menjaganya.
+      sha:
+        description: "SHA commit yang citra `api`-nya dipakai — pendek atau penuh (harus SAMA dengan yang tayang di host API)"
+        required: true
+        type: string
+      slug:
+        description: "Slug topik yang dipasang (mis. model-context-protocol) — harus punya berkas di isi/<bidang>/<slug>.json"
+        required: true
+        type: string
+
+jobs:
+  isi:
+    name: Pasang satu topik ke Neon
+    runs-on: ubuntu-24.04 # disematkan — alasannya di ci.yml, job `backend`
+
+    # Environment memberi tempat memasang peninjau-wajib GitHub kalau suatu saat
+    # diinginkan (siapa boleh MENJALANKAN) — tanpa mengubah workflow ini.
+    environment: produksi
+
+    permissions:
+      contents: read
+      # Hanya BACA paket. Workflow ini tidak menerbitkan apa pun.
+      packages: read
+
+    steps:
+      # Isi yang dipasang HARUS yang sudah ter-merge. Di PR atau cabang, berkasnya
+      # mungkin belum dibaca siapa pun — dan environment `produksi` menyimpan rahasia
+      # yang tak boleh dipegang kode yang belum ditinjau.
+      - name: Hanya dari main
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$REF" != "refs/heads/main" ]; then
+            echo "::error::Pasang isi hanya boleh dijalankan dari main (ref sekarang: $REF). Merge PR isinya dulu, lalu jalankan dengan --ref main."
+            exit 1
+          fi
+
+      # Disematkan per SHA (tag v5 bergerak; SHA-nya diukur 2026-10-06) — workflow ini
+      # memegang rahasia Neon, jadi pemasukan kodenya tak boleh berubah diam-diam.
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+
+      - name: Pasang Node
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+
+      # Berkas yang cacat berhenti di sini, sebelum citra ditarik atau Neon disentuh.
+      - name: Periksa berkas isi
+        run: node database/isi/pasang.mjs --cek
+
+      # v4 disematkan per SHA — alasan sama dengan migrasi-produksi.yml.
+      - name: Masuk ke GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # SHA pendek -> `manifest unknown` di tarikan; dikanonikalkan di sini, persis
+      # seperti migrasi-produksi.yml (alasan lengkap ada di sana).
+      - name: Kanonikalkan SHA
+        id: sha
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MASUKAN: ${{ inputs.sha }}
+        run: |
+          penuh="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${MASUKAN}" --jq .sha 2>/dev/null || true)"
+
+          if [ -z "$penuh" ]; then
+            echo "::error::SHA '${MASUKAN}' tidak dikenali di repo ini. Ambil dari ringkasan jalan 'Rilis citra' terakhir yang hijau."
+            exit 1
+          fi
+
+          echo "penuh=$penuh" >> "$GITHUB_OUTPUT"
+          echo "Masukan '${MASUKAN}' -> $penuh"
+
+      - name: Siapkan nama citra
+        id: nama
+        run: echo "citra=ghcr.io/${GITHUB_REPOSITORY,,}/api:${{ steps.sha.outputs.penuh }}" >> "$GITHUB_OUTPUT"
+
+      # Ditarik terpisah dari menjalankan, supaya gagal MENARIK bisa dibedakan dari
+      # gagal MENJALANKAN — obatnya berbeda. Sama dengan tinjau.yml.
+      - name: Tarik citra api
+        run: |
+          if docker pull "${{ steps.nama.outputs.citra }}" 2>"$RUNNER_TEMP/tarik.err"; then
+            exit 0
+          fi
+
+          cat "$RUNNER_TEMP/tarik.err"
+
+          if grep -qi "manifest unknown" "$RUNNER_TEMP/tarik.err"; then
+            echo "::error::Tidak ada citra bertag itu. Kredensialnya DITERIMA — yang tidak ada TAGnya. Kemungkinan besar SHA-nya memang belum pernah membangun citra (ADR-018 melewati commit dokumen). Ambil SHA dari ringkasan jalan 'Rilis citra' terakhir yang hijau."
+          elif grep -qiE "denied|unauthorized" "$RUNNER_TEMP/tarik.err"; then
+            echo "::error::Registry MENOLAK — ini soal izin, bukan soal tag. Periksa 'packages: read' pada workflow ini."
+          fi
+
+          exit 1
+
+      - name: Pasang isi
+        env:
+          POSTGRES: ${{ secrets.NEON_DATABASE_URL }}
+          SLUG: ${{ inputs.slug }}
+        run: |
+          if [ -z "$POSTGRES" ]; then
+            echo "::error::Secret NEON_DATABASE_URL belum diisi."
+            exit 1
+          fi
+
+          # Slug masuk ke argumen proses dan ke alamat; tolak yang bukan slug sebelum
+          # sampai ke sana.
+          if ! printf '%s' "$SLUG" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$'; then
+            echo "::error::'${SLUG}' bukan slug (huruf kecil, angka, tanda hubung tunggal)."
+            exit 1
+          fi
+
+          # Citra `api` yang SAMA PERSIS dengan yang tayang, dengan dua beda sengaja:
+          # permukaan tulis dinyalakan, dan portnya diikat ke 127.0.0.1 — ia tak pernah
+          # punya alamat publik (ADR-021 §1). Redis sengaja tidak diisi (ADR-016).
+          # Dibuang di langkah Bersihkan, apa pun hasilnya.
+          docker run -d --name isi-api \
+            -e "ConnectionStrings__Postgres=$POSTGRES" \
+            -e "Editorial__WritesEnabled=true" \
+            -e "ASPNETCORE_ENVIRONMENT=Production" \
+            -p 127.0.0.1:8080:8080 \
+            "${{ steps.nama.outputs.citra }}"
+
+          # Tunggu sampai SIAP — /health/ready menyentuh Postgres sungguhan, jadi 200 di
+          # sini juga membuktikan sambungan Neon hidup sebelum menulis.
+          siap=""
+          for _ in $(seq 1 30); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/health/ready)" = "200" ]; then
+              siap="ya"
+              break
+            fi
+            sleep 2
+          done
+
+          if [ -z "$siap" ]; then
+            echo "::error::API tidak pernah SIAP dalam 60 detik. Lihat log peti kemas di langkah Bersihkan."
+            exit 1
+          fi
+
+          # Pemasang itu sendiri: berkas dan server dibandingkan dulu, tak ada yang
+          # ditimpa, dan keberhasilannya dibuktikan dengan rencana kosong sesudahnya.
+          API_BASE_URL=http://127.0.0.1:8080 node database/isi/pasang.mjs "$SLUG"
+
+      # if: always() — peti kemasnya dibuang walau langkah di atas gagal, dan lognya
+      # dicetak lebih dulu supaya kegagalan menjalankan (bukan menarik) punya bukti.
+      - name: Bersihkan
+        if: always()
+        run: |
+          docker logs isi-api 2>&1 | tail -n 50 || true
+          docker rm -f isi-api || true
+
+      - name: Ringkasan
+        if: success()
+        run: |
+          {
+            echo "### Isi terpasang"
+            echo
+            echo "Topik: \`${{ inputs.slug }}\`"
+            echo "Berkas: \`isi/<bidang>/${{ inputs.slug }}.json\` @ \`${{ github.sha }}\`"
+            echo "Citra: \`${{ steps.nama.outputs.citra }}\`"
+            echo
+            echo "> Topik kini berstatus \`draf\`. Menaikkannya ke \`tinjau\` adalah langkah manusia"
+            echo "> yang terpisah (workflow \`Naikkan ke tinjau\`, ADR-021). Permukaan tulis yang"
+            echo "> tayang di host API tetap tertutup — peti kemas tadi hidup hanya di dalam"
+            echo "> runner dan sudah dibuang."
+          } >> "$GITHUB_STEP_SUMMARY"

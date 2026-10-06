@@ -15,7 +15,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'api', 'web', 'build', 'test', 'tautan', 'halaman', 'verify', 'ci')]
+    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'isi', 'isi-pasang', 'api', 'web', 'build', 'test', 'tautan', 'halaman', 'verify', 'ci')]
     [string]$Command = 'help',
 
     [Parameter(Position = 1)]
@@ -65,6 +65,8 @@ switch ($Command) {
             @{ n = 'migration'; d = 'Migrasi baru: .\run.ps1 migration NamaMigrasi' }
             @{ n = 'db-script'; d = 'Menulis SQL idempoten ke database/migrations/' }
             @{ n = 'seed';      d = 'Mengisi contoh lewat API (API harus jalan)' }
+            @{ n = 'isi';       d = 'Memeriksa berkas isi/ (tanpa jaringan, ADR-027)' }
+            @{ n = 'isi-pasang'; d = 'Memasang SEMUA isi/ lewat API pengembangan (API harus jalan)' }
             @{ n = 'api';       d = 'Menjalankan API di http://localhost:5080' }
             @{ n = 'web';       d = 'Menjalankan web di http://localhost:3000' }
             @{ n = 'build';     d = 'Build solusi .NET' }
@@ -123,6 +125,23 @@ switch ($Command) {
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 
+    'isi' {
+        # Satu implementasi, alasan yang sama dengan `seed` dan `tautan`: berkas .mjs
+        # yang sama dipanggil run.ps1, Makefile, dan ci.yml (ADR-027).
+        node database/isi/pasang.mjs --cek
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+
+    'isi-pasang' {
+        # Hanya ke API PENGEMBANGAN (permukaan tulis hidup). Produksi satu topik per
+        # jalan workflow isi.yml - berkas yang sama, jalan yang bergerbang.
+        # ⚠️ Basis data berisi contoh `seed` punya topik bernama sama dengan isi sungguhan
+        # (model-context-protocol): pemasang berhenti dengan BEDA, bukan menimpa. Pakai
+        # `reset` + `migrate` lebih dulu untuk basis data kosong.
+        node database/isi/pasang.mjs --semua
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+
     'api'   { dotnet run --project $ApiProject }
     'web'   { npm run dev:web }
     'build' { Invoke-Step 'Build' { dotnet build TechVerseX.slnx } }
@@ -162,6 +181,7 @@ switch ($Command) {
         Test-GlobalJson
 
         Invoke-Step 'Cek tautan Markdown' { node .github/scripts/cek-tautan-markdown.mjs }
+        Invoke-Step 'Cek berkas isi (ADR-027)' { node database/isi/pasang.mjs --cek }
         Invoke-Step 'Build ketat (Release)' { dotnet build TechVerseX.slnx --configuration Release }
         Invoke-Step 'Uji .NET' { dotnet test TechVerseX.slnx --no-build --configuration Release }
         Invoke-Step 'Lint web' { npm run lint:web }

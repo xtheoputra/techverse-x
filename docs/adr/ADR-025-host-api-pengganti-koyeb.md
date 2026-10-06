@@ -1,8 +1,11 @@
 # ADR-025 — Host API pengganti Koyeb: belum dipilih, diuji berurutan dengan syarat lulus tertulis
 
-**Status:** Diusulkan. **Host API-nya BELUM dipilih.** Yang diusulkan adalah
-urutan uji dan syarat lulusnya; pilihannya diambil pemilik sesudah uji dan dicatat
-sebagai Pembaruan di sini. Yang **bukan** usulan melainkan temuan: kaki `api`
+**Status:** ~~Diusulkan. Host API-nya BELUM dipilih.~~ **Diputuskan pemilik
+2026-10-05: Vercel kontainer** — lihat
+[Pembaruan 2026-10-05](#pembaruan-2026-10-05--host-api-dipilih-vercel-kontainer) di
+kaki. Urutan uji Railway di bawah **tidak dijalankan** dan dibiarkan sebagai
+rekaman. Teks asli: yang diusulkan adalah urutan uji dan syarat lulusnya; pilihannya
+diambil pemilik sesudah uji dan dicatat sebagai Pembaruan di sini. Yang **bukan** usulan melainkan temuan: kaki `api`
 [ADR-019](ADR-019-hosting-gratis-tanpa-kartu.md) (Koyeb Free) sudah gugur untuk
 akun baru. Kaki web (Vercel Hobby) dan PostgreSQL (Neon Free) tetap, dengan
 koreksi di bawah. Issue [#39](https://github.com/xtheoputra/techverse-x/issues/39).
@@ -409,3 +412,26 @@ Yang berubah ada di bagian 6:
   di sana *"karena Actions mati"*. Sejak repo publik Actions berjalan lagi, jadi
   migrasi berjalan dari `migrasi-produksi.yml` (`workflow_dispatch`) — gerbang manusia
   yang sama, tanpa bergantung pada PC siapa pun.
+
+---
+
+## Pembaruan 2026-10-05 — host API dipilih: Vercel kontainer
+
+Pemilik memutuskan **Vercel kontainer** (pilihan kedua di bagian 4) tanpa menjalankan uji Railway R1–R6. Alasan pemilik, dari percakapannya: Railway Free terasa seperti akun uji coba (*"jika akun trial, sangat disayangkan"*), dan Vercel kontainer memakai akun Vercel yang sudah ada — tak ada akun baru.
+
+**Bentuk yang berjalan** (PR [#75](https://github.com/xtheoputra/techverse-x/pull/75), `Dockerfile.vercel` di akar repo, diturunkan dari `apps/api/Dockerfile` tanpa tahap migrasi):
+
+- Proyek Vercel `techverse-x-api`, Root Directory `./`, membangun `Dockerfile.vercel` dari `xtheoputra/techverse-x` (lihat [runbook](../RUNBOOK-merge-tumpukan-bulan3.md) — sempat membangun dari repo salinan).
+- Variabel proyek: `PORT=8080` dan `ConnectionStrings__Postgres` (string koneksi Neon). Variabel yang ditambahkan sesudah deploy pertama baru berlaku setelah **redeploy** — deploy pertama membalas 500 `FUNCTION_INVOCATION_FAILED` sampai itu dilakukan.
+- Migrasi **tidak** berjalan di dalam citra (Vercel tak punya pre-deploy command); ia dijalankan terpisah oleh `migrasi-produksi.yml` ke Neon. Larangan "migrasi di startup API" ([ADR-020](ADR-020-permukaan-tulis-api.md), `PENYEBARAN.md`) tetap berlaku.
+
+**Terukur 2026-10-06 pada alamat produksi:** `GET /health/ready` 200, `GET /api/v1/fields` 200 (14 bidang dari Neon), `POST /api/v1/technologies` **405** — permukaan tulis tertutup, dan `/api/v1/search?q=quantum` 200 dari kode Bulan 3.
+
+**Yang berubah dibanding teks di atas:**
+
+- Syarat lulus R1–R7 **tidak diuji** untuk Vercel kontainer; yang diuji adalah gerbang yang sama dengan host mana pun: kesiapan 200 menyebut hanya `postgres`, tulis 405, baca 200.
+- **Kaitan jatah Hobby tetap** seperti peringatan bagian 4: web dan API berbagi satu akun Vercel Hobby, jadi jatahnya dibagi dan terlampaui berarti **keduanya** berhenti. Itu kaitan antar-proyek yang ADR-026 minta ditandai; tidak diukur di sini.
+- **Risiko Beta tetap berlaku:** ADR ini mencatat fiturnya Beta dan bahwa Vercel sendiri tak menyarankan produk Beta untuk produksi penuh. Status itu **tidak diukur ulang** hari ini; yang terukur hanya bahwa host berjalan.
+- Pemilik sudah menghapus repo salinan privat yang dibuat Vercel (`techverse-x-api`, `techverse-x-app`) setelah kedua proyek disambung ke repo ini.
+
+Issue [#39](https://github.com/xtheoputra/techverse-x/issues/39) ditutup dengan pembaruan ini: tujuannya — host API yang tayang — tercapai, lewat jalan yang bukan jalan yang issue tulis.

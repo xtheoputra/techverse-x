@@ -319,6 +319,15 @@ ambang adalah cara paling cepat membuat gerbang ini berhenti menjaga apa pun.
 
 ## Menyebarkan: Vercel + Koyeb + Neon
 
+> ✅ **Diperbarui 2026-10-06 — bagian ini rekaman; yang BERJALAN sekarang berbeda.**
+> Host API dipilih **Vercel kontainer**, bukan Koyeb dan bukan Railway
+> ([ADR-025 Pembaruan 2026-10-05](adr/ADR-025-host-api-pengganti-koyeb.md#pembaruan-2026-10-05--host-api-dipilih-vercel-kontainer));
+> migrasi berjalan dari `migrasi-produksi.yml` (#57 sudah terjawab, repo publik); dan
+> situs tayang. Urutan operasi yang benar-benar dijalankan, **termasuk satu jebakan
+> (Vercel membangun dari repo salinan, bukan dari repo ini)**, ada di
+> [RUNBOOK-merge-tumpukan-bulan3.md](RUNBOOK-merge-tumpukan-bulan3.md). Langkah Koyeb
+> di bawah **tidak boleh diikuti.**
+
 > 🔴 **Diperbarui 2026-09-17 — kaki Koyeb di bagian ini TIDAK berlaku untuk akun
 > baru.** Sejak 17 Februari 2026 Koyeb mewajibkan paket berbayar dan metode
 > pembayaran bagi pendaftar baru. Penggantinya **belum dipilih**; ia diuji menurut
