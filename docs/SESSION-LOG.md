@@ -177,11 +177,11 @@ Server lokal di port 3401 (dev, lalu produksi) saya mulai dan hentikan sendiri; 
 
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
-**Rantai PR — selesai:** #78, #80, dan #81 ter-merge; dua yang terakhir sampai ke `main` lewat [#82](https://github.com/xtheoputra/techverse-x/pull/82) (Lanjutan 4). `origin/main` = `424d521` (diukur 2026-10-06).
+**PR terbuka: [#84](https://github.com/xtheoputra/techverse-x/pull/84)** (`fase-1/ui-futuristik-fondasi`, **basis `main`**, ADR-028 Tahap 0–1: antarmuka gelap-neon; CI hijau, termasuk build kedua proyek Vercel). Pratinjau Vercel-nya **dilindungi login (302) dan belum dilihat siapa pun**; yang saya lihat hanya build produksi lokal. Sisa rantai lama (#78, #80, #81, #82, #83) sudah ter-merge. `origin/main` = `eef86a6` (diukur 2026-10-06).
 
-**Produksi kini** (terukur 2026-10-06 ~07:10 UTC, sesudah Lanjutan 5): situs publik tayang dari `main`; pencarian dan `/cari` hidup; 14 bidang, **1 topik** (`model-context-protocol`, `draf`, tampil berlabel *"Draf — belum diperiksa manusia"*); permukaan tulis tertutup (`POST` → 405). Ukuran resmi **tetap 0 dari 22**: hanya `tinjau` yang dihitung.
+**Produksi kini** (terukur 2026-10-06 ~07:10 UTC, sesudah Lanjutan 5; **tampilannya masih yang lama** — antarmuka baru belum ter-merge): situs publik tayang dari `main`; pencarian dan `/cari` hidup; 14 bidang, **1 topik** (`model-context-protocol`, `draf`, tampil berlabel *"Draf — belum diperiksa manusia"*); permukaan tulis tertutup (`POST` → 405). Ukuran resmi **tetap 0 dari 22**: hanya `tinjau` yang dihitung.
 
-**Issue terbuka** (6): #42 · #54 · #55 · #59 · #68 · **#79** (baru). Ditutup sesi ini: #38 · #40 · #60 · #61 · **#39** (Lanjutan 5, dengan bukti).
+**Issue terbuka** (6): #42 · #54 · #55 · #59 · #68 · **#79** (pemicunya kini terpenuhi: isi pilot perlu diganti — Tahap 2 di bawah). Ditutup sesi ini: #38 · #40 · #60 · #61 · **#39** (Lanjutan 5, dengan bukti).
 
 **Menunggu pemilik, berurutan — inilah yang menggerakkan angka resmi dari nol:**
 
@@ -190,8 +190,18 @@ Server lokal di port 3401 (dev, lalu produksi) saya mulai dan hentikan sendiri; 
 3. ✅ *Selesai (Lanjutan 5).* Actions → **Pasang isi** (`--ref main`, `sha` = langkah 2, `slug` = `model-context-protocol`) → topik `draf`, tampil berlabel di situs.
 4. ✅ *Selesai — dan hasilnya mengubah rencana.* Pemilik membaca halamannya dan menilai isinya *kurang detail, kaku, tidak readable*, dan tampilannya harus *benar-benar futuristik* dengan gambar/video (Lanjutan 6).
 5. ⏸ **Tahan.** Rekomendasi saya (belum jawaban pemilik): jangan menaikkan versi pilot yang sekarang ke `tinjau`. Pilot akan ditulis ulang di Tahap 4 ([ADR-028](adr/ADR-028-antarmuka-futuristik-dan-isi-kaya.md)), dan mengganti teksnya akan menurunkan statusnya lagi ([ADR-012 Pembaruan 2026-10-06](adr/ADR-012-template-halaman.md)), jadi `tinjau` sekarang hanya meminjam kepercayaan atas teks yang akan hilang.
+6. **← berikutnya, pemilik.** Buka pratinjau Vercel #84 (tautan di daftar pemeriksaan PR; butuh login Vercel), nilai arah visualnya (*gelap-neon/aurora*, dipilih pemilik), lalu merge — basisnya sudah `main`, tak ada yang perlu dipindah. Jawaban *"arahnya benar"* atau *"ubah X"* menentukan seberapa banyak Tahap 3 bergantung pada kulit ini.
 
-**Menunggu pemicu tertulis:** pemicu Sesi 20 (jalankan `tinjau` begitu #40 tutup + secret Neon ada) kini **terpenuhi** — #40 tutup dan secret ada — tinggal topiknya ada di produksi (langkah 3). #59 (Learn) menunggu satu roadmap terisi di produksi: MCP-lah calonnya. #54 menunggu isi sungguhan.
+**Program berikutnya — [ADR-028](adr/ADR-028-antarmuka-futuristik-dan-isi-kaya.md), tiap PR berbasis `main`, TANPA tumpukan** (tumpukan sudah sekali membuat dua PR tak sampai ke `main`; Lanjutan 4):
+
+| Tahap | Isi | Status | Bergantung pada |
+|---|---|---|---|
+| 0–1 | keputusan + antarmuka | **#84 terbuka** | — |
+| **2** | jalan ubah [#79](https://github.com/xtheoputra/techverse-x/issues/79): `PUT` topik, ganti langkah roadmap menurut nomor, ubah katalog alat, pemasang `--ganti` **hanya untuk `draf`** | belum dimulai | **tak ada — boleh dimulai sekarang dari `main`**, paralel dengan #84 (menyentuh API dan `isi/`, bukan `apps/web`) |
+| 3 | isi kaya: Markdown terbatas, entitas media, penampil web, pemeriksa berkas; skema basis data dan pustaka pengurai diputuskan DI SINI | belum dimulai | #84 dan Tahap 2 sudah di `main` |
+| 4 | tulis ulang pilot MCP: mendalam, berdiagram SVG, bervideo (ID diverifikasi lewat oEmbed), diverifikasi ke sumber primer, lalu dipasang dengan `--ganti` | belum dimulai | Tahap 2 dan 3 |
+
+**Menunggu pemicu tertulis:** pemicu Sesi 20 (jalankan `tinjau` begitu #40 tutup + secret Neon ada + topiknya ada di produksi) kini **terpenuhi seluruhnya**, tetapi `tinjau` ditahan (langkah 5). #59 (Learn) menunggu **#42 tutup** *dan* satu roadmap terisi di produksi — yang kedua sudah (MCP, `draf`), yang pertama belum. #54 menunggu isi yang lebih banyak: data pertama sudah ditulis di sana, pemicunya belum.
 
 **Keputusan pemilik, dijawab 2026-10-06:** (1) *mengganti* teks pada topik `tinjau` **menurunkan** statusnya (dibangun di #81); (2) enam topik AI Agents sisanya (Tool use, A2A, Memori agen, Evals & observability, Keamanan agen, Human-in-the-loop) **ditulis sesudah pilot MCP dinilai**, jadi tak ada yang ditulis sebelum #80 ter-merge dan MCP terpasang; (3) `LICENSE`: **tetap tanpa lisensi untuk sekarang** (repo publik = *all rights reserved*; lisensi untuk `isi/` adalah soal terpisah dari kode dan belum ditanyakan).
 
@@ -202,6 +212,8 @@ Server lokal di port 3401 (dev, lalu produksi) saya mulai dan hentikan sendiri; 
 **Terukur sesudahnya (2026-10-06, komentar di [#79](https://github.com/xtheoputra/techverse-x/issues/79#issuecomment-6009756440)):** API **tidak** menurunkan `tinjau` pada perubahan bagian isi apa pun; hanya `Technology.Update()` yang menurunkan. Bahwa `Update()` **tak punya pemanggil produksi** bukan temuan baru: Sesi 15 sudah mengukurnya dan [#68](https://github.com/xtheoputra/techverse-x/issues/68) butir 1 memuatnya sejak 2026-09-24 (saya menulisnya sebagai temuan baru lebih dulu, karena tak menyapu catatan lama sebelum mengukur; dikoreksi di komentar kedua #79). **Yang baru hanya ukuran dua kasus mengganti teks:** `SetPrerequisite` (teks langkah 0) dan catatan `AttachTool` pada topik `tinjau` tidak menurunkan status, dan tak ada tes yang menjaganya. Pemilik memutuskan keduanya **harus menurunkan**; dibangun di [#81](https://github.com/xtheoputra/techverse-x/pull/81) (lihat Lanjutan 3). Rute `PUT` topik tetap belum dibangun.
 
 **Lingkungan — 2026-10-06:** pohon kerja bersih sesudah commit ini. Basis data sekali pakai `techversex_isi` dan API di port 5099 dibuat sesi ini **dan sudah dihapus/dihentikan** (PID dicocokkan dengan baris perintah dan waktu mulainya dulu). Container `techversex-postgres`/`-redis` sehat dan tak disentuh selain basis data sekali pakai tadi; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
+
+**Lingkungan — akhir sesi 2026-10-06 (sesudah Lanjutan 6):** cabang kerja `fase-1/ui-futuristik-fondasi`, pohon kerja bersih sesudah commit ini. Server lokal di port 3401 (dev, lalu produksi, dua kali) **dimulai dan dihentikan sendiri**, PID dicocokkan dengan baris perintah dan waktu mulainya dulu; port 3401 terukur bebas, dan tak ada proses `next` yang tertinggal. Tab peramban yang saya buka sudah ditutup. Container `techversex-*` sehat dan tak disentuh; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
 
 ---
 
