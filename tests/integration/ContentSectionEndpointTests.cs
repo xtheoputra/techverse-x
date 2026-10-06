@@ -95,6 +95,44 @@ public sealed class ContentSectionEndpointTests : IAsyncLifetime
         return slug;
     }
 
+    /// <summary>
+    /// Membawa topik kosong sampai <c>HumanReviewed</c> lewat HTTP: kelima bagian terisi,
+    /// <c>draf</c>, lalu <c>tinjau</c>. Alatnya tertaut dengan catatan "Catatan awal." supaya
+    /// uji yang MENGGANTI catatan punya sesuatu untuk diganti. Mengembalikan slug alatnya.
+    /// </summary>
+    private async Task<string> BawaKeTinjauAsync(HttpClient client, string slug)
+    {
+        Assert.Equal(HttpStatusCode.OK, (await client.PutAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/roadmap/prasyarat", UriKind.Relative),
+            new RoadmapStepRequest("Dasar", "Bisa menulis fungsi."))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/roadmap", UriKind.Relative),
+            new RoadmapStepRequest("Langkah", "Menjalankan contoh."))).StatusCode);
+
+        var toolSlug = Unik("alat");
+        _alatDibuat.Add(toolSlug);
+        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync(
+            new Uri("/api/v1/tools", UriKind.Relative),
+            new CreateToolRequest("Alat Uji", "Dipakai uji.", "https://example.com", toolSlug))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/tools", UriKind.Relative),
+            new AttachToolRequest(toolSlug, "Catatan awal."))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/projects", UriKind.Relative),
+            new ProjectRequest("Proyek", "Contoh minimal."))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/resources", UriKind.Relative),
+            new ResourceRequest("OfficialDocs", "Docs", "https://example.com/docs"))).StatusCode);
+
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsync(
+            new Uri($"/api/v1/technologies/{slug}/draf", UriKind.Relative), null)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/tinjau", UriKind.Relative),
+            new MarkReviewedRequest("pemilik"))).StatusCode);
+
+        return toolSlug;
+    }
+
     [Fact]
     public async Task Kelima_bagian_terisi_membuat_MissingSections_kosong_dan_draf_diterima()
     {
@@ -465,33 +503,7 @@ public sealed class ContentSectionEndpointTests : IAsyncLifetime
         using var client = host.CreateClient();
         var slug = await BuatTopikAsync(client);
 
-        Assert.Equal(HttpStatusCode.OK, (await client.PutAsJsonAsync(
-            new Uri($"/api/v1/technologies/{slug}/roadmap/prasyarat", UriKind.Relative),
-            new RoadmapStepRequest("Dasar", "Bisa menulis fungsi."))).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
-            new Uri($"/api/v1/technologies/{slug}/roadmap", UriKind.Relative),
-            new RoadmapStepRequest("Langkah", "Menjalankan contoh."))).StatusCode);
-
-        var toolSlug = Unik("alat");
-        _alatDibuat.Add(toolSlug);
-        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync(
-            new Uri("/api/v1/tools", UriKind.Relative),
-            new CreateToolRequest("Alat Uji", "Dipakai uji.", "https://example.com", toolSlug))).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
-            new Uri($"/api/v1/technologies/{slug}/tools", UriKind.Relative),
-            new AttachToolRequest(toolSlug))).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
-            new Uri($"/api/v1/technologies/{slug}/projects", UriKind.Relative),
-            new ProjectRequest("Proyek", "Contoh minimal."))).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
-            new Uri($"/api/v1/technologies/{slug}/resources", UriKind.Relative),
-            new ResourceRequest("OfficialDocs", "Docs", "https://example.com/docs"))).StatusCode);
-
-        Assert.Equal(HttpStatusCode.OK, (await client.PostAsync(
-            new Uri($"/api/v1/technologies/{slug}/draf", UriKind.Relative), null)).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
-            new Uri($"/api/v1/technologies/{slug}/tinjau", UriKind.Relative),
-            new MarkReviewedRequest("pemilik"))).StatusCode);
+        await BawaKeTinjauAsync(client, slug);
 
         // Sumber ekstra, lalu dibuang — halaman tetap lengkap, yang diuji murni
         // efek buang pada kematangan.
@@ -509,5 +521,85 @@ public sealed class ContentSectionEndpointTests : IAsyncLifetime
         var sesudahBuang = await client.GetFromJsonAsync<TechnologyResponse>(
             new Uri($"/api/v1/technologies/{slug}", UriKind.Relative));
         Assert.Equal("HumanReviewed", sesudahBuang!.Maturity);
+    }
+
+    [Fact]
+    public async Task Mengganti_prasyarat_menggugurkan_tinjau_tapi_mengulang_isi_sama_tidak()
+    {
+        // Keputusan pemilik 2026-10-06 (#79, ADR-012 Pembaruan 2026-10-06), end-to-end:
+        // mengganti teks yang sudah diperiksa menurunkan topik ke draf dan mengosongkan
+        // pemeriksanya; mengulang isi yang persis sama (PUT idempoten) tidak. Lewat
+        // TopicMutation yang SUNGGUHAN, supaya yang terbukti bukan hanya agregatnya
+        // tetapi bahwa penurunannya TERSIMPAN.
+        using var host = Host();
+        using var client = host.CreateClient();
+        var slug = await BuatTopikAsync(client);
+        await BawaKeTinjauAsync(client, slug);
+
+        var prasyarat = new Uri($"/api/v1/technologies/{slug}/roadmap/prasyarat", UriKind.Relative);
+        var topik = new Uri($"/api/v1/technologies/{slug}", UriKind.Relative);
+
+        var sama = await client.PutAsJsonAsync(prasyarat, new RoadmapStepRequest("Dasar", "Bisa menulis fungsi."));
+        Assert.Equal(HttpStatusCode.OK, sama.StatusCode);
+        var sesudahSama = (await sama.Content.ReadFromJsonAsync<TechnologyResponse>())!;
+        Assert.Equal("HumanReviewed", sesudahSama.Maturity);
+        Assert.NotNull(sesudahSama.ReviewedAt);
+
+        var beda = await client.PutAsJsonAsync(prasyarat, new RoadmapStepRequest("Dasar", "Bisa menulis kelas."));
+        Assert.Equal(HttpStatusCode.OK, beda.StatusCode);
+        var sesudahBeda = (await beda.Content.ReadFromJsonAsync<TechnologyResponse>())!;
+        Assert.Equal("MachineDrafted", sesudahBeda.Maturity);
+        Assert.Null(sesudahBeda.ReviewedAt);
+
+        // Tersimpan, bukan hanya ada di balasan.
+        var dibaca = (await client.GetFromJsonAsync<TechnologyResponse>(topik))!;
+        Assert.Equal("MachineDrafted", dibaca.Maturity);
+        Assert.Null(dibaca.ReviewedAt);
+
+        // Jalan kembali tetap satu: periksa ulang.
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            new Uri($"/api/v1/technologies/{slug}/tinjau", UriKind.Relative),
+            new MarkReviewedRequest("pemeriksa kedua"))).StatusCode);
+        var diperiksaUlang = (await client.GetFromJsonAsync<TechnologyResponse>(topik))!;
+        Assert.Equal("HumanReviewed", diperiksaUlang.Maturity);
+    }
+
+    [Fact]
+    public async Task Mengganti_catatan_alat_menggugurkan_tinjau_tapi_menautkan_alat_baru_dan_catatan_sama_tidak()
+    {
+        using var host = Host();
+        using var client = host.CreateClient();
+        var slug = await BuatTopikAsync(client);
+        var alatPertama = await BawaKeTinjauAsync(client, slug);
+
+        var topik = new Uri($"/api/v1/technologies/{slug}", UriKind.Relative);
+        var alat = new Uri($"/api/v1/technologies/{slug}/tools", UriKind.Relative);
+
+        // Catatan yang sama persis: bukan perubahan teks.
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            alat, new AttachToolRequest(alatPertama, "Catatan awal."))).StatusCode);
+        Assert.Equal("HumanReviewed", (await client.GetFromJsonAsync<TechnologyResponse>(topik))!.Maturity);
+
+        // Alat BARU: itu menambah, dan menambah tidak menggugurkan (ADR-012).
+        var alatKedua = Unik("alat");
+        _alatDibuat.Add(alatKedua);
+        Assert.Equal(HttpStatusCode.Created, (await client.PostAsJsonAsync(
+            new Uri("/api/v1/tools", UriKind.Relative),
+            new CreateToolRequest("Alat Kedua", "Dipakai uji.", "https://example.com", alatKedua))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync(
+            alat, new AttachToolRequest(alatKedua, "Catatan alat kedua."))).StatusCode);
+        Assert.Equal("HumanReviewed", (await client.GetFromJsonAsync<TechnologyResponse>(topik))!.Maturity);
+
+        // Catatan alat yang SUDAH tertaut diganti: teks yang dibaca pemeriksa berubah.
+        var ganti = await client.PostAsJsonAsync(alat, new AttachToolRequest(alatPertama, "Catatan yang diganti."));
+        Assert.Equal(HttpStatusCode.OK, ganti.StatusCode);
+        var sesudahGanti = (await ganti.Content.ReadFromJsonAsync<TechnologyResponse>())!;
+        Assert.Equal("MachineDrafted", sesudahGanti.Maturity);
+        Assert.Null(sesudahGanti.ReviewedAt);
+
+        var dibaca = (await client.GetFromJsonAsync<TechnologyResponse>(topik))!;
+        Assert.Equal("MachineDrafted", dibaca.Maturity);
+        Assert.Null(dibaca.ReviewedAt);
+        Assert.Equal("Catatan yang diganti.", dibaca.Tools.Single(t => t.Slug == alatPertama).Note);
     }
 }

@@ -306,6 +306,25 @@ dibangun → penghitung `tinjau` akhirnya bisa bergerak. Merge rantai PR menungg
 > tutup, pencacahnya tinggal digerakkan, bukan dibangun. Angka 25 September tidak
 > diubah.
 
+> ✅ **Diperbarui 2026-10-06 — Bulan 1 SELESAI, Bulan 3 ada di produksi, dan jalan isi
+> dibangun.** Terukur pada alamat produksi hari ini: situs publik terbuka
+> ([web](https://techverse-x-web.vercel.app), API di Vercel kontainer, Neon), beranda
+> memuat 14 bidang, `/cari?q=quantum` menemukan *Quantum Computing*, permukaan tulis
+> tertutup (`POST` → 405), dan `totalItems` topik **0**. Rinciannya di
+> [SESSION-LOG Sesi 21](SESSION-LOG.md) dan
+> [runbook](RUNBOOK-merge-tumpukan-bulan3.md) — termasuk kenapa empat belas merge
+> Bulan 3 sempat tidak sampai ke produksi.
+>
+> Per bulan, dibaca dari `main` dan produksi: **Bulan 1** — URL publik tercapai (butir
+> ukurnya terpenuhi); **Bulan 2** — 0 dari 7, tapi untuk pertama kalinya **ada jalannya
+> dari ujung ke ujung** ([ADR-027](adr/ADR-027-jalan-isi-sungguhan.md) memasang isi,
+> [ADR-021](adr/ADR-021-jalan-menuju-tinjau.md) menaikkannya); **Bulan 3** — pencarian
+> dan Knowledge Graph dasar tayang (Learn tetap menunggu pemicunya, #54 terbuka).
+> 🔴 **Angka resmi tetap 0 dari 22:** satu topik pilot (*Model Context Protocol*) sudah
+> ditulis dan terbukti terpasang dari nol ke API sungguhan, tapi belum dipasang ke
+> produksi dan belum diperiksa manusia — keduanya langkah pemilik. Angka 25 September
+> tidak diubah.
+
 💡 Bobot per bulan yang sama dipilih karena paling mudah dibantah, bukan karena
 paling tepat — Bulan 5 (AI Mentor) hampir pasti lebih berat daripada Bulan 1.
 Kalau angka ± 24% dikutip, kutip bersama angka resminya.

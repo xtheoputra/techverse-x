@@ -12,6 +12,7 @@
     "build:web": "npm run build --workspace web",
     "lint:web": "npm run lint --workspace web",
     "cek:tautan": "node .github/scripts/cek-tautan-markdown.mjs",
+    "cek:isi": "node database/isi/pasang.mjs --cek",
     "cek:halaman": "node .github/scripts/periksa-halaman-web.mjs"
   },
   "engines": {

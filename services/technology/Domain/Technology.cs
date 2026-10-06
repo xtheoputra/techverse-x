@@ -206,13 +206,7 @@ public sealed class Technology
         FieldId = fieldId;
         UpdatedAt = DateTimeOffset.UtcNow;
 
-        if (Maturity == ContentMaturity.HumanReviewed)
-        {
-            Maturity = ContentMaturity.MachineDrafted;
-            ReviewedAt = null;
-            ReviewedBy = null;
-            _events.Add(new TechnologyReviewExpired(Id, Slug));
-        }
+        ExpireReview();
 
         _events.Add(new TechnologyUpdated(Id, Slug));
     }
@@ -226,14 +220,25 @@ public sealed class Technology
     /// kerapian: kalau langkah biasa boleh lebih dulu, langkah pertama yang
     /// masuk akan mendapat nomor 0 dan diam-diam menjadi "prasyarat" tanpa ada
     /// yang bermaksud begitu.
+    /// <para>
+    /// 🔑 <b>Mengganti teks yang sudah ada menggugurkan
+    /// <see cref="ContentMaturity.HumanReviewed"/></b> (keputusan pemilik 2026-10-06,
+    /// ADR-012 Pembaruan 2026-10-06): teks yang dibaca pemeriksa hilang dan digantikan
+    /// teks lain, jadi "sudah diperiksa" tidak boleh menempel padanya. Hanya kalau
+    /// judul atau uraiannya <i>berbeda</i> sesudah dipangkas; mengulang isi yang sama
+    /// tidak mengubah apa pun yang dibaca pemeriksa.
+    /// </para>
     /// </remarks>
     public void SetPrerequisite(string title, string description)
     {
         var step = RoadmapStep.Create(Id, RoadmapStep.PrerequisiteOrder, title, description);
 
         var existing = _roadmap.FindIndex(s => s.Order == RoadmapStep.PrerequisiteOrder);
+        var textChanged = false;
         if (existing >= 0)
         {
+            textChanged = _roadmap[existing].Title != step.Title
+                || _roadmap[existing].Description != step.Description;
             _roadmap[existing] = step;
         }
         else
@@ -242,6 +247,11 @@ public sealed class Technology
         }
 
         Touch();
+
+        if (textChanged)
+        {
+            ExpireReview();
+        }
     }
 
     /// <summary>
@@ -264,13 +274,23 @@ public sealed class Technology
     /// Menautkan sebuah <see cref="Tool"/> ke topik ini. Menautkan alat yang sama
     /// dua kali tidak menambah baris kedua; catatannya yang diperbarui.
     /// </summary>
+    /// <remarks>
+    /// 🔑 Menautkan alat <i>baru</i> adalah menambah dan tidak menggugurkan
+    /// <see cref="ContentMaturity.HumanReviewed"/>. Tetapi <b>mengganti catatan</b>
+    /// alat yang sudah tertaut (termasuk mengosongkannya) menggugurkannya, sama seperti
+    /// <see cref="SetPrerequisite"/>: catatan itu teks yang dibaca pemeriksa
+    /// (keputusan pemilik 2026-10-06). Catatan yang sama sesudah dipangkas bukan
+    /// perubahan.
+    /// </remarks>
     public void AttachTool(Guid toolId, string? note = null)
     {
         var link = TechnologyTool.Create(Id, toolId, note);
 
         var existing = _tools.FindIndex(t => t.ToolId == toolId);
+        var noteChanged = false;
         if (existing >= 0)
         {
+            noteChanged = _tools[existing].Note != link.Note;
             _tools[existing] = link;
         }
         else
@@ -279,6 +299,11 @@ public sealed class Technology
         }
 
         Touch();
+
+        if (noteChanged)
+        {
+            ExpireReview();
+        }
     }
 
     /// <summary>Menambah Mini Project — bagian 4 template.</summary>
@@ -552,10 +577,36 @@ public sealed class Technology
     /// pemeriksaan itu, dan kalau ia dianggap begitu, memperbaiki satu tautan
     /// mati akan membuang seluruh nilai kerja pemeriksanya.
     /// <para>
+    /// Batasnya <b>menambah/membuang, bukan mengganti</b>: mengganti teks yang sudah
+    /// ada (prasyarat, catatan alat) memanggil <see cref="ExpireReview"/> sesudah
+    /// <c>Touch</c> (ADR-012 Pembaruan 2026-10-06).
+    /// </para>
+    /// <para>
     /// Ini keputusan yang layak dibantah kalau ternyata salah — batasnya tipis,
     /// dan uji <c>MenambahBagian_TIDAKMenggugurkanPemeriksaanManusia</c> ada
     /// supaya perubahan pendapat soal ini harus disengaja.
     /// </para>
     /// </remarks>
     private void Touch() => UpdatedAt = DateTimeOffset.UtcNow;
+
+    /// <summary>
+    /// Menggugurkan pemeriksaan manusia atas teks yang berubah: turun ke
+    /// <see cref="ContentMaturity.MachineDrafted"/>, pemeriksa dan waktunya dikosongkan,
+    /// dan <see cref="TechnologyReviewExpired"/> terbit. Tanpa-operasi kalau topiknya
+    /// memang belum diperiksa. Satu tempat untuk <see cref="Update"/>,
+    /// <see cref="SetPrerequisite"/>, dan <see cref="AttachTool"/>, supaya "apa yang
+    /// terjadi saat pemeriksaan gugur" tak bisa menyimpang antar jalan.
+    /// </summary>
+    private void ExpireReview()
+    {
+        if (Maturity != ContentMaturity.HumanReviewed)
+        {
+            return;
+        }
+
+        Maturity = ContentMaturity.MachineDrafted;
+        ReviewedAt = null;
+        ReviewedBy = null;
+        _events.Add(new TechnologyReviewExpired(Id, Slug));
+    }
 }

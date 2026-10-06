@@ -186,3 +186,38 @@ langkah berikutnya.
 **Terukur:** +4 uji unit (`BagianIsiHalamanTests`) + 3 uji integrasi
 (`ContentSectionEndpointTests`, termasuk end-to-end *buang tidak menggugurkan tinjau*).
 Hitungan repo → **112 unit + 76 integrasi**, `run.ps1 verify` hijau.
+
+## Pembaruan 2026-10-06 — mengganti teks menggugurkan tinjau; menambah dan membuang tidak
+
+Keputusan pemilik atas pertanyaan yang tersisa di [#79](https://github.com/xtheoputra/techverse-x/issues/79): pada topik `HumanReviewed`, **mengganti** teks yang sudah ada
+**menurunkannya ke `MachineDrafted`** — seperti `Update()` — sedangkan **menambah** dan
+**membuang** bagian tetap tidak (Pembaruan 2026-10-02 di atas, `Touch`).
+
+- **Yang berubah, dua metode:** `Technology.SetPrerequisite` (judul atau uraian langkah 0
+  diganti dengan yang berbeda) dan `Technology.AttachTool` (catatan alat yang *sudah
+  tertaut* diganti, termasuk dikosongkan). Keduanya memakai satu pembantu privat
+  `ExpireReview()` bersama `Update()`: turun ke `MachineDrafted`, `ReviewedAt` dan
+  `ReviewedBy` dinolkan, `TechnologyReviewExpired` terbit. Satu tempat, supaya "apa yang
+  terjadi saat pemeriksaan gugur" tak bisa menyimpang antar jalan.
+- **Batasnya, sengaja sempit:** yang menggugurkan hanya isi tersimpan yang diganti dengan
+  isi **berbeda** sesudah dipangkas. Mengulang isi yang sama (PUT idempoten, spasi di
+  tepi) tidak — pemeriksa membaca teks yang persis sama. Menautkan alat **baru** adalah
+  menambah, jadi tidak. Pada topik yang belum diperiksa tak terbit
+  `TechnologyReviewExpired`.
+- **Kenapa di sini, bukan menambah-buang:** menambah satu tautan dan membuang satu
+  tautan tak membuat teks yang dibaca pemeriksa hilang; mengganti prasyarat atau catatan
+  membuatnya hilang dan menempelkan "sudah diperiksa manusia" pada teks lain — persis yang
+  bagian 1 larang. Jalan kembali tetap satu: `/tinjau` lagi.
+- **Yang tidak berubah:** pemasang `isi/` tetap **mengunci** topik `tinjau` (ia tak pernah
+  menyentuhnya); jalan ini melindungi pemanggil API langsung saat sakelar tulis
+  ([ADR-020](ADR-020-permukaan-tulis-api.md)) menyala. Rute `PUT /api/v1/technologies/{slug}`
+  untuk `name` dan `summary` **belum** dibangun — itu keputusan terpisah di #79 — tetapi
+  begitu ada, `Update()` sudah menurunkan dengan benar.
+
+**Terukur:** merah dulu lalu hijau di dua lapis. Unit: 11 uji baru
+(`GantiTeksMenurunkanTinjauTests`), **4 merah** di domain lama (judul, uraian, catatan
+diganti, catatan dikosongkan) dan 7 pagar hijau sejak awal (isi sama, spasi tepi, alat
+baru, topik belum diperiksa, ulang pemeriksaan). HTTP: 2 uji integrasi baru
+(`ContentSectionEndpointTests`), keduanya **merah** tanpa perubahan domain
+(`Expected: "MachineDrafted" / Actual: "HumanReviewed"`) dan hijau dengannya — lewat
+`TopicMutation` sungguhan, jadi yang terbukti termasuk bahwa penurunannya **tersimpan**.
