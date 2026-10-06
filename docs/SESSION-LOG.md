@@ -78,6 +78,7 @@ Pemilik menghapus kedua repo salinan lebih dulu (terukur: `GET /repos/…/techve
 | Penjaga di bawah sabotase | input ketiga → merah; `/tinjau` di pemasang → merah; pemeriksaan `main` dicabut → merah; dipulihkan identik (`cmp`) → hijau |
 | Skrip gerbang CI | diekstrak dari `ci.yml` dan dijalankan ulang di basis data kosong: `SIAP: 1 topik terpasang dari nol, sama dengan berkas, berstatus draf` |
 | `run.ps1 verify` | **hijau**: 116 unit + 76 integrasi, lint dan build web |
+| Gerbang CI di **runner sungguhan** (run `37415552163`, PR #80) | Frontend `Cek berkas isi` dan Backend `Isi sungguhan dipasang dari nol, dua kali` **hijau**; log runner: pasang pertama `selesai`, kedua `ada … sudah sama dengan berkas`, `SIAP: 1 topik terpasang dari nol, sama dengan berkas, berstatus draf.` Semua cek PR hijau, status CLEAN |
 
 ### Yang TIDAK dikerjakan, dan kenapa
 
@@ -108,7 +109,7 @@ Pemilik menghapus kedua repo salinan lebih dulu (terukur: `GET /repos/…/techve
 
 **Menunggu keputusan pemilik:** apakah enam topik AI Agents sisanya (Tool use, A2A, Memori agen, Evals & observability, Keamanan agen, Human-in-the-loop) ditulis sekarang atau sesudah mutu pilot dinilai; dan sisa dari Sesi 20 (`LICENSE`, buka paket GHCR, akun AI).
 
-**Belum terukur:** `isi.yml` terhadap Neon dan citra yang terbit (hanya terbukti terhadap API di Postgres lokal dan service container); apakah API menurunkan status `tinjau` saat bagian isi berubah (ditandai di #79); CI PR jalan-isi (dicatat di PR, bukan di sini — entri ini ditulis sebelum run-nya selesai).
+**Belum terukur:** `isi.yml` terhadap Neon dan citra yang terbit (hanya terbukti terhadap API di Postgres lokal dan service container); apakah API menurunkan status `tinjau` saat bagian isi berubah (ditandai di #79).
 
 **Lingkungan — 2026-10-06:** pohon kerja bersih sesudah commit ini. Basis data sekali pakai `techversex_isi` dan API di port 5099 dibuat sesi ini **dan sudah dihapus/dihentikan** (PID dicocokkan dengan baris perintah dan waktu mulainya dulu). Container `techversex-postgres`/`-redis` sehat dan tak disentuh selain basis data sekali pakai tadi; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
 
