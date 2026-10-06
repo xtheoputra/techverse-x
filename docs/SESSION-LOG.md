@@ -109,7 +109,9 @@ Pemilik menghapus kedua repo salinan lebih dulu (terukur: `GET /repos/…/techve
 
 **Menunggu keputusan pemilik:** apakah enam topik AI Agents sisanya (Tool use, A2A, Memori agen, Evals & observability, Keamanan agen, Human-in-the-loop) ditulis sekarang atau sesudah mutu pilot dinilai; dan sisa dari Sesi 20 (`LICENSE`, buka paket GHCR, akun AI).
 
-**Belum terukur:** `isi.yml` terhadap Neon dan citra yang terbit (hanya terbukti terhadap API di Postgres lokal dan service container); apakah API menurunkan status `tinjau` saat bagian isi berubah (ditandai di #79).
+**Belum terukur:** `isi.yml` terhadap Neon dan citra yang terbit (hanya terbukti terhadap API di Postgres lokal dan service container).
+
+**Terukur sesudahnya (2026-10-06, komentar di [#79](https://github.com/xtheoputra/techverse-x/issues/79#issuecomment-6009756440)):** API **tidak** menurunkan `tinjau` pada perubahan bagian isi apa pun; hanya `Technology.Update()` yang menurunkan, dan ia **tak punya pemanggil produksi** (tak ada rute `PUT` topik). Mengganti teks yang sudah ada (`SetPrerequisite`, catatan `AttachTool`) pada topik `tinjau` juga tidak menurunkan, dan tak ada tes yang menjaganya (tes ADR-012 hanya menjaga tambah dan buang). Diukur dengan tes domain sementara yang tidak di-commit; tak ada kode berubah. Keputusan tetap di pemilik.
 
 **Lingkungan — 2026-10-06:** pohon kerja bersih sesudah commit ini. Basis data sekali pakai `techversex_isi` dan API di port 5099 dibuat sesi ini **dan sudah dihapus/dihentikan** (PID dicocokkan dengan baris perintah dan waktu mulainya dulu). Container `techversex-postgres`/`-redis` sehat dan tak disentuh selain basis data sekali pakai tadi; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
 
