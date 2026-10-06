@@ -42,7 +42,7 @@ Dijawab dari `git status` (bersih), lalu transkrip kedua percakapan kemarin, Act
 - **Menyambung ulang saja tidak memicu build.** Sesudah pemilik menyambungkan `techverse-x-api` ke `techverse-x`, deployment teratas tetap yang dari 17:36 WIB kemarin, dari repo salinan. Vercel hanya membangun saat ada push.
 - **Redeploy deployment lama adalah jebakan.** Ketiga deployment API meng-*clone* commit yang sama, `2f88402`, yang hanya ada di repo salinan. Redeploy akan membangun ulang kode lama atau gagal.
 
-Pemilik menyambungkan juga proyek web ke `techverse-x` (menurut pemilik; **belum terukur** — belum ada deployment baru). Runbook ditulis ulang di [PR #77](https://github.com/xtheoputra/techverse-x/pull/77): Fase 1–3 ditandai selesai dengan bukti, Fase 4 diganti prosedur yang benar, `origin/main` digabung ke cabangnya dengan merge (bukan rebase, supaya tak perlu push paksa). **Merge #77 menjadi commit baru di `main` — pemicu build Vercel pertama dari repo asli.**
+Pemilik menyambungkan **kedua** proyek ke `techverse-x`, dan itu **terukur** begitu cabang ini di-push (`55ff84c`): kedua proyek membangun preview, dan log keduanya berbunyi `Cloning github.com/xtheoputra/techverse-x (Branch: fase-1/runbook-merge-tumpukan, Commit: 55ff84c)`. Web: `next build` lolos dengan Root Directory `apps/web`. API: citra `Dockerfile.vercel` dari akar terbangun dan Ready, dengan openssl 3.0.13-0ubuntu3.16 (tambalan CVE-2026-84782 ikut). Preview itu dilindungi Vercel Authentication (302 tanpa login), jadi rute `/search` dan `/cari` **belum bisa diuji sebelum merge**. Runbook ditulis ulang di [PR #77](https://github.com/xtheoputra/techverse-x/pull/77): Fase 1–3 ditandai selesai dengan bukti, Fase 4 diganti prosedur yang benar, `origin/main` digabung ke cabangnya dengan merge (bukan rebase, supaya tak perlu push paksa). **Merge #77 menjadi commit baru di `main` — pemicu build Vercel pertama dari repo asli.**
 
 ### Yang TIDAK dikerjakan, dan kenapa
 
@@ -56,7 +56,9 @@ Pemilik menyambungkan juga proyek web ke `techverse-x` (menurut pemilik; **belum
 
 **Langkah yang menggerakkan segalanya:** pemilik me-merge #77 → Vercel membangun API dan web dari `techverse-x` untuk pertama kali → verifikasi [Fase 5 runbook](RUNBOOK-merge-tumpukan-bulan3.md). Bukti yang dicari ada di log build, bukan di status "Ready": baris `Cloning github.com/xtheoputra/techverse-x (Branch: main, Commit: …)`.
 
-**Belum terukur:** bahwa kedua proyek Vercel benar-benar tersambung ke `techverse-x` (hanya kata pemilik; tak terbaca dari CLI), dan bahwa Root Directory + variabel lingkungan (`PORT`, `ConnectionStrings__Postgres`, `API_BASE_URL`) bertahan sesudah disambung ulang. Terukur 2026-10-06 ±10:10 WIB: `/api/v1/search` dan `/cari` masih 404.
+**Terukur:** kedua proyek Vercel meng-*clone* `techverse-x` (log build preview `55ff84c`), dan Root Directory keduanya bertahan (build lolos). Produksi 2026-10-06 ±10:10 WIB: `/api/v1/search` dan `/cari` masih 404.
+
+**Belum terukur:** bahwa variabel lingkungan **produksi** (`PORT`, `ConnectionStrings__Postgres`, `API_BASE_URL`) bertahan sesudah disambung ulang — preview terlindungi login, jadi satu-satunya ujian yang jujur adalah build produksi sesudah merge #77.
 
 **Issue terbuka** (10, tak berubah): #38 · #39 · #40 · #42 · #54 · #55 · #59 · #60 · #61 · #68. Lihat butir "tidak dikerjakan" untuk #38–#40 dan #60/#61.
 
