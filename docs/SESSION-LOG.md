@@ -107,7 +107,7 @@ Pemilik menulis hanya soal #86. Diukur sebelum menjawab, bukan dari pesannya: **
 
 **Tak ada yang saya merge.** Antarmuka baru di produksi **belum saya lihat dengan mata**, hanya penandanya di HTML.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan akhir sesi 22 sesudah merge #84/#85/#86 (digantikan oleh 🏁 di Lanjutan 2, di bawah)
 
 **`main` = `41bf1bd`, memuat Tahap 1 (antarmuka), Tahap 2 (jalan ubah), dan tambalan `sharp`.** PR #84, #85, #86 semuanya `MERGED`; satu-satunya PR terbuka adalah PR docs yang memuat entri ini. CI `main` hijau. Produksi: 14 bidang, 1 topik (`model-context-protocol`, `draf`), **0 dari 22 `tinjau`**, antarmuka baru tayang, tulis tertutup.
 
@@ -121,6 +121,33 @@ Pemilik menulis hanya soal #86. Diukur sebelum menjawab, bukan dari pesannya: **
 **Masih tanpa jalan ([#79](https://github.com/xtheoputra/techverse-x/issues/79), tetap terbuka):** membuang langkah roadmap, menghapus alat katalog, memindahkan topik antar-bidang. **Belum terukur:** `isi.yml` dengan `ganti` terhadap Neon dan citra yang terbit. **Angka resmi:** 0 dari 22 `tinjau`; ± 33% menurut pekerjaan per bulan rencana (bukan angka resmi, dan belum ditulis ke RENCANA-V1).
 
 **Lingkungan — akhir sesi 2026-10-07:** cabang kerja `fase-1/catatan-sesi-22-lanjutan` (dari `main` `41bf1bd`). Docker Desktop hidup (saya yang menyalakannya); container `techversex-*` sehat dan tak disentuh; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**. Worktree sementara di folder Temp **sudah dihapus** dan metadatanya dipangkas (`git worktree list` hanya satu entri). Basis data sekali pakai dan API port 5099 sudah dihentikan di bagian atas entri ini.
+
+### Lanjutan 2 — *"1. sudah mantap, 2. sudah merged, 3. lanjut"*: Tahap 3a (Markdown terbatas) dibangun
+
+Pemilik menjawab ketiga pertanyaan 🏁: arah gelap-neon **sudah mantap**, #87 **sudah ter-merge**, dan **lanjut** ke Tahap 3. Keputusan yang ADR-028 tunda sampai jalan ubah terbukti diambil **sebelum kode**, ditulis di [ADR-028 Pembaruan 2026-10-07 (2)](adr/ADR-028-antarmuka-futuristik-dan-isi-kaya.md): Tahap 3 dipecah **3a** (Markdown teks; tanpa migrasi, tanpa risiko penyebaran) dan **3b** (media + `overview` + migrasi Neon), karena Vercel membangun API otomatis saat merge sedangkan `migrate → api` harus berurutan ([PENYEBARAN](PENYEBARAN.md#urutan-yang-mengikat)) — jendela itu hanya relevan untuk 3b, dan keputusannya akan saya minta dari pemilik di PR 3b.
+
+**Keputusan utama: pengurai Markdown ditulis sendiri**, bukan pustaka — satu implementasi dipakai penampil web dan pemeriksa `pasang.mjs --cek` (alasan: pemeriksa tak boleh punya cermin yang menyimpang; ia harus jalan tanpa `npm ci`; keluarannya pohon, bukan HTML, jadi tak ada `dangerouslySetInnerHTML`; dialeknya sengaja bukan CommonMark — `_` bukan penanda miring karena isi teknis penuh `snake_case`). Letaknya `apps/web/src/lib/markdown/`, bukan `packages/`: Dockerfile web hanya menyalin `apps/web/`.
+
+**Dibangun** (cabang `fase-1/tahap-3a-markdown-terbatas`, dari `main` `5c5efd3`): `parse.mjs` + `parse.d.mts` + `parse.test.mjs`, komponen `Markdown`, gaya tambahan, `pasang.mjs --cek` yang menolak konstruksi tak didukung **dengan nomor baris** dan mencetak jumlah kata per topik, `npm run test:markdown` di CI (sebelum `npm ci`), `run.ps1 verify`, dan `Makefile`. Isi yang ada tak berubah dan tetap sah.
+
+**Terukur, bukan diklaim** (angka lengkap di ADR-028 butir 7): **44 uji pengurai hijau** termasuk uji acak 4.000 masukan; **dua sabotase merah lalu dipulihkan identik** (skema URL tautan → 4 merah, penemuan `href` berbahaya oleh uji acak sendiri; butir bersaudara → 4 merah); berkas sengaja rusak → **11 laporan bernomor baris yang tepat**; tampilan **dilihat** di Chrome (build produksi, konten demo di basis data sekali pakai yang diisi lewat `PUT` Tahap 2 — sekaligus pemakaian nyata pertama jalan ubah); ponsel iframe 390 px **tak meluber** (380/380), tabel dan kode menggulir di dalam kotaknya. `run.ps1 verify`: **hijau** (exit 0): build ketat 0 peringatan, 145 unit + 101 integrasi, lint, build web, cek tautan, cek berkas isi, 44 uji pengurai.
+
+**Kesalahan dan temuan:** (1) **gerbang tautan repo menggagalkan `verify` pertama** — ia memindai berkas kode dan menandai contoh `[x](y)` di komentar dan uji sebagai tautan relatif putus; saya tak tahu aturannya mencakup kode sampai ia merah. Contohnya diganti URL absolut; (2) deteksi HTML terlalu rakus pada `a<b`, dan `****` ternyata garis pemisah — keduanya ketahuan oleh uji, satu karena pengurainya (HTML), satu karena ujinya (garis); (3) butir berurut bersaudara nyaris tertelan sebagai lanjutan malas — ketahuan saat membaca ulang kode sebelum diuji; (4) `node --test <folder>` tidak menjalankan folder di Node 22 (jalur berkas harus eksplisit); (5) sekali lagi kutip shell merusak sebuah skrip tambal — diganti `Edit`.
+
+**Yang TIDAK dikerjakan:** 3b dan 4. **Isi pilot tidak diubah** — halaman MCP masih ± 762 kata di bagian yang diperiksa dan teks polos; **keluhan "kurang detail" belum terjawab sama sekali**, 3a hanya memberi isi kemampuan tampil berformat. Konten demo tak masuk repo. Tak ada yang di-merge.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**PR terbuka:** Tahap 3a ([#88](https://github.com/xtheoputra/techverse-x/pull/88)), berbasis `main`, tanpa migrasi dan tanpa perubahan API — **aman di-merge kapan saja**; pengunjung tak melihat perubahan apa pun sampai isi berformat dipasang. `origin/main` = `5c5efd3` (diukur 2026-10-07). Produksi: 14 bidang, 1 topik (`draf`), **0 dari 22 `tinjau`**.
+
+**Menunggu pemilik:**
+
+1. **Baca dan merge Tahap 3a.** Mulai dari bagian "Dialek" di ADR-028 (butir 3) — itu kontrak yang akan ditulis semua isi berikutnya — lalu `isi/README.md`.
+2. **Putuskan sebelum 3b:** jendela migrasi. Tahap 3b menambah kolom dan tabel di Neon; API baru yang tayang sebelum migrasinya selesai membalas 500 di halaman topik selama beberapa menit (citra `migrate` baru terbit ± 3 menit sesudah merge). Saran saya: merge, lalu langsung jalankan *Migrasi produksi* — diterima selagi produksi belum punya pengunjung yang bergantung padanya. Alternatif ada di PR 3b.
+
+**Berikutnya, saya:** Tahap 3b (blok media, `overview`, penampil media, diagram SVG, `PUT/DELETE …/media/{key}`) dicabangkan **sesudah 3a ter-merge**, lalu Tahap 4 (tulis ulang pilot MCP: mendalam, berdiagram, bervideo, diverifikasi ke sumber primer).
+
+**Lingkungan — akhir sesi:** cabang kerja `fase-1/tahap-3a-markdown-terbatas`. Server web port 3401 dan API port 5099 yang saya mulai **sudah dihentikan** (PID dicocokkan dengan baris perintah dan waktu mulainya dulu), basis data sekali pakai `techversex_md` **dihapus**, tab Chrome yang saya buka **ditutup**. Docker Desktop masih hidup (saya yang menyalakannya sebelumnya); `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
 
 ---
 

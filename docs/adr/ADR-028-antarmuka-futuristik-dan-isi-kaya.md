@@ -1,6 +1,6 @@
 # ADR-028 — Antarmuka futuristik gelap-neon dan isi kaya: Markdown terbatas, blok media, dan jalan ubah
 
-**Status:** Diusulkan — **Tahap 1 (antarmuka) dibangun dan diukur (2026-10-06); Tahap 2 (jalan ubah) dibangun dan diukur (2026-10-07, lihat Pembaruan di bawah); keduanya ter-merge ke `main` 2026-10-07; Tahap 3–4 belum.** Keputusan arahnya diambil pemilik di percakapan yang sama dengan penulisan ADR ini; yang belum diputuskan tertulis di bagian *Yang SENGAJA tidak diputuskan*.
+**Status:** Diusulkan — **Tahap 1 (antarmuka) dibangun dan diukur (2026-10-06); Tahap 2 (jalan ubah) dibangun dan diukur (2026-10-07, lihat Pembaruan di bawah); keduanya ter-merge ke `main` 2026-10-07; Tahap 3 dipecah 3a/3b dan keputusannya ditulis (Pembaruan (2)); Tahap 3a (Markdown terbatas) dibangun dan diukur (Pembaruan (2), butir 7); Tahap 3b–4 belum.** Keputusan arahnya diambil pemilik di percakapan yang sama dengan penulisan ADR ini; yang belum diputuskan tertulis di bagian *Yang SENGAJA tidak diputuskan*.
 **Tanggal:** 2026-10-06
 
 ## Konteks
@@ -129,3 +129,88 @@ Tahap 2 dibangun di [PR #85](https://github.com/xtheoputra/techverse-x/pull/85),
 - **Antarmuka baru di produksi belum saya lihat dengan mata**, hanya penandanya di HTML. Penilaian visualnya tetap milik pemilik.
 - **`isi.yml` dengan `ganti` belum pernah dijalankan terhadap Neon.**
 - **Tahap 3 belum dimulai.** Dua hal yang ADR ini tunda sampai Tahap 2 terbukti — skema basis data media dan pustaka pengurai Markdown — kini boleh diputuskan.
+
+## Pembaruan 2026-10-07 (2) — Tahap 3 dipecah dua; pustaka Markdown dan skema media diputuskan
+
+Pemilik menjawab tiga pertanyaan penutup Tahap 2: arah gelap-neon **sudah mantap**, #87 ter-merge, dan Tahap 3 **dilanjutkan**. Dua hal yang ADR ini tunda sampai jalan ubah terbukti (*skema basis data media* dan *pustaka pengurai Markdown*) diputuskan di sini — **sebelum satu baris kode Tahap 3**.
+
+### 1. Tahap 3 dipecah dua, dan alasannya penyebaran, bukan ukuran
+
+| | Isi | Menyentuh | Risiko penyebaran |
+|---|---|---|---|
+| **3a** | Markdown terbatas untuk teks: pengurai, penampil web, pemeriksa berkas | `apps/web`, `database/isi/`, `isi/` | **Nol** — tanpa migrasi, tanpa perubahan API |
+| **3b** | Blok media, bagian `overview` berformat, penampil media, diagram | semua lapis, **termasuk migrasi Neon** | Ada — lihat butir 5 |
+
+[PENYEBARAN.md](../PENYEBARAN.md#urutan-yang-mengikat) menuntut `migrate → api → web`, sedangkan Vercel membangun API otomatis saat merge. Skema baru berarti ada jendela beberapa menit di mana API baru membaca kolom yang belum ada. 3a tak punya jendela itu, dan sudah menjawab sebagian keluhan *"tidak readable, sangat kaku"* (daftar, kode, tabel, peringatan) pada isi yang ada; 3b menjawab *"gambar/video"*. Keduanya berdiri sendiri di atas `main`; 3b dicabangkan sesudah 3a ter-merge.
+
+### 2. Keputusan: pengurai Markdown **tulis sendiri** untuk dialek terbatas, satu implementasi untuk penampil dan pemeriksa
+
+Tak ada pustaka Markdown. `apps/web/src/lib/markdown/` berisi pengurai (JavaScript ES module tanpa dependensi, tipe lewat `.d.mts`), diuji dengan `node --test`; **penampil web dan pemeriksa berkas `pasang.mjs --cek` mengimpor berkas yang sama**.
+
+Alasannya, berurutan menurut bobot:
+
+1. **Apa yang lolos pemeriksa = apa yang tampil, oleh konstruksi.** Repo ini sudah beberapa kali digigit *cermin yang menyimpang* (batas panjang di pemeriksa vs kolom basis data; tiap kali ketahuan belakangan). Dengan pustaka di web, pemeriksa butuh pustaka yang sama atau tiruan regex — dua implementasi dialek yang berjalan sendiri-sendiri.
+2. **Pemeriksa berkas harus jalan tanpa `npm ci`.** `cek:isi` sengaja nol dependensi supaya berkas isi yang cacat gagal dalam hitungan detik, dan `isi.yml` menjalankannya di runner produksi sebelum menyentuh citra atau Neon. Pustaka menjadikan keduanya butuh `npm ci`.
+3. **Keluaran pohon, bukan HTML.** Pengurai menghasilkan pohon yang dirender jadi elemen React; **tak ada `dangerouslySetInnerHTML`**, jadi teks isi tak bisa menyuntik markup. Satu-satunya jalur berbahaya yang tersisa — skema URL tautan — dijaga daftar putih `http`/`https` dan diuji.
+4. **Dialeknya sengaja kecil**, jadi pengurainya kecil dan bisa diuji tuntas. Dan ada keputusan dialek yang pustaka CommonMark akan membuatnya sulit: **`_` bukan penanda miring** (isi teknis penuh `snake_case`, `server_discover`; pilot MCP sudah memuat `_`), HTML mentah dan gambar Markdown **ditolak** bukan dilewatkan.
+
+**Ditolak:** `react-markdown` + `remark-gfm` (puluhan dependensi transitif, dan alasan 1–2 di atas); `marked`/`markdown-it` (keluaran string HTML — butuh penyaring dan `innerHTML`, alasan 3); MDX (sudah ditolak di atas, *Alternatif yang ditolak*). **Harganya diakui:** kita memegang kode pengurai. Ia kecil, dan bahaya sebenarnya — XSS — tak lewat sana (butir 3).
+
+**Letaknya di `apps/web`, bukan `packages/`.** Dockerfile web hanya menyalin `apps/web/` dan `package.json` akar; pustaka di `packages/` tidak masuk citra tanpa mengubah Dockerfile dan konfigurasi Vercel. Pemeriksa mengimpornya lewat jalur relatif dari `database/isi/`.
+
+### 3. Dialek — apa yang diterima dan apa yang ditolak
+
+| Diterima | Catatan |
+|---|---|
+| Paragraf | baris tunggal digabung; baris kosong memisahkan |
+| Sub-judul `##` dan `###` | **dua tingkat**; tingkat HTML sebenarnya mengikuti konteks halaman (`#` dan judul bagian dimiliki halaman) |
+| Daftar `-` dan `1.` | bersarang sampai dua tingkat; isi butir boleh paragraf, daftar, atau kode |
+| Kode berpagar ```` ```bahasa ```` | **bahasa wajib** di pemeriksa (`text` bila tak ada); tanpa penyorotan sintaks (butir 6) |
+| Kutipan `>` dan peringatan `> [!CATATAN]` / `[!TIPS]` / `[!PERINGATAN]` | tak bersarang |
+| Tabel pipa | kolom tiap baris harus sama; dibungkus gulir-samping di ponsel |
+| `**tebal**`, `*miring*`, `` `kode` ``, `[teks](https://…)`, `\` pelolos | tautan hanya `http`/`https` absolut |
+| *(3b)* blok media `::media[kunci]` | sendirian di satu baris |
+
+**Ditolak pemeriksa, dengan nomor barisnya:** HTML mentah (`<tag`), gambar `![](…)` (media hanya lewat blok bertipe, supaya tiap gambar punya teks alternatif dan sumber yang bisa diperiksa mesin), judul `#` dan `####`+, garis pemisah `---`, `_miring_`, tautan non-http(s), `<autolink>`, daftar tugas, catatan kaki, kode berpagar tanpa bahasa atau tak tertutup. **Penampil toleran**: teks apa pun tetap tampil (sebagai teks), tak pernah melempar — pemeriksa yang ketat, penampil yang tak bisa dijatuhkan.
+
+### 4. Di mana Markdown berlaku
+
+Deskripsi langkah roadmap (termasuk prasyarat) dan ringkasan proyek. **Bukan `summary`:** ia juga keterangan kartu dan hasil pencarian, yang menampilkan teks polos — tanda `**` di sana akan tercetak apa adanya. Bagian Overview yang berformat memakai medan baru (3b). Nama, ringkasan alat, catatan alat, dan judul sumber tetap teks polos.
+
+### 5. Keputusan untuk 3b — **diputuskan, belum dibangun**
+
+- **Medan `overview`** pada topik: Markdown, boleh kosong, batas ± 20.000 karakter. `summary` tetap blurb polos dan tetap penentu bagian *Overview* di `MissingSections`; `overview` memperdalamnya.
+- **Tabel `technology_media`** (anak topik, seperti `resources`), **bertipe**, bukan blok generik ([ADR-015](ADR-015-skema-data-v1.md)): `Id`, `TechnologyId`, `Key` (unik per topik), `Kind` (`Image` | `Video`), `Url` (berkas sendiri di `/media/…`, hanya untuk `Image`), `VideoId` (hanya `Video`), `Alt`/`Title` (wajib), `Caption`, `SourceName`, `SourceUrl`, `License`. Aturan "gambar wajib `Url`+`Alt`, video wajib `VideoId`+`Title`, lisensi wajib kecuali karya sendiri" dijaga **`CHECK` di basis data**, bukan hanya komentar.
+- **Diubah per kunci:** `PUT …/{slug}/media/{key}` (idempoten) dan `DELETE`. Menambah dan membuang tak menggugurkan `tinjau`; **mengganti** `alt`/`caption`/sumber menggugurkan (aturan ADR-012 yang sama).
+- **Aset:** diagram SVG buatan sendiri di `apps/web/public/media/<slug-topik>/`; video disematkan lewat `youtube-nocookie.com` dengan ID yang **diverifikasi hidup lewat oEmbed saat ditulis** (butuh jaringan, jadi bukan di pemeriksa).
+- **Pemeriksa 3b:** tiap `::media[kunci]` harus punya definisi, tiap definisi dipakai (peringatan), berkas SVG harus ada, format ID video valid.
+- **Penyebaran:** migrasi **aditif**. Jendela `migrate → api` ditegakkan tangan — **keputusan yang akan saya minta dari pemilik di PR 3b**, bukan diam-diam: merge lalu langsung jalankan *Migrasi produksi* (citranya baru terbit ± 3 menit sesudah merge), menerima beberapa menit di mana topik membalas 500 selagi produksi belum punya pengunjung yang bergantung padanya.
+
+### 6. Yang SENGAJA tidak diputuskan
+
+- **Penyorotan sintaks kode.** Butuh pustaka (berat) atau pembuat token buatan sendiri per bahasa; kode tampil monospasi dengan label bahasa dulu. Ditimbang ulang bila isi Tahap 4 menunjukkan itu menyulitkan.
+- **Tautan antar-topik di dalam teks** (`/teknologi/<slug>`). Relasi sudah punya tempat sendiri (ADR-023); membukanya di dialek menambah jenis tautan yang harus diperiksa keberadaannya.
+- **Daftar lebih dari dua tingkat, catatan kaki, rumus.**
+- **Isi pilot belum berubah.** 3a hanya memberi teks yang ada kemampuan tampil berformat; halaman MCP tetap ± 1.074 kata teks polos sampai Tahap 4.
+
+### 7. Hasil Tahap 3a — dibangun dan diukur
+
+Satu PR berbasis `main`, **tanpa migrasi dan tanpa perubahan API**: `apps/web/src/lib/markdown/` (pengurai, tipe, uji), komponen `Markdown`, gaya tambahan di `globals.css`, `pasang.mjs --cek` yang memakai pengurai yang sama, dan uji pengurai di CI, `run.ps1 verify`, serta `Makefile`. Medan yang berformat: deskripsi langkah (termasuk prasyarat) dan ringkasan proyek, sesuai butir 4.
+
+| Yang dibuktikan | Hasil |
+|---|---|
+| Uji pengurai (`node --test`, nol dependensi) | **44 hijau**, termasuk uji acak 4.000 masukan (tak pernah melempar, tak pernah membawa `href` selain http(s)) dan uji waktu (tanpa ledakan eksponensial) |
+| Sabotase | pemeriksaan skema URL dimatikan → **4 merah**, termasuk uji acak yang menemukan `href` berbahaya sendiri; penanganan butir bersaudara dimatikan → **4 merah**. Dipulihkan identik (`cmp`) |
+| Pemeriksa berkas | isi nyata lolos (± 760 kata di bagian yang diperiksa); berkas sengaja rusak → **11 laporan, masing-masing dengan nomor baris yang tepat** (HTML, judul `#`, kode tanpa bahasa, tautan `javascript:`, gambar, tabel tak rata, garis pemisah, media, daftar tiga tingkat, jenis peringatan tak dikenal); berkas sementara dihapus |
+| Tampilan, Chrome, build produksi, konten demo di basis data sekali pakai (diisi lewat `PUT` Tahap 2) | daftar, daftar bersarang, sub-judul, tebal/miring, kotak catatan/tips/peringatan, kutipan, tabel berperataan, blok kode berlabel bahasa, tautan — **dilihat**, bukan hanya dibaca dari HTML |
+| Ponsel (iframe 390 px) | halaman **tidak meluber** (`scrollWidth` 380 = `clientWidth` 380); tabel (isi 448 px) dan kode (isi 1.283 px) menggulir **di dalam** kotaknya (224 px) |
+| `run.ps1 verify` | hijau (lihat PR) |
+
+**Tiga hal yang ketahuan saat membangun**, dan sudah diperbaiki: (1) baris `****` ternyata garis pemisah menurut aturan sendiri — ujinya yang keliru, bukan pengurainya; (2) deteksi HTML terlalu rakus (`a<b` di dalam rumus dihitung tag) — kini hanya tag utuh, komentar, deklarasi, dan `<autolink>`; (3) butir berurut bersaudara (`2. b`) nyaris tertelan sebagai lanjutan malas butir sebelumnya, ketahuan saat membaca ulang sebelum diuji. Satu lagi datang dari luar: **pemeriksa tautan Markdown repo memindai berkas kode** dan menandai contoh `[x](y)` di komentar dan uji sebagai tautan relatif yang putus — gerbang `verify` merah sampai contohnya memakai URL absolut.
+
+**Batas yang jujur:**
+
+- **Lebar teks di ponsel sempit** — ± 224 px di dalam garis waktu roadmap (padding bawaan Tahap 1). Tabel dan kode tetap terbaca karena menggulir, tetapi baris kode panjang cepat tersembunyi. Pelonggaran padding di ponsel adalah keputusan tampilan tersendiri, tak diambil di sini.
+- **Tanpa penyorotan sintaks**; label bahasa saja (butir 6).
+- **`::media[kunci]` ditolak pemeriksa** sampai 3b memberinya data; penampil mengabaikannya.
+- **Produksi belum menampilkannya**: isi pilot polos, jadi tak ada yang berubah di mata pengunjung sampai Tahap 4 menulis ulangnya. Konten demo hanya di basis data sekali pakai dan tak masuk repo.

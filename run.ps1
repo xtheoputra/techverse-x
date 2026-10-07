@@ -182,6 +182,7 @@ switch ($Command) {
 
         Invoke-Step 'Cek tautan Markdown' { node .github/scripts/cek-tautan-markdown.mjs }
         Invoke-Step 'Cek berkas isi (ADR-027)' { node database/isi/pasang.mjs --cek }
+        Invoke-Step 'Uji pengurai Markdown (ADR-028 Tahap 3a)' { npm run test:markdown }
         Invoke-Step 'Build ketat (Release)' { dotnet build TechVerseX.slnx --configuration Release }
         Invoke-Step 'Uji .NET' { dotnet test TechVerseX.slnx --no-build --configuration Release }
         Invoke-Step 'Lint web' { npm run lint:web }
