@@ -32,7 +32,7 @@ Celah yang Sesi 22 (Lanjutan 4) catat dan tak bangun: tiga gerbang job Backend (
 | `run.ps1 ci` penuh | hijau, **403 detik** |
 | CI #91 (runner) | **semua check hijau**; langkah baru memakai cabang `psql`, 36 + 36 `ok`, `VONIS: HIJAU` (komentar di PR) |
 
-### 3. Tahap 4: pilot MCP ditulis ulang — cabang `fase-1/tahap-4-pilot-mcp-mendalam`
+### 3. Tahap 4: pilot MCP ditulis ulang — cabang `fase-1/tahap-4-pilot-mcp-mendalam`, [PR #92](https://github.com/xtheoputra/techverse-x/pull/92)
 
 Dari sumber primer yang **dibaca mentah saat menulis** (berkas `.mdx` spesifikasi revisi 2026-07-28 dari repo resminya, dokumentasi 2026-07-28, README ketiga SDK, pengumuman donasi Anthropic), bukan dari ingatan. Rinciannya di [ADR-028 Pembaruan (4)](adr/ADR-028-antarmuka-futuristik-dan-isi-kaya.md).
 
@@ -59,11 +59,11 @@ Dari sumber primer yang **dibaca mentah saat menulis** (berkas `.mdx` spesifikas
 
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
-**PR terbuka, keduanya berbasis `main` (`39ac35a`) dan berdiri sendiri:** [#91](https://github.com/xtheoputra/techverse-x/pull/91) (gerbang isi satu berkas; **CI hijau seluruhnya**) dan PR Tahap 4 (pilot MCP ditulis ulang; CI menyusul). Produksi: 17 bidang, 1 topik (`draf`, isi **lama**), skema 3b sudah di Neon, **0 dari 22 `tinjau`**.
+**PR terbuka, keduanya berbasis `main` (`39ac35a`) dan berdiri sendiri:** [#91](https://github.com/xtheoputra/techverse-x/pull/91) (gerbang isi satu berkas; **CI hijau seluruhnya**) dan [#92](https://github.com/xtheoputra/techverse-x/pull/92) (Tahap 4, pilot MCP ditulis ulang; **CI hijau seluruhnya** di `408de7f` — runner memasang isi baru: 6 media, 11 langkah, ketiga gerbang `SIAP`). Produksi: 17 bidang, 1 topik (`draf`, isi **lama**), skema 3b sudah di Neon, **0 dari 22 `tinjau`**.
 
 **Menunggu pemilik, berurutan:**
 
-1. **Baca PR Tahap 4** — mulai dari pratinjau isi di diff (`isi/ai-agents/model-context-protocol.json`) dan keempat SVG; ADR-028 Pembaruan (4) untuk cara verifikasinya. Merge bila layak.
+1. **Baca #92 (Tahap 4)** — mulai dari pratinjau isi di diff (`isi/ai-agents/model-context-protocol.json`) dan keempat SVG; ADR-028 Pembaruan (4) untuk cara verifikasinya. Merge bila layak.
 2. **Sesudah merge: Actions → *Pasang isi*** (`sha` = SHA merge yang `Rilis citra`-nya hijau, `slug` = `model-context-protocol`, **ganti dicentang**). Tanpa *ganti* pemasang berhenti dengan `BEDA` dan tak menulis — itu perilaku yang benar, bukan galat. Tak ada migrasi di PR ini.
 3. **Baca halaman jadinya** di <https://techverse-x-web.vercel.app/teknologi/model-context-protocol>, lalu *Naikkan ke tinjau* bila layak — itu yang akan menjadi angka resmi pertama (1 dari 22).
 4. **#91** boleh di-merge kapan saja; urutannya terhadap Tahap 4 bebas (berkas berbeda kecuali `isi/README.md`, di bagian yang berbeda).
