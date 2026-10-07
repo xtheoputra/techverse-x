@@ -1,6 +1,6 @@
 # ADR-028 — Antarmuka futuristik gelap-neon dan isi kaya: Markdown terbatas, blok media, dan jalan ubah
 
-**Status:** Diusulkan — **Tahap 1 (antarmuka) dibangun dan diukur (2026-10-06); Tahap 2–4 belum.** Keputusan arahnya diambil pemilik di percakapan yang sama dengan penulisan ADR ini; yang belum diputuskan tertulis di bagian *Yang SENGAJA tidak diputuskan*.
+**Status:** Diusulkan — **Tahap 1 (antarmuka) dibangun dan diukur (2026-10-06); Tahap 2 (jalan ubah) dibangun dan diukur (2026-10-07, lihat Pembaruan di bawah); keduanya ter-merge ke `main` 2026-10-07; Tahap 3–4 belum.** Keputusan arahnya diambil pemilik di percakapan yang sama dengan penulisan ADR ini; yang belum diputuskan tertulis di bagian *Yang SENGAJA tidak diputuskan*.
 **Tanggal:** 2026-10-06
 
 ## Konteks
@@ -95,3 +95,37 @@ Dan **tidak ada pembuat gambar AI berbayar** ([ADR-026](ADR-026-nol-biaya-gratis
 ## Cara membatalkan keputusan ini
 
 Tahap 1 hanya menyentuh `apps/web` dan satu dependensi; mengembalikannya = membatalkan PR-nya, karena seluruh sistem desain tinggal di satu berkas token (`globals.css`) dan komponen yang memakainya. Tahap 2–4 tidak ada di sini sampai dibangun.
+
+## Pembaruan 2026-10-07 — Tahap 2 (jalan ubah, [#79](https://github.com/xtheoputra/techverse-x/issues/79)) dibangun; Tahap 1 dan 2 ter-merge
+
+Tahap 2 dibangun di [PR #85](https://github.com/xtheoputra/techverse-x/pull/85), berdiri sendiri di atas `main` dan tanpa menyentuh `apps/web` — jadi tak bergantung pada Tahap 1 ([#84](https://github.com/xtheoputra/techverse-x/pull/84)). Pemilik me-merge keduanya pada 2026-10-07 (Tahap 2 pukul 03:47 UTC, Tahap 1 pukul 03:48 UTC), sesudah tambalan `sharp` di [#86](https://github.com/xtheoputra/techverse-x/pull/86) (lihat bawah). Keputusan dan penalarannya **tidak diulang di sini**; tinggal di [ADR-012 Pembaruan 2026-10-07](ADR-012-template-halaman.md) (aturan "mengganti teks menggugurkan tinjau" di tiga pintu baru, koreksi atas `Update()`, alat bersama) dan [ADR-027 Pembaruan 2026-10-07](ADR-027-jalan-isi-sungguhan.md) (`--ganti`, sakelar `ganti` di `isi.yml`, gerbang ketiga). Berkas ini hanya memuat yang menyangkut program.
+
+### Yang dibangun
+
+| Lapis | Isi |
+|---|---|
+| API (tulis; hilang di produksi; masuk `SemuaEndpointTulis`) | `PUT /api/v1/technologies/{slug}` (`name`, `summary`) · `PUT …/{slug}/roadmap/{order}` (ganti langkah yang **sudah ada**; `0` = prasyarat) · `PUT /api/v1/tools/{slug}` |
+| Pemasang | `database/isi/pasang.mjs --ganti`: rencana dicetak sebelum menulis; menambah dulu baru membuang; `tinjau` tetap terkunci |
+| Workflow | `isi.yml` mendapat sakelar `ganti` — **boolean**, supaya tak bisa membawa teks |
+| Gerbang CI | `database/isi/uji-ganti.mjs` terhadap API sungguhan |
+
+### Di mana teks ADR ini di atas dikoreksi atau dipersempit
+
+- **"`--ganti` hanya berlaku untuk topik `draf`"** (butir 4) → yang terkunci adalah **`tinjau`**; topik `kurasi` (pemasangan yang terputus) juga boleh di-`--ganti`, sebab tak ada pemeriksaan manusia yang perlu dilindungi di sana. Tanda kurung di teks aslinya (*"topik `tinjau` tetap dikunci"*) memang itu maksudnya.
+- **"Ubah katalog alat"** (butir 4) membawa akibat yang tak tertulis: alat dipakai bersama, jadi mengganti `name`/`summary`-nya menggugurkan `tinjau` **semua topik yang menautkannya**, bukan hanya topik yang sedang dipasang.
+- **"Ganti langkah roadmap menurut nomornya"** (butir 4) berarti nomor sebagai **alamat**, bukan isian: hanya langkah yang sudah ada yang bisa diganti; membuang langkah tetap tanpa jalan.
+
+### Terukur
+
+| Yang dibuktikan | Hasil |
+|---|---|
+| CI `main` sesudah ketiga merge | **hijau** untuk `CI` dan `Rilis citra` di `8e782bb` (#86), `4631e30` (#85), dan `41bf1bd` (#84) — termasuk gerbang `--ganti` dan pemindai citra |
+| Gerbang `--ganti` di runner | 36 pemeriksaan `ok`, 0 `GAGAL` (tahap A–F) |
+| Produksi sesudah merge | web 200 di `/`, `/cari`, `/teknologi/ai-agents`, `/teknologi/model-context-protocol`; HTML beranda memuat penanda antarmuka baru (`Geist`, `aurora`); API membaca **1 topik** (`model-context-protocol`, `MachineDrafted`); `PUT`/`POST`/`DELETE` tulis → **404 atau 405** (tak ada yang bocor) |
+
+### Catatan jujur
+
+- **#85 di-merge saat check "Citra peti kemas" PR-nya masih merah.** Penyebabnya bukan diff-nya: advisori `sharp` [GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w) terbit 2026-10-06 13:43 UTC, sesudah #84 hijau. Tambalannya #86 (hanya lockfile, `sharp` 0.35.4 → 0.35.5). Bahwa tambalan itu cukup dibuktikan oleh CI `main` yang hijau di `4631e30`, bukan oleh PR #85 sendiri.
+- **Antarmuka baru di produksi belum saya lihat dengan mata**, hanya penandanya di HTML. Penilaian visualnya tetap milik pemilik.
+- **`isi.yml` dengan `ganti` belum pernah dijalankan terhadap Neon.**
+- **Tahap 3 belum dimulai.** Dua hal yang ADR ini tunda sampai Tahap 2 terbukti — skema basis data media dan pustaka pengurai Markdown — kini boleh diputuskan.
