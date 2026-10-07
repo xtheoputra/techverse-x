@@ -244,6 +244,13 @@ jobs:
       - name: Cek berkas isi
         run: npm run cek:isi
 
+      # Pengurai Markdown terbatas (ADR-028 Tahap 3a) dipakai penampil web DAN pemeriksa
+      # berkas isi di atas, jadi ujinya duduk di sini juga: nol dependensi (`node:test`),
+      # sebelum `npm ci`. Isinya termasuk uji acak yang menjaga dua sifat kunci — pengurai
+      # tak pernah melempar, dan keluarannya tak pernah membawa tautan selain http(s).
+      - name: Uji pengurai Markdown
+        run: npm run test:markdown
+
       - name: Install
         run: npm ci
 

@@ -354,6 +354,128 @@ body {
     color: var(--fg-mute);
   }
 
+  /*
+    Markdown terbatas (ADR-028 Tahap 3a, komponen `Markdown`). Lebar baris ~68 karakter
+    hanya untuk teks bacaan; kode, tabel, dan peringatan boleh selebar panelnya —
+    memaksa tabel sempit di 68ch memutus keterbacaan yang justru dijaga ADR-028.
+  */
+  .prose-md > p,
+  .prose-md > ul,
+  .prose-md > ol,
+  .prose-md > h3,
+  .prose-md > h4,
+  .prose-md > h5,
+  .prose-md > h6,
+  .prose-md > blockquote {
+    max-width: 68ch;
+  }
+
+  .prose-md h5,
+  .prose-md h6 {
+    margin-top: 1.4em;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--fg);
+  }
+
+  .prose-md > :first-child {
+    margin-top: 0;
+  }
+
+  .prose-md li > * + * {
+    margin-top: 0.6em;
+  }
+
+  .prose-md li > ul,
+  .prose-md li > ol {
+    margin-top: 0.4em;
+  }
+
+  /* Label bahasa menggantung di tepi atas kode; kodenya sendiri tak bergeser. */
+  .md-code {
+    position: relative;
+    margin: 0;
+  }
+
+  .md-code pre {
+    margin: 0;
+    tab-size: 4;
+  }
+
+  .md-code-lang {
+    position: absolute;
+    top: 0;
+    right: 1rem;
+    transform: translateY(-50%);
+    padding: 0.12rem 0.6rem;
+    border-radius: 9999px;
+    border: 1px solid var(--line-strong);
+    background: var(--bg-raised);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+
+  /* Gulir ke samping DI DALAM pembungkus — halaman tak boleh meluber di ponsel. */
+  .md-table {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 0.875rem;
+  }
+
+  .md-table table {
+    min-width: 28rem;
+  }
+
+  .md-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .md-table td code {
+    white-space: nowrap;
+  }
+
+  .md-aside {
+    padding: 0.9rem 1.15rem;
+    border-left: 3px solid var(--cyan);
+    border-radius: 0 0.75rem 0.75rem 0;
+    background: linear-gradient(90deg, rgb(34 211 238 / 0.1), rgb(34 211 238 / 0.02));
+    --aksen: var(--cyan);
+  }
+
+  .md-aside-catatan {
+    border-left-color: var(--sky);
+    background: linear-gradient(90deg, rgb(56 189 248 / 0.1), rgb(56 189 248 / 0.02));
+    --aksen: var(--sky);
+  }
+
+  .md-aside-tips {
+    border-left-color: var(--mint);
+    background: linear-gradient(90deg, rgb(52 211 153 / 0.1), rgb(52 211 153 / 0.02));
+    --aksen: var(--mint);
+  }
+
+  .md-aside-peringatan {
+    border-left-color: var(--amber);
+    background: linear-gradient(90deg, rgb(251 191 36 / 0.11), rgb(251 191 36 / 0.02));
+    --aksen: var(--amber);
+  }
+
+  .md-aside > * + * {
+    margin-top: 0.6em;
+  }
+
+  .md-aside-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--aksen);
+  }
+
   /* ------------------------------------------------------------------ gerak */
 
   /* Grafik orbit hero (SVG): cincin berputar pelan, simpul berdenyut. Hanya hiasan. */

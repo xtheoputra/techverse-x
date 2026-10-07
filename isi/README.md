@@ -15,14 +15,53 @@ boleh lolos jadi "tak ada sumber").
 | `name` | nama topik | 200 |
 | `fieldSlug` | sama dengan nama folder (salah satu bidang [ADR-010](../docs/adr/ADR-010-taksonomi-bidang.md)) | |
 | `summary` | **Overview** (bagian 1) — teks polos, situs tidak merender Markdown | 2000 |
-| `prerequisite` | `{title, description}` — **langkah 0** roadmap ([ADR-012](../docs/adr/ADR-012-template-halaman.md)) | 200 / 2000 |
-| `roadmap` | daftar `{title, description}`, minimal 1, berurut | 200 / 2000 |
+| `prerequisite` | `{title, description}` — **langkah 0** roadmap ([ADR-012](../docs/adr/ADR-012-template-halaman.md)). `description` **Markdown terbatas** | 200 / 2000 |
+| `roadmap` | daftar `{title, description}`, minimal 1, berurut. `description` **Markdown terbatas** | 200 / 2000 |
 | `tools` | daftar `{slug, name, summary, homepage, note}`, minimal 1. Satu slug = satu definisi di **seluruh** `isi/` | |
-| `projects` | daftar `{title, brief}`, minimal 1 | 200 / 4000 |
+| `projects` | daftar `{title, brief}`, minimal 1. `brief` **Markdown terbatas** | 200 / 4000 |
 | `resources` | daftar `{type, title, url}`, minimal 1. `type` persis salah satu `OfficialDocs`, `Video`, `Paper`, `Repository`. URL http/https absolut dan unik | 300 / 1000 |
 | `requires` | daftar slug topik prasyarat; hanya yang punya berkas di `isi/`, tanpa siklus | |
 
 Contoh lengkap: [`ai-agents/model-context-protocol.json`](ai-agents/model-context-protocol.json).
+
+## Format teks: Markdown terbatas
+
+Tiga medan — `description` langkah (termasuk prasyarat) dan `brief` proyek — memakai **Markdown
+terbatas** ([ADR-028](../docs/adr/ADR-028-antarmuka-futuristik-dan-isi-kaya.md), Tahap 3a).
+Teks polos tanpa tanda apa pun tetap sah dan tampil seperti biasa; isi yang ada tak perlu diubah.
+`summary` **tetap teks polos**: ia juga keterangan kartu dan hasil pencarian, yang tak merender tanda.
+
+Dialeknya sengaja kecil dan **bukan CommonMark**. Pemeriksa (`.\run.ps1 isi`) memakai pengurai yang
+sama dengan penampil di situs, jadi yang lolos di sini adalah yang tampil, dan yang tak didukung
+ditolak **dengan nomor barisnya**.
+
+| Tulis | Hasil |
+|---|---|
+| baris kosong | memisahkan paragraf (baris tunggal digabung) |
+| `## Sub-judul`, `### Anak sub-judul` | dua tingkat saja; tingkat HTML mengikuti halaman |
+| `- butir` dan `1. butir` | daftar; bersarang sampai dua tingkat (dua spasi) |
+| ```` ```bahasa ```` … ```` ``` ```` | blok kode; **bahasa wajib** (`text` bila bukan kode) |
+| `> kutipan` | kutipan |
+| `> [!CATATAN]`, `> [!TIPS]`, `> [!PERINGATAN]` | kotak berlabel; isinya boleh daftar atau kode |
+| `\| a \| b \|` + `\|---\|---\|` | tabel; kolom tiap baris harus sama; `:--`, `:-:`, `--:` meratakan |
+| `**tebal**`, `*miring*`, `` `kode` `` | penekanan dan kode sebaris |
+| `[teks](https://…)` | tautan; **hanya http(s) absolut** |
+| `\*` | tanda yang ditulis apa adanya |
+
+**Yang ditolak, dan kenapa:**
+
+- **`_miring_` bukan miring.** Isi teknis penuh `snake_case` dan `server_discover`; garis bawah selalu huruf biasa.
+  Pakai `*miring*`.
+- **Gambar `![](…)` dan HTML mentah.** Media hanya lewat blok bertipe (menyusul di Tahap 3b), supaya tiap gambar
+  punya teks alternatif dan sumber yang bisa diperiksa mesin. Untuk tanda kurang-dari biasa (`a < b`) tak perlu apa-apa;
+  yang ditolak hanya yang berbentuk tag (`<b>`, `<br/>`, `<https://…>`) — bungkus dengan kode sebaris bila memang
+  maksudnya menulis tag.
+- **Judul `#` dan `####`, garis pemisah `---`, daftar `*`, tautan non-http(s), kode berpagar tanpa bahasa atau tak tertutup,
+  daftar lebih dari dua tingkat, kutipan bersarang, tabel berkolom tak rata.**
+- Tab di awal baris dibaca empat spasi (juga di dalam kode); tulis dengan spasi.
+
+`.\run.ps1 isi` juga mencetak **jumlah kata** tiap topik. Itu ukuran kasar kedalaman isi — pilot MCP saat ini
+± 760 kata di bagian yang diperiksa, dan keluhan *"kurang detail"* belum terjawab sampai Tahap 4 menulis ulangnya.
 
 ## Aturan isi — bukan sekadar bentuk
 

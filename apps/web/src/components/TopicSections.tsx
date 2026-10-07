@@ -1,5 +1,6 @@
 import type { ResourceType, TechnologyDetail } from '@/lib/api';
 import { ArrowUpRight, FlagIcon, ResourceIcon, ToolIcon } from '@/components/Icons';
+import Markdown from '@/components/Markdown';
 import type { NavItem } from '@/components/SectionNav';
 
 /**
@@ -86,13 +87,9 @@ export default function TopicSections({ topic }: { topic: TechnologyDetail }) {
               </span>
               {step.isPrerequisite ? <p className="eyebrow !text-violet">Prasyarat</p> : null}
               <h3 className="text-lg font-semibold leading-snug tracking-tight">{step.title}</h3>
-              {step.description ? (
-                <div className="prose-tv mt-2 max-w-[68ch] text-base">
-                  {paragraf(step.description).map((p, i) => (
-                    <p key={i}>{p}</p>
-                  ))}
-                </div>
-              ) : null}
+              {/* Markdown terbatas (ADR-028 Tahap 3a). Judul langkah sudah <h3>, jadi
+                  sub-judul di dalam teks mulai dari <h4>. */}
+              {step.description ? <Markdown source={step.description} headingBase={4} className="mt-2 text-base" /> : null}
             </li>
           ))}
         </ol>
@@ -148,11 +145,7 @@ export default function TopicSections({ topic }: { topic: TechnologyDetail }) {
             >
               <p className="eyebrow">Misi</p>
               <h3 className="mt-2 text-xl font-semibold tracking-tight">{project.title}</h3>
-              <div className="prose-tv mt-3 max-w-[68ch] text-base">
-                {paragraf(project.brief).map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
+              <Markdown source={project.brief} headingBase={4} className="mt-3 text-base" />
             </li>
           ))}
         </ul>

@@ -47,6 +47,12 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// 🔑 Pengurai Markdown terbatas YANG SAMA dengan penampil web (ADR-028 Tahap 3a): apa
+// yang lolos pemeriksaan di sini adalah apa yang tampil, tak ada cermin yang bisa
+// menyimpang. Letaknya di apps/web karena Dockerfile web hanya menyalin folder itu;
+// berkasnya ES module tanpa dependensi, jadi `--cek` tetap jalan sebelum `npm ci`.
+import { mediaKeys, parse, plainText } from '../../apps/web/src/lib/markdown/parse.mjs';
+
 const API = process.env.API_BASE_URL ?? 'http://localhost:5080';
 const AKAR = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const FOLDER_ISI = join(AKAR, 'isi');
@@ -137,6 +143,36 @@ function periksaTeks(galat, tempat, nilai, maks) {
   return true;
 }
 
+/**
+ * Teks yang berformat Markdown terbatas (deskripsi langkah, ringkasan proyek): diurai
+ * dengan pengurai penampil, dan setiap laporannya jadi galat berikut nomor barisnya.
+ * Teks polos tanpa tanda apa pun lolos tanpa laporan — isi yang ada tak perlu diubah.
+ */
+function periksaMarkdown(galat, tempat, nilai) {
+  if (typeof nilai !== 'string') {
+    return;
+  }
+  const { blocks, problems } = parse(nilai);
+  for (const p of problems) {
+    galat.push(`${tempat} baris ${p.line}: ${p.message}`);
+  }
+  if (mediaKeys(blocks).length > 0) {
+    galat.push(`${tempat}: blok media ::media[kunci] belum didukung berkas isi (menyusul di Tahap 3b).`);
+  }
+}
+
+/** Jumlah kata isi sebuah topik — angka yang dicetak `--cek`, supaya kedalaman isi terlihat. */
+function hitungKata(d) {
+  const kata = (t) => (typeof t === 'string' ? t.split(/\s+/).filter(Boolean).length : 0);
+  const md = (t) => (typeof t === 'string' ? kata(plainText(parse(t).blocks)) : 0);
+  return (
+    kata(d.summary) +
+    md(d.prerequisite?.description) +
+    (d.roadmap ?? []).reduce((n, l) => n + md(l?.description), 0) +
+    (d.projects ?? []).reduce((n, p) => n + md(p?.brief), 0)
+  );
+}
+
 function periksaUrl(galat, tempat, nilai, maks) {
   if (!periksaTeks(galat, tempat, nilai, maks)) {
     return;
@@ -216,14 +252,18 @@ function periksaTopik(jalur, d) {
   // menolak dipanggil sebelum ia ada.
   if (periksaKunci(galat, di('prerequisite'), d.prerequisite, KUNCI_LANGKAH)) {
     periksaTeks(galat, di('prerequisite.title'), d.prerequisite.title, BATAS.judulLangkah);
-    periksaTeks(galat, di('prerequisite.description'), d.prerequisite.description, BATAS.uraianLangkah);
+    if (periksaTeks(galat, di('prerequisite.description'), d.prerequisite.description, BATAS.uraianLangkah)) {
+      periksaMarkdown(galat, di('prerequisite.description'), d.prerequisite.description);
+    }
   }
 
   if (periksaDaftar(galat, di('roadmap'), d.roadmap, { minimal: 1 })) {
     d.roadmap.forEach((l, i) => {
       if (periksaKunci(galat, di(`roadmap[${i}]`), l, KUNCI_LANGKAH)) {
         periksaTeks(galat, di(`roadmap[${i}].title`), l.title, BATAS.judulLangkah);
-        periksaTeks(galat, di(`roadmap[${i}].description`), l.description, BATAS.uraianLangkah);
+        if (periksaTeks(galat, di(`roadmap[${i}].description`), l.description, BATAS.uraianLangkah)) {
+          periksaMarkdown(galat, di(`roadmap[${i}].description`), l.description);
+        }
       }
     });
     unik(galat, di('roadmap (judul)'), d.roadmap.map((l) => l?.title));
@@ -248,7 +288,9 @@ function periksaTopik(jalur, d) {
     d.projects.forEach((p, i) => {
       if (periksaKunci(galat, di(`projects[${i}]`), p, KUNCI_PROYEK)) {
         periksaTeks(galat, di(`projects[${i}].title`), p.title, BATAS.judulProyek);
-        periksaTeks(galat, di(`projects[${i}].brief`), p.brief, BATAS.ringkasProyek);
+        if (periksaTeks(galat, di(`projects[${i}].brief`), p.brief, BATAS.ringkasProyek)) {
+          periksaMarkdown(galat, di(`projects[${i}].brief`), p.brief);
+        }
       }
     });
     unik(galat, di('projects (judul)'), d.projects.map((p) => p?.title));
@@ -780,6 +822,9 @@ async function main() {
       gagal('--cek tak memakai --ganti: ia hanya memeriksa berkas, tanpa jaringan.');
     }
     console.log(warna('32', `isi/ — ${topik.length} berkas diperiksa, semuanya sah.`));
+    for (const { data } of topik) {
+      console.log(`  ${data.slug}  ${hitungKata(data)} kata`);
+    }
     return;
   }
 
