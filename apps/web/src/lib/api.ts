@@ -58,6 +58,25 @@ export type ResourceType = 'OfficialDocs' | 'Video' | 'Paper' | 'Repository';
 
 export type Resource = { id: string; type: ResourceType; title: string; url: string };
 
+export type MediaKind = 'Image' | 'Video';
+
+/**
+ * Satu gambar, diagram, atau video topik (ADR-028 Tahap 3b), dirujuk dari teks lewat
+ * `::media[key]`. Gambar membawa `url` (berkas sendiri di `/media/…`), video membawa `videoId`
+ * (ID YouTube) — tak pernah keduanya. `alt` untuk video adalah judul bingkainya.
+ */
+export type TechnologyMedia = {
+  key: string;
+  kind: MediaKind;
+  url: string | null;
+  videoId: string | null;
+  alt: string;
+  caption: string | null;
+  sourceName: string | null;
+  sourceUrl: string | null;
+  license: string;
+};
+
 /**
  * Satu topik lengkap dengan kelima bagian template ADR-012.
  *
@@ -67,6 +86,13 @@ export type Resource = { id: string; type: ResourceType; title: string; url: str
  * mudah membuat dua jawaban yang berbeda untuk satu pertanyaan.
  */
 export type TechnologyDetail = TechnologySummary & {
+  /**
+   * Pendalaman bagian Overview dalam Markdown terbatas (ADR-028 Tahap 3b), atau `null`.
+   * `summary` tetap blurb polos — ia juga keterangan kartu dan hasil cari.
+   */
+  overview: string | null;
+  /** Media yang dirujuk teks lewat `::media[key]`. */
+  media: TechnologyMedia[];
   status: string;
   reviewedAt: string | null;
   createdAt: string;
@@ -236,9 +262,11 @@ export function listFields(): Promise<ApiResult<Field[]>> {
  * larik relasi boleh tidak ada. Hanya dipakai di sini — di luar berkas ini
  * `TechnologyDetail` selalu membawa keduanya.
  */
-type TechnologyDetailDariApi = Omit<TechnologyDetail, 'requires' | 'requiredBy'> & {
+type TechnologyDetailDariApi = Omit<TechnologyDetail, 'requires' | 'requiredBy' | 'overview' | 'media'> & {
   requires?: TechnologySummary[];
   requiredBy?: TechnologySummary[];
+  overview?: string | null;
+  media?: TechnologyMedia[];
 };
 
 /** Satu topik berikut kelima bagian isinya dan relasinya. */
@@ -258,7 +286,16 @@ export async function getTechnology(slug: string): Promise<ApiResult<TechnologyD
   // untuk API itu.
   return {
     ok: true,
-    data: { ...result.data, requires: result.data.requires ?? [], requiredBy: result.data.requiredBy ?? [] },
+    data: {
+      ...result.data,
+      requires: result.data.requires ?? [],
+      requiredBy: result.data.requiredBy ?? [],
+      // Hal yang sama untuk Tahap 3b: API yang tayang SEBELUM migrasi dan citranya tak punya
+      // keduanya, dan halaman dari API itu tak menampilkan overview maupun media — benar untuk
+      // API itu, dan jauh lebih baik daripada meledak di setiap halaman topik.
+      overview: result.data.overview ?? null,
+      media: result.data.media ?? [],
+    },
   };
 }
 

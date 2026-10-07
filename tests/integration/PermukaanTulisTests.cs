@@ -146,6 +146,12 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
             new RoadmapStepRequest("Langkah uji", "Deskripsi langkah uji.")),
         (HttpMethod.Put, $"/api/v1/tools/{slug}-alat",
             new UpdateToolRequest("Uji Permukaan Tulis", "Ringkasan alat untuk uji.", "https://contoh.test")),
+
+        // Media topik (ADR-028 Tahap 3b): PUT menetapkan (sakelar hidup 200), DELETE idempoten
+        // dan tanpa badan — jadi ikut dilewati uji muatan cacat #61, seperti DELETE lainnya.
+        (HttpMethod.Put, $"/api/v1/technologies/{slug}/media/diagram-uji",
+            new MediaRequest("Image", "/media/uji/diagram.svg", null, "Diagram uji", null, null, null, "Karya sendiri")),
+        (HttpMethod.Delete, $"/api/v1/technologies/{slug}/media/diagram-uji", null),
         (HttpMethod.Post, $"/api/v1/technologies/{slug}/tools",
             new AttachToolRequest("alat-apa-saja", null)),
         (HttpMethod.Post, $"/api/v1/technologies/{slug}/projects",

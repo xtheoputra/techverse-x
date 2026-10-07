@@ -12,8 +12,13 @@ namespace TechVerseX.Contracts.Technology;
 /// ⚠️ Pada topik yang sudah <c>tinjau</c>, isi yang <b>berbeda</b> menggugurkannya ke
 /// <c>draf</c>; mengulang isi yang sama tidak (ADR-012 Pembaruan 2026-10-06).
 /// </para>
+/// <para>
+/// 🔑 <c>Overview</c> (Markdown terbatas, ADR-028 Tahap 3b) ikut diganti seluruhnya: <b>tidak
+/// dikirim berarti dikosongkan</b>, seperti semua PUT di sini. Klien yang hanya mengubah nama
+/// harus mengirim kembali overview yang ada.
+/// </para>
 /// </remarks>
-public sealed record UpdateTechnologyRequest(string Name, string Summary);
+public sealed record UpdateTechnologyRequest(string Name, string Summary, string? Overview = null);
 
 /// <summary>
 /// Muatan untuk <b>mengganti</b> sebuah alat di katalog. <c>Slug</c> tak bisa diubah —

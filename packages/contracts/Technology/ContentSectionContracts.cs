@@ -65,3 +65,39 @@ public sealed record ProjectRequest(string Title, string Brief);
 /// <c>Repository</c>.
 /// </summary>
 public sealed record ResourceRequest(string Type, string Title, string Url);
+
+/// <summary>
+/// Satu media topik — gambar, diagram, atau video (ADR-028 Tahap 3b). Dirujuk dari teks
+/// lewat <c>::media[Key]</c>; teks tak pernah memuat URL-nya.
+/// </summary>
+/// <remarks>
+/// <c>Kind</c> adalah <c>Image</c> atau <c>Video</c>. Gambar membawa <c>Url</c> (berkas sendiri di
+/// <c>/media/…</c>), video membawa <c>VideoId</c> (ID YouTube) — tak pernah keduanya.
+/// <c>Alt</c> untuk video adalah judul bingkainya. <c>License</c> selalu ada; selain
+/// <c>Karya sendiri</c>, <c>SourceName</c> dan <c>SourceUrl</c> juga.
+/// </remarks>
+public sealed record MediaResponse(
+    string Key,
+    string Kind,
+    string? Url,
+    string? VideoId,
+    string Alt,
+    string? Caption,
+    string? SourceName,
+    string? SourceUrl,
+    string License);
+
+/// <summary>
+/// Muatan untuk menetapkan satu media (<c>PUT …/media/{key}</c>): menambah kalau kuncinya baru,
+/// mengganti kalau sudah ada. Kunci ada di alamat, bukan di badan — sama dengan alat di
+/// <c>…/tools/{toolSlug}</c>.
+/// </summary>
+public sealed record MediaRequest(
+    string Kind,
+    string? Url,
+    string? VideoId,
+    string Alt,
+    string? Caption,
+    string? SourceName,
+    string? SourceUrl,
+    string License);

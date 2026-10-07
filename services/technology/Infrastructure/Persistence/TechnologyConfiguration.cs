@@ -20,6 +20,9 @@ internal sealed class TechnologyConfiguration : IEntityTypeConfiguration<Technol
         builder.Property(t => t.Name).HasMaxLength(Technology.MaxNameLength).IsRequired();
         builder.Property(t => t.Summary).HasMaxLength(Technology.MaxSummaryLength);
 
+        // Pendalaman Overview berformat (ADR-028 Tahap 3b). NULL berarti tanpa overview.
+        builder.Property(t => t.Overview).HasMaxLength(Technology.MaxOverviewLength);
+
         // Enum disimpan sebagai teks, bukan angka: dump basis data harus bisa
         // dibaca manusia, dan menyisipkan anggota enum baru tidak boleh
         // diam-diam mengubah arti baris lama.
@@ -106,6 +109,15 @@ internal sealed class TechnologyConfiguration : IEntityTypeConfiguration<Technol
             .WithOne()
             .HasForeignKey(r => r.TechnologyId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Media (ADR-028 Tahap 3b): Cascade juga — sebuah gambar tak punya arti di luar
+        // topiknya. Berkas gambarnya sendiri hidup di repo, bukan di basis data.
+        builder.HasMany(t => t.Media)
+            .WithOne()
+            .HasForeignKey(m => m.TechnologyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(t => t.Media).UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.Navigation(t => t.Roadmap).UsePropertyAccessMode(PropertyAccessMode.Field);
         builder.Navigation(t => t.Tools).UsePropertyAccessMode(PropertyAccessMode.Field);

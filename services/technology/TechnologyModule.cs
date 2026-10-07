@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TechVerseX.TechnologyService.Features.CreateTechnology;
 using TechVerseX.TechnologyService.Features.CreateTool;
+using TechVerseX.TechnologyService.Features.EditMedia;
 using TechVerseX.TechnologyService.Features.EditContentSections;
 using TechVerseX.TechnologyService.Features.GetTechnology;
 using TechVerseX.TechnologyService.Features.ListFields;
@@ -57,6 +58,7 @@ public static class TechnologyModule
         services.AddScoped<CreateToolHandler>();
         services.AddScoped<UpdateTechnologyHandler>();
         services.AddScoped<UpdateToolHandler>();
+        services.AddScoped<EditMediaHandler>();
 
         services.AddScoped<IValidator<CreateTechnologyCommand>, CreateTechnologyValidator>();
 
@@ -128,6 +130,10 @@ public static class TechnologyModule
         // Tulisan REDAKSI seperti yang lain: hilang di produksi, dan dijaga
         // SemuaEndpointTulis.
         technologies.MapUpdateTechnology();
+
+        // Media topik (ADR-028 Tahap 3b) juga tulisan REDAKSI: hilang di produksi bersama
+        // yang lain, dan masuk SemuaEndpointTulis.
+        technologies.MapEditMedia();
 
         // Bagian isi halaman bersarang di bawah topiknya — mereka tidak punya
         // hidup di luar topik itu, sama seperti mereka tidak punya DbSet sendiri.

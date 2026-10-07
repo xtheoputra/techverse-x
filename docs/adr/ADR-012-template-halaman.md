@@ -280,3 +280,27 @@ baru (`JalanUbahEndpointTests`) plus tiga entri baru di `SemuaEndpointTulis`. Du
 penggugur topik bersama dilepas dari `UpdateToolHandler` (uji alat bersama memerah), dan `MapUpdateTechnology`
 dipindah ke atas batas `editorialWrites` (`Bawaan_TIDAK_memasang_satu_pun_endpoint_tulis` memerah). Keduanya
 dipulihkan.
+
+## Pembaruan 2026-10-07 (2) — `overview` dan media: dua isi baru, aturan gugur yang sama
+
+[ADR-028](ADR-028-antarmuka-futuristik-dan-isi-kaya.md) Tahap 3b menambah dua hal ke bagian pertama (*Overview*)
+dan ke deskripsi lain. Aturan di sini tidak berubah — **mengganti teks yang dibaca pemeriksa menggugurkan `tinjau`;
+menambah, membuang, dan mengulang yang sama tidak** — hanya dua hal baru yang kini tunduk padanya:
+
+- **`overview`** (Markdown terbatas, ≤ 20.000 karakter, boleh kosong) memperdalam `summary`, yang tetap blurb polos
+  dan tetap penentu bagian *Overview* di `MissingSections` (kartu dan pencarian menampilkan `summary`, bukan
+  `overview`). Ditulis lewat `PUT` topik: **menggantinya menggugurkan `tinjau`, menulis ulang teks yang sama tidak**,
+  dan `PUT` yang menghilangkannya **mengosongkannya** (`PUT` mengganti seluruhnya). Dua arah lain juga mengganti
+  teks, jadi juga menggugurkan: **mengosongkan** `overview` yang semula berisi, dan **mengisinya untuk pertama kali**
+  pada topik `tinjau` — yang tampil di bawah Overview kini teks yang belum pernah dibaca pemeriksa.
+- **Media** (`technology_media`: gambar atau video bertipe, lengkap dengan teks alternatif, keterangan, sumber, dan
+  lisensi) diubah per kunci lewat `PUT` dan `DELETE …/media/{key}`. **Menambah media baru dan membuangnya tidak
+  menggugurkan** — pemeriksa membaca halaman jadinya, dan yang ditambah belum pernah ia setujui sedangkan yang dibuang
+  tak lagi dibaca siapa pun, persis alasan sumber di Pembaruan 2026-10-02. **Mengganti medan mana pun dari media yang
+  sudah ada menggugurkan** (`alt`, keterangan, sumber, lisensi, dan juga `url`/`videoId`: gambar atau video yang
+  diganti adalah klaim yang lain). Mengirim ulang isi yang sama tidak.
+- **Lisensi dan sumber dijaga seperti isi:** media tanpa lisensi tak ada, dan selain `Karya sendiri`, sumber
+  (nama **dan** URL) wajib — di domain, di `CHECK` basis data, dan di pemeriksa berkas. Media tanpa asal-usul yang
+  bisa diperiksa tak boleh tayang; itu kelanjutan "klaim yang tak bisa diverifikasi independen tidak masuk kurikulum".
+
+Aturan lengkap media (bentuk, batas, SVG, rujukan dua arah) ada di [`isi/README.md`](../../isi/README.md#media).

@@ -463,6 +463,68 @@ body {
     --aksen: var(--amber);
   }
 
+  /*
+    Media (ADR-028 Tahap 3b). Figur boleh selebar panelnya — diagram yang dipaksa ke 68ch
+    mengecil hingga labelnya tak terbaca. Keterangan, sumber, dan lisensi SELALU di bawahnya:
+    media tanpa asal-usul tak boleh tayang, jadi tampilannya pun tak menyembunyikannya.
+  */
+  .md-figure {
+    margin: 0;
+  }
+
+  .md-figure > .md-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 0.875rem;
+    border: 1px solid var(--line);
+    background: rgb(255 255 255 / 0.03);
+  }
+
+  /* 16:9 tanpa JavaScript, dan tak melonjak saat bingkai dimuat. */
+  .md-video {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 0.875rem;
+    border: 1px solid var(--line);
+    background: rgb(2 3 8 / 0.8);
+  }
+
+  .md-video > iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .md-video-tautan {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .md-figure > figcaption {
+    margin-top: 0.6rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--fg-soft);
+  }
+
+  .md-figure-caption {
+    display: block;
+  }
+
+  .md-figure-source {
+    display: block;
+    margin-top: 0.15rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--fg-mute);
+  }
+
   .md-aside > * + * {
     margin-top: 0.6em;
   }

@@ -53,9 +53,19 @@ import { fileURLToPath } from 'node:url';
 // berkasnya ES module tanpa dependensi, jadi `--cek` tetap jalan sebelum `npm ci`.
 import { mediaKeys, parse, plainText } from '../../apps/web/src/lib/markdown/parse.mjs';
 
+// Aturan media (ADR-028 Tahap 3b) tinggal di modulnya sendiri supaya bisa diuji terpisah.
+import { cocokkanRujukan, periksaDaftarMedia } from './media.mjs';
+
 const API = process.env.API_BASE_URL ?? 'http://localhost:5080';
 const AKAR = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const FOLDER_ISI = join(AKAR, 'isi');
+
+// ISI_DIR hanya untuk GERBANG UJI (`uji-media.mjs`): ia membaca berkas isi dari folder
+// sementara berisi topik fixture. Tak pernah disetel di isi.yml — IsiWorkflowGuardTests
+// menolak workflow itu menyebutnya, dan input workflow hanya sha, slug, dan sakelar boolean.
+const FOLDER_ISI = process.env.ISI_DIR ? resolve(process.env.ISI_DIR) : join(AKAR, 'isi');
+
+// Tempat berkas gambar topik: apps/web/public/media/<slug-topik>/…, disajikan situs di /media/….
+const FOLDER_PUBLIK = join(AKAR, 'apps', 'web', 'public');
 
 // ---- Keluaran --------------------------------------------------------------
 
@@ -82,6 +92,7 @@ const BATAS = {
   slug: 160,
   nama: 200,
   ringkasan: 2000,
+  overview: 20000,
   judulLangkah: 200,
   uraianLangkah: 2000,
   judulProyek: 200,
@@ -95,7 +106,7 @@ const BATAS = {
 const JENIS_SUMBER = ['OfficialDocs', 'Video', 'Paper', 'Repository'];
 const POLA_SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-const KUNCI_TOPIK = ['slug', 'name', 'fieldSlug', 'summary', 'prerequisite', 'roadmap', 'tools', 'projects', 'resources', 'requires'];
+const KUNCI_TOPIK = ['slug', 'name', 'fieldSlug', 'summary', 'overview', 'prerequisite', 'roadmap', 'tools', 'projects', 'resources', 'requires', 'media'];
 const KUNCI_LANGKAH = ['title', 'description'];
 const KUNCI_ALAT = ['slug', 'name', 'summary', 'homepage', 'note'];
 const KUNCI_PROYEK = ['title', 'brief'];
@@ -150,15 +161,15 @@ function periksaTeks(galat, tempat, nilai, maks) {
  */
 function periksaMarkdown(galat, tempat, nilai) {
   if (typeof nilai !== 'string') {
-    return;
+    return [];
   }
   const { blocks, problems } = parse(nilai);
   for (const p of problems) {
     galat.push(`${tempat} baris ${p.line}: ${p.message}`);
   }
-  if (mediaKeys(blocks).length > 0) {
-    galat.push(`${tempat}: blok media ::media[kunci] belum didukung berkas isi (menyusul di Tahap 3b).`);
-  }
+  // Kunci media yang dirujuk teks ini; pencocokan dengan daftar `media` dilakukan sekali per
+  // topik, di periksaTopik, karena satu media boleh dipakai di bagian mana pun.
+  return mediaKeys(blocks);
 }
 
 /** Jumlah kata isi sebuah topik — angka yang dicetak `--cek`, supaya kedalaman isi terlihat. */
@@ -167,6 +178,7 @@ function hitungKata(d) {
   const md = (t) => (typeof t === 'string' ? kata(plainText(parse(t).blocks)) : 0);
   return (
     kata(d.summary) +
+    md(d.overview) +
     md(d.prerequisite?.description) +
     (d.roadmap ?? []).reduce((n, l) => n + md(l?.description), 0) +
     (d.projects ?? []).reduce((n, p) => n + md(p?.brief), 0)
@@ -244,6 +256,17 @@ function periksaTopik(jalur, d) {
   periksaTeks(galat, di('name'), d.name, BATAS.nama);
   periksaTeks(galat, di('summary'), d.summary, BATAS.ringkasan);
 
+  // Setiap ::media[kunci] di seluruh teks topik ini, dikumpulkan lalu dicocokkan dengan daftar
+  // `media` di akhir — satu media boleh dipakai di bagian mana pun.
+  const dirujuk = [];
+
+  // Pendalaman Overview (ADR-028 Tahap 3b): opsional, Markdown terbatas. `summary` tetap polos.
+  if (d.overview !== undefined) {
+    if (periksaTeks(galat, di('overview'), d.overview, BATAS.overview)) {
+      dirujuk.push(...periksaMarkdown(galat, di('overview'), d.overview));
+    }
+  }
+
   if (periksaTeks(galat, di('fieldSlug'), d.fieldSlug, BATAS.slug) && d.fieldSlug !== basename(dirname(jalur))) {
     galat.push(`${di('fieldSlug')}: '${d.fieldSlug}' harus sama dengan nama foldernya ('${basename(dirname(jalur))}').`);
   }
@@ -253,7 +276,7 @@ function periksaTopik(jalur, d) {
   if (periksaKunci(galat, di('prerequisite'), d.prerequisite, KUNCI_LANGKAH)) {
     periksaTeks(galat, di('prerequisite.title'), d.prerequisite.title, BATAS.judulLangkah);
     if (periksaTeks(galat, di('prerequisite.description'), d.prerequisite.description, BATAS.uraianLangkah)) {
-      periksaMarkdown(galat, di('prerequisite.description'), d.prerequisite.description);
+      dirujuk.push(...periksaMarkdown(galat, di('prerequisite.description'), d.prerequisite.description));
     }
   }
 
@@ -262,7 +285,7 @@ function periksaTopik(jalur, d) {
       if (periksaKunci(galat, di(`roadmap[${i}]`), l, KUNCI_LANGKAH)) {
         periksaTeks(galat, di(`roadmap[${i}].title`), l.title, BATAS.judulLangkah);
         if (periksaTeks(galat, di(`roadmap[${i}].description`), l.description, BATAS.uraianLangkah)) {
-          periksaMarkdown(galat, di(`roadmap[${i}].description`), l.description);
+          dirujuk.push(...periksaMarkdown(galat, di(`roadmap[${i}].description`), l.description));
         }
       }
     });
@@ -289,7 +312,7 @@ function periksaTopik(jalur, d) {
       if (periksaKunci(galat, di(`projects[${i}]`), p, KUNCI_PROYEK)) {
         periksaTeks(galat, di(`projects[${i}].title`), p.title, BATAS.judulProyek);
         if (periksaTeks(galat, di(`projects[${i}].brief`), p.brief, BATAS.ringkasProyek)) {
-          periksaMarkdown(galat, di(`projects[${i}].brief`), p.brief);
+          dirujuk.push(...periksaMarkdown(galat, di(`projects[${i}].brief`), p.brief));
         }
       }
     });
@@ -320,6 +343,10 @@ function periksaTopik(jalur, d) {
   } else {
     galat.push(`${di('requires')}: harus berupa daftar (boleh kosong).`);
   }
+
+  // Media (ADR-028 Tahap 3b): bentuknya, berkasnya, lalu pencocokan DUA ARAH dengan rujukan di teks.
+  const didefinisikan = periksaDaftarMedia(galat, di('media'), d.media, { slugTopik: d.slug, folderPublik: FOLDER_PUBLIK });
+  cocokkanRujukan(galat, t, didefinisikan, dirujuk);
 
   return galat;
 }
@@ -483,6 +510,29 @@ const samaProyek = (a, b) => a.title === b.title && a.brief === b.brief;
 const samaSumber = (a, b) => a.url === b.url && a.type === b.type && a.title === b.title;
 const samaDefinisiAlat = (a, b) => a.name === b.name && a.summary === b.summary && (a.homepage ?? null) === (b.homepage ?? null);
 
+/** Dua media (berkas vs server) sama bila SEMUA medannya sama; yang tak diisi dibaca `null`. */
+const samaMedia = (a, b) =>
+  a.kind === b.kind &&
+  (a.url ?? null) === (b.url ?? null) &&
+  (a.videoId ?? null) === (b.videoId ?? null) &&
+  a.alt === b.alt &&
+  (a.caption ?? null) === (b.caption ?? null) &&
+  (a.sourceName ?? null) === (b.sourceName ?? null) &&
+  (a.sourceUrl ?? null) === (b.sourceUrl ?? null) &&
+  a.license === b.license;
+
+/** Muatan `PUT …/media/{key}` dari definisi di berkas. */
+const muatanMedia = (m) => ({
+  kind: m.kind,
+  url: m.url ?? null,
+  videoId: m.videoId ?? null,
+  alt: m.alt,
+  caption: m.caption ?? null,
+  sourceName: m.sourceName ?? null,
+  sourceUrl: m.sourceUrl ?? null,
+  license: m.license,
+});
+
 /**
  * Membandingkan berkas dengan keadaan server dan menghasilkan:
  *   - `beda`: hal yang TIDAK BISA dipasang tanpa menimpa (pemasang berhenti),
@@ -498,23 +548,33 @@ const samaDefinisiAlat = (a, b) => a.name === b.name && a.summary === b.summary 
 function susunRencana(d, s, ganti = false) {
   const beda = [];
   const tulis = [];
-  const kerja = { gantiTopik: false, gantiLangkah: [] };
+  const kerja = { gantiTopik: false, gantiLangkah: [], tulisMedia: [] };
   const GANTI = ' — pasang dengan --ganti untuk menyamakannya';
 
   if (s === null) {
     tulis.push('buat topik');
+
+    // POST topik tak membawa overview (ia bukan bagian pembuatan); ditetapkan sesudahnya lewat PUT.
+    if (d.overview) {
+      kerja.gantiTopik = true;
+      tulis.push('tetapkan overview');
+    }
   } else {
     // Bidang tak pernah diganti dari sini: ia soal taksonomi (ADR-009, ADR-010), bukan
     // soal menyunting tulisan, dan tak ada endpoint yang memindahkannya.
     if (s.fieldSlug !== d.fieldSlug) beda.push(`fieldSlug: berkas '${d.fieldSlug}' ≠ server '${s.fieldSlug}' (tak ada jalan memindahkan topik antar-bidang)`);
 
-    if (s.name !== d.name || s.summary !== d.summary) {
+    // Overview kosong di salah satu sisi dibaca sama dengan "tanpa overview" (null dan '').
+    const overviewBeda = (s.overview ?? '') !== (d.overview ?? '');
+
+    if (s.name !== d.name || s.summary !== d.summary || overviewBeda) {
       if (ganti) {
         kerja.gantiTopik = true;
-        tulis.push('ganti nama/ringkasan topik');
+        tulis.push('ganti nama/ringkasan/overview topik');
       } else {
         if (s.name !== d.name) beda.push(`name: berkas '${d.name}' ≠ server '${s.name}'${GANTI}`);
         if (s.summary !== d.summary) beda.push(`summary: berkas ≠ server${GANTI}`);
+        if (overviewBeda) beda.push(`overview: berkas ≠ server${GANTI}`);
       }
     }
   }
@@ -606,6 +666,32 @@ function susunRencana(d, s, ganti = false) {
     if (!sisi.includes(r)) tulis.push(`catat relasi butuh '${r}'`);
   }
 
+  // Media (ADR-028 Tahap 3b), dikunci menurut KUNCI: PUT menetapkan (menambah atau mengganti),
+  // jadi yang baru dan yang berbeda sama-sama satu PUT. Yang di server tapi tak di berkas
+  // dibuang (--ganti) — DELETE per kunci sudah idempoten.
+  const mediaServer = s?.media ?? [];
+  const mediaBerkas = d.media ?? [];
+  for (const m of mediaServer) {
+    const cocok = mediaBerkas.find((x) => x.key === m.key);
+    if (!cocok) {
+      if (ganti) tulis.push(`buang media '${m.key}' (tak ada di berkas)`);
+      else beda.push(`media '${m.key}' ada di server, tak ada di berkas${GANTI}`);
+    } else if (!samaMedia(cocok, m)) {
+      if (ganti) {
+        kerja.tulisMedia.push(m.key);
+        tulis.push(`ganti media '${m.key}'`);
+      } else {
+        beda.push(`media '${m.key}': isi berbeda dari berkas${GANTI}`);
+      }
+    }
+  }
+  for (const m of mediaBerkas) {
+    if (!mediaServer.some((x) => x.key === m.key)) {
+      kerja.tulisMedia.push(m.key);
+      tulis.push(`tambah media '${m.key}'`);
+    }
+  }
+
   if (s === null || s.maturity === 'Curated') {
     tulis.push('naik ke draf');
   }
@@ -687,11 +773,20 @@ async function pasangTopik(d, ganti = false) {
     }
   }
 
-  // Nama dan ringkasan topik (--ganti). PUT mengganti keduanya sekaligus, dan di topik
-  // yang sudah `tinjau` ia menggugurkannya — tapi topik `tinjau` sudah ditolak di atas.
+  // Nama, ringkasan, dan overview topik (--ganti; juga overview topik BARU, yang tak ikut POST
+  // pembuatan). PUT mengganti ketiganya sekaligus — overview yang tak dikirim berarti
+  // dikosongkan, jadi dikirim SELALU dari berkas. Di topik `tinjau` ia akan menggugurkannya,
+  // tapi topik `tinjau` sudah ditolak di atas.
   if (kerja.gantiTopik) {
-    await wajib('PUT', `/api/v1/technologies/${d.slug}`, { name: d.name, summary: d.summary });
-    console.log(`  ganti      nama/ringkasan ${d.slug}`);
+    await wajib('PUT', `/api/v1/technologies/${d.slug}`, { name: d.name, summary: d.summary, overview: d.overview ?? null });
+    console.log(`  ganti      nama/ringkasan/overview ${d.slug}`);
+  }
+
+  // Media (ADR-028 Tahap 3b): PUT per kunci, idempoten — menambah yang baru, mengganti yang beda.
+  for (const kunci of kerja.tulisMedia) {
+    const m = (d.media ?? []).find((x) => x.key === kunci);
+    await wajib('PUT', `/api/v1/technologies/${d.slug}/media/${kunci}`, muatanMedia(m));
+    console.log(`  media      ${kunci}`);
   }
 
   // Prasyarat WAJIB lebih dulu: AddRoadmapStep menolak dipanggil sebelum langkah 0 ada.
@@ -782,6 +877,11 @@ async function pasangTopik(d, ganti = false) {
     for (const r of (kini.requires ?? []).map((x) => x.slug).filter((slug) => !d.requires.includes(slug))) {
       await wajib('DELETE', `/api/v1/technologies/${d.slug}/requires/${r}`);
       console.log(`  buang      relasi ${d.slug} butuh ${r}`);
+    }
+
+    for (const m of (kini.media ?? []).filter((y) => !(d.media ?? []).some((x) => x.key === y.key))) {
+      await wajib('DELETE', `/api/v1/technologies/${d.slug}/media/${m.key}`);
+      console.log(`  buang      media ${m.key}`);
     }
   }
 
