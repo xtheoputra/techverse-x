@@ -173,7 +173,7 @@ Pemilik me-merge Tahap 3a ([#88](https://github.com/xtheoputra/techverse-x/pull/
 
 **Yang TIDAK dikerjakan:** tidak ada topik di bidang baru (pemilik memberi cakupan, bukan jumlah topik; kolom "Topik" ADR-010 sengaja kosong); **migrasi belum dijalankan ke Neon** — itu menulis ke produksi dan butuh izin pemilik; tidak ada yang di-merge. Cakupan ketiga bidang **belum diverifikasi audit** dan ditandai begitu.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan akhir sesi 22 sesudah Lanjutan 3 (digantikan oleh 🏁 di Lanjutan 4, di bawah)
 
 **PR terbuka:** tiga bidang Deep Tech ([#89](https://github.com/xtheoputra/techverse-x/pull/89)), berbasis `main`, aman di-merge kapan saja. `origin/main` = `3177196` (diukur 2026-10-07). Produksi: **14 bidang** sampai migrasi dijalankan, 1 topik (`draf`), **0 dari 22 `tinjau`**.
 
@@ -186,6 +186,39 @@ Pemilik me-merge Tahap 3a ([#88](https://github.com/xtheoputra/techverse-x/pull/
 **Berikutnya, saya:** Tahap 3b (blok media, `overview`, penampil media, diagram SVG) — sesudah jawaban nomor 3. Lalu Tahap 4 (tulis ulang pilot MCP). Isi pilot masih ± 762 kata teks polos; **keluhan "kurang detail" belum terjawab**.
 
 **Lingkungan — akhir sesi:** cabang kerja `fase-1/bidang-baru-tiga-deep-tech`. Server web (3401) dan API (5097–5099) yang saya mulai **sudah dihentikan** (dicocokkan dengan baris perintah dan waktu mulainya), basis data sekali pakai `techversex_bd` **dihapus**, tab Chrome **ditutup**. Basis data pengembangan `techversex` kini 17 bidang (migrasi diterapkan). Docker Desktop masih hidup; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
+
+### Lanjutan 4 — *"1. merged, 2. saya izinkan, 3. lanjut"*: migrasi Deep Tech dijalankan, dan Tahap 3b (media dan `overview`) dibangun
+
+Pemilik menjawab tiga hal: #89 **sudah ter-merge**; saya **diizinkan menjalankan *Migrasi produksi*** untuk migrasi itu; dan **lanjut** ke Tahap 3b dengan jalur penyebaran yang saya sarankan (merge, lalu langsung migrasi).
+
+**Migrasi produksi `TigaBidangDeepTech` — dijalankan atas izin itu.** `migrasi-produksi.yml` (run `37574357443`) **hijau**. Diperiksa sesudahnya lewat API produksi yang hidup: **17 bidang**, kesehatan 200, tulis tertutup (405). Izin itu **hanya untuk migrasi itu**; ia tidak berlaku untuk migrasi 3b.
+
+**Dibangun** (cabang `fase-1/tahap-3b-media-overview`, dari `main` `3bf31bb`, [PR #90](https://github.com/xtheoputra/techverse-x/pull/90)): kolom `Overview` dan tabel `technology_media` (migrasi `MediaDanOverview`, aditif, `Down` tersedia, enam `CHECK`), `TechnologyMedia`/`MediaKind` di domain, `PUT`/`DELETE …/media/{key}`, `overview` lewat `PUT` topik, pemeriksa media di `pasang.mjs --cek` (modul `media.mjs` nol dependensi), pemasang yang menyamakan `overview` dan media, gerbang `uji-media.mjs` di CI, komponen `MediaFigure`, blok `::media[kunci]` di Markdown, dan panel Overview berformat. Rincian dan **penyimpangan dari rencana butir 5** ada di [ADR-028 Pembaruan (3)](adr/ADR-028-antarmuka-futuristik-dan-isi-kaya.md); aturan untuk penulis isi di [`isi/README.md`](../isi/README.md#media).
+
+**Terukur, bukan diklaim** (tabel lengkap di ADR-028): domain **37 hijau**; integrasi **32 hijau** (stabil 3×; pelanggaran `CHECK` lewat SQL mentah); aturan media berkas **17 hijau**; gerbang `uji-media.mjs` **38 pemeriksaan hijau** di API sungguhan; **sabotase tiap penjaga memerah lalu dipulihkan identik** (`cmp`); `run.ps1 verify` **hijau dua kali** (exit 0): build ketat 0 peringatan, **186 unit + 133 integrasi**, lint, build web, cek tautan, cek berkas isi, 44 uji pengurai. Tampilan **dilihat** di Chrome (build produksi, topik demo dipasang lewat pemasang sungguhan): diagram SVG berbingkai, bingkai video 16:9, keterangan, sumber, dan lisensi; ponsel iframe 390 px **tak meluber** (376/376).
+
+**Temuan dan kesalahan:**
+
+- 🔴 **"oEmbed 200" tidak membuktikan video bisa disematkan** — dan klaim itu nyaris masuk README. Diukur: `dQw4w9WgXcQ` menjawab 200 di oEmbed dan tampil normal dari halaman https, tetapi bingkainya *"This video is unavailable"* dari `http://192.168.22.230`, **dengan dan tanpa `sandbox`**; `jNQXAC9IVRw` tampil di kedua tempat. Jadi `sandbox` pada `MediaFigure` bukan penyebab, dan aturan ADR-028 butir 5 tak cukup: video baru dianggap beres hanya sesudah bingkainya dilihat di halaman https sebenarnya. Percobaan pertama saya untuk memisahkan penyebabnya **tidak sah** — Chrome menaikkan `http://info.cern.ch` ke https sendiri, jadi saya baru menguji dugaannya di server sekali pakai pada IP LAN.
+- Komentar `cocokkanRujukan` menyebut definisi tak terpakai "dimuat pembaca" — **keliru** (penampil hanya merender yang dirujuk); alasan sebenarnya (sisa yang tak pernah tampil, biasanya salah ketik) kini tertulis.
+- Aturan "definisi tak terpakai" jadi **galat**, bukan peringatan seperti rencana: pemeriksa tak punya saluran peringatan.
+- Postgres memeriksa `CHECK` menurut urutan nama, jadi `Gif` gagal di `ck_…_bentuk` lebih dulu — ujinya dikoreksi, bukan aturannya. `UpdatedAt` yang dibandingkan dengan nilai dalam memori goyah (100 ns vs µs di basis data) — dibandingkan GET dengan GET. Kutip shell dan CRLF di berkas `.cs` merusak beberapa skrip tambal lagi — dipakai `Edit` dan normalisasi `\r\n`.
+- `dotnet ef` sempat gagal membangun karena proses API saya sendiri mengunci DLL-nya; proses dicocokkan lewat port, baris perintah, dan waktu mulai sebelum dihentikan.
+
+**Yang TIDAK dikerjakan:** Tahap 4. **Belum ada media sungguhan di repo** dan **isi pilot tidak berubah** — halaman MCP masih ± 762 kata teks polos; **keluhan "kurang detail" belum terjawab**. **Migrasi 3b belum dijalankan ke Neon.** Tak ada yang di-merge.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**PR terbuka:** Tahap 3b ([#90](https://github.com/xtheoputra/techverse-x/pull/90)), berbasis `main` `3bf31bb`, **membawa migrasi skema** — merge berarti jendela beberapa menit di mana halaman topik membalas 500 sampai migrasi dijalankan (lihat PR). Produksi: **17 bidang**, 1 topik (`draf`), **0 dari 22 `tinjau`**; skema 3b belum ada di Neon.
+
+**Menunggu pemilik:**
+
+1. **Baca dan merge #90.** Mulai dari [ADR-028 Pembaruan (3)](adr/ADR-028-antarmuka-futuristik-dan-isi-kaya.md) (tabel penyimpangan), lalu [`isi/README.md`](../isi/README.md#media) — itu kontrak yang akan ditulis semua isi berikutnya.
+2. **Sesudah merge: izin baru untuk *Migrasi produksi*** (menulis skema ke Neon; aditif, `Down` tersedia, terbukti naik-turun di pengembangan). Saya menunggu `Rilis citra` untuk SHA merge terbit lebih dulu, lalu bertanya — izin untuk #89 tak berlaku di sini.
+
+**Berikutnya, saya:** Tahap 4 — tulis ulang pilot MCP: mendalam, berdiagram SVG buatan sendiri, bervideo (**bingkainya dilihat di https**, bukan hanya oEmbed), diverifikasi ke sumber primer yang dibaca saat menulis, dipasang lewat `--ganti`. #79 tetap terbuka (membuang langkah roadmap, menghapus alat katalog, memindahkan topik antar-bidang).
+
+**Lingkungan — akhir sesi:** cabang kerja `fase-1/tahap-3b-media-overview`. Server web (3401), API (5096), dan server uji bingkai (3499) yang saya mulai **sudah dihentikan** (dicocokkan dengan baris perintah dan waktu mulainya), basis data sekali pakai `techversex_media` **dihapus**, SVG demo dan folder isi sementara **dihapus**, tab Chrome **ditutup**. Basis data pengembangan `techversex` sudah memuat migrasi `MediaDanOverview`. Docker Desktop masih hidup; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
 
 ---
 
