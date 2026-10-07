@@ -24,9 +24,12 @@ namespace TechVerseX.TechnologyService.Features.EditContentSections;
 /// adalah cacat yang sudah dua kali digigit repo ini.
 /// </para>
 /// <para>
-/// 🔑 <b>Tidak ada satu pun metode di sini yang menerima nomor langkah roadmap.</b>
-/// Itu bukan kelalaian kontrak — <c>AddRoadmapStep</c> memberi nomor sendiri, dan
-/// membuka jalan pintas ke sana akan mengembalikan roadmap berlubang jadi mungkin.
+/// 🔑 <b>Nomor langkah roadmap tak pernah ISIAN, hanya ALAMAT.</b>
+/// <c>AddRoadmapStep</c> memberi nomor sendiri, dan tak satu pun metode di sini menerima
+/// nomor untuk membuat langkah — membuka jalan pintas ke sana akan mengembalikan roadmap
+/// berlubang jadi mungkin. Satu-satunya metode yang menerima nomor,
+/// <see cref="ReplaceRoadmapStepAsync"/>, hanya menunjuk langkah yang SUDAH ADA (sejak ADR-028
+/// Tahap 2); nomor yang belum ada ditolak.
 /// </para>
 /// </remarks>
 public sealed class EditContentSectionsHandler(TechnologyDbContext db)
@@ -50,6 +53,21 @@ public sealed class EditContentSectionsHandler(TechnologyDbContext db)
             db,
             slug,
             technology => technology.AddRoadmapStep(request.Title, request.Description),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Mengganti langkah roadmap yang sudah ada menurut nomornya (ADR-028 Tahap 2, #79).
+    /// Nomor yang belum ada ditolak 400 — ia alamat, bukan isian.
+    /// </summary>
+    public Task<TopicMutationOutcome> ReplaceRoadmapStepAsync(string slug, int order, RoadmapStepRequest request, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        return TopicMutation.RunAsync(
+            db,
+            slug,
+            technology => technology.ReplaceRoadmapStep(order, request.Title, request.Description),
             cancellationToken);
     }
 

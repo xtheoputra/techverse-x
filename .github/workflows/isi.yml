@@ -25,10 +25,11 @@ name: Pasang isi
 on:
   workflow_dispatch:
     inputs:
-      # ⚠️ HANYA dua input — sama dengan tinjau.yml. Isinya datang dari berkas di
-      # `main`, bukan dari kotak teks; input ketiga yang membawa isi atau nama
-      # orang akan membuka jalan memasang teks yang tak pernah dibaca di PR.
-      # IsiWorkflowGuardTests menjaganya.
+      # ⚠️ Isinya datang dari berkas di `main`, bukan dari kotak teks: input yang membawa
+      # isi atau nama orang akan membuka jalan memasang teks yang tak pernah dibaca di PR.
+      # Karena itu hanya `sha` dan `slug` (sama dengan tinjau.yml) yang bertipe teks, plus
+      # SATU sakelar `ganti` yang bertipe boolean — ia memilih cara memasang, tak pernah
+      # membawa isi. IsiWorkflowGuardTests menjaga ketiganya, termasuk tipe boolean itu.
       sha:
         description: "SHA commit yang citra `api`-nya dipakai — pendek atau penuh (harus SAMA dengan yang tayang di host API)"
         required: true
@@ -37,6 +38,11 @@ on:
         description: "Slug topik yang dipasang (mis. model-context-protocol) — harus punya berkas di isi/<bidang>/<slug>.json"
         required: true
         type: string
+      ganti:
+        description: "Samakan server dengan berkas yang SUDAH BERUBAH (--ganti, ADR-028 Tahap 2): ganti teks, buang yang tak ada di berkas. Rencananya dicetak di log sebelum menulis. Topik tinjau tetap terkunci; tanpa ini pemasang berhenti dengan BEDA."
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   isi:
@@ -130,6 +136,7 @@ jobs:
         env:
           POSTGRES: ${{ secrets.NEON_DATABASE_URL }}
           SLUG: ${{ inputs.slug }}
+          GANTI: ${{ inputs.ganti }}
         run: |
           if [ -z "$POSTGRES" ]; then
             echo "::error::Secret NEON_DATABASE_URL belum diisi."
@@ -171,8 +178,15 @@ jobs:
           fi
 
           # Pemasang itu sendiri: berkas dan server dibandingkan dulu, tak ada yang
-          # ditimpa, dan keberhasilannya dibuktikan dengan rencana kosong sesudahnya.
-          API_BASE_URL=http://127.0.0.1:8080 node database/isi/pasang.mjs "$SLUG"
+          # ditimpa kecuali diminta, dan keberhasilannya dibuktikan dengan rencana kosong
+          # sesudahnya. Sakelar boolean dibandingkan dengan "true" persis — nilai lain
+          # (termasuk kosong) berarti jalan biasa yang tak menimpa.
+          if [ "$GANTI" = "true" ]; then
+            echo "::warning::Mode --ganti: server disamakan dengan berkas. Rencananya dicetak di bawah sebelum ada yang ditulis."
+            API_BASE_URL=http://127.0.0.1:8080 node database/isi/pasang.mjs --ganti "$SLUG"
+          else
+            API_BASE_URL=http://127.0.0.1:8080 node database/isi/pasang.mjs "$SLUG"
+          fi
 
       # if: always() — peti kemasnya dibuang walau langkah di atas gagal, dan lognya
       # dicetak lebih dulu supaya kegagalan menjalankan (bukan menarik) punya bukti.
@@ -184,11 +198,19 @@ jobs:
 
       - name: Ringkasan
         if: success()
+        env:
+          GANTI: ${{ inputs.ganti }}
         run: |
+          if [ "$GANTI" = "true" ]; then
+            mode='`--ganti` (server disamakan dengan berkas)'
+          else
+            mode='biasa (tidak menimpa)'
+          fi
           {
             echo "### Isi terpasang"
             echo
             echo "Topik: \`${{ inputs.slug }}\`"
+            echo "Mode: $mode"
             echo "Berkas: \`isi/<bidang>/${{ inputs.slug }}.json\` @ \`${{ github.sha }}\`"
             echo "Citra: \`${{ steps.nama.outputs.citra }}\`"
             echo

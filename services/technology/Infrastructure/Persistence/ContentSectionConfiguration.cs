@@ -45,8 +45,8 @@ internal sealed class RoadmapStepConfiguration : IEntityTypeConfiguration<Roadma
         builder.Property(s => s.Id).ValueGeneratedNever();
 
         builder.Property(s => s.Order).IsRequired();
-        builder.Property(s => s.Title).HasMaxLength(200).IsRequired();
-        builder.Property(s => s.Description).HasMaxLength(2000);
+        builder.Property(s => s.Title).HasMaxLength(RoadmapStep.MaxTitleLength).IsRequired();
+        builder.Property(s => s.Description).HasMaxLength(RoadmapStep.MaxDescriptionLength);
         builder.Property(s => s.CreatedAt).IsRequired();
 
         // Dua langkah bernomor sama di satu topik berarti roadmap yang urutannya
@@ -72,9 +72,9 @@ internal sealed class ToolConfiguration : IEntityTypeConfiguration<Tool>
         builder.HasKey(t => t.Id);
 
         builder.Property(t => t.Slug).HasMaxLength(Tool.MaxSlugLength).IsRequired();
-        builder.Property(t => t.Name).HasMaxLength(200).IsRequired();
-        builder.Property(t => t.Summary).HasMaxLength(2000);
-        builder.Property(t => t.Homepage).HasMaxLength(500);
+        builder.Property(t => t.Name).HasMaxLength(Tool.MaxNameLength).IsRequired();
+        builder.Property(t => t.Summary).HasMaxLength(Tool.MaxSummaryLength);
+        builder.Property(t => t.Homepage).HasMaxLength(Tool.MaxHomepageLength);
         builder.Property(t => t.CreatedAt).IsRequired();
 
         builder.HasIndex(t => t.Slug).IsUnique().HasDatabaseName("ix_tools_slug");

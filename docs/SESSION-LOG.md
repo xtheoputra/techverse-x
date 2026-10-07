@@ -4,6 +4,92 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-07 — Sesi 22: *"berapa %?"* dijawab lagi, lalu jalan ubah isi (ADR-028 Tahap 2, #79) dibangun di atas `main`
+
+Permintaan pemilik, berurutan: *"sudah berapa % proyek ini jadi ?"* → *"lanjutkan progress"*.
+
+### *"Berapa %?"* — dijawab dari dokumen rencana, lalu diukur ulang
+
+Dijawab dari [RENCANA-V1 §Kemajuan](RENCANA-V1.md#kemajuan-per-25-september-2026) dan diperbarui dengan pengukuran hari ini (produksi: `/`, `/cari?q=quantum`, `/teknologi/ai-agents`, `/teknologi/model-context-protocol` → 200; `/learn` dan `/labs` → 404; kode: nol paket AI, `arXiv` hanya nama di enum `ResourceType`). **Angka resmi tetap 0 dari 22 topik `tinjau` (0%).** Per bulan rencana: Bulan 1 selesai (URL publik), Bulan 2 ± 15% (satu topik pilot `draf`, jalan ujung ke ujung ada), Bulan 3 ± 80%, Bulan 4–6 0% → **± 33%** (bobot sama; dulu ± 24%). Visi penuh ± 10%. Waktu terpakai ± 18% (33 dari ± 183 hari).
+
+Angka itu **tidak ditulis ke RENCANA-V1** — pemilik hanya bertanya, dan saya menawarkannya di jawaban. Kutip ± 33% bersama angka resminya.
+
+### Memilih pekerjaan
+
+Dibaca dari 🏁 Sesi 21: yang menunggu pemilik (pratinjau dan merge #84) tak bisa saya majukan, dan **satu-satunya langkah yang tak bergantung pada siapa pun adalah Tahap 2** (jalan ubah, #79). Dibangun di cabang `fase-1/jalan-ubah-adr-028-tahap-2` dari `origin/main` (`eef86a6`), **bukan** dari cabang #84 — aturan ADR-028 *tanpa tumpukan*. Satu konsekuensinya baru terbaca di tengah jalan: berkas `ADR-028` hanya ada di #84, jadi Tahap 2 **tak bisa mengeditnya** (add/add saat #84 masuk, dan tautan relatif ke berkas yang belum ada merusak pemeriksa tautan). Keputusannya ditulis di ADR-012 dan ADR-027 (Pembaruan 2026-10-07); satu baris Status/tahap di ADR-028 menyusul setelah #84 ter-merge.
+
+### Yang dibangun — [PR #85](https://github.com/xtheoputra/techverse-x/pull/85)
+
+| Lapis | Isi |
+|---|---|
+| API (tulis; hilang di produksi; masuk `SemuaEndpointTulis`) | `PUT /api/v1/technologies/{slug}` (`name`, `summary`) · `PUT …/{slug}/roadmap/{order}` (ganti langkah yang ada; `0` = prasyarat) · `PUT /api/v1/tools/{slug}` |
+| Domain | `Technology.ReplaceRoadmapStep`, `Technology.LinkedToolTextChanged`, `Tool.Update`, `RoadmapStep.Rewrite`; `Technology.Update` tanpa-operasi pada isi yang sama; lebar kolom dijaga di domain |
+| Pemasang | `pasang.mjs --ganti`: rencana dicetak sebelum menulis; menambah dulu baru membuang; `tinjau` tetap terkunci |
+| Workflow | `isi.yml`: sakelar `ganti` bertipe **boolean**; `IsiWorkflowGuardTests` menuntut himpunan input `{sha, slug, ganti}` dan tipe boolean |
+| Gerbang CI | `database/isi/uji-ganti.mjs` |
+
+**Keputusan yang diambil saat membangun** (tiga yang paling perlu mata pemilik ada di badan PR): nomor langkah roadmap adalah **alamat**, bukan isian (langkah belum bisa dibuang); mengganti teks alat bersama **menggugurkan tinjau semua topik yang menautkannya**; `--ganti` terkunci pada `tinjau`, bukan pada "hanya `draf`" (topik `kurasi` boleh); input `ganti` **boolean**.
+
+### 🔴 Koreksi atas dokumen sendiri
+
+ADR-012 Pembaruan 2026-10-06 menulis bahwa begitu rute `PUT` topik ada, *"`Update()` sudah menurunkan dengan benar"*. **Keliru:** `Update()` menggugurkan `tinjau` pada panggilan apa pun, termasuk isi yang sama — `SetPrerequisite` dan `AttachTool` sudah memakai aturan "hanya bila berbeda" sejak #81, `Update()` belum. Ia tak ketahuan karena tak punya pemanggil produksi (#68 butir 1). Ketahuan oleh tes merah pertama pekerjaan ini; dikoreksi di ADR-012 Pembaruan 2026-10-07. Rute `PUT` topik kini pemanggil produksi pertamanya.
+
+### Terukur, bukan diklaim
+
+| Yang dibuktikan | Hasil |
+|---|---|
+| `run.ps1 verify` | **hijau**: build ketat 0 peringatan, **145 unit** (dari 127) + **101 integrasi** (dari 78), lint + build web, cek tautan, cek berkas isi |
+| `Update()` lama pada isi sama | **merah** sebelum diubah (`Expected: HumanReviewed / Actual: MachineDrafted`), hijau sesudahnya |
+| Gerbang ADR-020 | **merah** saat `MapUpdateTechnology` dipindah ke atas batas `editorialWrites` |
+| Alat bersama | **merah** saat `LinkedToolTextChanged` dilepas dari `UpdateToolHandler` |
+| `uji-ganti.mjs` terhadap API sungguhan (Postgres lokal, basis data sekali pakai) | server disimpangkan 7 cara → tanpa `--ganti`: `BEDA`, server **tak berubah** (sama persis, termasuk `updatedAt`); dengan `--ganti`: sama dengan berkas; ulang: nol tulisan; `tinjau`: `TERKUNCI`; langkah berlebih: `BEDA` — **36 pemeriksaan hijau** |
+| Gerbang pemasang di bawah sabotase | **9 merah** saat pembuangan proyek dimatikan dan kunci `tinjau` dilepas; dipulihkan identik (`cmp`) |
+| Penjaga workflow | **merah** saat `ganti` diubah jadi `string`; dipulihkan identik |
+| CI runner PR #85 | **Backend, Frontend, Pindai rahasia, dan kedua Vercel hijau**: 145 unit + 101 integrasi; gerbang `--ganti` berjalan di runner — tahap A–F, **36 `ok`, 0 `GAGAL`**, `SIAP`. **"Citra peti kemas" MERAH** — bukan karena PR ini, lihat di bawah |
+
+### 🔴 CI #85 merah: advisori `sharp` yang terbit sesudah CI #84 hijau
+
+Job "Citra peti kemas" gagal di gerbang Trivy: **satu temuan HIGH** di citra **web** (api dan migrate bersih) — `sharp` 0.35.4, [GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w), diperbaiki di 0.35.5. Advisori terbit **2026-10-06 13:43 UTC**, sesudah #84 hijau (dibuat 08:55 UTC). #85 tak menyentuh `apps/web` maupun lockfile (diff-nya diperiksa), dan `sharp` ditarik `next`, bukan dependensi langsung. Pola yang sama dengan Next.js GHSA-vcvr-r3jv-pc5j di Sesi 21 — target bergerak yang ADR-026 ramalkan.
+
+Perbaikannya **PR terpisah dari `main`**, bukan ditumpuk di #85: **[#86](https://github.com/xtheoputra/techverse-x/pull/86)**, hanya `package-lock.json` (`npm update sharp --package-lock-only`; 27 entri, semuanya `sharp` dan binari platformnya, dibandingkan entri-per-entri). Diukur di worktree terpisah (supaya `node_modules` cabang #84, yang butuh `geist`, tak terganggu): `npm ci` memasang 0.35.5, `npm audit` tak lagi menandai `sharp`, build web lolos. **CI #86 hijau seluruhnya, termasuk "Citra peti kemas"** — itu buktinya. **Yang belum terbukti:** #85 dan #84 hijau di atas #86 — keduanya baru bisa dijalankan ulang setelah #86 ter-merge.
+
+### Kesalahan dan temuan sesi ini, supaya terbaca
+
+- **Keliru soal ADR-012** — di atas.
+- **Mengira ADR-028 ada di `main`.** Ketahuan karena pembacaan berkasnya gagal (`ENOENT`), bukan karena saya memeriksa cabangnya dulu; tak ada berkas yang tercipta (diperiksa `git status`).
+- **Gerbang pertama saya jatuh** (`isi/README.md` dibaca sebagai folder bidang) — ketahuan di jalan pertama, diperbaiki dengan `withFileTypes`. Terpisah dari itu, regex "baris tulis"-nya semula akan salah menandai baris `BEDA` (`  proyek 'X' ada di server…`) sebagai tulisan; itu ketahuan saat menulis, **sebelum** gerbang pernah dijalankan, dan dipersempit ke awalan + dua spasi.
+- **Dua kali kutip shell merusak isi**: heredoc dengan tanda kutip-balik di dalam `node -e "…"` mengosongkan inline-code di `isi/README.md`. Ketahuan dari `tail`, diganti dengan menulis berkas lewat `Write`; tak ada berkas liar (`git status`).
+- **`grep -r` ke seluruh repo menembus `node_modules`** dan melewati batas waktu — sia-sia, dipindah ke latar belakang.
+- **Docker Desktop mati saat sesi mulai; saya yang menyalakannya.** Jejak lingkungan, dicatat di bawah.
+
+### Yang TIDAK dikerjakan, dan kenapa
+
+- **Tidak ada yang di-merge, tidak ada yang di-dispatch ke produksi.** `isi.yml --ganti` belum pernah dijalankan terhadap Neon.
+- **#79 tetap terbuka** (PR memakai `Refs`): membuang langkah roadmap, menghapus alat katalog, dan memindahkan topik antar-bidang masih tanpa jalan.
+- **ADR-028 tak diedit** (lihat atas). **RENCANA-V1 tak diperbarui** dengan ± 33%.
+- Tahap 3 dan 4 tak dimulai: keduanya menunggu #84 dan Tahap 2 di `main` (urutannya ada di ADR-028, yang baru masuk `main` bersama #84).
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**PR terbuka, ketiganya berbasis `main` dan berdiri sendiri:** [#86](https://github.com/xtheoputra/techverse-x/pull/86) (`fase-1/tambal-sharp-ghsa-wq5f-xc86`, hanya lockfile; **CI hijau**), [#85](https://github.com/xtheoputra/techverse-x/pull/85) (`fase-1/jalan-ubah-adr-028-tahap-2`, Tahap 2; **CI merah hanya di "Citra peti kemas" karena `sharp`**), dan [#84](https://github.com/xtheoputra/techverse-x/pull/84) (`fase-1/ui-futuristik-fondasi`, Tahap 0–1; hijau saat dibuat, **kemungkinan besar merah juga bila dijalankan ulang** — belum saya jalankan). `origin/main` = `eef86a6` (diukur 2026-10-07). Produksi tak berubah: 14 bidang, 1 topik (`model-context-protocol`, `draf`), **0 dari 22 `tinjau`**.
+
+**#86 saya buka atas inisiatif sendiri**, bukan atas permintaan: ia satu-satunya yang memblokir CI dua PR lain, dan ada preseden (#76). Kalau pemilik tak menginginkannya, tutup saja — tak ada yang bergantung padanya selain CI.
+
+**Menunggu pemilik, berurutan:**
+
+0. **Merge #86 dulu** (satu berkas, CI hijau), lalu **jalankan ulang CI #85 dan #84** (re-run di GitHub Actions; merge ref-nya akan memuat lockfile baru). Hanya itu yang akan membuktikan keduanya hijau.
+1. **Buka pratinjau Vercel #84** (butuh login Vercel), nilai arah visualnya, lalu merge. (Belum dijawab sejak 6 Oktober.)
+2. **Baca dan merge #85.** Mulai dari tiga keputusan di badan PR (nomor = alamat, alat bersama menggugurkan tinjau lintas-topik, input `ganti` boolean); sisanya diff.
+3. Sesudah **keduanya** ter-merge: Tahap 3 (isi kaya: Markdown terbatas, entitas media, penampil, pemeriksa berkas). Skema basis data media dan pustaka pengurai Markdown diputuskan **di sana**, sesudah melihat jalan ubah bekerja.
+
+**Yang saya lakukan begitu #84 ter-merge:** satu baris Status/tahap di ADR-028 (Tahap 2 dibangun, tertaut ke #85) — ditunda karena berkasnya belum ada di `main`.
+
+**Masih tanpa jalan ([#79](https://github.com/xtheoputra/techverse-x/issues/79)):** membuang langkah roadmap, menghapus alat katalog, memindahkan topik antar-bidang. **Belum terukur:** `isi.yml --ganti` terhadap Neon dan citra yang terbit.
+
+**Lingkungan — 2026-10-07:** cabang kerja `fase-1/jalan-ubah-adr-028-tahap-2`. **Docker Desktop saya nyalakan** (mati saat sesi mulai); container `techversex-*` sehat dan tak disentuh selain basis data sekali pakai `techversex_ganti` dan API port 5099 yang saya buat — **keduanya sudah dihentikan/dihapus** (pendengar 5099 dicocokkan dengan baris perintah dan waktu mulainya dulu; `DROP DATABASE` berhasil; basis data pengembangan nol baris sisa uji). `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
+
+---
+
 ## 2026-10-05 — Sesi 21: situs tayang di Vercel + Neon, empat belas PR masuk `main`, dan "otomatis dari `main`" ternyata tidak ada
 
 Permintaan pemilik, berurutan: *"berapa % proyek ini jadi?"* → *"apa yang dapat dikerjakan saat ini?"* → *"berarti 3 akun, … berikan langkah langkahnya"* → *"vercel kontainer"* → *"tambal"* → merge PR satu per satu.

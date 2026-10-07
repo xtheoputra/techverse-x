@@ -23,6 +23,12 @@ public sealed class RoadmapStep
     /// <summary>Nomor langkah prasyarat. Bukan angka ajaib — ADR-012 menamainya.</summary>
     public const int PrerequisiteOrder = 0;
 
+    /// <summary>Lebar kolom <c>roadmap_steps.Title</c>; penjaga muatan dan konfigurasi EF memakai angka yang sama.</summary>
+    public const int MaxTitleLength = 200;
+
+    /// <summary>Lebar kolom <c>roadmap_steps.Description</c>.</summary>
+    public const int MaxDescriptionLength = 2000;
+
     private RoadmapStep()
     {
         // Dipakai EF Core.
@@ -62,14 +68,55 @@ public sealed class RoadmapStep
     /// </summary>
     internal static RoadmapStep Create(Guid technologyId, int order, string title, string description)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(title);
         ArgumentOutOfRangeException.ThrowIfNegative(order);
 
-        return new RoadmapStep(
-            Guid.CreateVersion7(),
-            technologyId,
-            order,
-            title.Trim(),
-            description?.Trim() ?? string.Empty);
+        var (finalTitle, finalDescription) = Normalize(title, description);
+
+        return new RoadmapStep(Guid.CreateVersion7(), technologyId, order, finalTitle, finalDescription);
+    }
+
+    /// <summary>
+    /// Mengganti judul dan uraian langkah ini <b>di tempat</b> — nomornya tak berubah,
+    /// dan barisnya tetap barisnya. Mengembalikan <c>true</c> kalau teks yang tersimpan
+    /// benar-benar berbeda sesudah dipangkas.
+    /// </summary>
+    /// <remarks>
+    /// Dipanggil <see cref="Technology"/> saja (nomor langkah dijaga agregat), dan
+    /// jawabannya yang menentukan apakah pemeriksaan manusia gugur: mengulang teks yang
+    /// sama bukan perubahan (ADR-012 Pembaruan 2026-10-06).
+    /// </remarks>
+    internal bool Rewrite(string title, string description)
+    {
+        var (finalTitle, finalDescription) = Normalize(title, description);
+
+        var changed = Title != finalTitle || Description != finalDescription;
+        Title = finalTitle;
+        Description = finalDescription;
+        return changed;
+    }
+
+    /// <summary>
+    /// Memangkas dan menjaga lebar kolom. 🔴 Lebar dijaga DI SINI, bukan hanya di
+    /// kolom basis data: teks yang kepanjangan sampai ke PostgreSQL sebagai galat
+    /// server (500), padahal yang keliru muatannya — kelas cacat issue #26.
+    /// </summary>
+    private static (string Title, string Description) Normalize(string title, string description)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(title);
+
+        var finalTitle = title.Trim();
+        var finalDescription = description?.Trim() ?? string.Empty;
+
+        if (finalTitle.Length > MaxTitleLength)
+        {
+            throw new ArgumentException($"Judul langkah maksimal {MaxTitleLength} karakter (diterima {finalTitle.Length}).", nameof(title));
+        }
+
+        if (finalDescription.Length > MaxDescriptionLength)
+        {
+            throw new ArgumentException($"Uraian langkah maksimal {MaxDescriptionLength} karakter (diterima {finalDescription.Length}).", nameof(description));
+        }
+
+        return (finalTitle, finalDescription);
     }
 }

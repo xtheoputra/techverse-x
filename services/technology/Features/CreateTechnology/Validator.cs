@@ -19,7 +19,7 @@ public sealed class CreateTechnologyValidator : AbstractValidator<CreateTechnolo
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Nama teknologi wajib diisi.")
-            .MaximumLength(200);
+            .MaximumLength(Technology.MaxNameLength);
 
         // Aturan terpisah, BUKAN disambung ke rantai di atas: `When` di ujung rantai
         // FluentValidation berlaku untuk SELURUH rantai itu, jadi menyambungnya akan
@@ -30,7 +30,7 @@ public sealed class CreateTechnologyValidator : AbstractValidator<CreateTechnolo
             .When(x => string.IsNullOrWhiteSpace(x.Slug));
 
         RuleFor(x => x.Summary)
-            .MaximumLength(2000).WithMessage("Ringkasan maksimal 2.000 karakter.");
+            .MaximumLength(Technology.MaxSummaryLength).WithMessage("Ringkasan maksimal 2.000 karakter.");
 
         RuleFor(x => x.FieldSlug)
             .NotEmpty().WithMessage("Bidang wajib diisi - lihat GET /api/v1/fields untuk daftarnya.")

@@ -221,3 +221,62 @@ baru, topik belum diperiksa, ulang pemeriksaan). HTTP: 2 uji integrasi baru
 (`ContentSectionEndpointTests`), keduanya **merah** tanpa perubahan domain
 (`Expected: "MachineDrafted" / Actual: "HumanReviewed"`) dan hijau dengannya — lewat
 `TopicMutation` sungguhan, jadi yang terbukti termasuk bahwa penurunannya **tersimpan**.
+
+## Pembaruan 2026-10-07 — tiga pintu "mengganti" baru, dan satu koreksi atas pembaruan di atas
+
+ADR-028 Tahap 2 (ADR-nya sendiri masih di [PR #84](https://github.com/xtheoputra/techverse-x/pull/84), jadi belum bisa ditautkan dari `main`) membangun jalan ubah yang ditagih
+[#79](https://github.com/xtheoputra/techverse-x/issues/79). Aturannya tetap satu — **mengganti teks yang dibaca
+pemeriksa menggugurkan `tinjau`; mengulang teks yang sama tidak** — dan kini berlaku di tiga pintu baru.
+
+- **`PUT /api/v1/technologies/{slug}`** (`name`, `summary`) memanggil `Technology.Update()`.
+- **`PUT /api/v1/technologies/{slug}/roadmap/{order}`** memanggil `Technology.ReplaceRoadmapStep()`. Nomor di
+  alamat itu **alamat langkah yang sudah ada, bukan isian**: nomor yang belum ada ditolak 400, jadi roadmap
+  berlubang tetap mustahil. Nomor `0` sama dengan `PUT …/roadmap/prasyarat`. Langkah baru tetap hanya lewat
+  `POST …/roadmap` di ujung. Mengganti langkah dilakukan **di tempat** (barisnya tetap barisnya).
+- **`PUT /api/v1/tools/{slug}`** (`name`, `summary`, `homepage`) memanggil `Tool.Update()`.
+
+### 🔴 Koreksi: `Update()` belum "menurunkan dengan benar"
+
+Pembaruan 2026-10-06 di atas menulis bahwa begitu rute `PUT` topik ada, *"`Update()` sudah menurunkan dengan
+benar"*. **Itu keliru, dan ketahuan tepat karena rute itu akhirnya dibangun.** `Update()` menggugurkan `tinjau`
+pada panggilan **apa pun** — termasuk dengan teks yang persis sama — padahal `SetPrerequisite` dan `AttachTool`
+sudah memakai aturan "hanya bila berbeda" sejak #81. Ia tak pernah ketahuan karena tak punya pemanggil produksi
+([#68](https://github.com/xtheoputra/techverse-x/issues/68) butir 1). Terukur: dua uji baru memerah di domain lama
+(`Expected: HumanReviewed / Actual: MachineDrafted`). Kini `Update()` **tanpa-operasi** bila nama, ringkasan, dan
+bidangnya sama sesudah dipangkas: tak ada `TechnologyUpdated`, `UpdatedAt` tak bergerak, pemeriksaan bertahan.
+Tanpa ini, satu `PUT` yang diulang klien akan membuang kerja pemeriksa tanpa alasan. Rute `PUT` topik kini
+pemanggil produksi pertama `Update()`, dan menutup butir 1 di #68.
+
+### Alat dipakai bersama, jadi menggantinya bisa menggugurkan topik lain
+
+Nama dan ringkasan alat tampil di halaman **setiap** topik yang menautkannya ([ADR-015](ADR-015-skema-data-v1.md)),
+termasuk topik yang sudah `tinjau`. Mengganti keduanya di katalog adalah mengganti teks yang dibaca pemeriksa —
+sama dengan mengganti catatan alat — jadi `PUT …/tools/{slug}` menggugurkan **semua topik `tinjau` yang
+menautkan alat itu**, dalam satu `SaveChanges` dengan katalognya (katalog dan topiknya tak pernah terlihat
+setengah berubah). Hanya topik `tinjau` yang dimuat; topik lain tak punya pemeriksaan untuk digugurkan.
+
+- **`homepage` bukan teks.** Ia tautan; mengubahnya tidak menggugurkan apa pun — alasan yang sama dengan
+  menambah dan membuang sumber di Pembaruan 2026-10-02.
+- **Slug alat tak bisa diubah**: ia identitas yang dirujuk berkas `isi/` dan tautan topik.
+- Aturan ini punya akibat yang harus terbaca di tempat pemanggilnya: pemasang `isi/ --ganti`
+  yang mengganti definisi alat bersama menyebutnya di log (*"topik tinjau yang menautkannya gugur ke draf"*).
+
+### Lebar kolom dijaga di domain
+
+Ketiga pintu — dan jalan tambah yang sudah ada (`SetPrerequisite`, `AddRoadmapStep`) — menolak teks yang
+melebihi lebar kolomnya dengan **400 bermedan**, bukan membiarkannya sampai ke PostgreSQL sebagai 500 (kelas
+cacat [#26](https://github.com/xtheoputra/techverse-x/issues/26)). Angkanya satu sumber: konstanta di
+`Technology`, `RoadmapStep`, dan `Tool` dipakai konfigurasi EF dan validator. Muatan kepanjangan di jalan
+tambah roadmap sebelumnya hanya ditolak kolom basis data; kini ditolak domain.
+
+### Yang tetap tidak ada
+
+Membuang **langkah roadmap** (nomornya berurut tanpa lubang), menghapus **alat katalog** (perlu pemeriksaan
+"tak ada topik yang masih menautkan"), dan memindahkan topik **antar-bidang** (ADR-009) masih tanpa jalan.
+Ketiganya tetap ditagih di #79.
+
+**Terukur:** unit — 17 uji baru (`JalanUbahTests`), dua di antaranya merah di `Update()` lama; HTTP — 23 uji
+baru (`JalanUbahEndpointTests`) plus tiga entri baru di `SemuaEndpointTulis`. Dua sabotase dibuktikan merah:
+penggugur topik bersama dilepas dari `UpdateToolHandler` (uji alat bersama memerah), dan `MapUpdateTechnology`
+dipindah ke atas batas `editorialWrites` (`Bawaan_TIDAK_memasang_satu_pun_endpoint_tulis` memerah). Keduanya
+dipulihkan.

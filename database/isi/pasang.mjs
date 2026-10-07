@@ -5,6 +5,8 @@
 //   node database/isi/pasang.mjs --semua      pasang SEMUA topik, prasyarat lebih dulu
 //                                             (untuk pengembangan dan gerbang CI; produksi
 //                                             satu topik per jalan isi.yml)
+//   ... <slug>|--semua --ganti                samakan server dengan berkas yang SUDAH berubah
+//                                             (ADR-028 Tahap 2); lihat catatan di bawah
 //
 // Isi sungguhan hidup sebagai berkas JSON di `isi/<bidang>/<slug>.json`, bukan di
 // kepala siapa pun dan bukan di Neon saja. Berkas itulah yang dibaca pemilik di
@@ -24,10 +26,19 @@
 // paling jauh membawa topik ke `draf`.
 //
 // ⚠️ Aturan yang membedakannya dari seed.mjs: pemasang ini TIDAK PERNAH menimpa
-// diam-diam. Berkas dan server dibandingkan dulu; kalau server punya sesuatu yang
-// tak ada di berkas (atau nama/ringkasan berbeda — tak ada endpoint untuk
-// mengubahnya), pemasang berhenti SEBELUM menulis apa pun dan menyebut bedanya.
-// Topik yang sudah `tinjau` tak disentuh sama sekali.
+// diam-diam. Berkas dan server dibandingkan dulu; kalau server berbeda dari berkas
+// (punya sesuatu yang tak ada di berkas, atau teks yang lain), pemasang berhenti
+// SEBELUM menulis apa pun dan menyebut bedanya. Topik yang sudah `tinjau` tak
+// disentuh sama sekali.
+//
+// 🔑 `--ganti` (ADR-028 Tahap 2, #79) adalah SATU-SATUNYA jalan menimpa, dan ia
+// eksplisit: rencananya dicetak lebih dulu, lalu server disamakan dengan berkas —
+// nama/ringkasan, langkah roadmap menurut nomornya, definisi alat, proyek, sumber,
+// tautan alat, dan relasi. Yang TIDAK bisa diganti tetap menghentikan pemasang:
+// memindahkan topik ke bidang lain (ADR-009) dan membuang langkah roadmap (nomornya
+// berurut tanpa lubang, ADR-012). Topik `tinjau` tetap terkunci walau memakai --ganti.
+// Menambah dulu, baru membuang: pemasangan yang terputus meninggalkan kelebihan yang
+// dibuang ulang di jalan berikutnya, bukan bagian yang hilang.
 //
 // Node 22+ (fetch bawaan, tanpa dependensi). Semua keluaran ke STDOUT, kegagalan
 // dibawa kode keluar — alasannya dijelaskan di database/seeds/seed.mjs.
@@ -426,22 +437,44 @@ async function bacaTopik(slug) {
 const langkahServer = (s) => (s?.roadmap ?? []).filter((l) => !l.isPrerequisite).sort((a, b) => a.order - b.order);
 const prasyaratServer = (s) => (s?.roadmap ?? []).find((l) => l.isPrerequisite) ?? null;
 
+const samaProyek = (a, b) => a.title === b.title && a.brief === b.brief;
+const samaSumber = (a, b) => a.url === b.url && a.type === b.type && a.title === b.title;
+const samaDefinisiAlat = (a, b) => a.name === b.name && a.summary === b.summary && (a.homepage ?? null) === (b.homepage ?? null);
+
 /**
  * Membandingkan berkas dengan keadaan server dan menghasilkan:
  *   - `beda`: hal yang TIDAK BISA dipasang tanpa menimpa (pemasang berhenti),
- *   - `tulis`: daftar pekerjaan yang aman (hanya MENAMBAH).
+ *   - `tulis`: daftar pekerjaan, untuk dicetak dan sebagai bukti "rencana kosong".
+ *
+ * Tanpa `ganti`, `tulis` hanya MENAMBAH dan segala selisih menjadi `beda`. Dengan `ganti`
+ * (ADR-028 Tahap 2), selisih yang PUNYA jalan menjadi pekerjaan: nama/ringkasan,
+ * langkah roadmap menurut nomornya, proyek/sumber yang tak sama, alat dan relasi yang
+ * kelebihan. Yang tak punya jalan tetap `beda`: bidang topik dan kelebihan langkah roadmap.
+ * Definisi katalog alat TIDAK direncanakan di sini — ia baru terbaca setelah alatnya
+ * tertaut (lihat pasangTopik).
  */
-function susunRencana(d, s) {
+function susunRencana(d, s, ganti = false) {
   const beda = [];
   const tulis = [];
+  const kerja = { gantiTopik: false, gantiLangkah: [] };
+  const GANTI = ' — pasang dengan --ganti untuk menyamakannya';
 
   if (s === null) {
     tulis.push('buat topik');
   } else {
-    // Tak ada endpoint untuk mengubah nama, ringkasan, atau bidang sebuah topik.
-    if (s.name !== d.name) beda.push(`name: berkas '${d.name}' ≠ server '${s.name}'`);
-    if (s.summary !== d.summary) beda.push('summary: berkas ≠ server (tak ada endpoint untuk mengubahnya)');
-    if (s.fieldSlug !== d.fieldSlug) beda.push(`fieldSlug: berkas '${d.fieldSlug}' ≠ server '${s.fieldSlug}'`);
+    // Bidang tak pernah diganti dari sini: ia soal taksonomi (ADR-009, ADR-010), bukan
+    // soal menyunting tulisan, dan tak ada endpoint yang memindahkannya.
+    if (s.fieldSlug !== d.fieldSlug) beda.push(`fieldSlug: berkas '${d.fieldSlug}' ≠ server '${s.fieldSlug}' (tak ada jalan memindahkan topik antar-bidang)`);
+
+    if (s.name !== d.name || s.summary !== d.summary) {
+      if (ganti) {
+        kerja.gantiTopik = true;
+        tulis.push('ganti nama/ringkasan topik');
+      } else {
+        if (s.name !== d.name) beda.push(`name: berkas '${d.name}' ≠ server '${s.name}'${GANTI}`);
+        if (s.summary !== d.summary) beda.push(`summary: berkas ≠ server${GANTI}`);
+      }
+    }
   }
 
   const pras = s ? prasyaratServer(s) : null;
@@ -450,46 +483,69 @@ function susunRencana(d, s) {
     tulis.push('tetapkan prasyarat');
   }
 
-  // Roadmap: server HARUS berupa awalan dari berkas. Selebihnya ditambah di ujung —
-  // AddRoadmapStep memberi nomor sendiri, dan tak ada jalan membuang langkah.
+  // Roadmap: tiap langkah di server harus sama dengan langkah berkas bernomor sama.
+  // Yang beda diganti di tempat (--ganti), selebihnya di ujung berkas ditambah —
+  // AddRoadmapStep memberi nomor sendiri. Kelebihan langkah di server tak punya jalan
+  // keluar: nomornya berurut tanpa lubang (ADR-012), jadi ia tetap `beda`.
   const ada = langkahServer(s);
   ada.forEach((l, i) => {
     const mestinya = d.roadmap[i];
-    if (!mestinya || mestinya.title !== l.title || mestinya.description !== l.description) {
-      beda.push(`roadmap langkah ${i + 1}: server '${l.title}' tidak cocok dengan berkas${mestinya ? ` ('${mestinya.title}')` : ' (berkas lebih pendek)'}`);
+    if (mestinya && mestinya.title === l.title && mestinya.description === l.description) {
+      return;
+    }
+    if (ganti && mestinya) {
+      kerja.gantiLangkah.push({ nomor: l.order, langkah: mestinya });
+      tulis.push(`ganti langkah roadmap ${l.order} ('${l.title}' → '${mestinya.title}')`);
+    } else if (!mestinya) {
+      beda.push(`roadmap langkah ${l.order}: server punya '${l.title}', berkas lebih pendek — tak ada jalan membuang langkah (nomornya berurut tanpa lubang, ADR-012)`);
+    } else {
+      beda.push(`roadmap langkah ${l.order}: server '${l.title}' tidak cocok dengan berkas ('${mestinya.title}')${GANTI}`);
     }
   });
   for (const l of d.roadmap.slice(ada.length)) {
     tulis.push(`tambah langkah roadmap '${l.title}'`);
   }
 
+  // Proyek dan sumber disamakan sebagai HIMPUNAN: yang di server tapi tak sama persis
+  // dengan butir berkas dibuang (--ganti), yang di berkas tapi tak ada di server ditambah.
+  // Teks proyek/sumber tak punya endpoint ubah — diganti = tambah baru lalu buang lama.
   const proyek = s?.projects ?? [];
   for (const p of proyek) {
-    const cocok = d.projects.find((x) => x.title === p.title);
-    if (!cocok) beda.push(`proyek '${p.title}' ada di server, tak ada di berkas`);
-    else if (cocok.brief !== p.brief) beda.push(`proyek '${p.title}': isi berbeda dari berkas`);
+    if (d.projects.some((x) => samaProyek(x, p))) continue;
+    if (ganti) {
+      tulis.push(`buang proyek '${p.title}' (tak sama dengan berkas)`);
+    } else {
+      const cocok = d.projects.find((x) => x.title === p.title);
+      beda.push(cocok ? `proyek '${p.title}': isi berbeda dari berkas${GANTI}` : `proyek '${p.title}' ada di server, tak ada di berkas${GANTI}`);
+    }
   }
   for (const p of d.projects) {
-    if (!proyek.some((x) => x.title === p.title)) tulis.push(`tambah proyek '${p.title}'`);
+    if (!proyek.some((x) => samaProyek(x, p))) tulis.push(`tambah proyek '${p.title}'`);
   }
 
   const sumber = s?.resources ?? [];
   for (const r of sumber) {
-    const cocok = d.resources.find((x) => x.url === r.url);
-    if (!cocok) beda.push(`sumber ${r.url} ada di server, tak ada di berkas`);
-    else if (cocok.type !== r.type || cocok.title !== r.title) beda.push(`sumber ${r.url}: jenis/judul berbeda dari berkas`);
+    if (d.resources.some((x) => samaSumber(x, r))) continue;
+    if (ganti) {
+      tulis.push(`buang sumber ${r.url} (tak sama dengan berkas)`);
+    } else {
+      const cocok = d.resources.find((x) => x.url === r.url);
+      beda.push(cocok ? `sumber ${r.url}: jenis/judul berbeda dari berkas${GANTI}` : `sumber ${r.url} ada di server, tak ada di berkas${GANTI}`);
+    }
   }
   for (const r of d.resources) {
-    if (!sumber.some((x) => x.url === r.url)) tulis.push(`tambah sumber ${r.url}`);
+    if (!sumber.some((x) => samaSumber(x, r))) tulis.push(`tambah sumber ${r.url}`);
   }
 
   const alat = s?.tools ?? [];
   for (const a of alat) {
     const cocok = d.tools.find((x) => x.slug === a.slug);
     if (!cocok) {
-      beda.push(`alat '${a.slug}' tertaut di server, tak ada di berkas`);
-    } else if (cocok.name !== a.name || cocok.summary !== a.summary || (cocok.homepage ?? null) !== (a.homepage ?? null)) {
-      beda.push(`alat '${a.slug}': definisi katalog berbeda dari berkas (tak ada endpoint untuk mengubah katalog)`);
+      if (ganti) tulis.push(`lepas alat '${a.slug}' (tak ada di berkas)`);
+      else beda.push(`alat '${a.slug}' tertaut di server, tak ada di berkas${GANTI}`);
+    } else if (!samaDefinisiAlat(cocok, a)) {
+      if (ganti) tulis.push(`ganti definisi katalog alat '${a.slug}' — ⚠ katalog dipakai bersama: topik tinjau yang menautkannya gugur ke draf (ADR-012)`);
+      else beda.push(`alat '${a.slug}': definisi katalog berbeda dari berkas${GANTI}`);
     }
   }
   for (const a of d.tools) {
@@ -500,7 +556,9 @@ function susunRencana(d, s) {
 
   const sisi = (s?.requires ?? []).map((r) => r.slug);
   for (const r of sisi) {
-    if (!d.requires.includes(r)) beda.push(`relasi: server mencatat butuh '${r}', berkas tidak`);
+    if (d.requires.includes(r)) continue;
+    if (ganti) tulis.push(`buang relasi butuh '${r}' (tak ada di berkas)`);
+    else beda.push(`relasi: server mencatat butuh '${r}', berkas tidak${GANTI}`);
   }
   for (const r of d.requires) {
     if (!sisi.includes(r)) tulis.push(`catat relasi butuh '${r}'`);
@@ -510,24 +568,24 @@ function susunRencana(d, s) {
     tulis.push('naik ke draf');
   }
 
-  return { beda, tulis };
+  return { beda, tulis, kerja };
 }
 
 // ---- Memasang --------------------------------------------------------------
 
-async function pasangTopik(d) {
-  judul(`Memasang ${d.slug} ke ${API} ...`);
+async function pasangTopik(d, ganti = false) {
+  judul(`Memasang ${d.slug} ke ${API}${ganti ? ' dengan --ganti' : ''} ...`);
 
   const sekarang = await bacaTopik(d.slug);
-  const { beda, tulis } = susunRencana(d, sekarang);
+  const { beda, tulis, kerja } = susunRencana(d, sekarang, ganti);
 
   if (beda.length > 0) {
     gagal(`BEDA    ${d.slug}: berkas dan server tidak sama. Tidak ada yang ditulis.`, [
       ...beda,
       '',
-      'Pemasang tidak menimpa. Memperbaiki isi yang sudah terpasang memakai jalan buang yang sudah ada',
-      '(DELETE sumber/proyek/alat, ADR-012 dan ADR-021 Pembaruan 2026-10-02) lalu memasang ulang.',
-      'Mengubah name/summary/langkah roadmap belum punya jalan — itu keputusan tersendiri (ADR-027).',
+      ganti
+        ? 'Yang tersisa di atas tidak punya jalan ganti: memindahkan topik ke bidang lain (ADR-009) dan membuang langkah roadmap (ADR-012).'
+        : 'Pemasang tidak menimpa. Untuk menyamakan server dengan berkas yang sudah berubah, jalankan lagi dengan --ganti (ADR-028 Tahap 2; topik tinjau tetap terkunci).',
     ]);
   }
 
@@ -542,6 +600,14 @@ async function pasangTopik(d) {
   if (tulis.length === 0) {
     console.log(warna('32', `  ada     ${d.slug} sudah sama dengan berkas`));
     return;
+  }
+
+  // Dengan --ganti rencana dicetak SEBELUM menulis: mengganti dan membuang tak boleh
+  // jadi kejutan di log, dan log runner adalah satu-satunya catatan apa yang berubah.
+  if (ganti) {
+    for (const t of tulis) {
+      console.log(warna('33', `  rencana    ${t}`));
+    }
   }
 
   // Topiknya dulu. 409 punya dua arti (seed.mjs menuliskan alasannya): slug sudah
@@ -579,12 +645,26 @@ async function pasangTopik(d) {
     }
   }
 
+  // Nama dan ringkasan topik (--ganti). PUT mengganti keduanya sekaligus, dan di topik
+  // yang sudah `tinjau` ia menggugurkannya — tapi topik `tinjau` sudah ditolak di atas.
+  if (kerja.gantiTopik) {
+    await wajib('PUT', `/api/v1/technologies/${d.slug}`, { name: d.name, summary: d.summary });
+    console.log(`  ganti      nama/ringkasan ${d.slug}`);
+  }
+
   // Prasyarat WAJIB lebih dulu: AddRoadmapStep menolak dipanggil sebelum langkah 0 ada.
   // PUT, jadi mengulanginya mengganti langkah 0, bukan menambah — tapi hanya dipanggil
   // kalau rencananya memang memuatnya, supaya pemasangan ulang tidak menulis yang tak perlu.
   if (tulis.includes('tetapkan prasyarat')) {
     await wajib('PUT', `/api/v1/technologies/${d.slug}/roadmap/prasyarat`, d.prerequisite);
     console.log(`  langkah 0  ${d.prerequisite.title}`);
+  }
+
+  // Langkah yang sudah ada diganti di tempatnya menurut nomor (--ganti); nomornya
+  // alamat yang sudah ada di server, jadi tak ada lubang yang bisa tercipta.
+  for (const g of kerja.gantiLangkah) {
+    await wajib('PUT', `/api/v1/technologies/${d.slug}/roadmap/${g.nomor}`, g.langkah);
+    console.log(`  ganti      langkah ${g.nomor}  ${g.langkah.title}`);
   }
 
   const baru = await bacaTopik(d.slug);
@@ -598,12 +678,29 @@ async function pasangTopik(d) {
     await wajib('POST', `/api/v1/technologies/${d.slug}/tools`, { toolSlug: a.slug, note: a.note });
   }
 
-  for (const p of d.projects.filter((x) => !(baru.projects ?? []).some((y) => y.title === x.title))) {
+  // Definisi katalog baru terbaca SESUDAH alatnya tertaut: alat yang sudah ada di katalog
+  // (dibuat topik lain) membalas 409 di atas tanpa menyebut isinya. Katalog dipakai
+  // bersama, jadi API menggugurkan tinjau topik lain yang menautkannya — dan pemasang
+  // menyebutnya terang-terangan, bukan membiarkannya jadi kejutan.
+  if (ganti) {
+    const tertaut = await bacaTopik(d.slug);
+    for (const a of d.tools) {
+      const di = tertaut.tools.find((x) => x.slug === a.slug);
+      if (di && !samaDefinisiAlat(a, di)) {
+        await wajib('PUT', `/api/v1/tools/${a.slug}`, { name: a.name, summary: a.summary, homepage: a.homepage });
+        console.log(warna('33', `  ganti      definisi alat ${a.slug} (katalog bersama: topik tinjau yang menautkannya gugur ke draf)`));
+      }
+    }
+  }
+
+  // Menambah DULU, baru membuang: kalau pemasangan terputus di antaranya, yang tersisa
+  // adalah kelebihan (dibuang di jalan berikutnya), bukan bagian yang hilang.
+  for (const p of d.projects.filter((x) => !(baru.projects ?? []).some((y) => samaProyek(x, y)))) {
     await wajib('POST', `/api/v1/technologies/${d.slug}/projects`, p);
     console.log(`  proyek     ${p.title}`);
   }
 
-  for (const r of d.resources.filter((x) => !(baru.resources ?? []).some((y) => y.url === x.url))) {
+  for (const r of d.resources.filter((x) => !(baru.resources ?? []).some((y) => samaSumber(x, y)))) {
     await wajib('POST', `/api/v1/technologies/${d.slug}/resources`, r);
     console.log(`  sumber     ${r.url}`);
   }
@@ -618,6 +715,32 @@ async function pasangTopik(d) {
       ]);
     }
     console.log(`  sisi       ${d.slug} butuh ${r}`);
+  }
+
+  // Kelebihan di server dibuang terakhir (--ganti), dibaca ulang karena baris yang
+  // baru ditambah sudah punya Id. Semuanya idempoten di API.
+  if (ganti) {
+    const kini = await bacaTopik(d.slug);
+
+    for (const p of (kini.projects ?? []).filter((y) => !d.projects.some((x) => samaProyek(x, y)))) {
+      await wajib('DELETE', `/api/v1/technologies/${d.slug}/projects/${p.id}`);
+      console.log(`  buang      proyek ${p.title}`);
+    }
+
+    for (const r of (kini.resources ?? []).filter((y) => !d.resources.some((x) => samaSumber(x, y)))) {
+      await wajib('DELETE', `/api/v1/technologies/${d.slug}/resources/${r.id}`);
+      console.log(`  buang      sumber ${r.url}`);
+    }
+
+    for (const a of (kini.tools ?? []).filter((y) => !d.tools.some((x) => x.slug === y.slug))) {
+      await wajib('DELETE', `/api/v1/technologies/${d.slug}/tools/${a.slug}`);
+      console.log(`  lepas      alat ${a.slug}`);
+    }
+
+    for (const r of (kini.requires ?? []).map((x) => x.slug).filter((slug) => !d.requires.includes(slug))) {
+      await wajib('DELETE', `/api/v1/technologies/${d.slug}/requires/${r}`);
+      console.log(`  buang      relasi ${d.slug} butuh ${r}`);
+    }
   }
 
   // Naik ke draf. Ia menolak kalau satu bagian pun masih kosong, jadi berhasilnya
@@ -640,7 +763,12 @@ async function pasangTopik(d) {
 // ---- Jalankan --------------------------------------------------------------
 
 async function main() {
-  const argumen = process.argv.slice(2);
+  const semuaArgumen = process.argv.slice(2);
+
+  // --ganti hanya pengubah: ia tak berdiri sendiri, dan tak ikut --cek (yang tanpa jaringan).
+  const ganti = semuaArgumen.includes('--ganti');
+  const argumen = semuaArgumen.filter((a) => a !== '--ganti');
+
   const { galat, topik } = bacaDanPeriksa();
 
   if (galat.length > 0) {
@@ -648,19 +776,22 @@ async function main() {
   }
 
   if (argumen.length === 1 && argumen[0] === '--cek') {
+    if (ganti) {
+      gagal('--cek tak memakai --ganti: ia hanya memeriksa berkas, tanpa jaringan.');
+    }
     console.log(warna('32', `isi/ — ${topik.length} berkas diperiksa, semuanya sah.`));
     return;
   }
 
   if (argumen.length === 1 && argumen[0] === '--semua') {
     for (const slug of urutanPasang(topik).urut) {
-      await pasangTopik(topik.find((b) => b.data.slug === slug).data);
+      await pasangTopik(topik.find((b) => b.data.slug === slug).data, ganti);
     }
     return;
   }
 
   if (argumen.length !== 1 || argumen[0].startsWith('--')) {
-    gagal('Pemakaian: node database/isi/pasang.mjs --cek | --semua | <slug>');
+    gagal('Pemakaian: node database/isi/pasang.mjs --cek | [--ganti] --semua | [--ganti] <slug>');
   }
 
   const dipilih = topik.find((b) => b.data.slug === argumen[0]);
@@ -668,7 +799,7 @@ async function main() {
     gagal(`Tak ada berkas isi untuk '${argumen[0]}'.`, `Yang ada: ${topik.map((b) => b.data.slug).join(', ') || '(kosong)'}`);
   }
 
-  await pasangTopik(dipilih.data);
+  await pasangTopik(dipilih.data, ganti);
 }
 
 try {

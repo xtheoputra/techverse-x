@@ -21,6 +21,15 @@ public sealed class Tool
     /// <summary>Sama dengan <see cref="Technology.MaxSlugLength"/>, dan sengaja dinyatakan ulang di sini supaya lebar kolomnya punya satu sumber.</summary>
     public const int MaxSlugLength = 160;
 
+    /// <summary>Lebar kolom <c>tools.Name</c>; konfigurasi EF dan <see cref="Update"/> memakai angka yang sama.</summary>
+    public const int MaxNameLength = 200;
+
+    /// <summary>Lebar kolom <c>tools.Summary</c>.</summary>
+    public const int MaxSummaryLength = 2000;
+
+    /// <summary>Lebar kolom <c>tools.Homepage</c>.</summary>
+    public const int MaxHomepageLength = 500;
+
     private Tool()
     {
         // Dipakai EF Core.
@@ -74,5 +83,56 @@ public sealed class Tool
             name.Trim(),
             summary?.Trim() ?? string.Empty,
             string.IsNullOrWhiteSpace(homepage) ? null : homepage.Trim());
+    }
+
+    /// <summary>
+    /// Mengganti nama, ringkasan, dan beranda. <b>Slug tak pernah berubah</b> — ia
+    /// identitas katalog yang dirujuk berkas isi dan tautan topik. Mengembalikan
+    /// <c>true</c> kalau <b>teks</b> yang dibaca pembaca (nama atau ringkasan) benar-benar
+    /// berbeda sesudah dipangkas.
+    /// </summary>
+    /// <remarks>
+    /// 🔑 Jawabannya penting karena alat <b>dipakai bersama</b> (ADR-015): nama dan
+    /// ringkasan alat tampil di halaman SETIAP topik yang menautkannya, termasuk topik
+    /// yang sudah <c>tinjau</c>. Pemanggil (<c>UpdateToolHandler</c>) yang menggugurkan
+    /// pemeriksaan topik-topik itu bila jawabannya <c>true</c> — sama dengan aturan
+    /// mengganti teks di <see cref="Technology"/>. Beranda sengaja bukan teks: ia
+    /// tautan, dan memperbaiki satu tautan tidak boleh membuang kerja pemeriksanya
+    /// (ADR-012).
+    /// <para>
+    /// 🔴 Lebar dijaga di sini, bukan hanya di kolom: teks yang kepanjangan sampai ke
+    /// PostgreSQL sebagai 500 padahal yang keliru muatannya (kelas cacat #26).
+    /// </para>
+    /// </remarks>
+    public bool Update(string name, string summary, string? homepage)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+
+        var finalName = name.Trim();
+        var finalSummary = summary?.Trim() ?? string.Empty;
+        var finalHomepage = string.IsNullOrWhiteSpace(homepage) ? null : homepage.Trim();
+
+        if (finalName.Length > MaxNameLength)
+        {
+            throw new ArgumentException($"Nama alat maksimal {MaxNameLength} karakter (diterima {finalName.Length}).", nameof(name));
+        }
+
+        if (finalSummary.Length > MaxSummaryLength)
+        {
+            throw new ArgumentException($"Ringkasan alat maksimal {MaxSummaryLength} karakter (diterima {finalSummary.Length}).", nameof(summary));
+        }
+
+        if (finalHomepage is { Length: > MaxHomepageLength })
+        {
+            throw new ArgumentException($"Beranda alat maksimal {MaxHomepageLength} karakter (diterima {finalHomepage.Length}).", nameof(homepage));
+        }
+
+        var textChanged = Name != finalName || Summary != finalSummary;
+
+        Name = finalName;
+        Summary = finalSummary;
+        Homepage = finalHomepage;
+
+        return textChanged;
     }
 }

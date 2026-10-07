@@ -17,8 +17,8 @@ internal sealed class TechnologyConfiguration : IEntityTypeConfiguration<Technol
         // Angka yang sama dipakai penjaga masukan (CreateTechnologyValidator).
         // Menaikkannya di sini saja tidak cukup - ia butuh migrasi.
         builder.Property(t => t.Slug).HasMaxLength(Technology.MaxSlugLength).IsRequired();
-        builder.Property(t => t.Name).HasMaxLength(200).IsRequired();
-        builder.Property(t => t.Summary).HasMaxLength(2000);
+        builder.Property(t => t.Name).HasMaxLength(Technology.MaxNameLength).IsRequired();
+        builder.Property(t => t.Summary).HasMaxLength(Technology.MaxSummaryLength);
 
         // Enum disimpan sebagai teks, bukan angka: dump basis data harus bisa
         // dibaca manusia, dan menyisipkan anggota enum baru tidak boleh

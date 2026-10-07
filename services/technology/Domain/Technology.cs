@@ -30,6 +30,12 @@ public sealed class Technology
     /// </remarks>
     public const int MaxSlugLength = 160;
 
+    /// <summary>Lebar kolom <c>technologies.Name</c>; konfigurasi EF, validator, dan <see cref="Update"/> memakai angka yang sama.</summary>
+    public const int MaxNameLength = 200;
+
+    /// <summary>Lebar kolom <c>technologies.Summary</c>.</summary>
+    public const int MaxSummaryLength = 2000;
+
     private readonly List<DomainEvent> _events = [];
     private readonly List<TechnologyRelationship> _relationships = [];
 
@@ -192,6 +198,20 @@ public sealed class Technology
     /// atas teks yang diperiksa, bukan atas nama halamannya. Kalau teksnya berubah,
     /// pemeriksaan itu tidak lagi menjangkau isi yang sekarang.
     /// </summary>
+    /// <remarks>
+    /// 🔑 <b>Mengulang isi yang sama (sesudah dipangkas) adalah tanpa-operasi</b>: tak
+    /// ada yang berubah, tak ada <see cref="TechnologyUpdated"/>, dan pemeriksaan
+    /// bertahan — pemeriksa membaca teks yang persis sama. Sampai ADR-028 Tahap 2 metode
+    /// ini menggugurkan pemeriksaan pada panggilan APA PUN, padahal
+    /// <see cref="SetPrerequisite"/> dan <see cref="AttachTool"/> sudah memakai aturan
+    /// "hanya bila berbeda" sejak #81; ia tak ketahuan karena tak punya pemanggil
+    /// produksi (#68). Begitu <c>PUT /api/v1/technologies/{slug}</c> memanggilnya, PUT
+    /// yang diulang klien akan membuang kerja pemeriksa tanpa alasan.
+    /// <para>
+    /// Lebar kolom dijaga di sini (<see cref="MaxNameLength"/>, <see cref="MaxSummaryLength"/>):
+    /// teks yang kepanjangan sampai ke PostgreSQL sebagai 500, kelas cacat #26.
+    /// </para>
+    /// </remarks>
     public void Update(string name, string summary, Guid fieldId)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -201,8 +221,26 @@ public sealed class Technology
             throw new ArgumentException("Setiap teknologi harus duduk di satu bidang.", nameof(fieldId));
         }
 
-        Name = name.Trim();
-        Summary = summary?.Trim() ?? string.Empty;
+        var finalName = name.Trim();
+        var finalSummary = summary?.Trim() ?? string.Empty;
+
+        if (finalName.Length > MaxNameLength)
+        {
+            throw new ArgumentException($"Nama topik maksimal {MaxNameLength} karakter (diterima {finalName.Length}).", nameof(name));
+        }
+
+        if (finalSummary.Length > MaxSummaryLength)
+        {
+            throw new ArgumentException($"Ringkasan maksimal {MaxSummaryLength} karakter (diterima {finalSummary.Length}).", nameof(summary));
+        }
+
+        if (Name == finalName && Summary == finalSummary && FieldId == fieldId)
+        {
+            return;
+        }
+
+        Name = finalName;
+        Summary = finalSummary;
         FieldId = fieldId;
         UpdatedAt = DateTimeOffset.UtcNow;
 
@@ -271,6 +309,47 @@ public sealed class Technology
     }
 
     /// <summary>
+    /// Mengganti judul dan uraian <b>langkah yang sudah ada</b> menurut nomornya
+    /// (ADR-028 Tahap 2, #79). Langkah 0 mengikuti <see cref="SetPrerequisite"/>.
+    /// </summary>
+    /// <remarks>
+    /// 🔑 <b>Nomor di sini ALAMAT, bukan isian.</b> Pemanggil hanya bisa menunjuk langkah
+    /// yang sudah ada; menunjuk nomor yang belum ada ditolak, bukan membuatnya. Jadi
+    /// roadmap berlubang (0, 1, 4) tetap mustahil — yang ditutup
+    /// <see cref="RoadmapStep"/> dan <see cref="AddRoadmapStep"/> tidak dibuka lagi lewat
+    /// pintu ini. Menambah langkah baru tetap hanya di ujung, nomornya dari agregat.
+    /// <para>
+    /// Seperti <see cref="SetPrerequisite"/>, mengganti teks pada topik <c>tinjau</c>
+    /// menggugurkan pemeriksaannya, dan mengulang teks yang sama tidak mengubah apa pun —
+    /// bahkan <c>UpdatedAt</c> tak bergerak (ADR-012 Pembaruan 2026-10-06).
+    /// </para>
+    /// </remarks>
+    public void ReplaceRoadmapStep(int order, string title, string description)
+    {
+        if (order == RoadmapStep.PrerequisiteOrder)
+        {
+            SetPrerequisite(title, description);
+            return;
+        }
+
+        var index = order < 0 ? -1 : _roadmap.FindIndex(s => s.Order == order);
+        if (index < 0)
+        {
+            var last = _roadmap.Count == 0 ? "belum punya langkah apa pun" : $"hanya punya langkah 0..{_roadmap.Count - 1}";
+            throw new InvalidOperationException(
+                $"Roadmap '{Slug}' {last}, jadi langkah {order} tidak bisa diganti. Langkah baru ditambah di ujung lewat AddRoadmapStep — nomornya ditentukan server, bukan dikirim pemanggil.");
+        }
+
+        if (!_roadmap[index].Rewrite(title, description))
+        {
+            return;
+        }
+
+        Touch();
+        ExpireReview();
+    }
+
+    /// <summary>
     /// Menautkan sebuah <see cref="Tool"/> ke topik ini. Menautkan alat yang sama
     /// dua kali tidak menambah baris kedua; catatannya yang diperbarui.
     /// </summary>
@@ -304,6 +383,30 @@ public sealed class Technology
         {
             ExpireReview();
         }
+    }
+
+    /// <summary>
+    /// Mencatat bahwa <b>teks sebuah alat katalog</b> (nama atau ringkasan) yang tertaut
+    /// ke topik ini berubah. Menggugurkan <see cref="ContentMaturity.HumanReviewed"/>;
+    /// tanpa-operasi kalau alat itu bukan milik topik ini.
+    /// </summary>
+    /// <remarks>
+    /// 🔑 <b>Satu-satunya pintu yang menggugurkan pemeriksaan topik karena sesuatu yang
+    /// terjadi di agregat LAIN</b>, dan ia ada karena alat dipakai bersama (ADR-015):
+    /// ringkasan alat tampil di halaman topik yang sudah diperiksa, jadi mengubahnya di
+    /// katalog adalah mengubah teks yang dibaca pemeriksa — sama saja dengan mengganti
+    /// catatan alat di <see cref="AttachTool"/>. Dipanggil <c>UpdateToolHandler</c>,
+    /// hanya atas topik yang memang sudah diperiksa.
+    /// </remarks>
+    public void LinkedToolTextChanged(Guid toolId)
+    {
+        if (_tools.All(t => t.ToolId != toolId))
+        {
+            return;
+        }
+
+        Touch();
+        ExpireReview();
     }
 
     /// <summary>Menambah Mini Project — bagian 4 template.</summary>
@@ -594,7 +697,8 @@ public sealed class Technology
     /// <see cref="ContentMaturity.MachineDrafted"/>, pemeriksa dan waktunya dikosongkan,
     /// dan <see cref="TechnologyReviewExpired"/> terbit. Tanpa-operasi kalau topiknya
     /// memang belum diperiksa. Satu tempat untuk <see cref="Update"/>,
-    /// <see cref="SetPrerequisite"/>, dan <see cref="AttachTool"/>, supaya "apa yang
+    /// <see cref="SetPrerequisite"/>, <see cref="ReplaceRoadmapStep"/>,
+    /// <see cref="AttachTool"/>, dan <see cref="LinkedToolTextChanged"/>, supaya "apa yang
     /// terjadi saat pemeriksaan gugur" tak bisa menyimpang antar jalan.
     /// </summary>
     private void ExpireReview()

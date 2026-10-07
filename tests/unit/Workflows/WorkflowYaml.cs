@@ -101,6 +101,45 @@ internal static class WorkflowYaml
         return keys;
     }
 
+    /// <summary>
+    /// Nilai <c>type:</c> sebuah input <c>workflow_dispatch</c> (mis. <c>string</c>,
+    /// <c>boolean</c>), atau <c>null</c> kalau tak dideklarasikan. Dibaca dari baris-baris
+    /// yang lebih menjorok daripada kunci inputnya.
+    /// </summary>
+    public static string? InputType(string[] lines, string namaInput)
+    {
+        for (var i = 0; i < lines.Length; i++)
+        {
+            var trimmed = lines[i].TrimStart(' ');
+            if (trimmed != $"{namaInput}:")
+            {
+                continue;
+            }
+
+            var keyIndent = Indent(lines[i]);
+            for (var j = i + 1; j < lines.Length; j++)
+            {
+                if (lines[j].Trim().Length == 0)
+                {
+                    continue;
+                }
+
+                if (Indent(lines[j]) <= keyIndent)
+                {
+                    break;
+                }
+
+                var isi = lines[j].Trim();
+                if (isi.StartsWith("type:", StringComparison.Ordinal))
+                {
+                    return isi["type:".Length..].Trim().Trim('"');
+                }
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>Semua nama input yang dirujuk <c>inputs.X</c> di mana pun di berkas.</summary>
     public static HashSet<string> InputRefs(string teks)
     {

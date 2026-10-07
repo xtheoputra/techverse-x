@@ -134,6 +134,18 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
             new RoadmapStepRequest("Prasyarat uji", "Deskripsi prasyarat uji.")),
         (HttpMethod.Post, $"/api/v1/technologies/{slug}/roadmap",
             new RoadmapStepRequest("Langkah uji", "Deskripsi langkah uji.")),
+
+        // Jalan UBAH (ADR-028 Tahap 2, #79). Urutannya penting: langkah 1 baru ada
+        // SESUDAH entri di atas, dan alat `{slug}-alat` baru ada sesudah POST /tools -
+        // jadi dengan sakelar hidup ketiganya menjawab 200 (tidak pernah 404, yang akan
+        // tak terbedakan dari "rutenya tidak dipasang"). Topiknya diganti dengan isi yang
+        // SAMA persis, jadi pembersihan dan entri lain tak terpengaruh.
+        (HttpMethod.Put, $"/api/v1/technologies/{slug}",
+            new UpdateTechnologyRequest("Uji Permukaan Tulis", "Ringkasan untuk uji.")),
+        (HttpMethod.Put, $"/api/v1/technologies/{slug}/roadmap/1",
+            new RoadmapStepRequest("Langkah uji", "Deskripsi langkah uji.")),
+        (HttpMethod.Put, $"/api/v1/tools/{slug}-alat",
+            new UpdateToolRequest("Uji Permukaan Tulis", "Ringkasan alat untuk uji.", "https://contoh.test")),
         (HttpMethod.Post, $"/api/v1/technologies/{slug}/tools",
             new AttachToolRequest("alat-apa-saja", null)),
         (HttpMethod.Post, $"/api/v1/technologies/{slug}/projects",

@@ -13,6 +13,8 @@ using TechVerseX.TechnologyService.Features.MarkReviewed;
 using TechVerseX.TechnologyService.Features.RequireTopic;
 using TechVerseX.TechnologyService.Features.Search;
 using TechVerseX.TechnologyService.Features.SearchTechnology;
+using TechVerseX.TechnologyService.Features.UpdateTechnology;
+using TechVerseX.TechnologyService.Features.UpdateTool;
 using TechVerseX.TechnologyService.Infrastructure.Persistence;
 
 namespace TechVerseX.TechnologyService;
@@ -53,6 +55,8 @@ public static class TechnologyModule
         services.AddScoped<RemoveRequirementHandler>();
         services.AddScoped<MarkReviewedHandler>();
         services.AddScoped<CreateToolHandler>();
+        services.AddScoped<UpdateTechnologyHandler>();
+        services.AddScoped<UpdateToolHandler>();
 
         services.AddScoped<IValidator<CreateTechnologyCommand>, CreateTechnologyValidator>();
 
@@ -120,6 +124,11 @@ public static class TechnologyModule
 
         technologies.MapCreateTechnology();
 
+        // Mengganti nama dan ringkasan topik yang sudah ada (ADR-028 Tahap 2, #79).
+        // Tulisan REDAKSI seperti yang lain: hilang di produksi, dan dijaga
+        // SemuaEndpointTulis.
+        technologies.MapUpdateTechnology();
+
         // Bagian isi halaman bersarang di bawah topiknya — mereka tidak punya
         // hidup di luar topik itu, sama seperti mereka tidak punya DbSet sendiri.
         technologies.MapEditContentSections();
@@ -147,6 +156,7 @@ public static class TechnologyModule
         var tools = routes.MapGroup("/api/v1/tools").WithTags("Tool");
 
         tools.MapCreateTool();
+        tools.MapUpdateTool();
 
         return routes;
     }
