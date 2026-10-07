@@ -69,7 +69,7 @@ Perbaikannya **PR terpisah dari `main`**, bukan ditumpuk di #85: **[#86](https:/
 - **ADR-028 tak diedit** (lihat atas). **RENCANA-V1 tak diperbarui** dengan ± 33%.
 - Tahap 3 dan 4 tak dimulai: keduanya menunggu #84 dan Tahap 2 di `main` (urutannya ada di ADR-028, yang baru masuk `main` bersama #84).
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan akhir sesi, SEBELUM pemilik me-merge (digantikan oleh 🏁 di Lanjutan, di bawah)
 
 **PR terbuka, ketiganya berbasis `main` dan berdiri sendiri:** [#86](https://github.com/xtheoputra/techverse-x/pull/86) (`fase-1/tambal-sharp-ghsa-wq5f-xc86`, hanya lockfile; **CI hijau**), [#85](https://github.com/xtheoputra/techverse-x/pull/85) (`fase-1/jalan-ubah-adr-028-tahap-2`, Tahap 2; **CI merah hanya di "Citra peti kemas" karena `sharp`**), dan [#84](https://github.com/xtheoputra/techverse-x/pull/84) (`fase-1/ui-futuristik-fondasi`, Tahap 0–1; hijau saat dibuat, **kemungkinan besar merah juga bila dijalankan ulang** — belum saya jalankan). `origin/main` = `eef86a6` (diukur 2026-10-07). Produksi tak berubah: 14 bidang, 1 topik (`model-context-protocol`, `draf`), **0 dari 22 `tinjau`**.
 
@@ -87,6 +87,40 @@ Perbaikannya **PR terpisah dari `main`**, bukan ditumpuk di #85: **[#86](https:/
 **Masih tanpa jalan ([#79](https://github.com/xtheoputra/techverse-x/issues/79)):** membuang langkah roadmap, menghapus alat katalog, memindahkan topik antar-bidang. **Belum terukur:** `isi.yml --ganti` terhadap Neon dan citra yang terbit.
 
 **Lingkungan — 2026-10-07:** cabang kerja `fase-1/jalan-ubah-adr-028-tahap-2`. **Docker Desktop saya nyalakan** (mati saat sesi mulai); container `techversex-*` sehat dan tak disentuh selain basis data sekali pakai `techversex_ganti` dan API port 5099 yang saya buat — **keduanya sudah dihentikan/dihapus** (pendengar 5099 dicocokkan dengan baris perintah dan waktu mulainya dulu; `DROP DATABASE` berhasil; basis data pengembangan nol baris sisa uji). `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
+
+### Lanjutan 2026-10-07 — *"saya sudah merge 86"*: ternyata ketiganya sudah ter-merge, dan CI `main` hijau
+
+Pemilik menulis hanya soal #86. Diukur sebelum menjawab, bukan dari pesannya: **#86 03:45:43 UTC, #85 03:47:07, #84 03:48:33** — ketiganya `MERGED`, `origin/main` = `41bf1bd`. Dua dari tiga terjadi selagi saya bekerja.
+
+| Yang diukur | Hasil |
+|---|---|
+| `main` memuat tambalan | `package-lock.json` di `origin/main`: `sharp` **0.35.5** |
+| CI dan "Rilis citra" di `main` | **hijau** di `8e782bb` (#86), `4631e30` (#85), dan `41bf1bd` (#84) — termasuk gerbang `--ganti` dan pemindai citra. **Inilah bukti "hijau di atas #86" yang kemarin belum ada**; PR #85 sendiri tak pernah hijau |
+| Produksi | web 200 di `/`, `/cari?q=quantum`, `/teknologi/ai-agents`, `/teknologi/model-context-protocol`; HTML beranda memuat `Geist` dan `aurora` (antarmuka baru tayang); API: `totalItems` 1, `model-context-protocol` `MachineDrafted`; `/health/ready` 200 |
+| Permukaan tulis produksi | `PUT` topik → 405, `PUT` langkah → 404, `PUT` alat → 404, `POST` topik → 405, `DELETE` proyek → 404 — **tak ada yang bocor** (tiga rute `PUT` baru tak dipasang di produksi, seperti ADR-020 menuntut) |
+
+**Yang saya lakukan, dan satu yang ternyata tak perlu:** karena CI lama #85 dan #84 tak memuat lockfile baru (menjalankan ulang job memakai merge-commit lama), saya menggabungkan `main` ke kedua cabang dengan merge, tanpa push paksa. Untuk #84 itu **mendarat** (`293c7fa`, CI barunya hijau termasuk "Citra peti kemas"). Untuk #85 itu **tidak**: pemilik me-merge #85 di head `3a5a983` sebelum push saya (`9ba7fbc`), jadi commit itu hanya tinggal di cabang yang sudah selesai dan tak ada di `main`. Tak berbahaya, tapi sia-sia. **Saya juga menyentuh cabang #84 tanpa diminta**; isinya terhadap `main` tak berubah (hanya lockfile `sharp`), dan lockfile gabungan itu lolos `npm ci` di CI.
+
+**Satu kesalahan baca yang nyaris:** `gh pr checks 85 --watch` kembali dengan hasil **lama** (run `37567378365`, commit `3a5a983`) karena run baru belum terdaftar; ketahuan dari ID run yang sama dengan sebelumnya. Hasil pengamat semacam itu harus dicocokkan dengan commit yang dituju.
+
+**Dokumen:** ADR-028 mendapat Pembaruan 2026-10-07 (Status, koreksi tiga butirnya, hasil terukur) dan indeks ADR disesuaikan — utang yang saya tulis di 🏁 sebelumnya ("satu baris di ADR-028 begitu #84 ter-merge"), kini lunas.
+
+**Tak ada yang saya merge.** Antarmuka baru di produksi **belum saya lihat dengan mata**, hanya penandanya di HTML.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**`main` = `41bf1bd`, memuat Tahap 1 (antarmuka), Tahap 2 (jalan ubah), dan tambalan `sharp`.** PR #84, #85, #86 semuanya `MERGED`; satu-satunya PR terbuka adalah PR docs yang memuat entri ini. CI `main` hijau. Produksi: 14 bidang, 1 topik (`model-context-protocol`, `draf`), **0 dari 22 `tinjau`**, antarmuka baru tayang, tulis tertutup.
+
+**Menunggu pemilik:**
+
+1. **Lihat antarmuka baru di <https://techverse-x-web.vercel.app>** dan nilai arahnya (*gelap-neon/aurora*). Ini penilaian yang dulu ditunda ke pratinjau Vercel yang butuh login; sekarang cukup membuka situsnya. Jawaban *"arahnya benar"* atau *"ubah X"* menentukan seberapa banyak Tahap 3 bergantung pada kulit ini.
+2. **Beri tahu saya untuk memulai Tahap 3** (isi kaya: Markdown terbatas, entitas media, penampil, pemeriksa berkas). Ia menyentuh basis data (migrasi baru untuk media) dan memilih satu pustaka pengurai Markdown — dua keputusan yang ADR-028 sengaja tunda sampai Tahap 2 terbukti, dan kini boleh diambil. Saya akan menuliskannya dulu sebagai Pembaruan ADR-028 (rekomendasi + alasan + alternatif) **sebelum** satu baris kode, lalu satu PR berbasis `main`.
+
+**Tahap 4** (tulis ulang pilot MCP: mendalam, berdiagram SVG, bervideo) menunggu Tahap 3. Itulah yang akhirnya menjawab keluhan pemilik *"kontennya kurang detail"* — Tahap 1 dan 2 hanya kulit dan jalan ubahnya; **halaman MCP masih ± 1.074 kata teks polos**.
+
+**Masih tanpa jalan ([#79](https://github.com/xtheoputra/techverse-x/issues/79), tetap terbuka):** membuang langkah roadmap, menghapus alat katalog, memindahkan topik antar-bidang. **Belum terukur:** `isi.yml` dengan `ganti` terhadap Neon dan citra yang terbit. **Angka resmi:** 0 dari 22 `tinjau`; ± 33% menurut pekerjaan per bulan rencana (bukan angka resmi, dan belum ditulis ke RENCANA-V1).
+
+**Lingkungan — akhir sesi 2026-10-07:** cabang kerja `fase-1/catatan-sesi-22-lanjutan` (dari `main` `41bf1bd`). Docker Desktop hidup (saya yang menyalakannya); container `techversex-*` sehat dan tak disentuh; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**. Worktree sementara di folder Temp **sudah dihapus** dan metadatanya dipangkas (`git worktree list` hanya satu entri). Basis data sekali pakai dan API port 5099 sudah dihentikan di bagian atas entri ini.
 
 ---
 
