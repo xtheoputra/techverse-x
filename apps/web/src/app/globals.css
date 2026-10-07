@@ -302,6 +302,12 @@ body {
     margin-top: 0.4em;
   }
 
+  /*
+    Kode sebaris yang panjang (`io.modelcontextprotocol/subscriptionId`) boleh patah daripada
+    meluberkan halaman: diukur di Tahap 4, empat token seperti itu membuat halaman ponsel 510 px
+    di layar 378 px (kolom roadmap hanya 222 px). `break-word`, bukan `anywhere`: lebar
+    min-content tabel tak berubah, jadi tabel tetap menggulir di dalam kotaknya.
+  */
   .prose-tv :not(pre) > code {
     font-family: var(--font-mono);
     font-size: 0.86em;
@@ -310,6 +316,7 @@ body {
     background: rgb(255 255 255 / 0.08);
     border: 1px solid var(--line);
     color: #e0e7ff;
+    overflow-wrap: break-word;
   }
 
   .prose-tv pre {

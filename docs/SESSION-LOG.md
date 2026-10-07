@@ -4,6 +4,76 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-07 — Sesi 23: produksi yang 500 selama tiga jam dipulihkan, gerbang isi jadi satu berkas, dan pilot MCP ditulis ulang (Tahap 4)
+
+Permintaan pemilik: *"lanjutkan progress sebanyak mungkin"*.
+
+### Keadaan saat mulai — diukur, bukan dari 🏁
+
+Pohon kerja bersih di `fase-1/tahap-3b-media-overview`. **#90 sudah ter-merge 06:28:04 UTC** (`main` = `39ac35a`), `Rilis citra` dan CI `main` hijau — tetapi *Migrasi produksi* **belum** dijalankan. Akibatnya diukur 09:43 UTC: `GET /api/v1/technologies/model-context-protocol` → **500**, dan halaman topik satu-satunya di produksi menampilkan *"Halaman ini belum bisa diambil"*. Kesehatan 200 dan daftar bidang 200 — rusaknya hanya di jalur yang membaca kolom baru.
+
+### 1. Produksi dipulihkan — atas izin yang diminta lebih dulu
+
+Ditanyakan lewat pertanyaan pilihan (izin untuk #89 tak berlaku di sini, seperti 🏁 Sesi 22 tulis); pemilik memilih **"Ya, jalankan sekarang"**. `migrasi-produksi.yml` dengan `sha=39ac35a` (run `37602656011`): `Applying migration '20261007050935_MediaDanOverview'`, `Done.` Sesudahnya: API topik **200** (dengan `overview: null` dan `media: []`), halaman MCP tampil lagi, 17 bidang, kesehatan 200.
+
+🔴 **Jendelanya ± 3 jam 16 menit, bukan "beberapa menit" seperti yang ADR-028 butir 5 dan PR #90 janjikan.** Rencananya "merge lalu langsung migrasi", tetapi 🏁 saya juga menulis bahwa saya akan meminta izin baru *sesudah* merge — dan tak ada sesi yang berjalan saat pemilik me-merge. Langkah "langsung" itu tak punya pelaku. Aturan baru dicatat di ADR-028 Pembaruan (4): PR bermigrasi menyebut pemicu migrasi sebagai langkah pemilik tepat sesudah merge, atau izinnya diberikan sebelum merge.
+
+**Tak diukur ulang:** permukaan tulis produksi — permintaan uji `PUT`/`POST`/`DELETE` ke produksi ditolak penjaga izin sesi, dan saya tak mencari jalan lain.
+
+### 2. Gerbang isi berbasis API jadi satu berkas — [PR #91](https://github.com/xtheoputra/techverse-x/pull/91)
+
+Celah yang Sesi 22 (Lanjutan 4) catat dan tak bangun: tiga gerbang job Backend (isi dipasang dua kali, `uji-ganti`, `uji-media`) hanya hidup sebagai YAML di `ci.yml`, sementara `run.ps1 ci` mengaku "seluruh gerbang ci.yml". Kini `database/isi/gerbang-isi.mjs`, dipanggil `ci.yml`, `run.ps1 gerbang-isi`/`ci`, dan kembaran `make`-nya. Inisiatif saya, berdiri sendiri di atas `main`.
+
+| Yang dibuktikan | Hasil |
+|---|---|
+| `run.ps1 gerbang-isi` | hijau, 33 detik (1 topik; 36 + 36 `ok`) |
+| Cacat #90 ditiru (`uji-ganti` menunggu teks lama) | **MERAH**, exit 1, `35 ok, 1 GAGAL`; gerbang 3 tetap jalan. Dipulihkan identik |
+| Port 5099 dipegang proses lain | exit 2, proses itu tetap hidup |
+| `run.ps1 ci` penuh | hijau, **403 detik** |
+| CI #91 (runner) | **semua check hijau**; langkah baru memakai cabang `psql`, 36 + 36 `ok`, `VONIS: HIJAU` (komentar di PR) |
+
+### 3. Tahap 4: pilot MCP ditulis ulang — cabang `fase-1/tahap-4-pilot-mcp-mendalam`
+
+Dari sumber primer yang **dibaca mentah saat menulis** (berkas `.mdx` spesifikasi revisi 2026-07-28 dari repo resminya, dokumentasi 2026-07-28, README ketiga SDK, pengumuman donasi Anthropic), bukan dari ingatan. Rinciannya di [ADR-028 Pembaruan (4)](adr/ADR-028-antarmuka-futuristik-dan-isi-kaya.md).
+
+- **762 → 2.795 kata**; Overview berformat ± 8.000 karakter; roadmap **9 → 11** langkah berformat; **2** proyek dengan kriteria selesai; **15** sumber.
+- **4 diagram SVG buatan sendiri** (arsitektur, dua lapis, jabat tangan → permintaan mandiri, MRTR) — dirender dulu ke PNG lewat `sharp` dan **dilihat**: diagram pertama ternyata kehilangan dua garisnya (gradien `objectBoundingBox` pada garis datar tak tergambar), diperbaiki dengan `userSpaceOnUse`.
+- **2 video resmi Anthropic**, keduanya lolos kedua langkah aturan video **untuk pertama kalinya pada video sungguhan**: oEmbed 200 (`author_name` Anthropic, judul = `alt`, `playableInEmbed: true`) **dan bingkai dilihat serta diputar di origin https produksi** dengan atribut yang sama dengan `MediaFigure`.
+- **Isi lama ternyata tak lengkap untuk revisi yang ia ajarkan**: tak menyebut MRTR, `subscriptions/listen`, `resultType`, cache, header HTTP baru, maupun status *deprecated* Sampling/Roots/Logging, dan menyebut 2025-06-18 sebagai revisi `initialize` terakhir (yang benar 2025-11-25).
+
+**Terukur:** pemeriksa berkas sah; gerbang isi berbasis API (berkas #91 disalin sementara) hijau; **jalur produksi ditiru** — isi lama dari `main` terpasang, isi baru tanpa `--ganti` = `BEDA` tanpa tulisan, `--ganti` = 36 baris rencana lalu sama dengan berkas, ulang = nol tulisan; tampilan Chrome (build produksi) dilihat bagian demi bagian; pemindai halaman ADR-024: 25 halaman, 0 kena. `run.ps1 verify`: **hijau** (276 detik; 186 unit + 133 integrasi).
+
+🔴 **Ponsel meluber, dan itu cacat penampil, bukan isi:** iframe 390 px → halaman **510 px** di layar 378 px, karena empat kode sebaris panjang (`io.modelcontextprotocol/subscriptionId`, …) tak bisa patah di kolom roadmap 222 px. Satu baris CSS (`overflow-wrap: break-word` untuk kode sebaris) → **378 = 378**, tabel tetap menggulir. Satu-satunya perubahan Tahap 4 di luar `isi/` dan media.
+
+### Kesalahan dan temuan kecil
+
+- **Penulisan isi dengan `python -` dari heredoc merusak `°`**: Python membaca skrip dari stdin dengan kode halaman Windows, jadi pencocokan teks bersimbol gagal (ketahuan dari `assert`, tak ada berkas rusak). Diganti `Edit` pada berkas skrip.
+- **Satu skrip pemeriksa di halaman ditolak** saat memuat `fetch`; pemeriksaan berkas media dipindah ke `curl`.
+- **Grup tab Chrome hilang di tengah jalan** (tab baru diminta ulang); tak ada yang tertinggal.
+
+### Yang TIDAK dikerjakan
+
+- Tak ada yang di-merge; **isi baru belum dipasang ke produksi** (butuh merge, lalu *Pasang isi* dengan **ganti** dicentang — pemilik).
+- Enam topik AI Agents lain tetap menunggu penilaian pemilik atas pilot ini.
+- Label diagram di ponsel kecil (± 8–9 px); usul "ketuk untuk membuka SVG utuh" belum dibangun.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**PR terbuka, keduanya berbasis `main` (`39ac35a`) dan berdiri sendiri:** [#91](https://github.com/xtheoputra/techverse-x/pull/91) (gerbang isi satu berkas; **CI hijau seluruhnya**) dan PR Tahap 4 (pilot MCP ditulis ulang; CI menyusul). Produksi: 17 bidang, 1 topik (`draf`, isi **lama**), skema 3b sudah di Neon, **0 dari 22 `tinjau`**.
+
+**Menunggu pemilik, berurutan:**
+
+1. **Baca PR Tahap 4** — mulai dari pratinjau isi di diff (`isi/ai-agents/model-context-protocol.json`) dan keempat SVG; ADR-028 Pembaruan (4) untuk cara verifikasinya. Merge bila layak.
+2. **Sesudah merge: Actions → *Pasang isi*** (`sha` = SHA merge yang `Rilis citra`-nya hijau, `slug` = `model-context-protocol`, **ganti dicentang**). Tanpa *ganti* pemasang berhenti dengan `BEDA` dan tak menulis — itu perilaku yang benar, bukan galat. Tak ada migrasi di PR ini.
+3. **Baca halaman jadinya** di <https://techverse-x-web.vercel.app/teknologi/model-context-protocol>, lalu *Naikkan ke tinjau* bila layak — itu yang akan menjadi angka resmi pertama (1 dari 22).
+4. **#91** boleh di-merge kapan saja; urutannya terhadap Tahap 4 bebas (berkas berbeda kecuali `isi/README.md`, di bagian yang berbeda).
+
+**Berikutnya, saya:** menunggu penilaian pilot; bila arahnya diterima, enam topik AI Agents berikutnya dengan pola yang sama (sumber primer dibaca saat menulis, diagram dilihat, video diverifikasi di https). #79 tetap terbuka.
+
+**Lingkungan — akhir sesi:** cabang kerja `fase-1/tahap-4-pilot-mcp-mendalam`. Server web (3401) dan API (5098, 5099) yang saya mulai **sudah dihentikan** (PID dicocokkan dengan baris perintah dan waktu mulainya); basis data sekali pakai `techversex_isi` dan `techversex_tahap4` **dibuang**; tab Chrome tertutup. Docker Desktop hidup; container `techversex-*` tak disentuh selain itu; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
+
+---
+
 ## 2026-10-07 — Sesi 22: *"berapa %?"* dijawab lagi, lalu jalan ubah isi (ADR-028 Tahap 2, #79) dibangun di atas `main`
 
 Permintaan pemilik, berurutan: *"sudah berapa % proyek ini jadi ?"* → *"lanjutkan progress"*.

@@ -1,6 +1,6 @@
 # ADR-028 — Antarmuka futuristik gelap-neon dan isi kaya: Markdown terbatas, blok media, dan jalan ubah
 
-**Status:** Diusulkan — **Tahap 1 (antarmuka) dibangun dan diukur (2026-10-06); Tahap 2 (jalan ubah) dibangun dan diukur (2026-10-07, lihat Pembaruan di bawah); keduanya ter-merge ke `main` 2026-10-07; Tahap 3 dipecah 3a/3b dan keputusannya ditulis (Pembaruan (2)); Tahap 3a (Markdown terbatas) dibangun, diukur, dan ter-merge (#88; Pembaruan (2), butir 7); Tahap 3b (media dan `overview`) dibangun dan diukur, **belum ter-merge dan migrasinya belum dijalankan di produksi** (Pembaruan (3)); Tahap 4 belum.** Keputusan arahnya diambil pemilik di percakapan yang sama dengan penulisan ADR ini; yang belum diputuskan tertulis di bagian *Yang SENGAJA tidak diputuskan*.
+**Status:** Diusulkan — **Tahap 1 (antarmuka) dibangun dan diukur (2026-10-06); Tahap 2 (jalan ubah) dibangun dan diukur (2026-10-07, lihat Pembaruan di bawah); keduanya ter-merge ke `main` 2026-10-07; Tahap 3 dipecah 3a/3b dan keputusannya ditulis (Pembaruan (2)); Tahap 3a (Markdown terbatas) dibangun, diukur, dan ter-merge (#88; Pembaruan (2), butir 7); Tahap 3b (media dan `overview`) dibangun, diukur, ter-merge (#90), dan dimigrasi ke Neon (Pembaruan (3) dan (4)); Tahap 4 (pilot MCP ditulis ulang) dibangun dan diukur, belum ter-merge dan belum dipasang di produksi (Pembaruan (4)).** Keputusan arahnya diambil pemilik di percakapan yang sama dengan penulisan ADR ini; yang belum diputuskan tertulis di bagian *Yang SENGAJA tidak diputuskan*.
 **Tanggal:** 2026-10-06
 
 ## Konteks
@@ -260,3 +260,58 @@ Tambahan yang tak ada di butir 5:
 - **Penilaian visual tetap milik pemilik.** Tampilan dilihat lewat build produksi di IP LAN dan iframe 390 px, bukan di ponsel sungguhan.
 - **Produksi belum punya skemanya.** Sampai *Migrasi produksi* dijalankan, API baru yang dibangun otomatis oleh Vercel membaca kolom yang belum ada, dan halaman topik membalas 500 — jendela yang sudah diperingatkan di butir 5. Ia dijalankan hanya atas izin baru dari pemilik, dan sesudahnya produksi diperiksa ulang (jumlah bidang, kesehatan, topik terbaca, tulis tertutup).
 - **Belum bisa** (tetap di [#79](https://github.com/xtheoputra/techverse-x/issues/79)): membuang langkah roadmap, menghapus alat dari katalog, memindahkan topik antar-bidang.
+
+## Pembaruan 2026-10-07 (4) — 3b tayang (dengan jendela yang jauh lebih lebar dari rencana), dan Tahap 4: pilot MCP ditulis ulang
+
+### Penyebaran 3b: jendela "beberapa menit" ternyata ± 3 jam 16 menit
+
+#90 ter-merge **06:28:04 UTC**; `Rilis citra` untuk `39ac35a` hijau beberapa menit kemudian. *Migrasi produksi* baru dijalankan **09:44 UTC** (run `37602656011`: `Applying migration '20261007050935_MediaDanOverview'`, `Done.`), atas izin pemilik yang diminta di awal sesi berikutnya. Diukur sesaat sebelumnya (09:43 UTC): `GET /api/v1/technologies/model-context-protocol` → **500**, dan halaman topik di produksi menampilkan *"Halaman ini belum bisa diambil"*. Sesudah migrasi: API **200**, halaman tampil lagi, 17 bidang, kesehatan 200.
+
+**Sebabnya ada di rencana, bukan di kode.** Butir 5 dan PR #90 menulis "merge, lalu langsung jalankan *Migrasi produksi*", tetapi 🏁 sesi itu juga menulis bahwa saya akan **meminta izin baru** sesudah merge — dan saat merge terjadi tak ada sesi yang berjalan. Langkah "langsung" itu tak punya pelaku. **Aturan untuk PR bermigrasi berikutnya:** badan PR menyebut pemicu migrasinya sebagai langkah pemilik sendiri tepat sesudah merge (dengan SHA merge), atau izinnya diberikan **sebelum** merge — bukan diminta sesudahnya.
+
+Permukaan tulis produksi **tidak** diukur ulang kali ini (permintaan uji tulis ke produksi ditolak penjaga izin sesi); yang menjaganya tetap uji `PermukaanTulisTests` dan gerbang ADR-020 di CI `main`.
+
+### Tahap 4 — yang ditulis
+
+Berkas `isi/ai-agents/model-context-protocol.json` ditulis ulang untuk revisi spesifikasi **2026-07-28**, dan empat diagram SVG buatan sendiri ditaruh di `apps/web/public/media/model-context-protocol/`.
+
+| | Sebelum (pilot 2026-10-06) | Sesudah |
+|---|---|---|
+| Kata (`pasang.mjs --cek`) | 762 | **2.795** |
+| Overview berformat | — | ± 8.000 karakter: 9 sub-judul, 2 tabel, 2 blok kode, 2 kotak, 5 media |
+| Langkah roadmap | 9, teks polos | **11**, berformat: 2 tabel, 7 blok kode, 4 kotak, 3 diagram |
+| Proyek mini | 1 | 2, masing-masing dengan kriteria selesai bernomor |
+| Sumber | 8 | 15 (termasuk 2 video) |
+| Media | 0 | 4 diagram (arsitektur, dua lapis, jabat tangan → permintaan mandiri, MRTR) + 2 video resmi |
+
+**Isi lama ternyata tak hanya tipis tetapi juga tak lengkap untuk revisi yang ia ajarkan.** Pilot 2026-10-06 sudah menyebut 2026-07-28 dan `server/discover`, tetapi tidak menyebut perubahan lain di revisi yang sama: MRTR (`InputRequiredResult`) yang menggantikan permintaan dari server ke client, `subscriptions/listen`, `resultType` wajib, petunjuk cache `ttlMs`/`cacheScope`, header `Mcp-Method`/`Mcp-Name`, dan status *deprecated* untuk Sampling, Roots, dan Logging. Ia juga membandingkan dengan "revisi 2025-06-18 yang masih memakai `initialize`" — jabat tangan itu bertahan sampai **2025-11-25**. Semuanya kini tertulis, dari sumber yang dibaca saat menulis.
+
+### Sumber, dan cara memverifikasinya
+
+- **Spesifikasi dibaca mentah**, bukan lewat ringkasan: berkas `.mdx` revisi 2026-07-28 dari repo `modelcontextprotocol/modelcontextprotocol` (commit `3f6e5e17e2`, 2026-09-22) — indeks, arsitektur, protokol dasar, versi, *changelog*, *deprecated*, `server/discover`, tools, resources, prompts, stdio, Streamable HTTP, MRTR, langganan, cache, elicitation, otorisasi dan pertimbangan keamanannya — serta dokumentasi 2026-07-28 (arsitektur, *Build an MCP server*, SDK, Inspector, *Security best practices*), README ketiga SDK, dan pengumuman donasi Anthropic (9 Desember 2025).
+- **Kelima belas URL sumber menjawab 200.** Alamat tanpa tanggal (`/docs/…`, `/specification/latest`) dialihkan ke revisi 2026-07-28 (diukur `307`).
+- **Video — kedua langkah di `isi/README.md` dijalankan, untuk pertama kalinya pada video sungguhan:** (1) oEmbed **200**, `author_name` **Anthropic**, judul sama dengan `alt`, dan halaman tontonnya menyatakan `playableInEmbed: true`; (2) **bingkai dilihat dan diputar di origin https produksi** — `https://techverse-x-web.vercel.app`, `isSecureContext` benar, atribut bingkai sama dengan `MediaFigure` (`sandbox`, `allow`, `referrerpolicy`): video pertama berputar (19:34, takarir jalan), yang kedua tampil dengan judulnya. Keduanya juga tampil dari `http://` IP LAN, tak seperti video uji di Pembaruan (3). Keduanya **direkam sebelum revisi 2026-07-28**, dan keterangannya mengatakan itu.
+
+### Yang diukur
+
+| Yang dibuktikan | Hasil |
+|---|---|
+| Pemeriksa berkas | sah, **2.795 kata** |
+| Gerbang isi berbasis API (berkas `gerbang-isi.mjs` dari PR #91, disalin sementara) | **hijau**: pasang dari nol, pemasangan kedua nol tulisan; `uji-ganti` 36 ok; `uji-media` 36 ok |
+| Jalur produksi ditiru (basis data sekali pakai) | isi **lama** dari `main` terpasang → isi baru tanpa `--ganti`: `BEDA`, kode 1, **tak menulis**; dengan `--ganti`: **36 baris rencana** dicetak dulu (9 langkah diganti, 2 ditambah, proyek diganti, 7 sumber, 4 alat, 6 media), lalu sama dengan berkas; ulang: **nol tulisan** |
+| Tampilan, Chrome, build produksi | 6 figur (4 SVG, 2 video), 9 blok kode, 4 tabel, 6 kotak — **dilihat** bagian demi bagian |
+| Ponsel (iframe 390 px) | **merah dulu**: halaman **510 px** di layar 378 px — empat kode sebaris panjang (`io.modelcontextprotocol/subscriptionId`, `notifications/subscriptions/acknowledged`, …) tak bisa patah di kolom roadmap 222 px. Sesudah perbaikan CSS: **378 = 378**; tabel tetap menggulir di dalam kotaknya |
+| Pemindai halaman ADR-024 | 25 halaman, **0** teks terlarang, semua 200 |
+| `run.ps1 verify` | **hijau** (276 detik): 44 uji pengurai, 17 uji media, 186 unit + 133 integrasi, lint, build web, build ketat 0 peringatan |
+
+### Satu perubahan di luar `isi/`
+
+`overflow-wrap: break-word` untuk kode sebaris di `.prose-tv` (`globals.css`). Ini cacat penampil yang hanya terlihat begitu isi sungguhan memakai token teknis panjang — persis jenis temuan yang hanya muncul saat halaman dilihat. `break-word`, bukan `anywhere`, supaya lebar min-content tabel tak berubah dan tabel tetap menggulir.
+
+### Batas yang jujur
+
+- **Belum dibaca pemilik, belum di produksi.** Topik tetap `draf`; jalannya merge → *Pasang isi* dengan **ganti** dicentang (pemilik) → pemilik membaca halaman jadinya → *Naikkan ke tinjau* bila layak. Angka resmi tetap **0 dari 22 `tinjau`**.
+- **Label diagram kecil di ponsel.** Di lebar 286 px, label utama ± 8–9 px; terbaca dengan cubit-perbesar. Usul (belum dibangun): gambar bisa diketuk untuk membuka SVG-nya utuh.
+- **Contoh kode dikutip dari tutorial dan spesifikasi, tidak saya jalankan.** Yang terverifikasi adalah teksnya sama dengan sumber yang tayang, bukan bahwa server cuacanya berjalan di mesin ini.
+- **Isi ini mengikat revisi 2026-07-28.** Begitu revisi berikutnya terbit, tautan `/specification/latest` berpindah lebih dulu daripada teksnya; tabel "dulu/kini" dan bagian *deprecated* yang pertama perlu dicocokkan ulang.
+- Sisa enam topik AI Agents **tetap menunggu** penilaian pemilik atas pilot ini (pola *pilot dulu*).
