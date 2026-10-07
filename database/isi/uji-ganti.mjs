@@ -162,7 +162,9 @@ if (b.kode !== 0) console.log(b.keluaran);
 harus(b.kode === 0, 'kode keluar 0');
 harus(b.keluaran.includes('selesai'), 'berakhir dengan "selesai ... sama dengan berkas"');
 for (const rencana of [
-  'ganti nama/ringkasan topik',
+  // `PUT` topik mengganti nama, ringkasan, DAN overview sekaligus (ADR-028 Tahap 3b), jadi rencananya
+  // menyebut ketiganya. Topik pilot belum punya overview; yang dijaga di sini hanya bahwa rencana dicetak.
+  'ganti nama/ringkasan/overview topik',
   'ganti langkah roadmap 1',
   'buang proyek',
   'buang sumber',
