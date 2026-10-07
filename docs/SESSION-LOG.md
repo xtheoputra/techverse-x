@@ -211,7 +211,7 @@ Pemilik menjawab tiga hal: #89 **sudah ter-merge**; saya **diizinkan menjalankan
 
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
-**PR terbuka:** Tahap 3b ([#90](https://github.com/xtheoputra/techverse-x/pull/90)), berbasis `main` `3bf31bb`, **membawa migrasi skema** — merge berarti jendela beberapa menit di mana halaman topik membalas 500 sampai migrasi dijalankan (lihat PR). Produksi: **17 bidang**, 1 topik (`draf`), **0 dari 22 `tinjau`**; skema 3b belum ada di Neon.
+**PR terbuka:** Tahap 3b ([#90](https://github.com/xtheoputra/techverse-x/pull/90)), berbasis `main` `3bf31bb`, ujung cabang `4fdda6b`, **semua check CI hijau** (putaran pertama merah — lihat Temuan di atas; `uji-ganti` 36 dan `uji-media` 36 pemeriksaan, 186 unit + 133 integrasi di runner), `MERGEABLE`/`CLEAN`, **belum di-merge**. Ia **membawa migrasi skema** — merge berarti jendela beberapa menit di mana halaman topik membalas 500 sampai migrasi dijalankan (lihat PR). Produksi: **17 bidang**, 1 topik (`draf`), **0 dari 22 `tinjau`**; skema 3b belum ada di Neon.
 
 **Menunggu pemilik:**
 
