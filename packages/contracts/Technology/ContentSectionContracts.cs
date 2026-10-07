@@ -4,11 +4,13 @@ namespace TechVerseX.Contracts.Technology;
 /// Satu langkah roadmap — bagian 2 template ADR-012.
 /// </summary>
 /// <remarks>
-/// 🔴 <b><c>Order</c> ada di RESPONS, tapi tidak ada di satu pun REQUEST</b>, dan
-/// itu bentuk yang disengaja. Nomor langkah ditentukan agregat
+/// 🔴 <b><c>Order</c> ada di RESPONS, tapi tidak ada di BADAN satu pun REQUEST</b>,
+/// dan itu bentuk yang disengaja. Nomor langkah ditentukan agregat
 /// (<c>AddRoadmapStep</c>), bukan dikirim pemanggil; kalau kontrak permintaannya
 /// memuat nomor, roadmap berlubang berhenti jadi mustahil dan kembali jadi soal
-/// ketelitian penulis.
+/// ketelitian penulis. Satu-satunya tempat nomor muncul di sisi permintaan adalah
+/// ALAMAT <c>PUT …/roadmap/{order}</c> (ADR-028 Tahap 2), dan di sana ia hanya
+/// menunjuk langkah yang sudah ada.
 /// </remarks>
 public sealed record RoadmapStepResponse(
     int Order,

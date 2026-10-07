@@ -34,6 +34,14 @@ public static class EditContentSectionsEndpoint
             .WithSummary("Menambah satu langkah roadmap di ujung. Nomornya ditentukan server.")
             .ProducesValidationProblem();
 
+        // Nomor di alamat ini ALAMAT langkah yang sudah ada, bukan isian: nomor yang
+        // belum ada ditolak 400, jadi roadmap berlubang tetap mustahil (ADR-028 Tahap 2).
+        // `:int` membuat "prasyarat" di rute di atas tak bisa tertukar dengan nomor.
+        routes.MapPut("/{slug}/roadmap/{order:int}", ReplaceRoadmapStepAsync)
+            .WithName("ReplaceRoadmapStep")
+            .WithSummary("Mengganti satu langkah roadmap yang sudah ada menurut nomornya. Nomor 0 = prasyarat.")
+            .ProducesValidationProblem();
+
         routes.MapPost("/{slug}/tools", AttachToolAsync)
             .WithName("AttachTool")
             .WithSummary("Menautkan satu alat katalog ke topik ini.")
@@ -88,6 +96,14 @@ public static class EditContentSectionsEndpoint
         EditContentSectionsHandler handler,
         CancellationToken cancellationToken)
         => TopicMutation.ToHttpResult(await handler.AddRoadmapStepAsync(slug, request, cancellationToken).ConfigureAwait(false));
+
+    private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> ReplaceRoadmapStepAsync(
+        string slug,
+        int order,
+        RoadmapStepRequest request,
+        EditContentSectionsHandler handler,
+        CancellationToken cancellationToken)
+        => TopicMutation.ToHttpResult(await handler.ReplaceRoadmapStepAsync(slug, order, request, cancellationToken).ConfigureAwait(false));
 
     private static async Task<Results<Ok<TechnologyResponse>, NotFound, ValidationProblem>> AttachToolAsync(
         string slug,

@@ -62,10 +62,21 @@ nama dari `github.actor`.
 (`model-context-protocol`). Pemasang tidak menimpa — ia berhenti dengan `BEDA`. Pakai
 `.\run.ps1 reset` lalu `migrate` untuk basis data kosong.
 
-## Pemasang tidak menimpa — dan batasnya
+## Pemasang tidak menimpa — kecuali diminta
 
 Berkas dan server dibandingkan dulu. Kalau berbeda, pemasang berhenti **sebelum menulis apa
-pun** dan menyebut bedanya. Topik yang sudah `tinjau` **terkunci**. Yang bisa diperbaiki
-sesudah terpasang: **sumber, proyek, dan alat** (jalan buang sudah ada, lalu pasang ulang).
-Yang **belum bisa**: mengubah `name`, `summary`, prasyarat, atau langkah roadmap — itu utang
-yang tercatat di ADR-027.
+pun** dan menyebut bedanya (`BEDA`). Topik yang sudah `tinjau` **terkunci**.
+
+Berkas yang sudah terpasang boleh diperbaiki: ubah berkasnya, merge ke `main`, lalu pasang dengan
+`--ganti` (di Actions: centang **ganti** pada `Pasang isi`; di mesin sendiri:
+`node database/isi/pasang.mjs --ganti <slug>`). Rencananya dicetak **sebelum** ada yang ditulis, lalu
+server disamakan dengan berkas — nama/ringkasan, langkah roadmap menurut nomornya, definisi alat,
+proyek, sumber, tautan alat, dan relasi.
+
+- **Topik `tinjau` tetap terkunci**, walau `--ganti`. Mengganti teksnya akan menggugurkan tinjau, dan itu
+  bukan tugas pemasang.
+- ⚠️ **Alat dipakai bersama.** Mengganti `name`/`summary` sebuah alat menggugurkan tinjau **setiap** topik yang
+  menautkannya — bukan hanya topik yang sedang dipasang. Pemasang menyebutnya di log, tak bisa mencegahnya.
+- **Yang belum punya jalan sama sekali:** membuang langkah roadmap (nomornya berurut tanpa lubang — berkas
+  yang lebih pendek dari server tetap `BEDA`), menghapus alat dari katalog, dan memindahkan topik antar-bidang.
+  Tercatat di [#79](https://github.com/xtheoputra/techverse-x/issues/79).

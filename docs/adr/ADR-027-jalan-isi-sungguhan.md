@@ -56,8 +56,8 @@ Berkas dan server **dibandingkan lebih dulu**. Kalau server punya sesuatu yang t
 
 ## Yang SENGAJA tidak diputuskan, dan batas yang jujur
 
-- **Tak ada jalan mengubah `name`, `summary`, prasyarat, atau langkah roadmap sebuah topik yang sudah terpasang.** Yang ada hanya jalan membuang sumber/proyek/alat ([ADR-012](ADR-012-template-halaman.md) dan [ADR-021](ADR-021-jalan-menuju-tinjau.md), Pembaruan 2026-10-02). Pemasang menolak (`BEDA`) dan menyebut caranya. Ini keterbatasan nyata: salah ketik di ringkasan topik yang sudah tayang tak punya jalan perbaikan. Ia layak keputusan tersendiri (endpoint `PUT`, atau jalan "ganti topik") **sebelum** isi ke-2 diperbaiki, dan ditagih di [#79](https://github.com/xtheoputra/techverse-x/issues/79).
-- **Katalog alat tak bisa diubah atau dihapus,** dan pemasang tak bisa membedakan "alat sudah ada" dari "alat sudah ada dengan definisi lain" untuk alat yang belum tertaut ke topik ini. Untuk alat yang tertaut, definisi yang berbeda dilaporkan `BEDA`.
+- ✅ *Dijawab sebagian 2026-10-07 — lihat Pembaruan di bawah; yang di bawah dibiarkan sebagai rekaman keadaan 6 Oktober.* **Tak ada jalan mengubah `name`, `summary`, prasyarat, atau langkah roadmap sebuah topik yang sudah terpasang.** Yang ada hanya jalan membuang sumber/proyek/alat ([ADR-012](ADR-012-template-halaman.md) dan [ADR-021](ADR-021-jalan-menuju-tinjau.md), Pembaruan 2026-10-02). Pemasang menolak (`BEDA`) dan menyebut caranya. Ini keterbatasan nyata: salah ketik di ringkasan topik yang sudah tayang tak punya jalan perbaikan. Ia layak keputusan tersendiri (endpoint `PUT`, atau jalan "ganti topik") **sebelum** isi ke-2 diperbaiki, dan ditagih di [#79](https://github.com/xtheoputra/techverse-x/issues/79).
+- ✅ *Mengubah dijawab 2026-10-07; menghapus belum.* **Katalog alat tak bisa diubah atau dihapus,** dan pemasang tak bisa membedakan "alat sudah ada" dari "alat sudah ada dengan definisi lain" untuk alat yang belum tertaut ke topik ini. Untuk alat yang tertaut, definisi yang berbeda dilaporkan `BEDA`.
 - **`isi.yml` belum pernah dijalankan di produksi.** Yang dibuktikan: pemasangan dari nol ke API sungguhan, ulang tanpa tulisan, dan penjaganya merah di bawah sabotase. Yang **belum**: jalan terhadap Neon dan citra yang terbit. Itu dibuktikan oleh pemicu pertama pemilik.
 - **Daftar 14 bidang tak dicerminkan di pemeriksa.** `fieldSlug` yang tak dikenal baru ditolak server — di gerbang kedua, bukan di `cek:isi`.
 - **Bahasa dan bentuk teks.** Halaman web merender teks polos (tanpa Markdown), jadi berkas isi menulis teks polos. JSON menaruh satu paragraf di satu baris, sehingga diff PR menandai seluruh paragraf ketika satu kata berubah. Ditimbang ulang kalau itu terbukti menyulitkan pembacaan.
@@ -83,3 +83,67 @@ Berkas dan server **dibandingkan lebih dulu**. Kalau server punya sesuatu yang t
 ## Cara membatalkan keputusan ini
 
 Hapus `isi.yml`, `database/isi/`, `isi/`, kedua gerbang CI, dan `IsiWorkflowGuardTests`. Topik yang sudah terpasang tetap di Neon dan bisa dikelola lewat `tinjau.yml` dan jalan buang yang sudah ada. Karena belum ada isi yang dijalankan di produksi, membatalkannya hari ini berbiaya kecil.
+
+## Pembaruan 2026-10-07 — `--ganti`: pemasang boleh menyamakan server dengan berkas yang berubah
+
+Butir "tidak diputuskan" pertama di atas (*tak ada jalan mengubah `name`, `summary`, prasyarat, atau langkah
+roadmap*) ditagih di [#79](https://github.com/xtheoputra/techverse-x/issues/79), dan pemicunya terpenuhi begitu pemilik menilai
+isi pilot *"kurang detail"* (isi pilot perlu diganti, padahal topiknya sudah terpasang). Jalan ubahnya dibangun
+sebagai Tahap 2 program ADR-028 ([PR #84](https://github.com/xtheoputra/techverse-x/pull/84) memuat ADR-nya;
+Tahap 2 sengaja berdiri sendiri di atas `main`, jadi ADR itu belum bisa ditautkan dari sini).
+
+> Catatan koreksi: baris Status di atas ditulis sebelum pemicu pertama. `isi.yml` **sudah dijalankan** sekali di
+> produksi (run `37427804388`, 2026-10-06; SESSION-LOG Sesi 21, Lanjutan 5).
+
+### Yang berubah pada butir 5 ("tidak pernah menimpa diam-diam")
+
+Aturannya **tetap**: tanpa `--ganti`, berkas dan server dibandingkan dulu, dan kalau berbeda pemasang berhenti
+dengan `BEDA` **sebelum menulis apa pun**. Yang baru adalah satu jalan menimpa yang **eksplisit**:
+
+```
+node database/isi/pasang.mjs --ganti <slug>        # atau: --ganti --semua (pengembangan)
+```
+
+Rencananya dicetak **lebih dulu** (`rencana    ganti langkah roadmap 3 (…)`), lalu server disamakan dengan
+berkas: nama/ringkasan topik (`PUT` topik), langkah roadmap menurut nomornya, definisi alat katalog, proyek dan
+sumber (sebagai himpunan), tautan alat, dan relasi. Yang **tetap menghentikan** pemasang walau `--ganti`:
+memindahkan topik ke bidang lain dan **membuang langkah roadmap** (server punya langkah yang berkas tak punya) —
+keduanya tanpa jalan, lihat [ADR-012 Pembaruan 2026-10-07](ADR-012-template-halaman.md).
+
+- **Topik `tinjau` tetap terkunci**, walau `--ganti`: pemasang boleh membuktikan ia sama dengan berkas, tak boleh
+  menyentuhnya. Topik `kurasi` (pemasangan yang terputus di tengah) boleh di-`--ganti`; tak ada pemeriksaan manusia
+  yang perlu dilindungi di sana.
+- **Menambah dulu, baru membuang.** Pemasangan yang terputus meninggalkan kelebihan (dibuang di jalan berikutnya),
+  bukan bagian yang hilang. Diganti = tambah baru lalu buang lama, sebab proyek dan sumber tak punya endpoint ubah.
+- **Pemeriksaan sesudahnya tak melunak:** keberhasilan tetap dibuktikan dengan *rencana kosong* tanpa `--ganti` —
+  server harus sama dengan berkas, bukan sekadar "tak ada galat".
+- **Alat bersama menggugurkan topik lain.** Mengganti definisi sebuah alat katalog menggugurkan tinjau **semua**
+  topik yang menautkannya. Pemasang menyebutnya di rencana dan di log, tapi tak bisa mencegahnya lebih dulu.
+
+### `isi.yml` mendapat satu sakelar — dan hanya yang boolean
+
+Penjaga butir 4 menolak input yang bisa membawa teks. `ganti` **boolean** tak membawa isi: ia memilih cara memasang
+berkas yang sama dari `main`. `IsiWorkflowGuardTests` kini menuntut himpunan input TEPAT `{ sha, slug, ganti }`
+dan `type: boolean` untuk yang terakhir; pemasang dipanggil dengan `--ganti` yang tertulis di workflow, bukan
+dengan nilai dari input, dan nilai dibandingkan dengan `"true"` persis.
+
+### Gerbang ketiga: `uji-ganti.mjs`
+
+Di CI, sesudah pemasangan-dua-kali, `database/isi/uji-ganti.mjs` **menyimpangkan** server dari berkas lewat API
+(tujuh cara), lalu menjalankan pemasang sebagai proses terpisah: tanpa `--ganti` → `BEDA`, kode 1, server **tak
+berubah**; dengan `--ganti` → kembali sama dengan berkas; ulang → nol tulisan; topik `tinjau` → `TERKUNCI`;
+langkah roadmap berlebih → `BEDA`. Ia sengaja skrip tersendiri: pemasang itu jalan **produksi** dan dijaga dari
+segala yang menyentuh tinjau, sedangkan gerbang ini perlu menaikkan satu topik ke tinjau untuk membuktikan
+kuncinya. Ia menolak jalan di basis data yang topiknya bukan draf — tanda ia salah diarahkan.
+
+**Terukur:** 36 pemeriksaan hijau terhadap API sungguhan; **9 merah** saat pembuangan proyek berlebih dimatikan
+dan kunci `tinjau` dilepas (dipulihkan identik); penjaga workflow merah saat `ganti` diubah jadi `string`.
+
+### Yang SENGAJA masih tidak diputuskan
+
+- **Alat katalog masih tak bisa dihapus**, dan langkah roadmap tak bisa dibuang ([#79](https://github.com/xtheoputra/techverse-x/issues/79) tetap terbuka).
+- **`--ganti` belum pernah dijalankan di produksi.** Terbukti terhadap API di Postgres lokal dan gerbang CI, bukan
+  terhadap Neon dan citra yang terbit.
+- **URL sumber dibandingkan sebagai teks apa adanya.** URL berkas yang bentuknya beda dari hasil normalisasi
+  `Uri.ToString()` .NET membuat rencana tak pernah kosong, dan pemasang gagal keras (bukan diam-diam). Tak terjadi
+  pada berkas yang ada.

@@ -14,9 +14,11 @@ namespace TechVerseX.TechnologyService.Tests.Workflows;
 /// klaim kepercayaan produk ini, dan nama pemeriksanya harus datang dari
 /// <c>github.actor</c> di <c>tinjau.yml</c>. Kalau pemasang isi bisa memanggil
 /// <c>/tinjau</c>, "sudah diperiksa manusia" bisa lahir dari satu klik pemasangan.</item>
-/// <item><b>Tidak ada input selain <c>sha</c> dan <c>slug</c>.</b> Isinya datang dari
-/// berkas di <c>main</c>, yang sudah dibaca di PR. Input ketiga yang membawa teks
-/// membuka jalan memasang isi yang tak pernah dibaca siapa pun.</item>
+/// <item><b>Tidak ada input yang bisa membawa teks selain <c>sha</c> dan <c>slug</c>.</b>
+/// Isinya datang dari berkas di <c>main</c>, yang sudah dibaca di PR. Input yang membawa
+/// teks membuka jalan memasang isi yang tak pernah dibaca siapa pun. Satu-satunya input
+/// tambahan, <c>ganti</c> (ADR-028 Tahap 2), adalah sakelar <b>boolean</b>: ia memilih
+/// cara memasang berkas yang sama, tak pernah membawa isi.</item>
 /// <item><b>Hanya dari <c>main</c>, dan sebelum rahasia disentuh.</b> Cabang atau PR
 /// membawa berkas yang belum ditinjau, sementara environment <c>produksi</c> memegang
 /// rahasia Neon.</item>
@@ -24,24 +26,46 @@ namespace TechVerseX.TechnologyService.Tests.Workflows;
 /// </remarks>
 public sealed class IsiWorkflowGuardTests
 {
-    private static readonly string[] InputYangDiizinkan = ["sha", "slug"];
+    private static readonly string[] InputYangDiizinkan = ["sha", "slug", "ganti"];
 
     [Fact]
-    public void Workflow_isi_hanya_punya_input_sha_dan_slug()
+    public void Workflow_isi_hanya_punya_input_sha_slug_dan_sakelar_ganti()
     {
         var jalur = WorkflowYaml.JalurWorkflow("isi.yml");
         var dideklarasikan = WorkflowYaml.InputKeys(File.ReadAllLines(jalur), "isi.yml");
 
         Assert.True(
             dideklarasikan.SetEquals(InputYangDiizinkan),
-            "workflow_dispatch.inputs harus TEPAT { sha, slug }. Input lain — terutama yang membawa isi atau menamai orang — "
+            "workflow_dispatch.inputs harus TEPAT { sha, slug, ganti }. Input lain — terutama yang membawa isi atau menamai orang — "
             + "membuka jalan memasang teks yang tak pernah dibaca di PR (ADR-027). "
             + $"Ditemukan: [{string.Join(", ", dideklarasikan)}].");
 
         var dipakai = WorkflowYaml.InputRefs(File.ReadAllText(jalur));
         Assert.True(
             dipakai.IsSubsetOf(InputYangDiizinkan),
-            $"hanya inputs.sha & inputs.slug yang boleh dirujuk. Ditemukan: [{string.Join(", ", dipakai)}].");
+            $"hanya inputs.sha, inputs.slug & inputs.ganti yang boleh dirujuk. Ditemukan: [{string.Join(", ", dipakai)}].");
+    }
+
+    /// <summary>
+    /// <c>ganti</c> boleh ada <b>hanya selama ia boolean</b>. Alasan input ketiga ditolak
+    /// (ia bisa membawa teks yang tak pernah dibaca di PR) tidak berlaku pada <c>true</c>/<c>false</c>,
+    /// dan menjadi berlaku lagi begitu tipenya <c>string</c>.
+    /// </summary>
+    [Fact]
+    public void Sakelar_ganti_bertipe_boolean_dan_tidak_menjadi_argumen_bebas()
+    {
+        var jalur = WorkflowYaml.JalurWorkflow("isi.yml");
+        var baris = File.ReadAllLines(jalur);
+
+        Assert.Equal("boolean", WorkflowYaml.InputType(baris, "ganti"));
+        Assert.Equal("string", WorkflowYaml.InputType(baris, "sha"));
+        Assert.Equal("string", WorkflowYaml.InputType(baris, "slug"));
+
+        // Dibandingkan dengan "true" PERSIS di shell, dan pemasang dipanggil dengan
+        // `--ganti` yang ditulis di berkas — bukan dengan nilai yang datang dari input.
+        var teks = File.ReadAllText(jalur);
+        Assert.Contains("\"$GANTI\" = \"true\"", teks, StringComparison.Ordinal);
+        Assert.Contains("pasang.mjs --ganti \"$SLUG\"", teks, StringComparison.Ordinal);
     }
 
     [Theory]

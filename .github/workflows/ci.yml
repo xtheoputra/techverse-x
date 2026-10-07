@@ -183,7 +183,7 @@ jobs:
 
           echo "=== Pemasangan kedua (tak boleh menulis apa pun)"
           node database/isi/pasang.mjs --semua | tee "$RUNNER_TEMP/pasang-kedua.txt"
-          if grep -E '^  (dibuat|langkah|proyek|sumber|sisi|draf)' "$RUNNER_TEMP/pasang-kedua.txt"; then
+          if grep -E '^  (dibuat|langkah|proyek|sumber|sisi|draf|ganti|buang|lepas)' "$RUNNER_TEMP/pasang-kedua.txt"; then
             echo "::error::Pemasangan kedua menulis sesuatu. Pemasang harus idempoten: berkas yang sama, server yang sama, nol tulisan."
             exit 1
           fi
@@ -199,6 +199,19 @@ jobs:
             jumlah=$((jumlah + 1))
           done
           echo "SIAP: $jumlah topik terpasang dari nol, sama dengan berkas, berstatus draf."
+
+      # 🔑 GERBANG ADR-028 Tahap 2: `pasang.mjs --ganti` membuktikan dirinya terhadap API
+      # SUNGGUHAN, di basis data yang baru saja diisi langkah di atas. Skrip itu
+      # menyimpangkan server dari berkas lewat API, lalu memeriksa tiap akibatnya: tanpa
+      # --ganti pemasang berhenti dan tak menulis; dengan --ganti server kembali sama dengan
+      # berkas dan idempoten; topik tinjau tetap terkunci; langkah roadmap berlebih tetap
+      # menghentikan. Ia sengaja SESUDAH pemeriksaan "semua topik draf" di atas: ia
+      # menaikkan satu topik ke tinjau untuk membuktikan kuncinya, dan basis data ini
+      # sekali pakai (techversex_isi, lahir kosong tiap jalan).
+      - name: Isi sungguhan diganti, tinjau tetap terkunci (ADR-028 Tahap 2)
+        env:
+          API_BASE_URL: "http://127.0.0.1:5099"
+        run: node database/isi/uji-ganti.mjs
 
       - name: Bersihkan API isi
         if: always()
