@@ -38,7 +38,15 @@ public sealed class UpdateTechnologyHandler(TechnologyDbContext db)
         return TopicMutation.RunAsync(
             db,
             slug,
-            technology => technology.Update(request.Name, request.Summary, technology.FieldId),
+            technology =>
+            {
+                technology.Update(request.Name, request.Summary, technology.FieldId);
+
+                // PUT mengganti SELURUHNYA: overview yang tak dikirim berarti dikosongkan.
+                // Keduanya satu SaveChanges, dan ExpireReview idempoten — dua panggilan tak
+                // melahirkan dua TechnologyReviewExpired.
+                technology.SetOverview(request.Overview);
+            },
             cancellationToken);
     }
 }

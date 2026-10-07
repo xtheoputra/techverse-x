@@ -183,7 +183,7 @@ jobs:
 
           echo "=== Pemasangan kedua (tak boleh menulis apa pun)"
           node database/isi/pasang.mjs --semua | tee "$RUNNER_TEMP/pasang-kedua.txt"
-          if grep -E '^  (dibuat|langkah|proyek|sumber|sisi|draf|ganti|buang|lepas)' "$RUNNER_TEMP/pasang-kedua.txt"; then
+          if grep -E '^  (dibuat|langkah|proyek|sumber|sisi|draf|ganti|buang|lepas|media)' "$RUNNER_TEMP/pasang-kedua.txt"; then
             echo "::error::Pemasangan kedua menulis sesuatu. Pemasang harus idempoten: berkas yang sama, server yang sama, nol tulisan."
             exit 1
           fi
@@ -212,6 +212,18 @@ jobs:
         env:
           API_BASE_URL: "http://127.0.0.1:5099"
         run: node database/isi/uji-ganti.mjs
+
+      # 🔑 GERBANG ADR-028 Tahap 3b: `overview` dan `media` di berkas isi dipasang ke API SUNGGUHAN
+      # dan disamakan kembali oleh `--ganti`. Pilot MCP belum punya keduanya, jadi gerbang ini
+      # membangun topik fixture sendiri di folder sementara (ISI_DIR) dan menyimpangkan server dari
+      # berkas dengan beberapa cara. Satu SVG sementara ditaruh di apps/web/public/media/ dan SELALU
+      # dihapus lagi. Topiknya baru (slug acak), jadi tak bergantung pada topik tinjau yang
+      # ditinggalkan gerbang ganti di atas; basis datanya tetap sekali pakai.
+      - name: Overview dan media dipasang dan disamakan kembali (ADR-028 Tahap 3b)
+        env:
+          API_BASE_URL: "http://127.0.0.1:5099"
+          GERBANG_BASIS_DATA_SEKALI_PAKAI: "ya"
+        run: node database/isi/uji-media.mjs
 
       - name: Bersihkan API isi
         if: always()
@@ -250,6 +262,11 @@ jobs:
       # tak pernah melempar, dan keluarannya tak pernah membawa tautan selain http(s).
       - name: Uji pengurai Markdown
         run: npm run test:markdown
+
+      # Aturan media berkas isi (ADR-028 Tahap 3b): bentuk, berkas gambar, SVG tanpa skrip, dan
+      # pencocokan dua arah dengan ::media[kunci]. Nol dependensi, jadi di sini juga sebelum npm ci.
+      - name: Uji aturan media berkas isi
+        run: npm run test:isi
 
       - name: Install
         run: npm ci

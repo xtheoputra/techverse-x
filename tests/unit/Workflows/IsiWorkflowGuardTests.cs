@@ -89,6 +89,21 @@ public sealed class IsiWorkflowGuardTests
             $"{nama} memakai PEMERIKSA. Variabel itu milik tinjau.yml (ADR-021 §2).");
     }
 
+    /// <summary>
+    /// <c>ISI_DIR</c> membuat pemasang membaca berkas isi dari folder LAIN — itu alat gerbang uji
+    /// (<c>uji-media.mjs</c>), bukan sesuatu yang jalan produksi boleh tahu. Isi yang dipasang ke
+    /// Neon harus berkas di <c>isi/</c> pada <c>main</c>, yang sudah dibaca di PR (ADR-027).
+    /// </summary>
+    [Fact]
+    public void Workflow_isi_tidak_menyebut_ISI_DIR_jadi_isinya_selalu_berkas_isi_di_main()
+    {
+        var teks = File.ReadAllText(WorkflowYaml.JalurWorkflow("isi.yml"));
+
+        Assert.False(
+            teks.Contains("ISI_DIR", StringComparison.Ordinal),
+            "isi.yml menyebut ISI_DIR. Variabel itu hanya untuk gerbang uji; di jalan produksi ia akan membuka jalan memasang isi dari folder yang belum dibaca siapa pun (ADR-027).");
+    }
+
     [Fact]
     public void Workflow_isi_hanya_berjalan_dari_main_sebelum_menyentuh_rahasia()
     {

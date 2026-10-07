@@ -1,6 +1,6 @@
 # ADR-028 — Antarmuka futuristik gelap-neon dan isi kaya: Markdown terbatas, blok media, dan jalan ubah
 
-**Status:** Diusulkan — **Tahap 1 (antarmuka) dibangun dan diukur (2026-10-06); Tahap 2 (jalan ubah) dibangun dan diukur (2026-10-07, lihat Pembaruan di bawah); keduanya ter-merge ke `main` 2026-10-07; Tahap 3 dipecah 3a/3b dan keputusannya ditulis (Pembaruan (2)); Tahap 3a (Markdown terbatas) dibangun dan diukur (Pembaruan (2), butir 7); Tahap 3b–4 belum.** Keputusan arahnya diambil pemilik di percakapan yang sama dengan penulisan ADR ini; yang belum diputuskan tertulis di bagian *Yang SENGAJA tidak diputuskan*.
+**Status:** Diusulkan — **Tahap 1 (antarmuka) dibangun dan diukur (2026-10-06); Tahap 2 (jalan ubah) dibangun dan diukur (2026-10-07, lihat Pembaruan di bawah); keduanya ter-merge ke `main` 2026-10-07; Tahap 3 dipecah 3a/3b dan keputusannya ditulis (Pembaruan (2)); Tahap 3a (Markdown terbatas) dibangun, diukur, dan ter-merge (#88; Pembaruan (2), butir 7); Tahap 3b (media dan `overview`) dibangun dan diukur, **belum ter-merge dan migrasinya belum dijalankan di produksi** (Pembaruan (3)); Tahap 4 belum.** Keputusan arahnya diambil pemilik di percakapan yang sama dengan penulisan ADR ini; yang belum diputuskan tertulis di bagian *Yang SENGAJA tidak diputuskan*.
 **Tanggal:** 2026-10-06
 
 ## Konteks
@@ -177,7 +177,7 @@ Alasannya, berurutan menurut bobot:
 
 Deskripsi langkah roadmap (termasuk prasyarat) dan ringkasan proyek. **Bukan `summary`:** ia juga keterangan kartu dan hasil pencarian, yang menampilkan teks polos — tanda `**` di sana akan tercetak apa adanya. Bagian Overview yang berformat memakai medan baru (3b). Nama, ringkasan alat, catatan alat, dan judul sumber tetap teks polos.
 
-### 5. Keputusan untuk 3b — **diputuskan, belum dibangun**
+### 5. Keputusan untuk 3b — diputuskan di sini; **dibangun di Pembaruan (3), dengan penyimpangan yang dicatat di sana**
 
 - **Medan `overview`** pada topik: Markdown, boleh kosong, batas ± 20.000 karakter. `summary` tetap blurb polos dan tetap penentu bagian *Overview* di `MissingSections`; `overview` memperdalamnya.
 - **Tabel `technology_media`** (anak topik, seperti `resources`), **bertipe**, bukan blok generik ([ADR-015](ADR-015-skema-data-v1.md)): `Id`, `TechnologyId`, `Key` (unik per topik), `Kind` (`Image` | `Video`), `Url` (berkas sendiri di `/media/…`, hanya untuk `Image`), `VideoId` (hanya `Video`), `Alt`/`Title` (wajib), `Caption`, `SourceName`, `SourceUrl`, `License`. Aturan "gambar wajib `Url`+`Alt`, video wajib `VideoId`+`Title`, lisensi wajib kecuali karya sendiri" dijaga **`CHECK` di basis data**, bukan hanya komentar.
@@ -214,3 +214,49 @@ Satu PR berbasis `main`, **tanpa migrasi dan tanpa perubahan API**: `apps/web/sr
 - **Tanpa penyorotan sintaks**; label bahasa saja (butir 6).
 - **`::media[kunci]` ditolak pemeriksa** sampai 3b memberinya data; penampil mengabaikannya.
 - **Produksi belum menampilkannya**: isi pilot polos, jadi tak ada yang berubah di mata pengunjung sampai Tahap 4 menulis ulangnya. Konten demo hanya di basis data sekali pakai dan tak masuk repo.
+
+## Pembaruan 2026-10-07 (3) — Tahap 3b (media dan `overview`) dibangun
+
+Satu PR berbasis `main` (sesudah #88 dan #89 ter-merge), **dengan migrasi** `MediaDanOverview`: kolom `Overview` yang boleh kosong di `technologies`, dan tabel `technology_media`. Pemilik mengizinkan jalur penyebaran butir 5 ("merge lalu langsung *Migrasi produksi*") dengan memilih "lanjut"; **izin menjalankan migrasinya tetap diminta lagi sesudah PR ini ter-merge**, karena izin untuk #89 tak berlaku untuk migrasi lain.
+
+### Yang dibangun, dan di mana ia **menyimpang** dari butir 5
+
+| Butir 5 | Yang jadi | Kenapa |
+|---|---|---|
+| Medan `overview` | Ada, ≤ 20.000 karakter, boleh kosong. **Ditulis lewat `PUT` topik** (`UpdateTechnologyRequest` mendapat `Overview` opsional), bukan endpoint sendiri | Ia bagian topik, bukan anaknya. Konsekuensi yang disengaja: **`PUT` mengganti seluruhnya, jadi `overview` yang dihilangkan = dikosongkan** |
+| `Alt`/`Title` | **Satu medan `alt`**; untuk video ia judul bingkai | Dua nama untuk satu teks wajib hanya menambah cara salah mengisi |
+| Aturan gugur tinjau: "mengganti `alt`/`caption`/sumber menggugurkan" | **Mengganti medan mana pun** dari media yang sudah ada menggugurkan tinjau (juga `url`, `videoId`, lisensi). Menambah dan membuang tidak. Mengganti teks `overview` menggugurkan; menulis ulang teks yang **sama** tidak (`Update()` kini no-op bila isinya identik) | Lisensi dan sumber adalah klaim kepercayaan; daftar sempit mengundang celah. Aturan ADR-012: *mengganti teks menggugurkan; menambah/membuang/mengulang yang sama tidak* |
+| "tiap definisi dipakai (**peringatan**)" | **Galat**, bukan peringatan | Pemeriksa tak punya saluran peringatan, dan definisi tanpa rujukan hampir selalu salah ketik di salah satu sisi. Dua arah sama keras: `::media[x]` tanpa definisi juga galat |
+| `Key` | Wajib **slug** (huruf kecil, angka, tanda hubung), ≤ 80, unik per topik | Ia alamat dari teks (`::media[kunci]`); kunci yang boleh apa saja membuat rujukannya rapuh |
+| `Url` "berkas sendiri di `/media/…`" | **`/media/<slug-topik>/nama.ext`** — gambar hidup di folder topiknya sendiri; ekstensi `svg`, `png`, `jpg`, `jpeg`, `webp`, `avif`; tanpa `..` atau `//` | Mencegah dua topik berebut nama berkas dan mempersempit apa yang boleh dicetak sebagai `<img src>` |
+
+Tambahan yang tak ada di butir 5:
+
+- **`CHECK` di basis data** (`ck_technology_media_{kind,kunci,bentuk,berkas_sendiri,alt,lisensi}`) mengulang aturan domain, diuji dengan **SQL mentah** yang melewati domain. `Karya sendiri` dibakukan huruf besar-kecilnya di domain; pemeriksa berkas menolak ejaan lain, kalau tidak "berkas = server" tak pernah tercapai.
+- **Lapis terakhir ada di komponen web.** `MediaFigure` memeriksa lagi bentuk `url` dan `videoId` sebelum mencetaknya dan merender **nol** bila tak cocok — API lama atau baris yang diubah di luar domain tak bisa membuat `<img src>` ke alamat sembarang. Pola yang sama dengan skema URL di pengurai Markdown.
+- **Pemeriksa SVG** (hanya mungkin di pemeriksa berkas, karena hanya ia yang melihat repo): `viewBox` wajib, dan `<script>`, `<foreignObject>`, elemen tersemat, atribut `on…=`, `javascript:`, `DOCTYPE`/`ENTITY`, `@import`, serta rujukan ke alamat luar ditolak. Berkas harus ada dan ≤ 300 KB (SVG) atau ≤ 800 KB (raster).
+- **Penampil toleran terhadap API lama.** `getTechnology` memperlakukan `overview` yang hilang sebagai `null` dan `media` yang hilang sebagai daftar kosong, karena pada jendela `migrate → api → web` web baru boleh bertemu API lama.
+- **`ISI_DIR`** (pemasang membaca berkas isi dari folder lain) ada **hanya untuk gerbang uji**; satu uji penjaga memastikan `isi.yml` tak pernah menyebutnya, supaya jalan produksi tetap hanya memasang berkas `isi/` di `main` (ADR-027).
+- **Pemasang `--ganti` menyamakan media menurut kuncinya**: yang ada di berkas ditulis, yang ada di server tetapi tak di berkas **dibuang**. `overview` yang hilang dari berkas dikosongkan.
+
+### Yang diukur
+
+| Yang dibuktikan | Hasil |
+|---|---|
+| Uji domain `MediaOverviewTests` | **37 hijau**. Sabotase aturan sumber dan aturan gugur-saat-mengganti → **6 merah**; dipulihkan identik (`cmp`) |
+| Uji integrasi `MediaDanOverviewEndpointTests` | **32 hijau**, stabil 3×, termasuk pelanggaran `CHECK` lewat SQL mentah. Sabotase `Include(Media)` → **3 merah** |
+| Gerbang penulisan (`PermukaanTulisTests`) | `PUT` dan `DELETE …/media/{key}` tertutup 404/405 saat tulis mati; sabotase gerbang → merah |
+| Aturan media berkas (`media.test.mjs`) | **17 hijau**; sabotase → **3 merah** |
+| Gerbang `uji-media.mjs` (API sungguhan, basis data sekali pakai) | **38 pemeriksaan hijau**: pasang dari nol; pasang ulang tanpa tulis; berkas menyimpang → `BEDA` tanpa menulis; `--ganti` menyamakan media dan idempoten; `overview` dihapus; `--cek` menolak rujukan tanpa definisi, definisi tanpa rujukan, SVG bersekrip, dan berkas hilang. Sabotase (lewati `DELETE` media; lewati `PUT` media) → **merah**; dipulihkan identik |
+| Migrasi | diterapkan ke basis data pengembangan, `Down` lalu `Up` terbukti; `database/migrations/technology.sql` dibuat ulang |
+| `run.ps1 verify` | **hijau**: pengurai Markdown 44, aturan media 17, unit **186**, integrasi **133**, lint dan build web bersih, build ketat 0 peringatan |
+| Tampilan, Chrome, build produksi, topik demo dipasang lewat **pemasang sungguhan** | Overview: pembuka polos lalu sub-judul, teks tebal, **diagram SVG** berbingkai dengan keterangan dan "Lisensi: Karya sendiri"; **bingkai video 16:9** dengan tautan "Tonton di YouTube", keterangan, dan "Sumber: … · Lisensi: …"; gambar yang sama dipakai ulang di langkah roadmap (3 figur di halaman) |
+| Ponsel (iframe 390 px) | halaman **tidak meluber** (`scrollWidth` 376 = `clientWidth` 376); video 286 × 161 (16:9) |
+
+### Catatan jujur
+
+- **Video: "oEmbed 200" tidak membuktikan video bisa tampil.** Diukur: satu video resmi menjawab 200 di oEmbed dan tampil normal dari halaman https, tetapi bingkai yang sama menampilkan *"This video is unavailable"* ketika dimuat dari `http://192.168.22.230` — dengan **dan tanpa** `sandbox`, sedangkan video lain tampil di kedua tempat. Jadi `sandbox` pada `MediaFigure` **bukan** penyebab, dan butir 5 ("ID diverifikasi hidup lewat oEmbed") **tak cukup**: video baru boleh dinyatakan beres hanya sesudah bingkainya dilihat di halaman https sebenarnya. Aturan itu kini tertulis di `isi/README.md`. **Belum ada video sungguhan di repo** (Tahap 4), jadi belum ada yang diuji di produksi.
+- **Belum ada media sungguhan di repo.** Halaman MCP pilot tak berubah (± 762 kata teks polos); keluhan *"kurang detail"* tetap terbuka sampai Tahap 4. Yang dibangun di sini hanya kemampuannya, dibuktikan dengan topik demo yang dihapus lagi.
+- **Penilaian visual tetap milik pemilik.** Tampilan dilihat lewat build produksi di IP LAN dan iframe 390 px, bukan di ponsel sungguhan.
+- **Produksi belum punya skemanya.** Sampai *Migrasi produksi* dijalankan, API baru yang dibangun otomatis oleh Vercel membaca kolom yang belum ada, dan halaman topik membalas 500 — jendela yang sudah diperingatkan di butir 5. Ia dijalankan hanya atas izin baru dari pemilik, dan sesudahnya produksi diperiksa ulang (jumlah bidang, kesehatan, topik terbaca, tulis tertutup).
+- **Belum bisa** (tetap di [#79](https://github.com/xtheoputra/techverse-x/issues/79)): membuang langkah roadmap, menghapus alat dari katalog, memindahkan topik antar-bidang.

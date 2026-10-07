@@ -57,6 +57,11 @@ internal static class TopicMutation
             .Include(t => t.Tools)
             .Include(t => t.Projects)
             .Include(t => t.Resources)
+            // Media (ADR-028 Tahap 3b): UpsertMedia memutuskan "kunci ini sudah ada, ganti"
+            // dari koleksi yang dimuat DI SINI. Tanpa Include ia selalu kosong, kunci yang
+            // diulang menambah baris kedua, dan indeks unik (TechnologyId, Key) menolaknya jadi
+            // 500 — idempotensi PUT hilang tanpa satu baris pun di irisan media berubah.
+            .Include(t => t.Media)
             // 🔴 WAJIB, walau tidak satu pun bagian template memakainya.
             // Technology.RequireTopic memutuskan "sisi ini sudah ada, jangan tambah"
             // dari koleksi yang dimuat DI SINI. Tanpa Include ia selalu kosong,

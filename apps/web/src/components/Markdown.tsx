@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import MediaFigure from '@/components/MediaFigure';
+import type { TechnologyMedia } from '@/lib/api';
 import { parse, type Block, type Inline, type JenisPeringatan, type Perataan } from '@/lib/markdown/parse.mjs';
 
 /**
@@ -18,17 +20,24 @@ import { parse, type Block, type Inline, type JenisPeringatan, type Perataan } f
  * `headingBase` adalah tingkat HTML untuk sub-judul `##` di teks; `###` jadi satu
  * tingkat di bawahnya. Pemanggil yang menaruh teks di bawah `<h3>` memberi 4, sehingga
  * kerangka judul halaman tak pernah melompat tingkat.
+ *
+ * `media` (ADR-028 Tahap 3b) adalah media topik, dirujuk dari teks lewat `::media[kunci]`.
+ * Rujukan yang tak punya definisi — atau yang datanya tak lolos pemeriksaan di
+ * `MediaFigure` — tak merender apa pun; pemeriksa berkas isi sudah menolak yang pertama.
  */
 export default function Markdown({
   source,
   headingBase = 3,
   className = '',
+  media = [],
 }: {
   source: string;
   headingBase?: number;
   className?: string;
+  media?: TechnologyMedia[];
 }) {
   const { blocks } = parse(source);
+  const peta = new Map(media.map((m) => [m.key, m]));
 
   if (blocks.length === 0) {
     return null;
@@ -36,7 +45,7 @@ export default function Markdown({
 
   return (
     <div className={`prose-tv prose-md ${className}`.trim()}>
-      {blocks.map((block, i) => renderBlock(block, i, headingBase))}
+      {blocks.map((block, i) => renderBlock(block, i, headingBase, peta))}
     </div>
   );
 }
@@ -47,7 +56,7 @@ const LABEL_PERINGATAN: Record<JenisPeringatan, string> = {
   peringatan: 'Peringatan',
 };
 
-function renderBlock(block: Block, key: number, headingBase: number): ReactNode {
+function renderBlock(block: Block, key: number, headingBase: number, media: Map<string, TechnologyMedia>): ReactNode {
   switch (block.type) {
     case 'paragraph':
       return <p key={key}>{renderInline(block.children)}</p>;
@@ -70,7 +79,7 @@ function renderBlock(block: Block, key: number, headingBase: number): ReactNode 
       );
 
     case 'quote': {
-      const anak = block.children.map((b, i) => renderBlock(b, i, headingBase));
+      const anak = block.children.map((b, i) => renderBlock(b, i, headingBase, media));
       if (block.kind === null) {
         return <blockquote key={key}>{anak}</blockquote>;
       }
@@ -88,7 +97,7 @@ function renderBlock(block: Block, key: number, headingBase: number): ReactNode 
           {/* Butir berparagraf tunggal tak perlu <p> — jarak antar-butir dipegang <li>. */}
           {item.length === 1 && item[0].type === 'paragraph'
             ? renderInline(item[0].children)
-            : item.map((b, j) => renderBlock(b, j, headingBase))}
+            : item.map((b, j) => renderBlock(b, j, headingBase, media))}
         </li>
       ));
       return block.ordered ? (
@@ -129,10 +138,10 @@ function renderBlock(block: Block, key: number, headingBase: number): ReactNode 
         </div>
       );
 
-    case 'media':
-      // Blok media dirender di Tahap 3b, bersama datanya. Sebelum itu ia tak punya apa
-      // pun untuk ditampilkan, dan pemeriksa berkas isi menolaknya.
-      return null;
+    case 'media': {
+      const m = media.get(block.key);
+      return m ? <MediaFigure key={key} media={m} /> : null;
+    }
   }
 }
 

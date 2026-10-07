@@ -23,6 +23,7 @@ public sealed class GetTechnologyHandler(TechnologyDbContext db)
             .Include(t => t.Tools)
             .Include(t => t.Projects)
             .Include(t => t.Resources)
+            .Include(t => t.Media)
             .FirstOrDefaultAsync(t => t.Slug == query.Slug, cancellationToken)
             .ConfigureAwait(false);
 

@@ -535,3 +535,56 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20261007050935_MediaDanOverview') THEN
+    ALTER TABLE technology.technologies ADD "Overview" character varying(20000);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20261007050935_MediaDanOverview') THEN
+    CREATE TABLE technology.technology_media (
+        "Id" uuid NOT NULL,
+        "TechnologyId" uuid NOT NULL,
+        "Key" character varying(80) NOT NULL,
+        "Kind" character varying(10) NOT NULL,
+        "Url" character varying(300),
+        "VideoId" character varying(11),
+        "Alt" character varying(500) NOT NULL,
+        "Caption" character varying(1000),
+        "SourceName" character varying(200),
+        "SourceUrl" character varying(1000),
+        "License" character varying(200) NOT NULL,
+        "CreatedAt" timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_technology_media" PRIMARY KEY ("Id"),
+        CONSTRAINT ck_technology_media_alt CHECK (btrim("Alt") <> ''),
+        CONSTRAINT ck_technology_media_bentuk CHECK (("Kind" = 'Image' AND "Url" IS NOT NULL AND "VideoId" IS NULL) OR ("Kind" = 'Video' AND "VideoId" IS NOT NULL AND "Url" IS NULL)),
+        CONSTRAINT ck_technology_media_berkas_sendiri CHECK ("Url" IS NULL OR "Url" LIKE '/media/%'),
+        CONSTRAINT ck_technology_media_kind CHECK ("Kind" IN ('Image', 'Video')),
+        CONSTRAINT ck_technology_media_kunci CHECK ("Key" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
+        CONSTRAINT ck_technology_media_lisensi CHECK (btrim("License") <> '' AND ("License" = 'Karya sendiri' OR ("SourceName" IS NOT NULL AND "SourceUrl" IS NOT NULL))),
+        CONSTRAINT "FK_technology_media_technologies_TechnologyId" FOREIGN KEY ("TechnologyId") REFERENCES technology.technologies ("Id") ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20261007050935_MediaDanOverview') THEN
+    CREATE UNIQUE INDEX ix_technology_media_technology_key ON technology.technology_media ("TechnologyId", "Key");
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20261007050935_MediaDanOverview') THEN
+    INSERT INTO technology.__ef_migrations_history ("MigrationId", "ProductVersion")
+    VALUES ('20261007050935_MediaDanOverview', '10.0.4');
+    END IF;
+END $EF$;
+COMMIT;
+

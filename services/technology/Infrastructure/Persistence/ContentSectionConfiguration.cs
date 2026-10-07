@@ -160,3 +160,78 @@ internal sealed class ResourceConfiguration : IEntityTypeConfiguration<Resource>
             .HasDatabaseName("ix_resources_technology_type");
     }
 }
+
+/// <summary>
+/// Media sebuah topik — gambar, diagram, dan video (ADR-028 Tahap 3b).
+/// </summary>
+/// <remarks>
+/// 🔑 <b>Aturan bentuknya ditegakkan basis data, bukan hanya domain.</b> ADR-015 menolak blok
+/// generik justru supaya "halaman ini lengkap atau belum" bisa dijawab basis data; tabel ini
+/// meneruskan prinsip itu ke media: gambar wajib punya berkas sendiri dan teks alternatif,
+/// video wajib punya ID, dan media tanpa lisensi atau asal-usul tak bisa disisipkan walau
+/// lewat SQL mentah. Domain (<see cref="TechnologyMedia"/>) sudah menolaknya lebih dulu dengan
+/// pesan yang berguna; <c>CHECK</c> ini lapis kedua untuk jalan tulis yang tak lewat domain.
+/// <para>
+/// 🔴 Kunci dibuat domain (<c>Guid.CreateVersion7</c>), jadi <c>ValueGeneratedNever</c> WAJIB —
+/// jebakan yang sama dengan ketiga tabel di atas (lihat ringkasan berkas ini).
+/// </para>
+/// </remarks>
+internal sealed class TechnologyMediaConfiguration : IEntityTypeConfiguration<TechnologyMedia>
+{
+    public void Configure(EntityTypeBuilder<TechnologyMedia> builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        var jenisYangSah = string.Join(", ", Enum.GetNames<MediaKind>().Select(n => $"'{n}'"));
+
+        builder.ToTable("technology_media", table =>
+        {
+            table.HasCheckConstraint("ck_technology_media_kind", $"\"Kind\" IN ({jenisYangSah})");
+
+            table.HasCheckConstraint(
+                "ck_technology_media_kunci",
+                "\"Key\" ~ '^[a-z0-9]+(-[a-z0-9]+)*$'");
+
+            // Gambar: berkas sendiri, tanpa ID video. Video: ID, tanpa berkas.
+            table.HasCheckConstraint(
+                "ck_technology_media_bentuk",
+                "(\"Kind\" = 'Image' AND \"Url\" IS NOT NULL AND \"VideoId\" IS NULL) "
+                + "OR (\"Kind\" = 'Video' AND \"VideoId\" IS NOT NULL AND \"Url\" IS NULL)");
+
+            // Hanya berkas sendiri; gambar hotlink tak punya lisensi yang kita pegang.
+            table.HasCheckConstraint(
+                "ck_technology_media_berkas_sendiri",
+                "\"Url\" IS NULL OR \"Url\" LIKE '/media/%'");
+
+            table.HasCheckConstraint(
+                "ck_technology_media_alt",
+                "btrim(\"Alt\") <> ''");
+
+            // Lisensi wajib; selain karya sendiri, sumber wajib (nama DAN alamat).
+            table.HasCheckConstraint(
+                "ck_technology_media_lisensi",
+                $"btrim(\"License\") <> '' AND (\"License\" = '{TechnologyMedia.OwnWork}' "
+                + "OR (\"SourceName\" IS NOT NULL AND \"SourceUrl\" IS NOT NULL))");
+        });
+
+        builder.HasKey(m => m.Id);
+        builder.Property(m => m.Id).ValueGeneratedNever();
+
+        builder.Property(m => m.Key).HasMaxLength(TechnologyMedia.MaxKeyLength).IsRequired();
+        builder.Property(m => m.Kind).HasConversion<string>().HasMaxLength(10).IsRequired();
+        builder.Property(m => m.Url).HasMaxLength(TechnologyMedia.MaxUrlLength);
+        builder.Property(m => m.VideoId).HasMaxLength(TechnologyMedia.VideoIdLength);
+        builder.Property(m => m.Alt).HasMaxLength(TechnologyMedia.MaxAltLength).IsRequired();
+        builder.Property(m => m.Caption).HasMaxLength(TechnologyMedia.MaxCaptionLength);
+        builder.Property(m => m.SourceName).HasMaxLength(TechnologyMedia.MaxSourceNameLength);
+        builder.Property(m => m.SourceUrl).HasMaxLength(TechnologyMedia.MaxSourceUrlLength);
+        builder.Property(m => m.License).HasMaxLength(TechnologyMedia.MaxLicenseLength).IsRequired();
+        builder.Property(m => m.CreatedAt).IsRequired();
+
+        // Kunci adalah alamat dari teks: dua media berkunci sama di satu topik berarti
+        // ::media[kunci] ambigu. Sekaligus indeks yang melayani Include(Media).
+        builder.HasIndex(m => new { m.TechnologyId, m.Key })
+            .IsUnique()
+            .HasDatabaseName("ix_technology_media_technology_key");
+    }
+}

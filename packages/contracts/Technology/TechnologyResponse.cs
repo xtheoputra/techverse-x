@@ -31,6 +31,15 @@ namespace TechVerseX.Contracts.Technology;
 /// kematangannya (ADR-012). Aturan itu dijaga tipe, bukan ingatan penulis UI.
 /// </para>
 /// </remarks>
+/// <param name="Overview">
+/// Pendalaman bagian Overview dalam Markdown terbatas (ADR-028 Tahap 3b), atau <c>null</c>.
+/// <see cref="Summary"/> tetap blurb polos. Bukan bagian keenam template — halaman tanpa
+/// overview tetap lengkap.
+/// </param>
+/// <param name="Media">
+/// Gambar, diagram, dan video topik ini, dirujuk dari teks lewat <c>::media[kunci]</c>.
+/// Berurut menurut waktu dibuat.
+/// </param>
 /// <param name="Requires">
 /// Topik yang dibutuhkan topik ini — "pelajari lebih dulu". Urut menurut urutan
 /// tampil bidang, lalu nama.
@@ -43,6 +52,7 @@ public sealed record TechnologyResponse(
     string Slug,
     string Name,
     string Summary,
+    string? Overview,
     string FieldSlug,
     string FieldName,
     string Status,
@@ -54,6 +64,7 @@ public sealed record TechnologyResponse(
     IReadOnlyList<TechnologyToolResponse> Tools,
     IReadOnlyList<ProjectResponse> Projects,
     IReadOnlyList<ResourceResponse> Resources,
+    IReadOnlyList<MediaResponse> Media,
     IReadOnlyList<string> MissingSections,
     IReadOnlyList<TechnologySummaryResponse> Requires,
     IReadOnlyList<TechnologySummaryResponse> RequiredBy);

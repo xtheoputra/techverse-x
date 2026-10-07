@@ -58,13 +58,17 @@ export default function TopicSections({ topic }: { topic: TechnologyDetail }) {
       ) : null}
 
       <Panel id="overview" nomor={1} title="Overview" empty={missing.has('Overview')}>
-        {/* Dipecah per paragraf (baris kosong) supaya ringkasan yang panjang tetap
-            terbaca sebagai paragraf, bukan satu dinding teks. */}
+        {/* Ringkasan polos sebagai pembuka (ia juga keterangan kartu dan hasil cari), lalu
+            pendalaman berformat kalau ada (ADR-028 Tahap 3b). Dipecah per paragraf supaya
+            ringkasan yang panjang tetap terbaca sebagai paragraf, bukan satu dinding teks. */}
         <div className="prose-tv max-w-[68ch] text-[1.125rem]">
           {paragraf(topic.summary).map((p, i) => (
             <p key={i}>{p}</p>
           ))}
         </div>
+        {topic.overview ? (
+          <Markdown source={topic.overview} media={topic.media} headingBase={3} className="mt-6 text-base" />
+        ) : null}
       </Panel>
 
       <Panel id="roadmap" nomor={2} title="Learning Roadmap" empty={missing.has('Learning Roadmap')}>
@@ -89,7 +93,7 @@ export default function TopicSections({ topic }: { topic: TechnologyDetail }) {
               <h3 className="text-lg font-semibold leading-snug tracking-tight">{step.title}</h3>
               {/* Markdown terbatas (ADR-028 Tahap 3a). Judul langkah sudah <h3>, jadi
                   sub-judul di dalam teks mulai dari <h4>. */}
-              {step.description ? <Markdown source={step.description} headingBase={4} className="mt-2 text-base" /> : null}
+              {step.description ? <Markdown source={step.description} media={topic.media} headingBase={4} className="mt-2 text-base" /> : null}
             </li>
           ))}
         </ol>
@@ -145,7 +149,7 @@ export default function TopicSections({ topic }: { topic: TechnologyDetail }) {
             >
               <p className="eyebrow">Misi</p>
               <h3 className="mt-2 text-xl font-semibold tracking-tight">{project.title}</h3>
-              <Markdown source={project.brief} headingBase={4} className="mt-3 text-base" />
+              <Markdown source={project.brief} media={topic.media} headingBase={4} className="mt-3 text-base" />
             </li>
           ))}
         </ul>

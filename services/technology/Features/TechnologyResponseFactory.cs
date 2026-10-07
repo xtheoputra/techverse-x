@@ -47,6 +47,7 @@ internal static class TechnologyResponseFactory
             technology.Slug,
             technology.Name,
             technology.Summary,
+            technology.Overview,
             field.Slug,
             field.Name,
             technology.Status.ToString(),
@@ -72,6 +73,10 @@ internal static class TechnologyResponseFactory
                 .OrderBy(r => r.Type)
                 .ThenBy(r => r.CreatedAt)
                 .Select(r => new ResourceResponse(r.Id, r.Type.ToString(), r.Title, r.Url))],
+            [.. technology.Media
+                .OrderBy(m => m.CreatedAt)
+                .ThenBy(m => m.Key, StringComparer.Ordinal)
+                .Select(m => new MediaResponse(m.Key, m.Kind.ToString(), m.Url, m.VideoId, m.Alt, m.Caption, m.SourceName, m.SourceUrl, m.License))],
             [.. technology.MissingSections],
             related.Requires,
             related.RequiredBy);

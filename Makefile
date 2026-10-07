@@ -52,6 +52,10 @@ cek-isi: ## Memeriksa berkas isi/ (tanpa jaringan, ADR-027)
 uji-markdown: ## Menguji pengurai Markdown terbatas (ADR-028 Tahap 3a, nol dependensi)
 	@npm run test:markdown
 
+.PHONY: uji-isi
+uji-isi: ## Menguji aturan media berkas isi (ADR-028 Tahap 3b, nol dependensi)
+	@npm run test:isi
+
 .PHONY: isi-pasang
 isi-pasang: ## Memasang SEMUA isi/ lewat API pengembangan (API harus jalan)
 	@node database/isi/pasang.mjs --semua
@@ -104,7 +108,7 @@ check-global-json: ## Memastikan sdk.version di global.json versi SDK utuh
 	esac
 
 .PHONY: verify
-verify: check-global-json cek-tautan cek-isi uji-markdown ## Gerbang yang sama dengan CI: build ketat + uji + build web
+verify: check-global-json cek-tautan cek-isi uji-markdown uji-isi ## Gerbang yang sama dengan CI: build ketat + uji + build web
 	dotnet build TechVerseX.slnx --configuration Release
 	dotnet test TechVerseX.slnx --no-build --configuration Release
 	npm run lint:web

@@ -79,7 +79,7 @@ function jalankan(...argumen) {
 // Baris yang berarti "pemasang MENULIS sesuatu" (lihat pasang.mjs): awalan lalu DUA spasi
 // atau lebih. Baris BEDA memakai awalan yang sama tapi satu spasi (`  proyek 'X' ada di
 // server...`), dan tak boleh terhitung sebagai tulisan.
-const BARIS_TULIS = /^ {2}(dibuat|langkah( 0)?|proyek|sumber|sisi|draf|ganti|buang|lepas) {2,}/m;
+const BARIS_TULIS = /^ {2}(dibuat|langkah( 0)?|proyek|sumber|sisi|draf|ganti|buang|lepas|media) {2,}/m;
 
 function pilihBerkas(slugDiminta) {
   const kandidat = [];

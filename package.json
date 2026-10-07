@@ -14,6 +14,7 @@
     "cek:tautan": "node .github/scripts/cek-tautan-markdown.mjs",
     "cek:isi": "node database/isi/pasang.mjs --cek",
     "test:markdown": "node --test apps/web/src/lib/markdown/parse.test.mjs",
+    "test:isi": "node --test database/isi/media.test.mjs",
     "cek:halaman": "node .github/scripts/periksa-halaman-web.mjs"
   },
   "engines": {

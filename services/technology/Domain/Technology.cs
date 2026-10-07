@@ -36,6 +36,15 @@ public sealed class Technology
     /// <summary>Lebar kolom <c>technologies.Summary</c>.</summary>
     public const int MaxSummaryLength = 2000;
 
+    /// <summary>Lebar kolom <c>technologies.Overview</c> (Markdown terbatas, ADR-028 Tahap 3b).</summary>
+    public const int MaxOverviewLength = 20000;
+
+    /// <summary>
+    /// Batas media per topik. Bukan soal basis data: tiap media menambah berat halaman (gambar
+    /// dimuat, video disematkan), dan topik dengan puluhan media adalah tanda ia perlu dipecah.
+    /// </summary>
+    public const int MaxMediaPerTopic = 40;
+
     private readonly List<DomainEvent> _events = [];
     private readonly List<TechnologyRelationship> _relationships = [];
 
@@ -46,6 +55,10 @@ public sealed class Technology
     private readonly List<TechnologyTool> _tools = [];
     private readonly List<Project> _projects = [];
     private readonly List<Resource> _resources = [];
+
+    // Bukan bagian kelima template ADR-012 — media menghias bagian-bagian itu lewat blok
+    // ::media[kunci] di teks (ADR-028 Tahap 3b), jadi tak pernah masuk MissingSections.
+    private readonly List<TechnologyMedia> _media = [];
 
     private Technology()
     {
@@ -76,6 +89,14 @@ public sealed class Technology
     public string Name { get; private set; }
 
     public string Summary { get; private set; }
+
+    /// <summary>
+    /// Pendalaman bagian Overview, ditulis dengan Markdown terbatas (ADR-028 Tahap 3b); boleh
+    /// kosong. <see cref="Summary"/> tetap blurb polos — ia juga keterangan kartu dan hasil cari,
+    /// yang tak merender tanda — dan tetap satu-satunya penentu bagian "Overview" di
+    /// <see cref="MissingSections"/>: halaman tanpa <see cref="Overview"/> tetap lengkap.
+    /// </summary>
+    public string? Overview { get; private set; }
 
     /// <summary>
     /// Bidang tempat topik ini duduk. Dulu ini teks bebas bernama <c>Category</c>;
@@ -123,6 +144,9 @@ public sealed class Technology
 
     /// <summary>Bagian 5 template.</summary>
     public IReadOnlyList<Resource> Resources => _resources;
+
+    /// <summary>Gambar, diagram, dan video topik ini, dirujuk dari teks lewat <see cref="TechnologyMedia.Key"/>.</summary>
+    public IReadOnlyList<TechnologyMedia> Media => _media;
 
     public IReadOnlyList<DomainEvent> Events => _events;
 
@@ -382,6 +406,87 @@ public sealed class Technology
         if (noteChanged)
         {
             ExpireReview();
+        }
+    }
+
+    /// <summary>
+    /// Mengganti <see cref="Overview"/>. Teks kosong atau spasi saja berarti <b>tanpa overview</b>
+    /// (<c>null</c>) — PUT mengganti seluruhnya, jadi mengosongkan juga sah.
+    /// </summary>
+    /// <remarks>
+    /// 🔑 Aturan yang sama dengan semua teks yang dibaca pemeriksa: isi yang BERBEDA sesudah
+    /// dipangkas menggugurkan <see cref="ContentMaturity.HumanReviewed"/>; mengulang yang sama
+    /// tidak mengubah apa pun, bahkan <c>UpdatedAt</c> (ADR-012 Pembaruan 2026-10-06).
+    /// <para>
+    /// Lebar dijaga di sini: teks yang kepanjangan sampai ke PostgreSQL sebagai 500 (kelas cacat #26).
+    /// Isinya sendiri TIDAK diurai di sisi server — pengurai Markdown hidup di web dan pemeriksa
+    /// berkas (satu implementasi untuk keduanya), dan penampil toleran terhadap apa pun yang lolos.
+    /// </para>
+    /// </remarks>
+    public void SetOverview(string? overview)
+    {
+        var final = string.IsNullOrWhiteSpace(overview) ? null : overview.Trim();
+
+        if (final is { Length: > MaxOverviewLength })
+        {
+            throw new ArgumentException($"overview maksimal {MaxOverviewLength} karakter (diterima {final.Length}).", nameof(overview));
+        }
+
+        if (Overview == final)
+        {
+            return;
+        }
+
+        Overview = final;
+        Touch();
+        ExpireReview();
+    }
+
+    /// <summary>
+    /// Menambah media, atau <b>mengganti</b> yang berkunci sama (ADR-028 Tahap 3b). Idempoten:
+    /// mengulang isi yang sama tidak mengubah apa pun.
+    /// </summary>
+    /// <remarks>
+    /// 🔑 <b>Menambah</b> tidak menggugurkan <see cref="ContentMaturity.HumanReviewed"/> —
+    /// sama dengan menambah sumber (Pembaruan ADR-012 2026-10-02): media baru bukan teks yang
+    /// dibaca pemeriksa. <b>Mengganti</b> menggugurkannya bila ADA yang berbeda, termasuk gambar
+    /// atau ID videonya: pemeriksa menyetujui teks alternatif untuk gambar ITU.
+    /// </remarks>
+    public void UpsertMedia(
+        string key, MediaKind kind, string? url, string? videoId,
+        string alt, string? caption, string? sourceName, string? sourceUrl, string license)
+    {
+        // Divalidasi lebih dulu lewat Create — kunci yang cacat tak boleh sampai ke pencarian.
+        var candidate = TechnologyMedia.Create(Id, key, kind, url, videoId, alt, caption, sourceName, sourceUrl, license);
+
+        var existing = _media.Find(m => m.Key == candidate.Key);
+        if (existing is not null)
+        {
+            if (existing.Rewrite(candidate.Kind, candidate.Url, candidate.VideoId, candidate.Alt, candidate.Caption, candidate.SourceName, candidate.SourceUrl, candidate.License))
+            {
+                Touch();
+                ExpireReview();
+            }
+
+            return;
+        }
+
+        if (_media.Count >= MaxMediaPerTopic)
+        {
+            throw new InvalidOperationException(
+                $"Topik '{Slug}' sudah punya {MaxMediaPerTopic} media, batas per topik. Buang yang tak terpakai, atau pecah topiknya.");
+        }
+
+        _media.Add(candidate);
+        Touch();
+    }
+
+    /// <summary>Membuang media berkunci ini. Idempoten; tak menggugurkan tinjau (membuang bukan mengganti teks).</summary>
+    public void RemoveMedia(string key)
+    {
+        if (_media.RemoveAll(m => m.Key == key?.Trim()) > 0)
+        {
+            Touch();
         }
     }
 
