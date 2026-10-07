@@ -41,7 +41,7 @@ public static class CreateTechnologyEndpoint
             // daftar berarti muatannya yang keliru - bukan alamatnya.
             return TypedResults.ValidationProblem(new Dictionary<string, string[]>(StringComparer.Ordinal)
             {
-                ["fieldSlug"] = [$"Bidang '{result.UnknownFieldSlug}' tidak ada. Lihat GET /api/v1/fields untuk keempat belas bidang yang sah."],
+                ["fieldSlug"] = [$"Bidang '{result.UnknownFieldSlug}' tidak ada. Lihat GET /api/v1/fields untuk daftar bidang yang sah."],
             });
         }
 

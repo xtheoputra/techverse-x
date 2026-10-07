@@ -36,6 +36,15 @@
 //     jadi empat belas halaman bidang itulah seluruh isinya;
 //   - bentuk PENGEMBANGAN (API dev berisi 6 topik contoh): 22 halaman, **20 dari 20**.
 //
+//   Sejak 2026-10-07 (tiga bidang Deep Tech, ADR-010 Pembaruan) kedua angka itu menjadi
+//   19 → **17 dari 17** dan 25 → **23 dari 23**. Pemindai tak menyimpan angka itu: ia
+//   membandingkan dengan yang DIKENAL API, jadi bidang baru tak menuntut perubahan di sini.
+//
+//   🐞 Satu catatan pengukuran: menjalankannya pada web yang BARU dinyalakan di port yang
+//   sama dengan sebelumnya bisa membaca jawaban API LAMA dari cache fetch di `.next/cache`
+//   (diukur 2026-10-07: run pertama "14 dari 17" untuk web yang baru dinyalakan, run kedua
+//   "17 dari 17"). Pakai port API yang belum pernah dipakai, atau hapus `.next/cache`.
+//
 // Pemakaian:
 //   node .github/scripts/periksa-halaman-web.mjs
 //   WEB_BASE_URL=http://localhost:3310 API_BASE_URL=http://localhost:5080 node …

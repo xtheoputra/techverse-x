@@ -8,7 +8,7 @@ using TechVerseX.TechnologyService.Infrastructure.Persistence;
 namespace TechVerseX.TechnologyService.Features.ListFields;
 
 /// <summary>
-/// Keempat belas bidang, berikut dua angka kemajuan per bidang.
+/// Seluruh bidang, berikut dua angka kemajuan per bidang.
 /// </summary>
 /// <remarks>
 /// <b>Endpoint-nya tetap tanpa penyaringan dan tanpa penomoran halaman</b> —
@@ -28,7 +28,7 @@ public sealed class ListFieldsHandler(TechnologyDbContext db)
 {
     /// <param name="term">
     /// Kata kunci pencarian. <c>null</c> — yang dipakai endpoint
-    /// <c>/api/v1/fields</c> — berarti keempat belas bidang dikembalikan apa
+    /// <c>/api/v1/fields</c> — berarti seluruh bidang dikembalikan apa
     /// adanya.
     /// </param>
     /// <param name="cancellationToken">Pembatalan permintaan.</param>
@@ -55,7 +55,7 @@ public sealed class ListFieldsHandler(TechnologyDbContext db)
 
         return await source
             // Urutan tampil ADR-010, bukan peringkat — bahkan saat menyaring.
-            // Empat belas bidang muat seluruhnya di satu layar hasil, jadi tidak
+            // Seluruh bidang muat di satu layar hasil, jadi tidak
             // ada yang terpotong oleh urutan; yang dibeli urutan tetap adalah
             // daftar yang letaknya tidak berpindah-pindah antar kata kunci.
             .OrderBy(f => f.DisplayOrder)

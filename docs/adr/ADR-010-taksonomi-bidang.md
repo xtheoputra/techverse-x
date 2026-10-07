@@ -1,6 +1,6 @@
 # ADR-010 — Taksonomi: empat belas bidang, dan taksonomi 41 submenu disusun ulang
 
-**Status:** Diterima. Menutup Issue [#3](https://github.com/xtheoputra/techverse-x/issues/3), [#4](https://github.com/xtheoputra/techverse-x/issues/4), [#5](https://github.com/xtheoputra/techverse-x/issues/5), [#6](https://github.com/xtheoputra/techverse-x/issues/6), [#7](https://github.com/xtheoputra/techverse-x/issues/7), [#8](https://github.com/xtheoputra/techverse-x/issues/8).
+**Status:** Diterima. Menutup Issue [#3](https://github.com/xtheoputra/techverse-x/issues/3), [#4](https://github.com/xtheoputra/techverse-x/issues/4), [#5](https://github.com/xtheoputra/techverse-x/issues/5), [#6](https://github.com/xtheoputra/techverse-x/issues/6), [#7](https://github.com/xtheoputra/techverse-x/issues/7), [#8](https://github.com/xtheoputra/techverse-x/issues/8). **Diperbarui 2026-10-07: tujuh belas bidang** — lihat Pembaruan di bawah.
 **Tanggal:** 2026-09-04
 
 ## Konteks
@@ -162,3 +162,41 @@ bidang ini nanti dinaikkan, karena itu irisannya dengan kekuatan pemilik.
   kekuatan jaringan pemilik di "bagian tersulit dan paling langka" — konektivitas,
   gateway, NAT/VPN, anggaran radio, manajemen armada. Itu pembeda yang tidak bisa
   ditiru penulis lain dengan cepat.
+
+## Pembaruan 2026-10-07 — tiga bidang Deep Tech ditambahkan (tujuh belas bidang)
+
+Pemilik menambahkan tiga bidang ke menu utama, di bawah XR, dari draf *"hub Deep Tech"* yang ia tempelkan (pilihan: bidang baru di menu utama, bukan sub-topik di bidang yang ada). Judul dan tabel di atas **dibiarkan sebagai rekaman keputusan 2026-09-04**; yang berlaku sekarang adalah **tujuh belas bidang**.
+
+### Tiga bidang baru
+
+| # | Bidang | Slug | Prioritas | Target | Cakupan awal (dari pemilik) |
+|---|---|---|---|---|---|
+| 15 | **Advanced Computing & Hardware** | `advanced-computing-hardware` | **2** | draf | desain semikonduktor · RISC-V · neuromorphic computing · fotonika · DNA data storage |
+| 16 | **Neurotechnology & BCI** | `neurotechnology-bci` | 3 | kurasi tautan | BCI invasif dan non-invasif · neuroprostetika · EEG signal processing · implan saraf |
+| 17 | **Advanced Materials & Nanotech** | `advanced-materials-nanotech` | 3 | kurasi tautan | grafena · metamaterial · superkonduktor · rekayasa material skala nano untuk baterai dan antariksa |
+
+Kolom "Topik" tabel di atas **tidak diisi** untuk ketiganya: pemilik menyebut cakupan, bukan jumlah topik, dan angka yang dikarang akan masuk hitungan beban penulisan tanpa dasar. Cakupan itu juga **belum diverifikasi audit** — ditandai begitu, seperti cakupan Edge AI dan Data Engineering di atas, supaya tak dikutip sebagai temuan.
+
+**Dampak pada angka resmi: tidak ada.** Hanya bidang berprioritas 1 yang memuat topik yang dijanjikan ditulis manusia, dan ketiganya bukan. Enam bidang dan 42 topik prioritas 1 serta target `tinjau` di [RENCANA-V1](../RENCANA-V1.md) tidak berubah. Hitungan sesudahnya: prioritas 1 — **6** bidang; prioritas 2 — **7**; prioritas 3 — **4**.
+
+### Tiga batas dengan bidang yang sudah ada (usulan ADR ini, belum diverifikasi audit)
+
+Ketiganya bersinggungan dengan bidang lain, dan tanpa batas tertulis topik yang sama akan punya dua rumah:
+
+- **Advanced Computing & Hardware ↔ Edge AI.** NPU dan akselerator **sebagai target inferensi** tetap di Edge AI; di sini arsitektur mikro, semikonduktor, dan teknologi komputasi alternatifnya. **Quantum Computing tetap bidangnya sendiri** — tidak diduplikasi di sini.
+- **Advanced Materials & Nanotech ↔ Renewable Energy.** **Baterai sebagai penyimpanan energi** tetap di "Integrasi jaringan & penyimpanan" milik Renewable Energy (ADR ini, bagian *Renewable Energy diisi ulang*); di sini materialnya (kimia dan fisika bahan), bukan sistem penyimpanannya.
+- **Neurotechnology & BCI ↔ Biotechnology.** Antarmuka saraf, sinyal, dan implan di sini; rekayasa genetika, protein, dan biologi sintetis tetap di Biotechnology.
+
+### Satu koreksi atas teks pemilik: "superkonduktor suhu kamar"
+
+Draf pemilik menulis *"superkonduktor suhu kamar"* sebagai salah satu landasan fisik. Ringkasan bidang tercetak di kartu **publik**, dan frasa itu terbaca sebagai bahan yang sudah ada — padahal **belum ada superkonduktor suhu kamar bertekanan atmosfer yang terbukti**. Klaim paling ramai, LK-99 (2023), gugur oleh replikasi independen: anomalinya berasal dari pengotor Cu₂S, bukan superkonduktivitas ([The Conversation](https://theconversation.com/hopes-fade-for-room-temperature-superconductor-lk-99-but-quantum-zero-resistance-research-continues-211733); [replikasi dan studi anomali, *Superconductor Science and Technology*](https://iopscience.iop.org/article/10.1088/1361-6668/ad2b78/ampdf)). Gambaran 2026: sistem hidrida mencatat suhu kritis tertinggi hanya pada tekanan di atas 100 GPa, dan kandidat bertekanan atmosfer **belum tervalidasi** ([tinjauan lanskap 2026](https://www.patsnap.com/resources/blog/articles/room-temperature-superconductor-research-2026-landscape/) — sumber sekunder; yang menentukan adalah konsensus replikasinya).
+
+Maka ringkasannya ditulis **"superkonduktor (suhu kamar belum terbukti)"**, dan catatannya sengaja di **bagian awal** kalimat: kartu halaman muka memotong ringkasan di tiga baris, dan versi pertama yang meletakkannya di tengah ("…termasuk pencarian bahan suhu kamar, yang belum terbukti…") terpotong persis di *"yang belum…"* — ketahuan saat kartunya **dilihat** di browser, bukan dari membaca kode. Itu satu-satunya perubahan pada teks pemilik selain penulisan ulang "&" dan "/" menjadi "dan" di dua tempat. Sebuah uji (`Katalog_TidakMengklaimSuperkonduktorSuhuKamarSudahAda`) menjaganya supaya kata *"belum terbukti"* tak bisa hilang diam-diam. Kalau pemilik ingin kata-kata aslinya, itu perubahan satu baris plus satu migrasi — tapi klaimnya tetap harus punya sumber primer sebelum tampil sebagai fakta.
+
+### Penempatan, dan satu akibatnya
+
+Sesuai permintaan, ketiganya di **bawah XR** (urutan tampil 15–17). Akibatnya **urutan tampil tak lagi sepenuhnya menurut prioritas**: Advanced Computing & Hardware (prioritas 2) kini tampil sesudah XR (prioritas 3). Komentar `Field.DisplayOrder` yang menulis *"prioritas dulu"* berlaku untuk empat belas bidang awal. Memindahkan Advanced Computing ke posisi 13 (dan menggeser Space dan XR) adalah migrasi data kecil; tak diambil di sini karena penempatannya diminta eksplisit. Uji `Katalog_MemuatKetigaBidangDeepTechDiBawahXR_DenganNamaDariPemilik` mengunci penempatan sekarang, supaya pergeserannya disengaja.
+
+### Dibangun
+
+`FieldCatalog` (17 entri, `ExpectedCount = 17`), migrasi **`TigaBidangDeepTech`** (hanya `InsertData`; `Down` menghapus tiga baris itu), tiga ikon, dan tes katalog. **Migrasi ini data saja, tanpa perubahan skema**, dan API membaca bidang dari basis data saat berjalan (bukan dari `FieldCatalog`, yang hanya dipakai saat membangun model dan di tes) — jadi API baru yang tayang **sebelum** migrasi dijalankan tetap sehat; ketiga kartu baru muncul begitu *Migrasi produksi* dijalankan. Tak ada jendela `migrate → api` yang rusak, tidak seperti yang akan dihadapi Tahap 3b ([ADR-028](ADR-028-antarmuka-futuristik-dan-isi-kaya.md)).

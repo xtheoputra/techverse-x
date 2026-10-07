@@ -512,3 +512,26 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20261007045020_TigaBidangDeepTech') THEN
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-00000000000f', 15, 'Advanced Computing & Hardware', 'Supporting', 'advanced-computing-hardware', 'Arsitektur mikro dan komputasi masa depan: desain semikonduktor, RISC-V, neuromorphic computing, fotonika, dan DNA data storage.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-000000000010', 16, 'Neurotechnology & BCI', 'Peripheral', 'neurotechnology-bci', 'Antarmuka langsung manusia-mesin: Brain-Computer Interface (BCI) invasif dan non-invasif, neuroprostetika, EEG signal processing, dan implan saraf.');
+    INSERT INTO technology.fields ("Id", "DisplayOrder", "Name", "Priority", "Slug", "Summary")
+    VALUES ('f1e10000-0000-7000-8000-000000000011', 17, 'Advanced Materials & Nanotech', 'Peripheral', 'advanced-materials-nanotech', 'Landasan fisik deep tech: grafena, metamaterial, superkonduktor (suhu kamar belum terbukti), dan rekayasa material skala nano untuk baterai dan antariksa.');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM technology.__ef_migrations_history WHERE "MigrationId" = '20261007045020_TigaBidangDeepTech') THEN
+    INSERT INTO technology.__ef_migrations_history ("MigrationId", "ProductVersion")
+    VALUES ('20261007045020_TigaBidangDeepTech', '10.0.4');
+    END IF;
+END $EF$;
+COMMIT;
+

@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 namespace TechVerseX.TechnologyService.Domain;
 
 /// <summary>
-/// Empat belas bidang TechVerse X, apa adanya dari ADR-010.
+/// Bidang-bidang TechVerse X, apa adanya dari ADR-010 (dan Pembaruan 2026-10-07-nya).
 /// </summary>
 /// <remarks>
 /// Ini <b>satu-satunya sumber</b> daftar bidang. Migrasi menyemai tabel dari sini
@@ -18,7 +18,7 @@ namespace TechVerseX.TechnologyService.Domain;
 public static class FieldCatalog
 {
     /// <summary>Jumlah bidang menurut ADR-010. Dipakai uji sebagai penjaga.</summary>
-    public const int ExpectedCount = 14;
+    public const int ExpectedCount = 17;
 
     // Sampai 2026-09-28 di sini ada CoreTopicCount = 42, yang mengaku dipakai
     // docs/RENCANA-V1.md untuk mengukur kemajuan. Nol rujukan di kode, uji, maupun
@@ -27,7 +27,7 @@ public static class FieldCatalog
     // ADR-010, satu-satunya tempat yang benar-benar menghitungnya.
 
     // 🔴 Ringkasan di sini TEKS PEMBACA, bukan catatan redaksi. Ia tercetak di
-    // keempat belas kartu halaman muka, di kepala halaman bidang, dan di hasil
+    // kartu-kartu halaman muka, di kepala halaman bidang, dan di hasil
     // /cari - dan selama produksi nol topik, kartu-kartu inilah isi utama situsnya.
     // Sampai 2026-09-17 tiga di antaranya menyuruh pengunjung "lihat ADR-010",
     // dokumen di repositori privat yang tidak bisa mereka buka. Ketahuannya dari
@@ -57,9 +57,25 @@ public static class FieldCatalog
         // Prioritas 3 — kurasi tautan saja.
         Make("f1e10000-0000-7000-8000-00000000000d", "Space Technology", "Konektivitas LEO, akses ke orbit, smallsat, segmen darat, observasi Bumi, GNSS/PNT, keselamatan orbit. Irisan terkuatnya: 3GPP NTN.", FieldPriority.Peripheral, 13),
         Make("f1e10000-0000-7000-8000-00000000000e", "XR (AR/VR/MR)", "Realitas diperluas. Dipertahankan sebagai pintu pencarian, tapi sengaja tidak diinvestasikan.", FieldPriority.Peripheral, 14, slug: "xr"),
+
+        // Tiga bidang Deep Tech yang ditambahkan pemilik 2026-10-07 (ADR-010 Pembaruan
+        // 2026-10-07), diletakkan di bawah XR sesuai permintaannya. Perhatikan bahwa urutan
+        // tampil KINI tak sepenuhnya menurut prioritas: Advanced Computing & Hardware
+        // berprioritas 2 tetapi duduk sesudah XR yang berprioritas 3. Itu akibat
+        // penempatan, bukan kelalaian — memindahkannya ke atas adalah migrasi data kecil.
+        Make("f1e10000-0000-7000-8000-00000000000f", "Advanced Computing & Hardware", "Arsitektur mikro dan komputasi masa depan: desain semikonduktor, RISC-V, neuromorphic computing, fotonika, dan DNA data storage.", FieldPriority.Supporting, 15),
+        Make("f1e10000-0000-7000-8000-000000000010", "Neurotechnology & BCI", "Antarmuka langsung manusia-mesin: Brain-Computer Interface (BCI) invasif dan non-invasif, neuroprostetika, EEG signal processing, dan implan saraf.", FieldPriority.Peripheral, 16),
+        // ⚠️ "Suhu kamar" TIDAK ditulis sebagai bahan yang ada: belum ada superkonduktor suhu
+        // kamar bertekanan atmosfer yang terbukti (klaim LK-99 2023 gugur oleh replikasi
+        // independen; senyawa hidrida mencatat suhu kritis tinggi hanya di tekanan jutaan
+        // atmosfer). Teks ini tercetak di kartu publik, dan sebuah uji menjaganya.
+        // Catatannya sengaja di bagian AWAL kalimat: kartu halaman muka memotong ringkasan
+        // di tiga baris, dan versi pertama yang meletakkannya di tengah terpotong persis di
+        // "yang belum…" — ketahuan saat kartunya DILIHAT, bukan dari membaca kode.
+        Make("f1e10000-0000-7000-8000-000000000011", "Advanced Materials & Nanotech", "Landasan fisik deep tech: grafena, metamaterial, superkonduktor (suhu kamar belum terbukti), dan rekayasa material skala nano untuk baterai dan antariksa.", FieldPriority.Peripheral, 17),
     ]);
 
-    /// <summary>Keempat belas bidang, dalam urutan tampil.</summary>
+    /// <summary>Seluruh bidang, dalam urutan tampil.</summary>
     public static IReadOnlyList<Field> All => Items;
 
     private static Field Make(string id, string name, string summary, FieldPriority priority, int displayOrder, string? slug = null)

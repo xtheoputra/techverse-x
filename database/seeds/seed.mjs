@@ -108,7 +108,7 @@ function jelaskanPermukaanTulisTertutup(status) {
 
 // ---- Topik -----------------------------------------------------------------
 
-// fieldSlug harus salah satu dari 14 bidang ADR-010 - lihat GET /api/v1/fields.
+// fieldSlug harus salah satu bidang ADR-010 - lihat GET /api/v1/fields.
 //
 // PENTING: nama contoh di sini TIDAK BOLEH sama dengan nama bidang.
 // /teknologi/<slug> dipakai bersama bidang dan topik (ADR-009), jadi topik

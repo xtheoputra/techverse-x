@@ -13,10 +13,11 @@ namespace TechVerseX.TechnologyService.Tests.Domain;
 public sealed class FieldCatalogTests
 {
     [Fact]
-    public void Katalog_BerisiEmpatBelasBidang()
+    public void Katalog_BerisiTujuhBelasBidang()
     {
+        // Empat belas dari ADR-010 + tiga bidang Deep Tech (ADR-010 Pembaruan 2026-10-07).
         Assert.Equal(FieldCatalog.ExpectedCount, FieldCatalog.All.Count);
-        Assert.Equal(14, FieldCatalog.All.Count);
+        Assert.Equal(17, FieldCatalog.All.Count);
     }
 
     [Fact]
@@ -33,13 +34,60 @@ public sealed class FieldCatalogTests
     }
 
     [Fact]
-    public void Katalog_PunyaDuaBidangYangSengajaTidakDiinvestasikan()
+    public void Katalog_PunyaEmpatBidangYangBerhentiDiKurasiTautan()
     {
+        // Space dan XR dari ADR-010, ditambah Neurotechnology & BCI dan Advanced
+        // Materials & Nanotech (Pembaruan 2026-10-07): "Target: kurasi tautan".
         var peripheral = FieldCatalog.All.Where(f => f.Priority == FieldPriority.Peripheral).ToList();
 
-        Assert.Equal(2, peripheral.Count);
+        Assert.Equal(4, peripheral.Count);
         Assert.Contains(peripheral, f => f.Slug == "space-technology");
         Assert.Contains(peripheral, f => f.Slug == "xr");
+        Assert.Contains(peripheral, f => f.Slug == "neurotechnology-bci");
+        Assert.Contains(peripheral, f => f.Slug == "advanced-materials-nanotech");
+    }
+
+    [Fact]
+    public void Katalog_PunyaTujuhBidangPrioritasDua_SatuDiantaranyaDariPembaruan()
+    {
+        var supporting = FieldCatalog.All.Where(f => f.Priority == FieldPriority.Supporting).ToList();
+
+        Assert.Equal(7, supporting.Count);
+        Assert.Contains(supporting, f => f.Slug == "advanced-computing-hardware");
+    }
+
+    [Fact]
+    public void Katalog_MemuatKetigaBidangDeepTechDiBawahXR_DenganNamaDariPemilik()
+    {
+        // Ditambahkan pemilik 2026-10-07 dan diletakkan di bawah XR: urutan tampil 15-17.
+        // Bahwa urutan tampil kini tak sepenuhnya menurut prioritas (prioritas 2 sesudah
+        // prioritas 3) dicatat di ADR-010 Pembaruan 2026-10-07 — uji ini menguncinya supaya
+        // pergeserannya disengaja.
+        var xr = Assert.Single(FieldCatalog.All, f => f.Slug == "xr");
+
+        var komputasi = Assert.Single(FieldCatalog.All, f => f.Slug == "advanced-computing-hardware");
+        var neuro = Assert.Single(FieldCatalog.All, f => f.Slug == "neurotechnology-bci");
+        var material = Assert.Single(FieldCatalog.All, f => f.Slug == "advanced-materials-nanotech");
+
+        Assert.Equal("Advanced Computing & Hardware", komputasi.Name);
+        Assert.Equal("Neurotechnology & BCI", neuro.Name);
+        Assert.Equal("Advanced Materials & Nanotech", material.Name);
+
+        Assert.Equal([15, 16, 17], new[] { komputasi.DisplayOrder, neuro.DisplayOrder, material.DisplayOrder });
+        Assert.All(new[] { komputasi, neuro, material }, f => Assert.True(f.DisplayOrder > xr.DisplayOrder));
+    }
+
+    [Fact]
+    public void Katalog_TidakMengklaimSuperkonduktorSuhuKamarSudahAda()
+    {
+        // 🔴 Ringkasan bidang tercetak di kartu PUBLIK. "Superkonduktor suhu kamar" yang
+        // ditulis tanpa catatan terbaca sebagai bahan yang sudah ada — padahal belum ada yang
+        // terbukti (klaim LK-99 2023 gugur oleh replikasi independen). Teks asli permintaan
+        // pemilik memuat frasa itu telanjang; kata "belum terbukti" ditambahkan dan dijaga di sini.
+        var material = Assert.Single(FieldCatalog.All, f => f.Slug == "advanced-materials-nanotech");
+
+        Assert.Contains("suhu kamar", material.Summary, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("belum terbukti", material.Summary, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

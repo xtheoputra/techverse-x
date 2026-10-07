@@ -84,7 +84,7 @@ export function SearchIcon({ className }: IconProps) {
 /**
  * Ikon per bidang, dipilih dari `slug` — slug itu kunci stabil ADR-009/010,
  * sedangkan nama tampilannya boleh berubah. Bidang yang slugnya belum punya ikon
- * (bidang ke-15 suatu hari) jatuh ke lambang umum, bukan ke ruang kosong.
+ * (bidang berikutnya yang ditambahkan lewat ADR) jatuh ke lambang umum, bukan ke ruang kosong.
  */
 const FIELD_ICONS: Record<string, (props: IconProps) => React.JSX.Element> = {
   'ai-machine-learning': (p) => (
@@ -188,6 +188,27 @@ const FIELD_ICONS: Record<string, (props: IconProps) => React.JSX.Element> = {
       <circle cx="8.5" cy="12.2" r="1.7" />
       <circle cx="15.5" cy="12.2" r="1.7" />
       <path d="M3 11H1.5M21 11h1.5" />
+    </Svg>
+  ),
+  // Tiga bidang Deep Tech (ADR-010 Pembaruan 2026-10-07).
+  'advanced-computing-hardware': (p) => (
+    <Svg {...p}>
+      <rect x="6.5" y="6.5" width="11" height="11" rx="2" />
+      <rect x="9.5" y="9.5" width="5" height="5" rx="1" />
+      <path d="M9.5 3.5v3M14.5 3.5v3M9.5 17.5v3M14.5 17.5v3M3.5 9.5h3M3.5 14.5h3M17.5 9.5h3M17.5 14.5h3" />
+    </Svg>
+  ),
+  'neurotechnology-bci': (p) => (
+    <Svg {...p}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M5.5 12.5h3l1.6-4 2.6 8 2-6 1.2 2h2.6" />
+    </Svg>
+  ),
+  'advanced-materials-nanotech': (p) => (
+    <Svg {...p}>
+      <path d="M12 3.2 19.4 7.6v8.8L12 20.8l-7.4-4.4V7.6z" />
+      <path d="M12 12v8.8M12 12 4.6 7.6M12 12l7.4-4.4" />
+      <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
     </Svg>
   ),
 };
