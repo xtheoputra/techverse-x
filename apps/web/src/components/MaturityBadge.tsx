@@ -8,21 +8,27 @@ import type { ContentMaturity } from '@/lib/api';
  * yang butuh menampilkan judul tanpa kematangan, ia harus mengubah komponen ini
  * dan mengubahnya akan terlihat di diff — bukan lolos karena satu pemanggil lupa
  * memasangnya.
+ *
+ * Makna warna, bukan hiasan: biru = kurasi tautan, kuning = draf mesin, hijau =
+ * sudah diperiksa manusia. Titiknya bercahaya hanya pada yang sudah diperiksa —
+ * satu-satunya klaim kepercayaan produk ini — supaya yang belum, tidak pernah
+ * terlihat lebih meyakinkan daripada yang sudah.
  */
-const LABELS: Record<ContentMaturity, { text: string; className: string }> = {
+const LABELS: Record<ContentMaturity, { text: string; className: string; dot: string }> = {
   Curated: {
     text: 'Kurasi tautan',
-    className: 'border-sky-300 bg-sky-50 text-sky-900 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-200',
+    className: 'border-sky/40 bg-sky/10 text-sky',
+    dot: 'bg-sky',
   },
   MachineDrafted: {
     text: 'Draf — belum diperiksa manusia',
-    className:
-      'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-200',
+    className: 'border-amber/40 bg-amber/10 text-amber',
+    dot: 'bg-amber',
   },
   HumanReviewed: {
     text: 'Sudah diperiksa manusia',
-    className:
-      'border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200',
+    className: 'border-mint/50 bg-mint/10 text-mint shadow-[0_0_24px_-6px_rgb(52_211_153/0.7)]',
+    dot: 'bg-mint shadow-[0_0_8px_2px_rgb(52_211_153/0.8)]',
   },
 };
 
@@ -30,6 +36,11 @@ export default function MaturityBadge({ maturity }: { maturity: ContentMaturity 
   const label = LABELS[maturity];
 
   return (
-    <span className={`inline-block rounded border px-1.5 py-0.5 text-xs ${label.className}`}>{label.text}</span>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${label.className}`}
+    >
+      <span className={`size-1.5 rounded-full ${label.dot}`} aria-hidden="true" />
+      {label.text}
+    </span>
   );
 }
