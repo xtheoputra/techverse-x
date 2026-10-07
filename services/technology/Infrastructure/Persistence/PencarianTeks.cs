@@ -136,7 +136,7 @@ internal static class PencarianTeks
     /// satu hasil yang dijalankan, bukan dari selera:</b> mencari <c>iot</c>
     /// memulangkan bidang <b>Biotechnology</b> — sebab <c>b-iot-echnology</c>
     /// memang memuat potongan huruf itu. <c>iot</c> bukan kata kunci aneh; ia
-    /// nama salah satu dari empat belas bidang.
+    /// nama salah satu bidang.
     /// <para>
     /// Cadangan ini ada untuk <b>pengetikan sebagian</b>, dan orang mengetik
     /// <em>awal</em> kata, bukan tengahnya. <c>\m</c> adalah jangkar "awal kata"

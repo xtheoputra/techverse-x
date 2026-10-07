@@ -18,7 +18,7 @@ namespace TechVerseX.Contracts.Technology;
 /// </para>
 /// <para>
 /// ⚠️ <see cref="Fields"/> sengaja <b>tidak</b> berhalaman. Daftar bidang
-/// tertutup di angka 14 (ADR-010) dan tidak bisa bertambah tanpa migrasi;
+/// tertutup (ADR-010) dan tidak bisa bertambah tanpa ADR dan migrasi;
 /// memberi penomoran halaman pada daftar yang tidak bisa tumbuh hanya menambah
 /// permukaan yang harus diuji. Topik bisa tumbuh, jadi ia berhalaman.
 /// </para>

@@ -226,7 +226,7 @@ export function searchTechnologies(
   return getJson<PagedResponse<TechnologySummary>>(`/api/v1/technologies?${query}`);
 }
 
-/** Keempat belas bidang ADR-010. Daftarnya tertutup, jadi tidak ada penomoran halaman. */
+/** Seluruh bidang ADR-010. Daftarnya tertutup, jadi tidak ada penomoran halaman. */
 export function listFields(): Promise<ApiResult<Field[]>> {
   return getJson<Field[]>('/api/v1/fields');
 }

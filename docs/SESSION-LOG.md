@@ -136,7 +136,7 @@ Pemilik menjawab ketiga pertanyaan 🏁: arah gelap-neon **sudah mantap**, #87 *
 
 **Yang TIDAK dikerjakan:** 3b dan 4. **Isi pilot tidak diubah** — halaman MCP masih ± 762 kata di bagian yang diperiksa dan teks polos; **keluhan "kurang detail" belum terjawab sama sekali**, 3a hanya memberi isi kemampuan tampil berformat. Konten demo tak masuk repo. Tak ada yang di-merge.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan akhir sesi 22 sesudah Lanjutan 2 (digantikan oleh 🏁 di Lanjutan 3, di bawah)
 
 **PR terbuka:** Tahap 3a ([#88](https://github.com/xtheoputra/techverse-x/pull/88)), berbasis `main`, tanpa migrasi dan tanpa perubahan API — **aman di-merge kapan saja**; pengunjung tak melihat perubahan apa pun sampai isi berformat dipasang. `origin/main` = `5c5efd3` (diukur 2026-10-07). Produksi: 14 bidang, 1 topik (`draf`), **0 dari 22 `tinjau`**.
 
@@ -148,6 +148,44 @@ Pemilik menjawab ketiga pertanyaan 🏁: arah gelap-neon **sudah mantap**, #87 *
 **Berikutnya, saya:** Tahap 3b (blok media, `overview`, penampil media, diagram SVG, `PUT/DELETE …/media/{key}`) dicabangkan **sesudah 3a ter-merge**, lalu Tahap 4 (tulis ulang pilot MCP: mendalam, berdiagram, bervideo, diverifikasi ke sumber primer).
 
 **Lingkungan — akhir sesi:** cabang kerja `fase-1/tahap-3a-markdown-terbatas`. Server web port 3401 dan API port 5099 yang saya mulai **sudah dihentikan** (PID dicocokkan dengan baris perintah dan waktu mulainya dulu), basis data sekali pakai `techversex_md` **dihapus**, tab Chrome yang saya buka **ditutup**. Docker Desktop masih hidup (saya yang menyalakannya sebelumnya); `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
+
+### Lanjutan 3 — *"1. Merged. lainnya saya ingin menambahkan informasi ini"*: tiga bidang Deep Tech (tujuh belas bidang)
+
+Pemilik me-merge Tahap 3a ([#88](https://github.com/xtheoputra/techverse-x/pull/88)) dan menempelkan draf *"hub Deep Tech"* (Pilihan 1: tiga bidang baru di menu utama, di bawah XR). **Pertanyaan jendela migrasi 3b belum dijawab** — pekerjaan ini tak bergantung padanya dan dikerjakan lebih dulu.
+
+**Dibangun** (cabang `fase-1/bidang-baru-tiga-deep-tech`, dari `main` `3177196`): **Advanced Computing & Hardware** (prioritas 2, "Target: draf"), **Neurotechnology & BCI** dan **Advanced Materials & Nanotech** (prioritas 3, "Target: kurasi tautan"); urutan tampil 15–17. `FieldCatalog` (17 entri), migrasi `TigaBidangDeepTech` (**hanya `InsertData`**, tanpa perubahan skema), tiga ikon, tes katalog, README, `RENCANA-V1`, dan [ADR-010 Pembaruan 2026-10-07](adr/ADR-010-taksonomi-bidang.md) — termasuk tiga batas dengan bidang lain (usulan, belum diaudit): NPU tetap di Edge AI, baterai sebagai penyimpanan tetap di Renewable Energy, rekayasa genetika tetap di Biotechnology.
+
+**Kabar baik soal penyebaran:** karena API membaca bidang dari **basis data** saat berjalan (bukan dari `FieldCatalog`) dan migrasinya hanya data, **tak ada jendela `migrate → api`** — API baru yang tayang sebelum migrasi tetap sehat; tiga kartu muncul sesudah *Migrasi produksi* dijalankan dan cache web 300 detik habis. Ini beda dari 3b.
+
+**Dua hal yang saya putuskan sendiri, dan harus terbaca:**
+
+1. **Koreksi atas teks pemilik: "superkonduktor suhu kamar".** Frasa itu tercetak di kartu publik dan terbaca sebagai bahan yang sudah ada, padahal **belum ada superkonduktor suhu kamar bertekanan atmosfer yang terbukti** (LK-99 gugur oleh replikasi independen; kandidat 2026 belum tervalidasi — sumbernya di ADR-010). Ditulis **"superkonduktor (suhu kamar belum terbukti)"**, dijaga satu uji. Kalau pemilik ingin kata aslinya, itu satu baris plus satu migrasi — tapi klaimnya butuh sumber primer lebih dulu. Selain itu hanya "&" dan "/" yang ditulis ulang jadi "dan".
+2. **Penempatan di bawah XR membuat urutan tampil tak lagi sepenuhnya menurut prioritas** (prioritas 2 sesudah prioritas 3). Saya ikuti permintaan eksplisit; memindahkannya ke posisi 13 adalah migrasi data kecil. Diuji (`Katalog_MemuatKetigaBidangDeepTechDiBawahXR_…`) supaya pergeserannya disengaja.
+
+**Terukur, bukan diklaim:** `FieldCatalogTests` + `ModelMigrasiTests` **merah dulu** (katalog 14 ≠ 17; "model berubah, migrasi belum dibuat") lalu hijau; tes pembacaan bidang merah di basis data yang belum dimigrasi (`PermukaanTulisTests`), hijau sesudahnya; migrasi **naik-turun-naik** di basis data pengembangan (17 → 14 → 17) dan dari basis data **kosong** (17 bidang, 0 topik); **148 unit** (dari 145) + **101 integrasi**; penjaga klaim superkonduktor **merah** saat "belum terbukti" dihapus, dipulihkan identik (`cmp`); pemindai halaman: bentuk produksi **19 halaman, 17 dari 17**, pengembangan **25 halaman, 23 dari 23**; tampilan **dilihat** di Chrome (judul beranda otomatis "17 bidang teknologi", ketiga kartu dengan ikon dan label target yang benar). `run.ps1 verify`: **hijau** (exit 0): build ketat 0 peringatan, 148 unit + 101 integrasi, lint, build web, cek tautan, cek berkas isi, 44 uji pengurai.
+
+**Temuan dan kesalahan sesi ini:**
+
+- **Kartu memotong ringkasan di tiga baris** — versi pertama ringkasan Materials memotong catatannya tepat di *"yang belum…"*. Ketahuan hanya karena kartunya **dilihat**; catatan dipindah ke awal kalimat dan migrasinya dibuat ulang (mundur, `migrations remove`, `add`, `update`).
+- **Pemindai halaman membaca jawaban lama** — run pertama "14 dari 17" untuk tiga bidang yang jelas ada di beranda; run kedua "17 dari 17". Penyebabnya cache fetch di `.next/cache` (revalidate 300 detik) yang menyimpan jawaban dari port 5099 sesi sebelumnya — **artefak pengukuran lokal, bukan cacat produk**; dicatat di kepala skrip pemindai. Akibat nyata untuk produksi hanya: kartu baru muncul ≤ ± 5 menit sesudah migrasi.
+- **`dotnet ef` gagal membangun** karena dua proses API saya mengunci DLL-nya; tak ada yang berubah (migrasi lama utuh). Proses dicocokkan lewat port dan baris perintah sebelum dihentikan.
+- Angka "14" yang tertanam di komentar dan satu pesan galat API ("…untuk keempat belas bidang yang sah") dibuat bebas hitungan; rekaman bertanggal (SESSION-LOG, PENYEBARAN, RENCANA-V1 selain satu catatan) **tidak diubah**.
+
+**Yang TIDAK dikerjakan:** tidak ada topik di bidang baru (pemilik memberi cakupan, bukan jumlah topik; kolom "Topik" ADR-010 sengaja kosong); **migrasi belum dijalankan ke Neon** — itu menulis ke produksi dan butuh izin pemilik; tidak ada yang di-merge. Cakupan ketiga bidang **belum diverifikasi audit** dan ditandai begitu.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**PR terbuka:** tiga bidang Deep Tech ([#89](https://github.com/xtheoputra/techverse-x/pull/89)), berbasis `main`, aman di-merge kapan saja. `origin/main` = `3177196` (diukur 2026-10-07). Produksi: **14 bidang** sampai migrasi dijalankan, 1 topik (`draf`), **0 dari 22 `tinjau`**.
+
+**Menunggu pemilik:**
+
+1. **Baca dan merge PR ini.** Mulai dari [ADR-010 Pembaruan 2026-10-07](adr/ADR-010-taksonomi-bidang.md): tiga batas bidang (usulan saya), koreksi superkonduktor, dan penempatan di bawah XR.
+2. **Izin menjalankan *Migrasi produksi*** sesudah merge: ia menulis tiga baris data ke Neon (aditif, `Down` tersedia, terbukti naik-turun di pengembangan). Saya tak menjalankannya tanpa izin.
+3. **Jawaban jendela migrasi untuk Tahap 3b** (masih menunggu): Tahap 3b menambah kolom dan tabel; API baru yang tayang sebelum migrasinya selesai membalas 500 di halaman topik selama beberapa menit. Saran saya tetap: merge lalu langsung jalankan *Migrasi produksi*.
+
+**Berikutnya, saya:** Tahap 3b (blok media, `overview`, penampil media, diagram SVG) — sesudah jawaban nomor 3. Lalu Tahap 4 (tulis ulang pilot MCP). Isi pilot masih ± 762 kata teks polos; **keluhan "kurang detail" belum terjawab**.
+
+**Lingkungan — akhir sesi:** cabang kerja `fase-1/bidang-baru-tiga-deep-tech`. Server web (3401) dan API (5097–5099) yang saya mulai **sudah dihentikan** (dicocokkan dengan baris perintah dan waktu mulainya), basis data sekali pakai `techversex_bd` **dihapus**, tab Chrome **ditutup**. Basis data pengembangan `techversex` kini 17 bidang (migrasi diterapkan). Docker Desktop masih hidup; `humanverse-xos-*` dan `wellsy-*` milik proyek **lain**.
 
 ---
 

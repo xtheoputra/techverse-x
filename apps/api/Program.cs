@@ -33,7 +33,7 @@ var redisTerpasang = !string.IsNullOrWhiteSpace(redisConnection);
 //
 // Bawaannya `false`, dan itu bagian dari keputusannya: lingkungan yang lupa
 // mengonfigurasi mendapat bentuk yang AMAN, bukan bentuk yang terbuka. Produksi
-// V1 memang terbitan yang hanya bisa dibaca — keempat belas bidangnya datang
+// V1 memang terbitan yang hanya bisa dibaca — seluruh bidangnya datang
 // dari migrasi, bukan dari HTTP.
 //
 // Dinyalakan di launchSettings.json (dev, lewat `dotnet run`) dan di uji

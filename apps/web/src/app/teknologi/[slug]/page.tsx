@@ -28,7 +28,7 @@ import { mesinPengembang } from '@/lib/lingkungan';
  * alamat yang dijanjikan stabil untuknya.
  *
  * Urutannya bidang dulu, dan itu bukan sekadar preferensi: daftar bidang
- * tertutup, cuma 14 baris, dan sudah di-cache untuk halaman muka — jadi cabang
+ * tertutup, cuma belasan baris, dan sudah di-cache untuk halaman muka — jadi cabang
  * ini praktis gratis.
  */
 

@@ -104,8 +104,10 @@ Selain memindai teks ia menelusuri dari `/`, membandingkan jumlah halaman `/tekn
 
 | Bentuk | Halaman | `/teknologi/*` |
 |---|---|---|
-| **produksi** (yang dijalankan CI) | 16 | **14 dari 14** — nol topik, jadi empat belas bidang itulah seluruh isinya |
-| **pengembangan** (6 topik contoh) | 22 | **20 dari 20** |
+| **produksi** (yang dijalankan CI) | 19 | **17 dari 17** — nol topik, jadi ketujuh belas bidang itulah seluruh isinya |
+| **pengembangan** (6 topik contoh) | 25 | **23 dari 23** |
+
+*(Diukur ulang 2026-10-07 sesudah tiga bidang Deep Tech ditambahkan; sebelumnya 16 → 14 dari 14 dan 22 → 20 dari 20.)*
 
 ### Isi contoh itu bukan kurikulum
 
@@ -149,20 +151,24 @@ Struktur yang dituju ada di [KERANGKA.md 4.7](KERANGKA.md#47-project-architectur
 
 ---
 
-## Empat Belas Bidang Teknologi
+## Tujuh Belas Bidang Teknologi
 
 > ⚠️ Bagian ini dulu memuat **dua belas** bidang. Angka itu **dibatalkan
 > [ADR-010](docs/adr/ADR-010-taksonomi-bidang.md)**; yang mengikat sekarang
 > **empat belas**, dan daftarnya ditegakkan kode — `FieldCatalog` disemai
-> migrasi, dan `FieldCatalogTests` menuntut `Assert.Equal(14, ...)`.
+> migrasi, dan `FieldCatalogTests` menuntut jumlah yang tepat.
 > Dua bidang yang sebelumnya tidak tercantum di sini sama sekali:
 > **Data Engineering** dan **Edge AI**.
+>
+> 🆕 **Sejak 2026-10-07 menjadi tujuh belas.** Pemilik menambahkan tiga bidang Deep Tech
+> di bawah XR — lihat [ADR-010 Pembaruan 2026-10-07](docs/adr/ADR-010-taksonomi-bidang.md),
+> termasuk satu koreksi atas teks yang diajukan (`superkonduktor suhu kamar` belum terbukti).
 
 | Prioritas | Bidang |
 |---|---|
 | **Core** (6) | AI & Machine Learning · AI Agents · Cybersecurity · Cloud & Infrastructure · **Data Engineering** · IoT |
-| **Supporting** (6) | **Edge AI** · Robotics · Quantum Computing · Biotechnology · Blockchain · Renewable Energy |
-| **Peripheral** (2) | Space Technology · XR (AR/VR/MR) |
+| **Supporting** (7) | **Edge AI** · Robotics · Quantum Computing · Biotechnology · Blockchain · Renewable Energy · **Advanced Computing & Hardware** |
+| **Peripheral** (4) | Space Technology · XR (AR/VR/MR) · **Neurotechnology & BCI** · **Advanced Materials & Nanotech** |
 
 Tiga nama sengaja berbeda dari daftar lama: **Cloud & Infrastructure** (bukan
 "Cloud" saja), **XR (AR/VR/MR)** (bukan "AR/VR"), dan **Edge AI** yang berdiri

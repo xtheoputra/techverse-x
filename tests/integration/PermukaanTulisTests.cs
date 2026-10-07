@@ -248,7 +248,9 @@ public sealed class PermukaanTulisTests : IAsyncLifetime
 
         var bidang = await client.GetAsync(new Uri("/api/v1/fields", UriKind.Relative));
         Assert.Equal(HttpStatusCode.OK, bidang.StatusCode);
-        Assert.Equal(14, (await bidang.Content.ReadFromJsonAsync<IReadOnlyList<FieldResponse>>())?.Count);
+        // Dari katalog, bukan angka telanjang: basis data yang BELUM dimigrasi sampai migrasi
+        // bidang terbaru membalas lebih sedikit dan uji ini memerah — itu yang diinginkan.
+        Assert.Equal(TechVerseX.TechnologyService.Domain.FieldCatalog.ExpectedCount, (await bidang.Content.ReadFromJsonAsync<IReadOnlyList<FieldResponse>>())?.Count);
 
         var pencarian = await client.GetAsync(new Uri("/api/v1/technologies", UriKind.Relative));
         Assert.Equal(HttpStatusCode.OK, pencarian.StatusCode);

@@ -1,7 +1,7 @@
 namespace TechVerseX.TechnologyService.Domain;
 
 /// <summary>
-/// Satu bidang teknologi. Empat belas di antaranya, ditetapkan ADR-010.
+/// Satu bidang teknologi. Daftarnya tertutup dan ditetapkan ADR-010 (berikut Pembaruan-nya).
 /// </summary>
 /// <remarks>
 /// Sebelum ini <c>Technology.Category</c> berupa teks bebas, karena taksonominya

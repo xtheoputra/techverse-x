@@ -16,6 +16,12 @@ ini yang berlaku.
 
 Tanpa login. Tanpa lencana. Tanpa berita di luar arXiv.
 
+> 🆕 **Diperbarui 2026-10-07 — "empat belas bidang" di atas kini tujuh belas.** Pemilik menambahkan tiga
+> bidang Deep Tech ([ADR-010 Pembaruan 2026-10-07](adr/ADR-010-taksonomi-bidang.md)): satu berprioritas 2
+> (target draf) dan dua berprioritas 3 (kurasi tautan). **Ukuran resmi kemajuan tidak berubah**: hanya
+> bidang berprioritas 1 yang memuat topik yang dijanjikan ditulis manusia, jadi sasarannya tetap **22**
+> topik `tinjau` di akhir Bulan 6. Kalimat dan tabel di bawah dibiarkan sebagai rekaman rencana 2026-09-04.
+
 Garis finis ini dipilih karena kegagalan yang paling mungkin menimpa proyek ini
 bukan kekurangan fitur, melainkan **empat puluh halaman setengah jadi**. Menu
 yang lengkap tapi kosong tidak bisa dipakai siapa pun, dan tidak bisa

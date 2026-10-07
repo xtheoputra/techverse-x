@@ -361,7 +361,7 @@ public sealed class PencarianTests : IAsyncLifetime
         // 🔴 Uji ini lahir dari MENJALANKAN, bukan dari membaca kode. Cadangan
         // pencocokan sebagian mula-mula ILIKE '%iot%', dan itu memulangkan
         // bidang Biotechnology — b-IOT-echnology. "iot" bukan kata kunci aneh:
-        // ia nama salah satu dari empat belas bidang ADR-010.
+        // ia nama salah satu bidang ADR-010.
         //
         // Keduanya bidang bawaan migrasi, jadi uji ini tidak membuat apa pun dan
         // berlaku sama di CI yang basis datanya lahir kosong.

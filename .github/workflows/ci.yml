@@ -344,7 +344,9 @@ jobs:
       # 🔑 Bentuk produksi juga yang paling MURAH dijaga: nol topik dan empat
       # belas bidang datang dari migrasi, tanpa seed, jadi angkanya deterministik.
       # Diukur lokal terhadap tumpukan ini: 16 halaman, 14 dari 14 halaman
-      # /teknologi/* yang dikenal API, teks terlihat 0 kena.
+      # /teknologi/* yang dikenal API, teks terlihat 0 kena. Sejak 2026-10-07 (tiga bidang
+      # Deep Tech, ADR-010 Pembaruan): 19 halaman, 17 dari 17. Pemindainya menghitung dari
+      # API, jadi angka ini hanya catatan — tak ada yang perlu disetel di sini.
       - name: Pasang Node untuk pemindai halaman
         uses: actions/setup-node@v6
         with:
