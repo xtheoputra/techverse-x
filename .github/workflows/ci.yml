@@ -133,103 +133,34 @@ jobs:
       - name: Uji unit + integrasi
         run: dotnet test TechVerseX.slnx --no-build --configuration Release --verbosity normal
 
-      # 🔑 GERBANG ADR-027: isi SUNGGUHAN (berkas di isi/) bisa dipasang ke API
-      # sungguhan, dari nol, dua kali.
+      # 🔑 GERBANG ISI BERBASIS API: tiga gerbang yang butuh API HIDUP di atas basis data
+      # KOSONG, semuanya di satu berkas yang juga dipanggil `run.ps1 gerbang-isi`/`ci` dan
+      # `make gerbang-isi`/`ci` — supaya tiruan lokal dan aslinya tak bisa menyimpang:
       #
-      # Kenapa gerbang tersendiri dan bukan cukup `cek:isi` di job frontend: pemeriksa
-      # itu mencerminkan batas panjang dan aturan bentuk, dan cermin bisa menyimpang
-      # dari server. Di sini SERVERNYA yang menilai — validator, aturan domain, dan
-      # `MarkDrafted` yang menolak bagian kosong. Jalan produksi (isi.yml) tidak bisa
-      # diuji tanpa secret Neon, jadi inilah satu-satunya tempat berkas isi bertemu API
-      # sebelum ia bertemu produksi.
+      #   1  isi SUNGGUHAN (berkas di isi/) dipasang dari nol, dua kali (ADR-027): pemasangan kedua
+      #      nol tulisan, setiap topik draf tanpa pemeriksa. Inilah satu-satunya tempat berkas isi
+      #      bertemu API — validator, aturan domain, `MarkDrafted` — sebelum ia bertemu produksi;
+      #      `cek:isi` di job frontend hanya cermin batas dan bentuk, dan cermin bisa menyimpang.
+      #   2  `uji-ganti.mjs` (ADR-028 Tahap 2): `--ganti` menyamakan server dengan berkas, `tinjau`
+      #      tetap terkunci, langkah roadmap berlebih tetap menghentikan.
+      #   3  `uji-media.mjs` (ADR-028 Tahap 3b): `overview` dan media dipasang lalu disamakan kembali.
       #
-      # Basis data TERPISAH (techversex_isi) di service container yang sama: uji integrasi
-      # di atas sudah menulis ke `techversex`, dan "dari nol" tak boleh bergantung pada
-      # sisa uji lain. Pemasangan KEDUA harus tidak menulis apa pun — pemasang yang
-      # menggandakan langkah pada pemasangan ulang adalah cacat yang sudah pernah
-      # menggigit seed (database/seeds/seed.mjs).
-      - name: Isi sungguhan dipasang dari nol, dua kali (ADR-027)
+      # 🔴 Sampai 2026-10-07 ketiganya langkah-langkah YAML di sini saja, dan gerbang lokal tak
+      # memuatnya: PR #90 merah di CI karena teks rencana pemasang berubah dan `uji-ganti.mjs` tidak
+      # — `verify` yang hijau tak pernah menyentuhnya. Satu kebetulan buruk lagi: langkah YAML yang
+      # merah menghentikan langkah sesudahnya, jadi gerbang media #90 tak pernah jalan di runner
+      # sampai perbaikan. Berkasnya menjalankan gerbang 2 dan 3 walau salah satunya merah.
+      #
+      # Basis data TERPISAH (`techversex_isi`) di service container yang sama: uji integrasi di atas
+      # menulis ke `techversex`, dan "dari nol" tak boleh bergantung pada sisanya. Urutannya
+      # postgres -> migrate -> api, sama dengan PENYEBARAN.md. Rincian, kode keluar, dan
+      # pembersihannya (API dihentikan, log dicetak bila merah, basis data dibuang) ada di kepala
+      # berkasnya.
+      - name: Isi sungguhan dipasang dari nol, dua kali, lalu diganti dan bermedia (ADR-027, ADR-028)
         env:
           PGPASSWORD: techversex_dev
-          ConnectionStrings__Postgres: "Host=localhost;Port=5432;Database=techversex_isi;Username=techversex;Password=techversex_dev"
-          ConnectionStrings__Redis: "localhost:6379"
-          Editorial__WritesEnabled: "true"
           API_BASE_URL: "http://127.0.0.1:5099"
-        run: |
-          psql -h localhost -U techversex -d techversex -c 'CREATE DATABASE techversex_isi'
-          dotnet ef database update \
-            --project services/technology/TechVerseX.TechnologyService.csproj \
-            --startup-project apps/api/TechVerseX.Api.csproj
-
-          dotnet run --project apps/api/TechVerseX.Api.csproj --no-build --configuration Release \
-            --no-launch-profile --urls "$API_BASE_URL" > "$RUNNER_TEMP/api-isi.log" 2>&1 &
-          echo $! > "$RUNNER_TEMP/api-isi.pid"
-
-          siap=""
-          for _ in $(seq 1 30); do
-            if [ "$(curl -s -o /dev/null -w '%{http_code}' "$API_BASE_URL/health/ready")" = "200" ]; then
-              siap="ya"
-              break
-            fi
-            sleep 2
-          done
-          if [ -z "$siap" ]; then
-            echo "::error::API tidak pernah SIAP dalam 60 detik. Log-nya dicetak di langkah Bersihkan."
-            exit 1
-          fi
-
-          echo "=== Pemasangan pertama (dari nol)"
-          node database/isi/pasang.mjs --semua
-
-          echo "=== Pemasangan kedua (tak boleh menulis apa pun)"
-          node database/isi/pasang.mjs --semua | tee "$RUNNER_TEMP/pasang-kedua.txt"
-          if grep -E '^  (dibuat|langkah|proyek|sumber|sisi|draf|ganti|buang|lepas|media)' "$RUNNER_TEMP/pasang-kedua.txt"; then
-            echo "::error::Pemasangan kedua menulis sesuatu. Pemasang harus idempoten: berkas yang sama, server yang sama, nol tulisan."
-            exit 1
-          fi
-
-          # Invarian inti ADR-027: pemasang membawa topik paling jauh ke draf. Tak satu
-          # topik pun boleh keluar dari sini berstatus tinjau atau berpemeriksa.
-          jumlah=0
-          for berkas in isi/*/*.json; do
-            slug="$(basename "$berkas" .json)"
-            badan="$(curl -s "$API_BASE_URL/api/v1/technologies/$slug")"
-            echo "$badan" | grep -q '"maturity":"MachineDrafted"' || { echo "::error::$slug tidak berstatus draf: $badan"; exit 1; }
-            echo "$badan" | grep -q '"reviewedAt":null' || { echo "::error::$slug punya reviewedAt — pemasang tak boleh menandai diperiksa."; exit 1; }
-            jumlah=$((jumlah + 1))
-          done
-          echo "SIAP: $jumlah topik terpasang dari nol, sama dengan berkas, berstatus draf."
-
-      # 🔑 GERBANG ADR-028 Tahap 2: `pasang.mjs --ganti` membuktikan dirinya terhadap API
-      # SUNGGUHAN, di basis data yang baru saja diisi langkah di atas. Skrip itu
-      # menyimpangkan server dari berkas lewat API, lalu memeriksa tiap akibatnya: tanpa
-      # --ganti pemasang berhenti dan tak menulis; dengan --ganti server kembali sama dengan
-      # berkas dan idempoten; topik tinjau tetap terkunci; langkah roadmap berlebih tetap
-      # menghentikan. Ia sengaja SESUDAH pemeriksaan "semua topik draf" di atas: ia
-      # menaikkan satu topik ke tinjau untuk membuktikan kuncinya, dan basis data ini
-      # sekali pakai (techversex_isi, lahir kosong tiap jalan).
-      - name: Isi sungguhan diganti, tinjau tetap terkunci (ADR-028 Tahap 2)
-        env:
-          API_BASE_URL: "http://127.0.0.1:5099"
-        run: node database/isi/uji-ganti.mjs
-
-      # 🔑 GERBANG ADR-028 Tahap 3b: `overview` dan `media` di berkas isi dipasang ke API SUNGGUHAN
-      # dan disamakan kembali oleh `--ganti`. Pilot MCP belum punya keduanya, jadi gerbang ini
-      # membangun topik fixture sendiri di folder sementara (ISI_DIR) dan menyimpangkan server dari
-      # berkas dengan beberapa cara. Satu SVG sementara ditaruh di apps/web/public/media/ dan SELALU
-      # dihapus lagi. Topiknya baru (slug acak), jadi tak bergantung pada topik tinjau yang
-      # ditinggalkan gerbang ganti di atas; basis datanya tetap sekali pakai.
-      - name: Overview dan media dipasang dan disamakan kembali (ADR-028 Tahap 3b)
-        env:
-          API_BASE_URL: "http://127.0.0.1:5099"
-          GERBANG_BASIS_DATA_SEKALI_PAKAI: "ya"
-        run: node database/isi/uji-media.mjs
-
-      - name: Bersihkan API isi
-        if: always()
-        run: |
-          tail -n 40 "$RUNNER_TEMP/api-isi.log" 2>/dev/null || true
-          if [ -f "$RUNNER_TEMP/api-isi.pid" ]; then kill "$(cat "$RUNNER_TEMP/api-isi.pid")" 2>/dev/null || true; fi
+        run: node database/isi/gerbang-isi.mjs
 
   frontend:
     name: Frontend (Next.js)
