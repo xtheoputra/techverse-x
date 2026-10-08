@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 600" role="img" aria-labelledby="judul desk">
+  <title id="judul">Teknik menjaga anggaran konteks</title>
+  <desc id="desk">Sebuah batang konteks yang hampir penuh dibagi menjadi prompt sistem dan tools, riwayat percakapan, dan hasil tool. Empat teknik bekerja pada bagian berbeda: context editing membersihkan hasil tool lama dan menyisakan beberapa yang terbaru; compaction meringkas riwayat lama menjadi satu ringkasan; memory tool memindahkan hal yang harus bertahan ke berkas di luar konteks; sub-agen menjalankan penjelajahan di konteksnya sendiri dan hanya mengembalikan ringkasan pendek.</desc>
+  <rect width="640" height="600" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Empat cara menjaga konteks tetap kecil</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Konteks adalah anggaran: makin penuh, makin turun ketepatannya.</text>
+
+  <!-- Batang konteks -->
+  <text x="32" y="118" fill="#c4b5fd" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1.5">KONTEKS HAMPIR PENUH</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">
+    <rect x="32" y="130" width="96" height="56" rx="8" fill="#8b5cf6" fill-opacity="0.35" stroke="#8b5cf6"/>
+    <text x="80" y="163" fill="#eef2ff" text-anchor="middle">sistem+tools</text>
+    <rect x="132" y="130" width="214" height="56" rx="8" fill="#22d3ee" fill-opacity="0.22" stroke="#22d3ee"/>
+    <text x="239" y="163" fill="#eef2ff" text-anchor="middle">riwayat percakapan</text>
+    <rect x="350" y="130" width="258" height="56" rx="8" fill="#fbbf24" fill-opacity="0.22" stroke="#fbbf24"/>
+    <text x="479" y="163" fill="#eef2ff" text-anchor="middle">hasil tool (berkas, pencarian, log)</text>
+  </g>
+
+  <!-- Teknik 1: context editing -->
+  <rect x="24" y="214" width="592" height="80" rx="14" fill="#0d1226" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="40" y="242" fill="#fde68a" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1">CONTEXT EDITING</text>
+  <text x="40" y="266" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">buang hasil tool tertua, sisakan beberapa terakhir</text>
+  <text x="40" y="284" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12">clear_tool_uses_20250919 · server, beta</text>
+
+  <!-- Teknik 2: compaction -->
+  <rect x="24" y="306" width="592" height="80" rx="14" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="40" y="334" fill="#a5f3fc" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1">COMPACTION</text>
+  <text x="40" y="358" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">ringkas giliran lama menjadi satu ringkasan</text>
+  <text x="40" y="376" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12">server, beta · hati-hati: yang dibuang tak kembali</text>
+
+  <!-- Teknik 3: memory tool -->
+  <rect x="24" y="398" width="592" height="80" rx="14" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+  <text x="40" y="426" fill="#a7f3d0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1">CATATAN / MEMORY TOOL</text>
+  <text x="40" y="450" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">pindahkan yang harus bertahan ke berkas di luar konteks</text>
+  <text x="40" y="468" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12">memory_20250818 · dijalankan aplikasimu</text>
+
+  <!-- Teknik 4: sub-agen -->
+  <rect x="24" y="490" width="592" height="80" rx="14" fill="#0d1226" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="40" y="518" fill="#ddd6fe" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1">SUB-AGEN</text>
+  <text x="40" y="542" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">jelajahi di konteks sendiri, kembalikan ringkasan pendek</text>
+  <text x="40" y="560" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12">sering 1.000–2.000 token, menurut Anthropic</text>
+</svg>
