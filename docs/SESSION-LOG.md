@@ -4,6 +4,49 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-08 — Sesi 24 (Lanjutan 3): Memori tayang, lalu keempat topik ditulis ulang dengan bahasa yang hangat
+
+Permintaan pemilik: *"1. terlalu kaku bahasa robot, gunakan bahasa yang baik untuk pembelajaran. 2. merged"*.
+
+### 1. Pasang isi Memori agen — atas izin pemilik
+
+#97 sudah di-merge, dan pemilik menjawab **"Ya, pasang sekarang"**. Citra API yang tayang dipastikan dulu: `e262bb1`, karena merge #97 tak menyentuh jalur API. Run `37742310161` (`memori-agen`, tanpa ganti) menulis *"sisi memori-agen butuh tool-use"* lalu `selesai`. Diukur di produksi: `memori-agen` berstatus `draf`, 12 langkah, 5 media, `requires: tool-use`, halaman 200.
+
+### 2. Umpan balik gaya: "terlalu kaku bahasa robot"
+
+Pemilik ditanya tiga hal, dan jawabannya:
+
+- **Yang kaku: keduanya**, yaitu halaman topik dan laporan Claude di chat.
+- **Gaya: hangat dan bercerita.** Analogi dulu, lalu *kenapa* sebelum *bagaimana*; istilah dijelaskan saat pertama muncul; kode dan tabel tetap ada tetapi diantar narasi; catatan verifikasi pindah ke PR.
+- **Urutan: langsung keempatnya**, satu PR per topik.
+
+Pegangan itu kini tertulis di `isi/README.md`, bagian **Gaya bahasa: hangat dan bercerita**, lengkap dengan contoh sebelum dan sesudah, supaya topik berikutnya mengikutinya sejak awal.
+
+### 3. Empat PR penulisan ulang
+
+| PR | Topik | Kata (sebelum → sesudah) | Blok kode identik |
+|---|---|---|---|
+| PR ini | Tool use (+ pegangan gaya + catatan ini) | 3.065 → 3.937 | 5 dari 5; `cek_isi` 8 ok |
+| [#98](https://github.com/xtheoputra/techverse-x/pull/98) | Model Context Protocol | 2.795 → 3.317 | 9 dari 9 |
+| [#99](https://github.com/xtheoputra/techverse-x/pull/99) | Agent2Agent (A2A) | 3.298 → 3.702 | 10 dari 10 |
+| [#100](https://github.com/xtheoputra/techverse-x/pull/100) | Memori agen (+ satu baris di SVG skor) | 2.711 → 3.015 | 5 dari 5; `cek_isi` 7 ok |
+
+**Cara menjaga fakta tetap sama.** Tiga topik terakhir ditulis ulang oleh generator yang membaca berkas lama dari `origin/main`, lalu berhenti bila satu blok kode atau satu rujukan `::media` berubah, hilang, atau bertambah. Generator yang sama menolak kata terlarang ADR-024 sebelum menulis. Jumlah langkah dan proyek tak berubah, sehingga *Pasang isi* dengan **ganti** bisa menyamakan semuanya per nomor (membuang langkah belum punya jalan, #79). Ringkasan alat di katalog bersama juga tak disentuh; yang berubah hanya catatan per topik.
+
+**Diukur** di setiap cabang: `.\run.ps1 isi` sah, dan `.\run.ps1 gerbang-isi` **HIJAU** (36 ok di gerbang 2 dan 3), masing-masing sekitar 33 detik. Keempat cabang lalu digabung di cabang lokal sementara (tak di-push, sudah dihapus). Hasilnya: pemindai ADR-024 **23 halaman, 0 kena**; tampilan dilihat di `next start` lewat IP LAN; di 390 px `scrollWidth` 380 = `clientWidth` 380 untuk keempat halaman; `.\run.ps1 verify` semua gerbang hijau (72 detik).
+
+🔧 Satu jebakan lama muncul lagi: generator MCP gagal dengan `SyntaxError` karena docstring Python di dalam blok kode bertabrakan dengan `r"""…"""`. Jalan keluarnya sama seperti di Tool use: langkah itu ditulis dengan `r'''…'''`.
+
+### 🏁 Keadaan sesudah bagian ini
+
+**Produksi:** 17 bidang, **4 topik** (Tool use, MCP, A2A, Memori agen; semuanya `draf`), 3 sisi Knowledge Graph, **0 dari 22 `tinjau`**. Teks di produksi masih versi lama sampai keempat PR di-merge dan dipasang ulang.
+
+**PR terbuka:** #98, #99, #100, dan PR ini, semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung. Sesudah masing-masing di-merge: *Pasang isi* dengan **ganti dicentang**, `sha` = citra API yang tayang (`e262bb1` selama tak ada merge yang mengubah API).
+
+**Berikutnya, saya:** topik kelima, **Evals & observability**, langsung dengan gaya yang baru.
+
+---
+
 ## 2026-10-08 — Sesi 24 (Lanjutan 2): Tool use ditulis tanpa biaya API, dan tiga topik tayang
 
 Permintaan pemilik: *"lanjutkan"* (sesudah Lanjutan 1), lalu *"lanjutkan"* lagi sesudah #95 dan #96 ter-merge.
