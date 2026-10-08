@@ -158,6 +158,10 @@ Dua workflow terakhir **sengaja dua langkah**: `Pasang isi` paling jauh membawa 
 "sudah diperiksa manusia" ([ADR-021](../docs/adr/ADR-021-jalan-menuju-tinjau.md)), dengan
 nama dari `github.actor`.
 
+`sha` di `Pasang isi` adalah SHA yang citra API-nya **sedang tayang**, bukan selalu SHA merge: merge
+yang hanya mengubah `isi/` atau dokumen tak membangun API baru di Vercel. Cara melihatnya ada di
+[PENYEBARAN.md](../docs/PENYEBARAN.md#akibatnya-bagi-pasang-isi).
+
 ## Di mesin sendiri
 
 ```powershell

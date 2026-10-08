@@ -317,6 +317,67 @@ ambang adalah cara paling cepat membuat gerbang ini berhenti menjaga apa pun.
 
 ---
 
+## API di Vercel: citranya hanya dibangun bila jalur API berubah
+
+> **Ditambahkan 2026-10-08.** Proyek Vercel `techverse-x-api` membangun `Dockerfile.vercel` dan
+> menyimpan citranya di **Vercel Container Registry** (VCR), repositori `dockerfile`. Paket Hobby
+> membatasinya **50 citra per repositori** ([limits and pricing](https://vercel.com/docs/container-registry/limits-and-pricing)).
+
+**Yang terjadi.** Tanpa aturan apa pun, *setiap* push ke cabang mana pun — termasuk PR yang hanya
+menyentuh `isi/` atau `docs/` — membangun dan menyimpan satu citra API. Dari 2026-10-05 sampai
+2026-10-08 repositorinya penuh (50 dari 50), dan build **produksi** merge #94 ditolak:
+
+```text
+denied: repository has reached the maximum allowed number of images
+```
+
+Produksi tetap aman — alias tetap menunjuk deployment `20be7b1` yang sehat — tetapi merge berikutnya
+yang **mengubah** API akan gagal tayang dengan cara yang sama. Pemilik mengizinkan pembersihan:
+45 citra tertua dihapus (`vercel vcr image rm`), lima terbaru disisakan, termasuk `20be7b1`.
+
+**Pencegahnya: `vercel.json` di akar repo.** Berkas itu hanya dibaca proyek API (*Root Directory*
+proyek web adalah `apps/web`). Isinya satu `ignoreCommand` yang memanggil
+[`infrastructure/vercel/abaikan-build-api.sh`](../infrastructure/vercel/abaikan-build-api.sh):
+
+| Kode keluar | Arti | Kapan |
+|---|---|---|
+| `0` | **lewati** — deployment `CANCELED`, citra lama tetap melayani | tak ada perubahan di jalur API sejak pembandingnya |
+| `1` | **bangun** | jalur API berubah, **atau** `git diff` gagal, **atau** tak ada pembanding |
+
+- **Jalur API** = semua yang disalin `Dockerfile.vercel` (`apps/api`, `services/technology`,
+  `packages/contracts`, `global.json`, `Directory.*.props`, `.editorconfig`, `.config/dotnet-tools.json`)
+  ditambah `Dockerfile.vercel`, `vercel.json`, dan skripnya sendiri. 🔴 **Begitu `Dockerfile.vercel`
+  menyalin jalur baru, tambahkan di skrip** — kalau tidak, perubahan di jalur itu tak pernah tayang.
+- **Pembanding** = `VERCEL_GIT_PREVIOUS_SHA`, SHA deployment **sukses** terakhir untuk cabang itu
+  (variabel ini hanya ada di *Ignored Build Step*). Ia menangkap juga perubahan dari deployment yang
+  gagal di antaranya. Vercel meng-clone `--depth=10`; bila SHA itu di luar clone, pembandingnya
+  `HEAD^` (induk pertama — untuk commit merge berarti seluruh PR).
+- **Diuji di clone dangkal `--depth=10`**: 7 skenario hijau (merge #94 yang hanya isi → lewati, dengan
+  dan tanpa pembanding, dan dengan pembanding di luar clone; merge #90 dan #82 yang mengubah
+  `services/technology` → bangun; cabang yang menambah `vercel.json` → bangun). **Merah** bila
+  `services/technology` dibuang dari daftar: merge #82 salah dilewati.
+
+### Akibatnya bagi *Pasang isi*
+
+`sha` di *Pasang isi* harus SHA yang citranya **sedang tayang di host API** — dan kini itu bisa lebih
+tua dari kepala `main`, karena merge yang hanya mengubah isi atau dokumen tak membangun API. Lihat SHA
+di deployment produksi `techverse-x-api` (`vercel inspect techverse-x-api.vercel.app` → log
+`Cloning … Commit: <sha>`), bukan SHA merge. *Migrasi produksi* tak terpengaruh: PR bermigrasi
+selalu menyentuh `services/technology`, jadi API-nya selalu dibangun.
+
+### Batas yang diketahui
+
+- **Build yang dilewati tetap dihitung sebagai deployment** di kuota harian Vercel — yang dihemat citra, bukan kuota.
+- **Citra dasar tak disegarkan sendiri.** Tambalan keamanan citra dasar (`apt-get install --only-upgrade openssl …` di tahap akhir
+  `Dockerfile.vercel`) baru masuk ke Vercel saat API dibangun lagi. Citra GHCR dari *Rilis citra*
+  tetap dibangun untuk setiap commit `main` yang bukan murni dokumen, dan tetap dipindai Trivy.
+- **Pratinjau PR yang beberapa commit-nya di-push sekaligus** dibandingkan dengan deployment sukses
+  terakhir cabang itu; push pertama sebuah cabang dibandingkan dengan `HEAD^` saja. Produksi tak
+  terpengaruh selama PR di-merge dengan *merge commit* (cara yang dipakai sejauh ini).
+- **50 citra tetap batasnya.** Membersihkan lagi: `vercel vcr image ls dockerfile --project techverse-x-api`,
+  lalu `vercel vcr image rm dockerfile <id> --project techverse-x-api` — **jangan** citra yang
+  melayani produksi. Penghapusannya permanen.
+
 ## Menyebarkan: Vercel + Koyeb + Neon
 
 > ✅ **Diperbarui 2026-10-06 — bagian ini rekaman; yang BERJALAN sekarang berbeda.**
