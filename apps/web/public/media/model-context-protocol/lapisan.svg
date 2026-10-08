@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" role="img" aria-labelledby="judul desk">
+  <title id="judul">Dua lapis MCP: data di dalam, transport di luar</title>
+  <desc id="desk">Kotak luar adalah lapis transport (stdio atau Streamable HTTP) yang mengurus pembingkaian pesan, koneksi, dan otorisasi. Di dalamnya lapis data: JSON-RPC 2.0 dengan server/discover, primitif server, elicitation, dan notifikasi.</desc>
+  <rect width="640" height="520" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Dua lapis</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Pesan yang sama persis, lewat jalan yang berbeda.</text>
+
+  <!-- Lapis transport -->
+  <rect x="24" y="100" width="592" height="396" rx="20" fill="#fbbf24" fill-opacity="0.05" stroke="#fbbf24" stroke-width="2"/>
+  <text x="46" y="134" fill="#fbbf24" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="700" letter-spacing="1.5">LAPIS TRANSPORT</text>
+  <text x="46" y="158" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">pembingkaian pesan · koneksi · otorisasi</text>
+
+  <!-- Lapis data -->
+  <rect x="48" y="178" width="544" height="214" rx="16" fill="#22d3ee" fill-opacity="0.06" stroke="#22d3ee" stroke-width="2"/>
+  <text x="70" y="210" fill="#22d3ee" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="700" letter-spacing="1.5">LAPIS DATA · JSON-RPC 2.0</text>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">
+    <rect x="70" y="228" width="236" height="66" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="86" y="256" fill="#eef2ff">server/discover</text>
+    <text x="86" y="280" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">versi, kapabilitas</text>
+
+    <rect x="334" y="228" width="236" height="66" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="350" y="256" fill="#eef2ff">primitif server</text>
+    <text x="350" y="280" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">tools, resources, prompts</text>
+
+    <rect x="70" y="308" width="236" height="66" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="86" y="336" fill="#eef2ff">elicitation</text>
+    <text x="86" y="360" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">lewat MRTR</text>
+
+    <rect x="334" y="308" width="236" height="66" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="350" y="336" fill="#eef2ff">notifikasi</text>
+    <text x="350" y="360" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">progres, perubahan</text>
+  </g>
+
+  <!-- Dua transport -->
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="48" y="408" width="264" height="70" rx="12" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="64" y="436" fill="#34d399" font-size="18" font-weight="700">stdio</text>
+    <text x="64" y="462" fill="#c3cce6" font-size="15">proses lokal · per baris</text>
+
+    <rect x="328" y="408" width="264" height="70" rx="12" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="344" y="436" fill="#34d399" font-size="18" font-weight="700">Streamable HTTP</text>
+    <text x="344" y="462" fill="#c3cce6" font-size="15">POST, jawaban JSON atau SSE</text>
+  </g>
+</svg>

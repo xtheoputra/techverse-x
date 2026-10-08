@@ -64,8 +64,14 @@ ditolak **dengan nomor barisnya**.
   daftar lebih dari dua tingkat, kutipan bersarang, tabel berkolom tak rata.**
 - Tab di awal baris dibaca empat spasi (juga di dalam kode); tulis dengan spasi.
 
-`.\run.ps1 isi` juga mencetak **jumlah kata** tiap topik. Itu ukuran kasar kedalaman isi — pilot MCP saat ini
-± 760 kata di bagian yang diperiksa, dan keluhan *"kurang detail"* belum terjawab sampai Tahap 4 menulis ulangnya.
+`.\run.ps1 isi` juga mencetak **jumlah kata** tiap topik. Itu ukuran kasar kedalaman isi — pilot MCP ± 760 kata
+sebelum Tahap 4 dan **2.795 kata** sesudah ditulis ulang (ADR-028 Pembaruan (4)), dengan empat diagram dan dua video.
+Jumlah kata bukan mutu: yang membuat isi layak `tinjau` tetap pembacaan pemilik.
+
+**Video: tiga hal yang dicatat** (contoh lengkapnya di pilot MCP). `license` ditulis apa adanya, mis. `Lisensi standar
+YouTube; disematkan lewat pemutar YouTube`; `sourceName`/`sourceUrl` menunjuk kanal resminya; dan **tanggal rekamannya
+disebut di keterangan bila ia lebih tua dari revisi yang diajarkan halaman** — video MCP yang direkam sebelum revisi
+2026-07-28 masih menggambarkan jabat tangan yang sudah dihapus.
 
 ## Media
 

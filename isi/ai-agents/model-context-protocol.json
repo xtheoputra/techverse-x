@@ -2,75 +2,138 @@
   "slug": "model-context-protocol",
   "name": "Model Context Protocol",
   "fieldSlug": "ai-agents",
-  "summary": "Model Context Protocol (MCP) adalah standar terbuka untuk menyambungkan aplikasi AI ke sistem di luar dirinya — sumber data, alat, dan alur kerja — lewat satu protokol yang sama. Dokumentasi resminya memakai analogi port USB-C: satu cara baku menyambungkan perangkat yang berbeda-beda. Sebuah host (aplikasi AI seperti Claude Code atau Visual Studio Code) membuat satu client untuk setiap server yang disambungkannya. Server menawarkan tiga primitif: tools (fungsi yang dipanggil model), resources (data konteks), dan prompts (templat interaksi). Pesannya JSON-RPC 2.0, dibawa lewat dua transport: stdio untuk server lokal dan Streamable HTTP untuk server jarak jauh. Pada revisi spesifikasi 2026-07-28 protokolnya stateless: setiap permintaan membawa versi protokol dan kapabilitas kliennya sendiri. Halaman ini mengajarkan cara berpikir dan cara membangun server MCP pertama, bukan daftar server siap pakai. Spesifikasinya masih bergerak — cocokkan selalu dengan revisi terbaru sebelum menyalin contoh.",
+  "summary": "Model Context Protocol (MCP) adalah standar terbuka untuk menyambungkan aplikasi AI ke sistem di luar dirinya — sumber data, alat, dan alur kerja — lewat satu protokol yang sama. Dokumentasi resminya memakai analogi port USB-C: satu cara baku menyambungkan perangkat yang berbeda-beda. Sebuah host (aplikasi AI seperti Claude Code atau Visual Studio Code) membuat satu client untuk setiap server yang disambungkannya. Server menawarkan tiga primitif: tools (fungsi yang dipanggil model), resources (data konteks), dan prompts (templat interaksi). Pesannya JSON-RPC 2.0, dibawa lewat stdio untuk server lokal atau Streamable HTTP untuk server jarak jauh. Sejak revisi spesifikasi 2026-07-28 protokolnya tanpa sesi: tak ada lagi jabat tangan initialize, dan setiap permintaan membawa versi protokol serta kapabilitas kliennya sendiri. Halaman ini mengajarkan cara berpikir dan cara membangun server MCP, bukan daftar server siap pakai. Spesifikasinya masih bergerak — cocokkan selalu dengan revisi terbaru sebelum menyalin contoh.",
+  "overview": "## Masalah yang dipecahkan\n\nModel bahasa hanya tahu apa yang ada di data latihnya dan di konteks yang diberikan kepadanya. Supaya ia bisa membaca berkas, menanyai basis data, atau memanggil API, aplikasi AI harus menyambungkannya ke sistem-sistem itu — dan tanpa standar bersama, setiap aplikasi menulis penyambungnya sendiri untuk setiap sistem. MCP memberi satu bentuk sambungan: sistem cukup menyediakan **satu server MCP**, dan aplikasi apa pun yang berbicara MCP bisa memakainya.\n\nDokumentasi resminya memakai analogi **port USB-C**. Spesifikasinya sendiri menyebut sumber ilhamnya: *Language Server Protocol*, yang membakukan cara alat pengembang mendukung bahasa pemrograman.\n\n## Tiga peran: host, client, server\n\n::media[arsitektur]\n\n- **Host** — aplikasi AI yang dipakai orang (Claude Code, Visual Studio Code, dan sejenisnya). Ia membuat dan mengelola client, memegang seluruh percakapan, meminta persetujuan pengguna, dan memutuskan apa yang boleh dilihat tiap server.\n- **Client** — komponen di dalam host. Satu client berbicara dengan **tepat satu** server dan melampirkan versi protokol serta kapabilitasnya di setiap permintaan.\n- **Server** — program yang menyediakan konteks dan kemampuan. Ia bisa berupa proses lokal yang dijalankan host lewat stdio, atau layanan jarak jauh lewat Streamable HTTP.\n\nContoh dari dokumentasi resmi: Visual Studio Code yang tersambung ke server Sentry (jarak jauh) dan server filesystem (lokal) memegang **dua** objek client — satu per server.\n\n> [!CATATAN]\n> Prinsip desain yang paling menentukan: **server tak boleh membaca seluruh percakapan dan tak bisa \"mengintip\" server lain.** Riwayat percakapan tinggal di host; server hanya menerima yang perlu.\n\n## Dua lapis: data dan transport\n\n::media[lapisan]\n\nLapis **data** adalah JSON-RPC 2.0 beserta maknanya: penemuan versi dan kapabilitas, primitif, dan notifikasi. Lapis **transport** adalah cara pesan itu berpindah: pembingkaian, koneksi, dan otorisasi. Pesan yang sama persis bisa lewat stdio atau HTTP — itulah gunanya pemisahan ini.\n\n## Primitif: siapa yang memutuskan\n\n| Primitif | Disediakan | Yang memutuskan dipakai | Metode |\n|---|---|---|---|\n| Tools | server | **model**, dengan manusia yang bisa menolak | `tools/list`, `tools/call` |\n| Resources | server | **aplikasi** (host) | `resources/list`, `resources/read` |\n| Prompts | server | **pengguna**, mis. lewat perintah garis miring | `prompts/list`, `prompts/get` |\n| Elicitation | client | server *meminta*, pengguna menjawab | `elicitation/create` |\n\nTiga fitur lain — **Sampling dan Roots di sisi client, serta utilitas Logging — berstatus *deprecated*** sejak revisi 2026-07-28: masih berfungsi, tetapi implementasi baru dianjurkan tidak memakainya, dan paling cepat dihapus pada revisi yang terbit 2027-07-28 atau sesudahnya. Jalur penggantinya menurut spesifikasi:\n\n- ganti **Sampling** dengan memanggil API penyedia LLM langsung;\n- ganti **Roots** dengan folder atau berkas yang dikirim lewat parameter tool, URI resource, atau konfigurasi server;\n- ganti **Logging** dengan log ke `stderr` (stdio) atau OpenTelemetry.\n\n## Revisi 2026-07-28: protokol tanpa sesi\n\nIni perubahan terbesar sejak MCP dibuka, dan banyak tutorial, video, serta SDK lama masih menggambarkan model sebelumnya.\n\n::media[tanpa-jabat-tangan]\n\n| Dulu (sampai 2025-11-25) | Kini (2026-07-28) |\n|---|---|\n| Jabat tangan `initialize` lalu `notifications/initialized` | Setiap permintaan membawa versi dan kapabilitas client di `_meta` |\n| Sesi HTTP lewat header `Mcp-Session-Id` | Tak ada sesi; keadaan lintas panggilan memakai **pegangan eksplisit** buatan server |\n| Server mengirim permintaan ke client (`sampling/createMessage`, `elicitation/create`) | Server membalas `InputRequiredResult`, client mengulang permintaannya dengan jawaban (**MRTR**) |\n| `resources/subscribe` dan aliran HTTP GET | Satu aliran `subscriptions/listen` yang memilih jenis notifikasinya |\n| `ping` dan `logging/setLevel` | Dihapus; tingkat log dikirim per permintaan di `_meta` |\n| Hasil tanpa penanda jenis | Setiap hasil wajib membawa `resultType`: `complete` atau `input_required` |\n\nSetiap server **wajib** menjawab `server/discover` — versi yang didukung, kapabilitas, dan identitasnya. Client boleh memanggilnya lebih dulu, tetapi tak harus: ia boleh langsung mengirim permintaan apa pun dan menangani `UnsupportedProtocolVersionError` (kode `-32022`), yang menyebut versi-versi yang didukung server.\n\nSeperti apa satu pemanggilan tool sekarang, lengkap dengan `_meta`-nya:\n\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"get_weather\",\n    \"arguments\": { \"location\": \"New York\" },\n    \"_meta\": {\n      \"io.modelcontextprotocol/protocolVersion\": \"2026-07-28\",\n      \"io.modelcontextprotocol/clientInfo\": {\n        \"name\": \"ExampleClient\",\n        \"version\": \"1.0.0\"\n      },\n      \"io.modelcontextprotocol/clientCapabilities\": {}\n    }\n  }\n}\n```\n\nDan jawabannya:\n\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"result\": {\n    \"resultType\": \"complete\",\n    \"content\": [\n      {\n        \"type\": \"text\",\n        \"text\": \"Current weather in New York:\\nTemperature: 72°F\\nConditions: Partly cloudy\"\n      }\n    ],\n    \"isError\": false\n  }\n}\n```\n\n> [!CATATAN]\n> Server boleh melayani client lama dan baru sekaligus (\"dua era\"). Client yang perlu menyambung ke server lama di stdio dianjurkan mengirim `server/discover` lebih dulu, lalu kembali ke `initialize` bila jawabannya bukan galat modern yang dikenal.\n\n## Dalam satu percakapan\n\nPengguna bertanya di host: *\"Ada peringatan cuaca di California?\"*\n\n1. Host sudah tahu daftar tool server cuaca dari `tools/list` dan menyertakannya ke model.\n2. Model memilih memanggil `get_alerts` dengan argumen `{\"state\": \"CA\"}`.\n3. Host menampilkan pemanggilan itu; spesifikasi menganjurkan pengguna selalu bisa menolaknya.\n4. Client mengirim `tools/call` ke server, lengkap dengan `_meta`.\n5. Server menjawab `content` berisi teks peringatan; host meneruskannya ke model, yang menyusun jawaban.\n\nModel tak pernah berbicara langsung dengan server. Semua lewat host — itulah tempat persetujuan, kebijakan, dan batas keamanan dijalankan.\n\n## Ekosistem dan tata kelola\n\n- Anthropic membuka MCP pada November 2024. Pada **9 Desember 2025** Anthropic mendonasikannya ke **Agentic AI Foundation (AAIF)**, dana terarah di bawah Linux Foundation yang didirikan bersama Anthropic, Block, dan OpenAI. Saat itu Anthropic mencatat lebih dari 10.000 server MCP publik yang aktif, dan adopsi oleh ChatGPT, Cursor, Gemini, Microsoft Copilot, dan Visual Studio Code.\n- **SDK resmi bertingkat.** Tier 1: TypeScript, Python, C#, Go, Rust, dan Ruby. Tier 2: Java. Tier 3: Swift, PHP, dan Kotlin.\n- **SDK TypeScript v2** (paket `@modelcontextprotocol/server` dan `@modelcontextprotocol/client`) dirilis 27 Juli 2026 dan mengimplementasikan revisi 2026-07-28; v1.x (`@modelcontextprotocol/sdk`) tetap menerima perbaikan setidaknya enam bulan sesudahnya. Saat menyalin contoh dari internet, cek dulu versi SDK dan revisi protokolnya.\n- Fitur di luar inti datang sebagai **ekstensi** yang dinegosiasikan lewat kapabilitas, mis. *Tasks* (`io.modelcontextprotocol/tasks`: operasi panjang dengan pegangan yang bisa ditanyai) dan *MCP Apps* (`io.modelcontextprotocol/ui`: antarmuka interaktif di dalam percakapan).\n\n## Dari pembuatnya\n\nDua video dari kanal resmi Anthropic. Keduanya **direkam sebelum revisi 2026-07-28**, jadi detail protokol di dalamnya (jabat tangan, sesi) sudah berubah; nilai keduanya ada pada *mengapa* MCP dirancang begini.\n\n::media[video-pengantar]\n\n::media[video-asal-usul]\n\n## Batas yang perlu diingat\n\n- MCP **tidak** membuat tool aman dengan sendirinya. Tool berarti eksekusi kode, dan deskripsi serta anotasi tool dari server yang tak tepercaya harus dianggap tak tepercaya.\n- Protokol tak bisa memaksakan persetujuan pengguna — itu tanggung jawab host. Spesifikasi menganjurkan (*SHOULD*) selalu ada manusia yang bisa menolak pemanggilan tool.\n- Server lokal berjalan dengan hak akses yang sama dengan client yang menjalankannya.",
+  "media": [
+    {
+      "key": "arsitektur",
+      "kind": "Image",
+      "url": "/media/model-context-protocol/arsitektur.svg",
+      "alt": "Diagram: kotak Host berisi Client 1, 2, dan 3. Client 1 tersambung ke Server A (berkas, stdio) dan Client 2 ke Server B (basis data, stdio), keduanya di mesin yang sama. Client 3 tersambung ke Server C (web, Streamable HTTP) di internet.",
+      "caption": "Satu host, satu client per server. Diringkas dari diagram arsitektur di spesifikasi MCP revisi 2026-07-28.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "lapisan",
+      "kind": "Image",
+      "url": "/media/model-context-protocol/lapisan.svg",
+      "alt": "Diagram: lapis transport sebagai kotak luar (pembingkaian pesan, koneksi, otorisasi) dengan dua pilihan, stdio dan Streamable HTTP. Di dalamnya lapis data JSON-RPC 2.0 berisi server/discover, primitif server, elicitation lewat MRTR, dan notifikasi.",
+      "caption": "Lapis data menentukan isi pesan; lapis transport menentukan jalannya.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "tanpa-jabat-tangan",
+      "kind": "Image",
+      "url": "/media/model-context-protocol/tanpa-jabat-tangan.svg",
+      "alt": "Dua diagram urutan. Atas, sampai revisi 2025-11-25: initialize, jawaban versi dan kapabilitas, notifications/initialized, lalu tools/call dengan konteks di sesi. Bawah, revisi 2026-07-28: server/discover opsional, lalu tools/call yang membawa versi, kapabilitas, dan clientInfo di _meta, dijawab resultType complete.",
+      "caption": "Sejak 2026-07-28 tak ada jabat tangan: konteks berpindah dari koneksi ke setiap permintaan.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "mrtr",
+      "kind": "Image",
+      "url": "/media/model-context-protocol/mrtr.svg",
+      "alt": "Diagram urutan antara Pengguna, Client, dan Server: tools/call id 1; server menjawab InputRequiredResult dengan inputRequests dan requestState; client bertanya kepada pengguna dan menerima accept; client mengulang tools/call id 2 dengan inputResponses dan requestState; server menjawab resultType complete.",
+      "caption": "Multi Round-Trip Requests menggantikan permintaan dari server ke client. Diringkas dari halaman MRTR di spesifikasi revisi 2026-07-28.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "video-pengantar",
+      "kind": "Video",
+      "videoId": "CQywdSdi5iA",
+      "alt": "The Model Context Protocol (MCP)",
+      "caption": "Theo Chu, David Soria Parra, dan Alex Albert membahas komponen inti MCP, awal mulanya, dan kiat memulai (19 menit, Juni 2025 — sebelum revisi tanpa sesi).",
+      "sourceName": "Anthropic di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=CQywdSdi5iA",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-asal-usul",
+      "kind": "Video",
+      "videoId": "PLyCki2K0Lg",
+      "alt": "Why we built—and donated—the Model Context Protocol (MCP)",
+      "caption": "Stuart Ritchie berbincang dengan David Soria Parra, salah satu pencipta MCP, tentang masalah yang dipecahkan, kritik terhadap MCP, dan donasinya ke Linux Foundation (35 menit, Desember 2025).",
+      "sourceName": "Anthropic di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=PLyCki2K0Lg",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    }
+  ],
   "prerequisite": {
     "title": "Dasar JSON-RPC 2.0 dan JSON Schema",
-    "description": "Pahami bentuk pesan JSON-RPC 2.0 (request dengan id, method, params; response dengan result atau error; notification tanpa id) dan cara menulis JSON Schema sederhana (type, properties, required). Keduanya persis yang dipakai MCP. Sebaiknya kamu juga sudah pernah memanggil sebuah LLM lewat API dan paham gagasan function calling."
+    "description": "Kamu perlu nyaman membaca dua hal, karena keduanya persis yang lewat di kabel MCP:\n\n- **JSON-RPC 2.0** — *request* punya `id`, `method`, dan `params`; *response* membawa `result` **atau** `error` dengan `id` yang sama; *notification* tak punya `id` dan tak dijawab. MCP menambah satu aturan: `id` tak boleh `null`.\n- **JSON Schema** — `type`, `properties`, `required`. Bawaan untuk `inputSchema` dan `outputSchema` tool adalah dialek 2020-12.\n\nSebaiknya kamu juga pernah memanggil sebuah LLM lewat API dan paham gagasan *function calling*: MCP adalah cara baku menyediakan fungsi-fungsi itu dari luar aplikasi."
   },
   "roadmap": [
     {
       "title": "Pahami arsitektur: host, client, server",
-      "description": "Gambar sendiri siapa membuat siapa: satu host mengelola banyak client, setiap client memegang satu koneksi ke satu server. Bedakan server lokal (stdio, biasanya melayani satu client) dari server jarak jauh (Streamable HTTP, biasanya melayani banyak client). Bedakan juga lapisan data (JSON-RPC dan primitifnya) dari lapisan transport."
+      "description": "Gambar ulang diagram ini dengan tanganmu sendiri sampai bisa menjelaskannya tanpa melihat:\n\n::media[arsitektur]\n\n1. Satu host membuat **satu client per server**.\n2. Server lokal (stdio) biasanya melayani satu client; server jarak jauh (Streamable HTTP) melayani banyak.\n3. Riwayat percakapan tinggal di host. Server hanya menerima yang perlu dan tak bisa melihat server lain.\n\nBedakan juga dua lapisnya: **data** (JSON-RPC dan primitif) dan **transport** (stdio atau HTTP, pembingkaian, otorisasi).\n\n> [!TIPS]\n> Uji dirimu: Visual Studio Code tersambung ke server filesystem dan server Sentry. Ada berapa client? Dua — satu per server."
     },
     {
-      "title": "Kenali tiga primitif server",
-      "description": "Tools adalah fungsi yang dapat dipanggil model, resources adalah data yang memberi konteks, prompts adalah templat interaksi. Untuk tiap primitif, catat metode penemuannya (tools/list dan sejenisnya) dan, khusus tools, metode pemanggilannya (tools/call). Perhatikan bahwa daftar ini dinamis: klien menemukannya saat berjalan, bukan dari konfigurasi tetap."
+      "title": "Kenali primitif dan siapa yang mengendalikannya",
+      "description": "- **Tools** dikendalikan model: model memilih memanggilnya, host meminta persetujuan.\n- **Resources** dikendalikan aplikasi: host memutuskan data mana yang masuk konteks, mis. lewat pemilih berkas. Tiap resource dikenali lewat URI seperti `file:///project/src/main.rs`.\n- **Prompts** dikendalikan pengguna: biasanya muncul sebagai perintah garis miring.\n\nSetiap primitif ditemukan saat berjalan lewat metode `list`-nya (`tools/list`, `resources/list`, `prompts/list`), bukan dari konfigurasi tetap, jadi daftarnya boleh berubah. Server yang menyatakan `listChanged` memberi tahu perubahan itu kepada client yang membuka aliran `subscriptions/listen`.\n\nDi sisi client hanya **Elicitation** yang dianjurkan untuk implementasi baru: server meminta masukan pengguna, mis. konfirmasi sebelum tindakan. Sampling dan Roots — juga utilitas Logging — kini *deprecated*.\n\n**Latihan:** untuk satu sistem yang kamu kenal (mis. aplikasi catatan), tulis dua tool, satu resource, dan satu prompt, lalu tandai siapa yang seharusnya memutuskan masing-masing dipakai."
     },
     {
-      "title": "Pahami protokol stateless dan penemuan kapabilitas",
-      "description": "Sejak revisi 2026-07-28 setiap permintaan membawa versi protokol dan kapabilitas kliennya di bidang _meta, sehingga server memproses tiap permintaan sendiri-sendiri. Setiap server wajib menjawab server/discover, yang boleh dikirim klien sebelum permintaan lain untuk mengetahui versi, kapabilitas, dan identitas server. Baca bagian Statelessness di spesifikasi, lalu bandingkan dengan revisi 2025-06-18 yang masih memakai jabat tangan initialize dan notifikasi initialized — tutorial dan SDK lama bisa menggambarkan model yang itu."
+      "title": "Baca pesan per-permintaan: _meta dan server/discover",
+      "description": "Sejak revisi 2026-07-28 tak ada jabat tangan. Setiap permintaan membawa sendiri:\n\n| Kunci di `_meta` | Wajib |\n|---|---|\n| `io.modelcontextprotocol/protocolVersion` | ya |\n| `io.modelcontextprotocol/clientCapabilities` | ya |\n| `io.modelcontextprotocol/clientInfo` | dianjurkan |\n| `io.modelcontextprotocol/logLevel` | tidak |\n\nPermintaan tanpa kunci wajib ditolak dengan `-32602` (di HTTP: status `400`). Bila server butuh kapabilitas yang tak dinyatakan client, ia menjawab `-32021` dan menyebut kapabilitas yang kurang. Server sebaiknya juga memperkenalkan diri di `_meta` setiap hasil (`io.modelcontextprotocol/serverInfo`).\n\n::media[tanpa-jabat-tangan]\n\n`server/discover` wajib ada di setiap server, tetapi memanggilnya opsional. Jawabannya memuat `supportedVersions`, `capabilities`, dan petunjuk cache `ttlMs` serta `cacheScope`.\n\n> [!PERINGATAN]\n> `clientInfo` dan `serverInfo` diisi sendiri oleh pengirimnya dan tak diverifikasi protokol. Pakai untuk tampilan dan log, jangan untuk keputusan keamanan."
     },
     {
-      "title": "Bangun server MCP pertama dengan SDK resmi",
-      "description": "Ikuti tutorial resmi Build an MCP server (server cuaca dengan tool get_alerts dan get_forecast) memakai satu bahasa SDK pilihanmu. Aturan yang paling sering menjebak: pada server stdio, jangan pernah menulis ke stdout selain pesan protokol — keluaran apa pun di sana merusak pesan JSON-RPC. Tulis log ke stderr atau ke berkas."
+      "title": "Bangun server stdio pertama dengan SDK resmi",
+      "description": "Ikuti tutorial resmi *Build an MCP server*: server cuaca dengan tool `get_alerts` dan `get_forecast`. Kerangkanya di SDK Python:\n\n```python\nfrom mcp.server import MCPServer\n\nmcp = MCPServer(\"weather\")\n\n@mcp.tool()\nasync def get_alerts(state: str) -> str:\n    \"\"\"Get weather alerts for a US state.\n\n    Args:\n        state: Two-letter US state code (e.g. CA, NY)\n    \"\"\"\n    ...\n\nif __name__ == \"__main__\":\n    mcp.run(transport=\"stdio\")\n```\n\nPetunjuk tipe dan docstring **adalah** skemanya: SDK membangkitkan `inputSchema` dari `state: str`. Di TypeScript padanannya `McpServer` dari paket `@modelcontextprotocol/server` dengan `registerTool` dan skema Zod.\n\n> [!PERINGATAN]\n> Di server stdio, **jangan pernah menulis ke stdout** selain pesan protokol: `print()` di Python atau `console.log()` di Node merusak aliran JSON-RPC. Tulis log ke stderr.\n\nPesan stdio dipisah baris baru dan tak boleh memuat baris baru di dalamnya. Host menghentikan servermu dengan menutup stdin, jadi keluarlah dengan rapi saat stdin habis."
     },
     {
       "title": "Periksa servermu dengan MCP Inspector",
-      "description": "Jalankan npx @modelcontextprotocol/inspector, sambungkan ke servermu, lalu kirim tools/list dan tools/call dan baca pesan mentahnya. Mengintip pesan JSON yang sebenarnya lewat adalah cara tercepat memahami apa yang SDK sembunyikan darimu. Inspector menyimpan rahasia seperti token OAuth, jadi perlakukan ia sebagai alat pengembangan, bukan alat yang dibagikan."
+      "description": "Inspector adalah alat pengembang rujukan: satu paket, tiga client — web, CLI, dan TUI. Butuh Node 22.19.0 atau lebih baru.\n\n```bash\n# antarmuka web, tersambung ke server stdio hasil build TypeScript\nnpx @modelcontextprotocol/inspector node build/index.js\n\n# CLI: daftar tool lalu keluar — cocok untuk skrip dan CI\nnpx @modelcontextprotocol/inspector --cli node build/index.js --method tools/list\n\n# antarmuka terminal\nnpx @modelcontextprotocol/inspector --tui node build/index.js\n```\n\nUntuk server Python dari SDK resmi, `uv run mcp dev server.py` membukanya langsung di Inspector.\n\nKirim `tools/list`, lalu `tools/call`, dan baca pesan mentahnya di panel pemantau. Perhatikan bahwa setiap permintaan membawa `_meta`-nya sendiri dan setiap hasil membawa `resultType`. Melihat JSON yang sebenarnya lewat adalah cara tercepat memahami apa yang disembunyikan SDK darimu.\n\n> [!CATATAN]\n> Inspector menyimpan status OAuth di disk. Perlakukan ia sebagai alat pengembangan di mesinmu sendiri, bukan layanan yang dibagikan."
     },
     {
       "title": "Rancang tool yang bisa dipakai model",
-      "description": "Beri nama unik per server (1–128 karakter; huruf, angka, garis bawah, tanda hubung, titik), tulis description yang menjelaskan apa yang dilakukan tool dan kapan dipakai, dan deklarasikan inputSchema sebagai JSON Schema. Bedakan dua jenis galat: galat protokol (tool tak dikenal, permintaan cacat) dan galat eksekusi yang dikembalikan sebagai hasil dengan isError true supaya model bisa membaca sebabnya dan memperbaiki panggilannya."
+      "description": "Model hanya melihat nama, deskripsi, dan skema — itulah antarmuka tool-mu.\n\n- **Nama**: 1–128 karakter; huruf, angka, `_`, `-`, dan `.`; peka huruf besar-kecil; unik di dalam server.\n- **Deskripsi**: apa yang dilakukan, dan **kapan** dipakai.\n- **`inputSchema`**: JSON Schema. Untuk tool tanpa parameter anjurannya `{\"type\": \"object\", \"additionalProperties\": false}`.\n- **`outputSchema`** (opsional): bila ada, server **wajib** mengembalikan `structuredContent` yang sesuai, dan sebaiknya juga salinannya sebagai teks.\n\nDua jenis galat, dua jalan:\n\n| Galat | Contoh | Dikirim sebagai |\n|---|---|---|\n| Protokol | tool tak dikenal, permintaan cacat | `error` JSON-RPC, mis. `-32602` |\n| Eksekusi | tanggal di masa lalu, API hilir gagal | hasil biasa dengan `isError: true` |\n\n```json\n{\n  \"resultType\": \"complete\",\n  \"content\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"Invalid departure date: must be in the future.\"\n    }\n  ],\n  \"isError\": true\n}\n```\n\nGalat eksekusi diteruskan ke model supaya ia bisa memperbaiki panggilannya sendiri; galat protokol jarang bisa diperbaiki model. Kembalikan `tools/list` dalam urutan yang tetap: client bisa menyimpannya, dan *prompt cache* LLM lebih sering kena."
     },
     {
-      "title": "Sambungkan ke host sungguhan dan amati persetujuan manusia",
-      "description": "Daftarkan servermu ke sebuah host (tutorial resmi memakai Claude for Desktop) dan amati kapan model memilih memanggil tool-mu. Spesifikasi menyarankan agar selalu ada manusia yang dapat menolak pemanggilan tool: aplikasi sebaiknya menampilkan tool mana yang terpapar ke model, menandai saat tool dipanggil, dan meminta konfirmasi untuk operasi yang berdampak."
+      "title": "Sambungkan ke host sungguhan dan jaga manusia tetap di dalam lingkaran",
+      "description": "Tutorial resmi memakai Claude for Desktop. Daftarkan servermu di `claude_desktop_config.json` (di Windows: `$env:AppData\\Claude\\claude_desktop_config.json`), di bawah kunci `mcpServers`:\n\n```json\n{\n  \"mcpServers\": {\n    \"weather\": {\n      \"command\": \"uv\",\n      \"args\": [\"--directory\", \"/JALUR/ABSOLUT/weather\", \"run\", \"weather.py\"]\n    }\n  }\n}\n```\n\nMulai ulang host, minta sesuatu yang membutuhkan tool-mu, dan amati kapan model memilih memanggilnya.\n\nSpesifikasi menganjurkan agar selalu ada manusia yang bisa **menolak** pemanggilan tool. Aplikasi sebaiknya:\n\n- menampilkan tool mana yang terpapar ke model,\n- menandai dengan jelas saat tool dipanggil,\n- meminta konfirmasi untuk operasi yang berdampak.\n\nCari di host-mu di mana ketiganya terlihat. Itulah bagian sistem yang tak bisa dipaksakan protokol — ia tanggung jawab host."
     },
     {
-      "title": "Amankan: validasi, akses, dan ketidakpercayaan",
-      "description": "Server wajib memvalidasi semua masukan tool, menerapkan kendali akses, membatasi laju pemanggilan, dan membersihkan keluaran. Klien sebaiknya menampilkan masukan tool kepada pengguna sebelum memanggil server dan memeriksa hasilnya sebelum diteruskan ke LLM. Anotasi tool dari server yang tidak tepercaya harus dianggap tidak tepercaya. Baca halaman Security best practices di dokumentasi resmi."
+      "title": "Kelola keadaan tanpa sesi: pegangan eksplisit dan MRTR",
+      "description": "MCP tak punya sesi, jadi koneksi — bahkan proses stdio — **bukan** percakapan. Dua pola menggantikannya.\n\n**1. Pegangan eksplisit.** Tool pembuat mengembalikan ID; tool lain menerimanya sebagai argumen biasa:\n\n```jsonc\n// → tools/call\n{ \"name\": \"create_basket\", \"arguments\": {} }\n// → tools/call berikutnya\n{\n  \"name\": \"add_item\",\n  \"arguments\": { \"basket_id\": \"bsk_a1b2c3\", \"sku\": \"...\" }\n}\n```\n\nBuat pegangan acak yang tak bisa ditebak (mis. UUIDv4), tulis umurnya di deskripsi tool, dan kembalikan galat eksekusi yang jelas untuk pegangan kedaluwarsa supaya model bisa membuat yang baru.\n\n**2. Multi Round-Trip Requests (MRTR).** Bila server butuh masukan pengguna di tengah `tools/call`, `resources/read`, atau `prompts/get`, ia membalas `InputRequiredResult` dan client mengulang permintaannya:\n\n::media[mrtr]\n\n`requestState` adalah teks buram milik server; client wajib mengembalikannya apa adanya. Permintaan ulang wajib memakai `id` JSON-RPC yang **baru**."
     },
     {
-      "title": "Naik ke server jarak jauh",
-      "description": "Pindahkan servermu ke transport Streamable HTTP. Untuk transport berbasis HTTP, ikuti kerangka otorisasi di spesifikasi (OAuth direkomendasikan untuk memperoleh token); untuk stdio, kredensial diambil dari lingkungan proses, bukan dari kerangka itu. Catat konsekuensinya: server jarak jauh melayani banyak client, jadi desain tool yang menyimpan keadaan lewat pegangan eksplisit, bukan lewat koneksi."
+      "title": "Amankan: validasi, token, dan ketidakpercayaan",
+      "description": "Kewajiban server (*MUST*) menurut spesifikasi: **validasi semua masukan tool, kendali akses, batasi laju pemanggilan, dan bersihkan keluaran.** Lalu empat jebakan dari panduan keamanan resmi:\n\n- **Token passthrough.** Server hanya boleh menerima token yang diterbitkan **untuknya** (periksa audiensnya) dan tak boleh meneruskan token itu ke API hilir. Butuh API lain? Minta token tersendiri untuk API itu.\n- **Pembajakan pegangan.** Memegang ID bukan bukti identitas. Ikat pegangan ke pengguna terautentikasi di sisi server, mis. kunci `user_id:handle` dengan `user_id` dari token yang terverifikasi, bukan dari client.\n- **Server lokal yang berbahaya.** Server lokal berjalan dengan hak akses client. Host yang menawarkan pemasangan sekali klik wajib menampilkan perintah lengkapnya dan meminta persetujuan, dan sebaiknya menjalankannya di kotak pasir.\n- **Deskripsi yang menipu.** Anotasi dan deskripsi tool dari server yang tak tepercaya dianggap tak tepercaya.\n\nDi sisi client (*SHOULD*): tampilkan masukan tool sebelum dikirim (mencegah kebocoran data), validasi hasil sebelum diteruskan ke LLM, pasang batas waktu, dan catat pemakaian tool untuk audit."
+    },
+    {
+      "title": "Naik ke server jarak jauh: Streamable HTTP",
+      "description": "Setiap pesan dari client adalah **POST baru** ke satu endpoint MCP; server menjawab satu objek JSON atau aliran SSE. Header wajibnya:\n\n```http\nPOST /mcp HTTP/1.1\nContent-Type: application/json\nMCP-Protocol-Version: 2026-07-28\nMcp-Method: tools/call\nMcp-Name: get_weather\n```\n\nNilai header harus sama dengan isi badan; bila berbeda, server menolak dengan `400` dan `-32020` (`HeaderMismatch`) — supaya penyeimbang beban yang membaca header dan server yang membaca badan tak pernah berselisih.\n\nTiga aturan keamanan transport:\n\n- validasi header `Origin` di setiap koneksi (`403` bila tak sah) untuk menangkal *DNS rebinding*;\n- saat berjalan lokal, dengarkan hanya di `127.0.0.1`, bukan `0.0.0.0`;\n- autentikasi semua koneksi.\n\nOtorisasinya OAuth 2.1: server **wajib** menerbitkan *Protected Resource Metadata* (RFC 9728), client **wajib** menyebut server tujuan lewat parameter `resource` (RFC 8707), dan pendaftaran client dianjurkan lewat *Client ID Metadata Documents* — *Dynamic Client Registration* kini *deprecated*. Server stdio tak memakai kerangka ini; kredensialnya diambil dari lingkungan proses."
+    },
+    {
+      "title": "Notifikasi dan cache: subscriptions/listen dan ttlMs",
+      "description": "Perubahan daftar tool atau isi resource kini tiba lewat **satu** permintaan berumur panjang:\n\n```json\n{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"subscriptions/listen\",\n  \"params\": {\n    \"notifications\": {\n      \"toolsListChanged\": true,\n      \"resourceSubscriptions\": [\"file:///project/config.json\"]\n    }\n  }\n}\n```\n\n(`_meta` wajib tetap ada; disingkat di sini.) Server mengirim `notifications/subscriptions/acknowledged` lebih dulu — berisi jenis yang benar-benar ia layani — lalu notifikasi bertanda `io.modelcontextprotocol/subscriptionId`, yang nilainya `id` permintaan `listen` tadi. Notifikasi milik satu permintaan, seperti `notifications/progress`, tetap lewat aliran jawaban permintaan itu.\n\nCache melengkapinya. Hasil `server/discover`, `tools/list`, `prompts/list`, `resources/list`, `resources/templates/list`, dan `resources/read` wajib membawa `ttlMs` (berapa milidetik hasil boleh dianggap segar) dan `cacheScope` (`public` atau `private`). TTL hanya petunjuk kesegaran, bukan janji data tak berubah."
     }
   ],
   "tools": [
     {
       "slug": "mcp-inspector",
       "name": "MCP Inspector",
-      "summary": "Alat pengembang resmi untuk memeriksa server MCP: antarmuka web, CLI untuk otomasi, dan TUI.",
+      "summary": "Alat pengembang rujukan untuk memeriksa server MCP: satu paket, tiga client — antarmuka web, CLI untuk skrip dan CI, dan TUI.",
       "homepage": "https://github.com/modelcontextprotocol/inspector",
-      "note": "Dipakai sejak server pertama berjalan, untuk melihat pesan JSON-RPC yang sebenarnya lewat."
+      "note": "Dipakai sejak server pertama berjalan, untuk melihat pesan JSON-RPC yang sebenarnya lewat. Butuh Node 22.19.0 atau lebih baru."
     },
     {
       "slug": "mcp-typescript-sdk",
       "name": "MCP TypeScript SDK",
-      "summary": "SDK resmi MCP untuk TypeScript — salah satu SDK Tier 1 menurut daftar resmi.",
+      "summary": "SDK resmi MCP untuk TypeScript (Tier 1). Versi 2 — paket @modelcontextprotocol/server dan @modelcontextprotocol/client — mengimplementasikan revisi spesifikasi 2026-07-28.",
       "homepage": "https://github.com/modelcontextprotocol/typescript-sdk",
-      "note": "Pilihan bila servermu ditulis dengan Node.js."
+      "note": "Pilihan bila servermu berjalan di Node.js, Bun, atau Deno. Contoh yang mengimpor @modelcontextprotocol/sdk ditulis untuk v1.x."
     },
     {
       "slug": "mcp-python-sdk",
       "name": "MCP Python SDK",
-      "summary": "SDK resmi MCP untuk Python — salah satu SDK Tier 1 menurut daftar resmi.",
+      "summary": "SDK resmi MCP untuk Python (Tier 1). Server dibangun dengan kelas MCPServer; petunjuk tipe dan docstring menjadi skema tool.",
       "homepage": "https://github.com/modelcontextprotocol/python-sdk",
-      "note": "Pilihan bila servermu ditulis dengan Python."
+      "note": "Pilihan bila servermu ditulis dengan Python. Pasang dengan uv add \"mcp[cli]\"; perintah mcp dev membukanya di Inspector."
     },
     {
       "slug": "mcp-csharp-sdk",
       "name": "MCP C# SDK",
-      "summary": "SDK resmi MCP untuk C# — salah satu SDK Tier 1 menurut daftar resmi.",
+      "summary": "SDK resmi MCP untuk C# (Tier 1), dengan paket terpisah untuk inti, hosting, dan server HTTP berbasis ASP.NET Core.",
       "homepage": "https://github.com/modelcontextprotocol/csharp-sdk",
       "note": "Pilihan bila servermu ditulis dengan .NET."
     }
@@ -78,7 +141,11 @@
   "projects": [
     {
       "title": "Server MCP untuk catatan lokal",
-      "brief": "Bangun server stdio yang mengekspos satu folder catatan Markdown. Sediakan dua tool: cari_catatan(kata) yang mengembalikan judul catatan yang cocok, dan tambah_catatan(judul, isi) yang menulis berkas baru. Sediakan juga satu resource yang membaca isi satu catatan. Periksa semuanya dengan MCP Inspector, lalu sambungkan ke satu host dan minta model mencari sebuah catatan. Selesai bila: (1) model berhasil menemukan catatan lewat tool-mu, (2) kamu bisa menunjukkan di host-mu bagaimana seorang manusia dapat menolak pemanggilan tambah_catatan sebelum ia menulis, dan (3) percobaan menulis di luar folder catatan ditolak dengan galat eksekusi (isError true) yang menjelaskan sebabnya — bukan dengan server yang mati. Pastikan servermu tidak menulis apa pun ke stdout selain pesan protokol."
+      "brief": "Bangun server **stdio** yang mengekspos satu folder catatan Markdown:\n\n- tool `cari_catatan(kata)` yang mengembalikan judul catatan yang cocok;\n- tool `tambah_catatan(judul, isi)` yang menulis berkas baru;\n- satu resource yang membaca isi satu catatan lewat URI-nya.\n\nPeriksa semuanya dengan MCP Inspector, sambungkan ke satu host, lalu minta model mencari sebuah catatan.\n\n**Selesai bila:**\n\n1. model menemukan catatan lewat tool-mu;\n2. kamu bisa menunjukkan di host-mu bagaimana seorang manusia **menolak** pemanggilan `tambah_catatan` sebelum ia menulis;\n3. percobaan menulis di luar folder catatan ditolak dengan galat eksekusi (`isError: true`) yang menjelaskan sebabnya — bukan dengan server yang mati;\n4. servermu tak menulis apa pun ke stdout selain pesan protokol (log ke stderr);\n5. `npx @modelcontextprotocol/inspector --cli <perintah servermu> --method tools/list` mencetak kedua tool dalam urutan yang sama setiap kali dijalankan."
+    },
+    {
+      "title": "Server jarak jauh tanpa sesi: keranjang belanja",
+      "brief": "Bangun server **Streamable HTTP** dengan SDK resmi yang mendukung revisi 2026-07-28, dengan tiga tool: `create_basket`, `add_item(basket_id, sku)`, dan `checkout(basket_id)`.\n\n- `create_basket` mengembalikan pegangan acak (mis. UUIDv4) di `structuredContent`, dan deskripsinya menyebut umur keranjang;\n- `checkout` meminta konfirmasi pengguna lewat **MRTR**: jawaban pertamanya `InputRequiredResult` berisi permintaan `elicitation/create`, dan baru selesai ketika client mengulang panggilan dengan jawaban `accept`;\n- server mendengarkan di `127.0.0.1` dan menolak `Origin` yang tak dikenal.\n\n**Selesai bila:**\n\n1. keranjang tetap ada sesudah proses server dimatikan dan dinyalakan lagi — keadaannya disimpan menurut pegangan, bukan menurut koneksi;\n2. `add_item` dengan pegangan yang tak dikenal atau kedaluwarsa menghasilkan galat eksekusi yang menyuruh model membuat keranjang baru;\n3. `checkout` yang dijawab `decline` tak memproses apa pun;\n4. permintaan yang header `Mcp-Name`-nya berbeda dari `params.name` ditolak dengan `400`;\n5. kamu bisa menjelaskan, dengan merujuk spesifikasi, kenapa pegangan saja tak boleh dianggap bukti identitas begitu server ini diberi autentikasi."
     }
   ],
   "resources": [
@@ -94,6 +161,21 @@
     },
     {
       "type": "OfficialDocs",
+      "title": "Daftar perubahan revisi terbaru spesifikasi",
+      "url": "https://modelcontextprotocol.io/specification/latest/changelog"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Fitur yang berstatus deprecated dan jalur penggantinya",
+      "url": "https://modelcontextprotocol.io/specification/latest/deprecated"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Arsitektur MCP — panduan konsep resmi",
+      "url": "https://modelcontextprotocol.io/docs/learn/architecture"
+    },
+    {
+      "type": "OfficialDocs",
       "title": "Build an MCP server — tutorial resmi",
       "url": "https://modelcontextprotocol.io/docs/develop/build-server"
     },
@@ -104,8 +186,28 @@
     },
     {
       "type": "OfficialDocs",
+      "title": "MCP Inspector — dokumentasi",
+      "url": "https://modelcontextprotocol.io/docs/tools/inspector"
+    },
+    {
+      "type": "OfficialDocs",
       "title": "Security best practices untuk MCP",
       "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Anthropic: mendonasikan MCP ke Agentic AI Foundation (9 Desember 2025)",
+      "url": "https://www.anthropic.com/news/donating-the-model-context-protocol-and-establishing-of-the-agentic-ai-foundation"
+    },
+    {
+      "type": "Video",
+      "title": "The Model Context Protocol (MCP) — Anthropic, Juni 2025",
+      "url": "https://www.youtube.com/watch?v=CQywdSdi5iA"
+    },
+    {
+      "type": "Video",
+      "title": "Why we built—and donated—the Model Context Protocol (MCP) — Anthropic, Desember 2025",
+      "url": "https://www.youtube.com/watch?v=PLyCki2K0Lg"
     },
     {
       "type": "Repository",
