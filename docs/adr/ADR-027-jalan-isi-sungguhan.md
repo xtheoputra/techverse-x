@@ -52,7 +52,7 @@ Berkas dan server **dibandingkan lebih dulu**. Kalau server punya sesuatu yang t
 ### 6. Dua gerbang CI
 
 - **`cek:isi`** (job frontend, sebelum `npm ci`, nol dependensi): bentuk, batas panjang, kunci yang salah ketik, URL, slug sama dengan nama berkas dan folder, tak ada duplikat, relasi hanya menunjuk berkas yang ada, tak ada siklus.
-- **"Isi sungguhan dipasang dari nol, dua kali"** (job backend): basis data terpisah di service container yang sama, migrasi dari nol, API sungguhan dengan tulis hidup, `pasang.mjs --semua` dua kali — yang kedua **harus nol tulisan** — lalu invarian butir 4. Di sini **server** yang menilai berkas, jadi cermin batas panjang di pemeriksa yang menyimpang kelihatan di sini.
+- **"Isi sungguhan dipasang dari nol, dua kali"** (job backend): basis data terpisah di service container yang sama, migrasi dari nol, API sungguhan dengan tulis hidup, `pasang.mjs --semua` dua kali — yang kedua **harus nol tulisan** — lalu invarian butir 4. Di sini **server** yang menilai berkas, jadi cermin batas panjang di pemeriksa yang menyimpang kelihatan di sini. *(Sejak 2026-10-07 langkah ini dan dua gerbang sesudahnya — `uji-ganti`, `uji-media` — satu berkas, [`database/isi/gerbang-isi.mjs`](../../database/isi/gerbang-isi.mjs), yang juga dijalankan `run.ps1 gerbang-isi` dan `run.ps1 ci`.)*
 
 ## Yang SENGAJA tidak diputuskan, dan batas yang jujur
 

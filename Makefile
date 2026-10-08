@@ -92,6 +92,14 @@ cek-halaman: ## Gerbang ADR-024 di halaman jadinya (butuh web + API hidup)
 	 API_BASE_URL=$${API_BASE_URL:-http://localhost:5080} \
 	 node .github/scripts/periksa-halaman-web.mjs
 
+# Tiga gerbang job Backend yang butuh API HIDUP di basis data kosong: isi dipasang dari nol dua
+# kali, uji-ganti, uji-media. Berkas .mjs yang sama dipanggil ci.yml dan run.ps1. Di luar `verify`
+# karena menyalakan API dan membuat basis data sendiri; `ci` memuatnya.
+.PHONY: gerbang-isi
+gerbang-isi: ## Gerbang isi berbasis API dari ci.yml: pasang 2x, uji-ganti, uji-media (butuh up)
+	dotnet build TechVerseX.slnx --configuration Release
+	@node database/isi/gerbang-isi.mjs
+
 # `setup-dotnet` menolak `sdk.version` yang bukan versi SDK utuh begitu
 # `rollForward` disebut, sedangkan `dotnet` di mesin yang SDK-nya sudah terpasang
 # menerimanya diam-diam. Selisih itu memerahkan CI sementara verifikasi lokal
@@ -116,7 +124,9 @@ verify: check-global-json cek-tautan cek-isi uji-markdown uji-isi ## Gerbang yan
 
 # Seluruh gerbang ci.yml di mesin pengembang, SEBELUM push (ADR-026). Alat
 # pengembang, bukan pengganti CI. `verify` menanggung job backend dan frontend;
-# skrip bash-nya menanggung pindai rahasia dan job `citra`. Skrip yang sama dipanggil run.ps1.
+# gerbang-isi.mjs menanggung tiga langkah job backend yang butuh API hidup; skrip bash-nya
+# menanggung pindai rahasia dan job `citra`. Skrip yang sama dipanggil run.ps1.
 .PHONY: ci
-ci: verify ## Seluruh gerbang ci.yml sebelum push: verify + rahasia + citra (butuh Docker)
+ci: verify ## Seluruh gerbang ci.yml sebelum push: verify + gerbang-isi + rahasia + citra (butuh Docker)
+	@node database/isi/gerbang-isi.mjs
 	bash .github/scripts/gerbang-ci-lokal.sh

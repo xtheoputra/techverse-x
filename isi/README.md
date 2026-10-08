@@ -164,7 +164,12 @@ nama dari `github.actor`.
 .\run.ps1 isi           # periksa semua berkas (sama dengan gerbang CI `cek:isi`)
 .\run.ps1 up; .\run.ps1 migrate; .\run.ps1 api     # API pengembangan dengan tulis hidup
 .\run.ps1 isi-pasang    # pasang SEMUA berkas ke API itu, prasyarat lebih dulu
+.\run.ps1 gerbang-isi   # gerbang CI berbasis API: basis data sekali pakai, API sendiri, pasang 2x, uji-ganti, uji-media
 ```
+
+`gerbang-isi` adalah yang dijalankan CI (berkas yang sama, `database/isi/gerbang-isi.mjs`), di basis data
+`techversex_isi` yang ia buat dan buang sendiri — jalankan sebelum push setiap kali berkas isi, `pasang.mjs`,
+atau endpoint tulis berubah. Ia butuh `up` saja (bukan `migrate`), dan port 5099 kosong.
 
 ⚠️ Basis data berisi contoh `seed` punya topik bernama sama dengan isi sungguhan
 (`model-context-protocol`). Pemasang tidak menimpa — ia berhenti dengan `BEDA`. Pakai

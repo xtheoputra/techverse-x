@@ -15,7 +15,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'isi', 'isi-pasang', 'api', 'web', 'build', 'test', 'tautan', 'halaman', 'verify', 'ci')]
+    [ValidateSet('help', 'up', 'down', 'reset', 'migrate', 'migration', 'db-script', 'seed', 'isi', 'isi-pasang', 'api', 'web', 'build', 'test', 'tautan', 'halaman', 'gerbang-isi', 'verify', 'ci')]
     [string]$Command = 'help',
 
     [Parameter(Position = 1)]
@@ -73,8 +73,9 @@ switch ($Command) {
             @{ n = 'test';      d = 'Menjalankan uji .NET (uji integrasi butuh up + migrate)' }
             @{ n = 'tautan';    d = 'Memeriksa tautan di berkas Markdown (tanpa jaringan)' }
             @{ n = 'halaman';   d = 'Gerbang ADR-024 di halaman jadinya (butuh web + API hidup)' }
+            @{ n = 'gerbang-isi'; d = 'Gerbang isi berbasis API dari ci.yml: pasang 2x, uji-ganti, uji-media (butuh up)' }
             @{ n = 'verify';    d = 'Gerbang yang sama dengan CI (butuh up + migrate)' }
-            @{ n = 'ci';        d = 'Seluruh gerbang ci.yml sebelum push: verify + rahasia + citra (butuh Docker)' }
+            @{ n = 'ci';        d = 'Seluruh gerbang ci.yml sebelum push: verify + gerbang-isi + rahasia + citra (butuh Docker)' }
         ) | ForEach-Object { Write-Host ('  {0,-12} {1}' -f $_.n, $_.d) }
         Write-Host ''
         Write-Host '  Uji integrasi MENULIS BARIS ke PostgreSQL sungguhan, jadi jalankan' -ForegroundColor DarkGray
@@ -174,6 +175,15 @@ switch ($Command) {
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 
+    'gerbang-isi' {
+        # Tiga gerbang job Backend yang butuh API HIDUP di basis data kosong: isi dipasang dari nol
+        # dua kali, uji-ganti, uji-media. Berkas .mjs yang sama dipanggil ci.yml dan Makefile.
+        # Ia di luar `verify` karena menyalakan API dan membuat basis data sendiri; `ci` memuatnya.
+        # Sampai 2026-10-07 tak ada di sini sama sekali, dan PR #90 merah di CI karenanya.
+        Invoke-Step 'Build ketat (Release)' { dotnet build TechVerseX.slnx --configuration Release }
+        Invoke-Step 'Gerbang isi berbasis API' { node database/isi/gerbang-isi.mjs }
+    }
+
     'verify' {
         # BUKAN lewat Invoke-Step: pemeriksa ini fungsi PowerShell murni yang tidak
         # menyentuh $LASTEXITCODE, dan $LASTEXITCODE masih kosong di langkah pertama.
@@ -195,10 +205,15 @@ switch ($Command) {
     'ci' {
         # Seluruh gerbang ci.yml di mesin pengembang, SEBELUM push (ADR-026).
         # Alat pengembang, bukan pengganti CI. `verify` menanggung job backend dan
-        # frontend; skrip bash-nya menanggung pindai rahasia dan job `citra`. Satu skrip untuk Windows
+        # frontend; gerbang-isi.mjs menanggung tiga langkah job backend yang butuh API hidup
+        # (sampai 2026-10-07 tak ada di sini, padahal komentar ini sudah mengaku "seluruh");
+        # skrip bash-nya menanggung pindai rahasia dan job `citra`. Satu skrip untuk Windows
         # (Git Bash) DAN Linux/WSL/macOS, alasan yang sama dengan `seed`.
         & $PSCommandPath verify
         if (-not $?) { exit 1 }
+
+        # Build Release sudah dibuat `verify`, jadi langsung skripnya.
+        Invoke-Step 'Gerbang isi berbasis API' { node database/isi/gerbang-isi.mjs }
 
         # GIT BASH, bukan `bash`. Di Windows `bash` di PATH adalah
         # C:\Windows\System32\bash.exe - bash WSL - dan distro WSL belum tentu
