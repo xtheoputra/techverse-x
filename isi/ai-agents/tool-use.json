@@ -1,0 +1,214 @@
+{
+  "slug": "tool-use",
+  "name": "Tool Use (Function Calling)",
+  "fieldSlug": "ai-agents",
+  "summary": "Tool use — disebut juga function calling — adalah cara model bahasa meminta aplikasimu menjalankan sebuah fungsi. Kamu memberi model daftar tool: nama, deskripsi, dan JSON Schema argumennya. Bila model memutuskan butuh salah satunya, ia tidak menjalankan apa pun sendiri; ia menjawab dengan permintaan terstruktur berisi nama tool dan argumen JSON. Aplikasimu menjalankan fungsinya, mengirim hasilnya kembali, dan model melanjutkan — berulang sampai tugasnya selesai. Putaran inilah inti setiap agen AI, dan fondasi MCP: MCP membakukan cara menyediakan tool, tool use adalah cara model memakainya. Halaman ini memakai Messages API Claude sebagai contoh konkret (tool_use, tool_result, tool_choice, strict), lalu memetakan konsep yang sama ke function calling OpenAI dan Gemini, yang memakai nama berbeda.",
+  "overview": "## Kontraknya: model meminta, aplikasimu menjalankan\n\nTool use adalah kontrak antara aplikasimu dan model. Kamu menyatakan operasi apa yang tersedia dan bentuk masukannya; model memutuskan kapan dan bagaimana memanggilnya. Dokumentasi resmi Claude menuliskannya tanpa celah: model **tak pernah menjalankan apa pun sendiri**. Ia memancarkan permintaan terstruktur, kodemu (atau server Anthropic) menjalankan operasinya, dan hasilnya mengalir kembali ke percakapan.\n\nBagi yang biasa membuat API, rasanya seperti antarmuka bertipe: tetapkan skema, tangani panggilan balik, kembalikan hasil. Bedanya, pemanggil di seberang adalah model bahasa yang memilih fungsi berdasarkan percakapan — dan kadang memilih menjawab dari pengetahuannya sendiri, atau bertanya balik.\n\n## Putaran agen\n\n::media[putaran-tool]\n\nSetiap respons membawa `stop_reason`, dan nilai itu yang mengemudikan putarannya:\n\n| `stop_reason` | Artinya | Yang dilakukan aplikasimu |\n|---|---|---|\n| `tool_use` | model meminta satu atau lebih tool | jalankan, kirim `tool_result`, ulangi |\n| `end_turn` | jawaban selesai | tampilkan teksnya |\n| `max_tokens` | jawaban terpotong | jangan jalankan tool dari giliran itu; naikkan batasnya |\n| `refusal` | model menolak | jangan jalankan tool; tangani penolakannya |\n| `pause_turn` | putaran tool **server** mencapai batas iterasinya | kirim ulang percakapan apa adanya supaya ia melanjutkan |\n\n## Anatomi definisi tool\n\n| Medan | Isi |\n|---|---|\n| `name` | cocok dengan `^[a-zA-Z0-9_-]{1,128}$` |\n| `description` | apa yang dilakukan, **kapan dipakai dan kapan tidak**, arti tiap parameter, apa yang tak dikembalikannya |\n| `input_schema` | JSON Schema argumennya |\n| `input_examples` | *(opsional)* contoh masukan; tiap contoh wajib sah menurut skema, kalau tidak 400 |\n| `strict` | *(opsional)* `true` = argumen dijamin cocok dengan skema |\n\nDokumentasi Claude menyebut deskripsi sebagai **faktor terpenting** bagi kinerja tool, dan menganjurkan sedikitnya tiga sampai empat kalimat per tool. Deskripsi yang buruk — *\"Gets the stock price for a ticker.\"* — meninggalkan model dengan banyak pertanyaan yang tak terjawab.\n\n## Satu putaran di kabel\n\nModel meminta dua tool sekaligus. Ini badan permintaan **kedua** yang disusun SDK Python resmi (`anthropic` 1.12.1) setelah aplikasi menjalankan keduanya — direkam dari pengujian dengan transport HTTP tiruan, bukan disalin dari dokumentasi:\n\n```json\n[\n  {\n    \"role\": \"assistant\",\n    \"content\": [\n      { \"type\": \"text\", \"text\": \"Saya cek kedua buku itu di katalog.\" },\n      { \"type\": \"tool_use\", \"id\": \"toolu_01A\", \"name\": \"cari_buku\",\n        \"input\": { \"kata_kunci\": \"Laskar Pelangi\" } },\n      { \"type\": \"tool_use\", \"id\": \"toolu_01B\", \"name\": \"cari_buku\",\n        \"input\": { \"kata_kunci\": \"Tere Liye\", \"maks_hasil\": 3 } }\n    ]\n  },\n  {\n    \"role\": \"user\",\n    \"content\": [\n      { \"type\": \"tool_result\", \"tool_use_id\": \"toolu_01A\",\n        \"content\": \"B-017 | Laskar Pelangi | Andrea Hirata | tersedia 2\" },\n      { \"type\": \"tool_result\", \"tool_use_id\": \"toolu_01B\",\n        \"content\": \"Tak ada buku yang cocok dengan 'Tere Liye'. Coba kata kunci lain.\",\n        \"is_error\": true }\n    ]\n  }\n]\n```\n\nTiga hal yang terlihat di sana: giliran asisten dikirim balik **utuh**; setiap `tool_result` merujuk `id` miliknya lewat `tool_use_id`; dan galat dikembalikan sebagai hasil ber-`is_error`, bukan dibuang.\n\n## Tiga tempat tool berjalan\n\n::media[tiga-tempat]\n\n| Jenis | Contoh | Tugas aplikasimu |\n|---|---|---|\n| Didefinisikan pengguna | logika bisnis, API internal | tulis skema, jalankan, kirim `tool_result` |\n| Skema Anthropic, dijalankan klien | `bash`, `text_editor`, `memory`, `computer`, `browser` | jalankan dan kirim `tool_result`; skemanya sudah dilatihkan sehingga dipanggil lebih andal |\n| Dijalankan server | `web_search`, `web_fetch`, `code_execution`, `tool_search` | aktifkan, lalu baca hasilnya — tak ada `tool_result` darimu |\n\n## Paralel, dan aturan bentuk balasan\n\n::media[paralel-satu-pesan]\n\nModel boleh meminta beberapa tool dalam satu giliran. API tak menentukan urutan menjalankannya: yang hanya membaca biasanya aman dijalankan bersamaan, yang punya efek samping atau saling bergantung lebih baik berurutan. Bentuk balasannya yang mengikat:\n\n- **satu** `tool_result` untuk **setiap** `tool_use`, semuanya dalam **satu** pesan `user`;\n- blok `tool_result` **lebih dulu** — teks sesudahnya boleh, teks sebelumnya ditolak dengan 400;\n- pesan hasil harus **langsung** mengikuti giliran asisten yang memintanya;\n- tool yang sengaja tak dijalankan (mis. karena panggilan sebelumnya gagal) **tetap** dibalas, dengan `is_error: true` dan alasan singkat.\n\nMemecah hasil menjadi beberapa pesan menurut dokumentasi *\"mengajari\"* model berhenti memanggil tool secara paralel.\n\n## Mengendalikan pemanggilan\n\n| `tool_choice` | Perilaku |\n|---|---|\n| `{\"type\": \"auto\"}` | model memutuskan — bawaan bila ada `tools` |\n| `{\"type\": \"any\"}` | wajib memakai salah satu tool |\n| `{\"type\": \"tool\", \"name\": \"…\"}` | wajib memakai tool itu |\n| `{\"type\": \"none\"}` | dilarang memakai tool |\n\nTambahkan `\"disable_parallel_tool_use\": true` di dalam `tool_choice` untuk paling banyak satu panggilan per giliran.\n\n> [!PERINGATAN]\n> **Tak semua model menerima pemanggilan paksa.** Claude Opus 5.5, Claude Sonnet 5.5, Claude Fable 5.1, dan Claude Mythos 5.1 menolak `any` dan `tool` dengan galat 400. Pakai `auto`, sebut tool-nya di instruksi, aktifkan `strict: true` supaya argumennya tetap terjamin, dan periksa apakah panggilan benar-benar terjadi. Bila yang dibutuhkan sebenarnya hanya JSON berbentuk tetap, pakai *structured outputs*.\n\n**Strict tool use.** Dengan `strict: true`, keluaran model dibatasi saat sampling (*grammar-constrained sampling*) sehingga `input` selalu cocok dengan skema dan `name` selalu sah — tak ada lagi `\"2\"` sebagai pengganti `2` atau medan wajib yang hilang. Skemanya mengikuti subset JSON Schema milik *structured outputs*, termasuk `additionalProperties: false`.\n\n## Satu konsep, tiga vendor\n\n| | Claude (Messages API) | OpenAI | Gemini |\n|---|---|---|---|\n| definisi | `name`, `description`, `input_schema` | `type: \"function\"`, `name`, `description`, `parameters` | deklarasi fungsi: `name`, `description`, `parameters` |\n| model meminta | blok `tool_use` (`id`) | item `function_call` (`call_id`) | langkah `function_call` (`id`) |\n| kamu membalas | blok `tool_result` (`tool_use_id`) di pesan `user` | `function_call_output` (`call_id`) | `function_result` (`call_id`) |\n| paksa / larang | `tool_choice`: `auto`, `any`, `tool`, `none` | `tool_choice`: `auto`, `required`, fungsi tertentu, `none` | `tool_choice`: `auto`, `any`, `none`, `validated` |\n| kepatuhan skema | `strict: true` | `strict: true` (semua medan `required`, `additionalProperties: false`) | mode `validated` |\n| matikan paralel | `disable_parallel_tool_use` | `parallel_tool_calls: false` | tak disebut di panduannya |\n\nKetiganya sepakat pada hal yang sama: deskripsi yang jelas, tipe yang ketat (pakai `enum`), sedikit tool aktif sekaligus (OpenAI menyarankan di bawah 20, Gemini 10–20), dan validasi argumen sebelum dijalankan.\n\n## Kapan memakai tool, kapan tidak\n\nPakai tool untuk **tindakan berefek samping** (mengirim, menulis, mengubah), **data segar atau milik sistemmu**, **keluaran berbentuk pasti**, dan **memanggil sistem yang sudah ada**. Dokumentasi Claude memberi tanda yang paling praktis: *bila kamu menulis regex untuk mengambil keputusan dari teks keluaran model, keputusan itu semestinya panggilan tool.*\n\nJangan pakai tool bila model bisa menjawab dari pengetahuannya (meringkas, menerjemahkan), bila tak ada yang perlu dijalankan, atau bila latensi satu putaran tambahan lebih mahal daripada pekerjaannya.\n\n## Dari para pembuatnya\n\nDua percakapan dari kanal resmi Anthropic, keduanya Oktober 2025 — sebelum model dan beberapa nama API yang dipakai halaman ini.\n\n::media[video-mcp-api]\n\n::media[video-agen]\n\n## Batas yang perlu diingat\n\n- **Hasil tool adalah masukan tak tepercaya.** Halaman web, email masuk, dan respons API pihak ketiga bisa membawa instruksi yang mencoba membelokkan model (*indirect prompt injection*). Simpan isi seperti itu di dalam `tool_result`, bukan di `system` atau teks `user`.\n- **Tool berarti eksekusi kode.** Validasi setiap argumen; untuk tool berefek samping — mengirim email, mengubah data, membayar — minta persetujuan manusia lebih dulu.\n- **Setiap definisi tool menghabiskan konteks.** Definisi masuk ke prompt dan ditagih sebagai token masukan; tool yang tumpang tindih juga membingungkan pemilihan.\n- **Model bisa memilih tidak memanggil tool**, atau memanggilnya dengan argumen yang keliru. Tanpa `strict`, perlakukan argumen sebagai masukan yang belum divalidasi.",
+  "media": [
+    {
+      "key": "putaran-tool",
+      "kind": "Image",
+      "url": "/media/tool-use/putaran-tool.svg",
+      "alt": "Diagram urutan antara aplikasi di kiri dan model di kanan. Satu: aplikasi mengirim messages dan tools. Dua: model menjawab stop_reason tool_use dengan blok tool_use berisi id, name, dan input. Tiga: aplikasi menjalankan fungsinya di kodenya sendiri. Empat: aplikasi mengirim giliran asisten dan tool_result dengan tool_use_id yang sama. Dua sampai empat berulang selama tool_use. Lima: model menjawab end_turn dengan teks akhir. Pada max_tokens atau refusal, berhenti tanpa menjalankan tool.",
+      "caption": "Putaran tool use dengan nama medan Messages API Claude. Diringkas dari halaman How tool use works di dokumentasi resmi.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "tiga-tempat",
+      "kind": "Image",
+      "url": "/media/tool-use/tiga-tempat.svg",
+      "alt": "Tiga kolom. Didefinisikan pengguna: skema dari kamu, kode berjalan di aplikasimu, tool_result dari kamu; contoh cari_buku, kirim_email, kueri_pesanan. Skema Anthropic: skema dari Anthropic dan sudah dilatihkan, kode berjalan di aplikasimu, tool_result dari kamu; contoh bash, text_editor, memory, computer, browser. Dijalankan server: skema dan kode di server Anthropic, tak ada tool_result darimu; contoh web_search, web_fetch, code_execution.",
+      "caption": "Tempat kode berjalan menentukan tugas aplikasimu. Dirangkum dari How tool use works.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "paralel-satu-pesan",
+      "kind": "Image",
+      "url": "/media/tool-use/paralel-satu-pesan.svg",
+      "alt": "Giliran asisten berisi tool_use A dan tool_use B. Benar: satu pesan user berisi tool_result A, tool_result B, lalu teks bila perlu. Salah: dua pesan user terpisah, yang mengajari model berhenti memanggil tool secara paralel. Salah: teks sebelum tool_result, yang ditolak dengan galat 400.",
+      "caption": "Aturan bentuk balasan untuk panggilan paralel, menurut halaman Handle tool calls dan Parallel tool use.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "video-mcp-api",
+      "kind": "Video",
+      "videoId": "aZLr962R6Ag",
+      "alt": "Building with MCP and the Claude API",
+      "caption": "Alex Albert, John Welsh, dan Michael Cohen (Anthropic) tentang MCP dan Claude API; bagian 11:50–18:20 membahas prompt engineering dan praktik terbaik mengelola konteks dan tool (26 menit, Oktober 2025).",
+      "sourceName": "Anthropic di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=aZLr962R6Ag",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-agen",
+      "kind": "Video",
+      "videoId": "uhJJgc-0iTQ",
+      "alt": "Building more effective AI agents",
+      "caption": "Alex Albert dan Erik (Anthropic, rekan penulis Building Effective Agents) tentang sistem multi-agen, tool calling, dan praktik terbaik memulai agen (19 menit, Oktober 2025).",
+      "sourceName": "Anthropic di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=uhJJgc-0iTQ",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    }
+  ],
+  "prerequisite": {
+    "title": "Dasar JSON, JSON Schema, dan satu panggilan API model",
+    "description": "Kamu perlu nyaman dengan tiga hal:\n\n- **JSON dan JSON Schema** — `type`, `properties`, `required`, `enum`, `additionalProperties`. Setiap tool dideskripsikan dengan skema seperti ini, dan argumen yang dikirim model berbentuk objek JSON.\n- **Satu panggilan API model bahasa** — mengirim pesan, membaca respons, dan memahami bahwa API-nya *stateless*: seluruh riwayat percakapan dikirim ulang di setiap permintaan.\n- **Python 3.10 atau lebih baru** — contoh kode memakai SDK resmi `anthropic`.\n\nKamu tak perlu kunci API untuk mengikuti sebagian besar langkah: putaran agennya bisa diuji dengan transport HTTP tiruan, seperti contoh di langkah 4."
+  },
+  "roadmap": [
+    {
+      "title": "Pahami kontraknya: model tak pernah menjalankan apa pun",
+      "description": "::media[putaran-tool]\n\nHafalkan pembagian kerjanya:\n\n1. **Kamu** menulis definisi tool dan mengirimnya bersama pesan.\n2. **Model** memutuskan memanggil tool dan menjawab dengan `stop_reason: \"tool_use\"` serta blok `tool_use` berisi `id`, `name`, dan `input`.\n3. **Kamu** menjalankan fungsinya — kueri basis data, panggilan HTTP, menulis berkas.\n4. **Kamu** mengirim hasilnya sebagai `tool_result` dan model melanjutkan.\n\nModel tak pernah melihat implementasimu; ia hanya melihat skema yang kamu beri dan hasil yang kamu kembalikan.\n\n> [!TIPS]\n> Uji dirimu: model menjawab `stop_reason: \"max_tokens\"` dan responsnya memuat satu blok `tool_use`. Apakah tool-nya kamu jalankan? Tidak — giliran itu terpotong, jadi argumennya bisa tak lengkap."
+    },
+    {
+      "title": "Tulis definisi tool yang bisa dipakai model",
+      "description": "Definisi yang dipakai di seluruh halaman ini, persis seperti di kode yang diuji:\n\n```json\n{\n  \"name\": \"cari_buku\",\n  \"description\": \"Mencari buku di katalog perpustakaan berdasarkan judul atau nama penulis. Pakai tool ini setiap kali pengguna menanyakan ketersediaan, penulis, atau lokasi rak sebuah buku. Hasilnya paling banyak `maks_hasil` buku, masing-masing dengan id, judul, penulis, dan jumlah eksemplar yang tersedia. Tool ini tidak meminjamkan buku.\",\n  \"input_schema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"kata_kunci\": {\n        \"type\": \"string\",\n        \"description\": \"Judul atau nama penulis, mis. 'Laskar Pelangi' atau 'Pramoedya'.\"\n      },\n      \"maks_hasil\": {\n        \"type\": \"integer\",\n        \"description\": \"Jumlah hasil paling banyak, 1 sampai 10. Bawaan 5.\"\n      }\n    },\n    \"required\": [\"kata_kunci\"]\n  }\n}\n```\n\nPeriksa deskripsinya terhadap empat pertanyaan: **apa** yang dilakukannya, **kapan** dipakai, apa arti **tiap parameter**, dan apa yang **tidak** dilakukannya. Kalimat terakhir di atas mencegah model memakai `cari_buku` untuk meminjam.\n\n- Pakai `enum` untuk nilai yang himpunannya tetap.\n- Hanya yang benar-benar wajib masuk `required`.\n- Beri nama berawalan layanan bila tool-mu banyak: `github_list_prs`, `slack_send_message`."
+    },
+    {
+      "title": "Baca tool_use, balas tool_result",
+      "description": "Dari setiap blok `tool_use` ambil tiga hal: `id`, `name`, dan `input`. Balasannya pesan `user` berisi blok `tool_result`:\n\n| Medan | Isi |\n|---|---|\n| `tool_use_id` | `id` dari blok `tool_use` yang dijawab |\n| `content` | teks, atau daftar blok `text`, `image`, `document`, `search_result`; boleh kosong |\n| `is_error` | `true` bila tool-nya gagal |\n\nTiga aturan yang paling sering dilanggar:\n\n1. Pesan hasil **langsung** mengikuti giliran asisten — tak boleh ada pesan di antaranya.\n2. Di dalam pesan itu, semua `tool_result` **lebih dulu**; teks hanya boleh sesudahnya.\n3. Giliran asisten dikirim balik **utuh** (`response.content`), bukan hanya teksnya — tanpa blok `tool_use`-nya, `tool_use_id` tak punya pasangan.\n\n> [!CATATAN]\n> Galat *\"tool_use ids were found without tool_result blocks immediately after\"* hampir selalu berarti aturan 1 atau 3 dilanggar.\n\n**Latihan:** tulis tangan pesan balasan untuk respons berisi satu `text` dan dua `tool_use`, satu di antaranya gagal."
+    },
+    {
+      "title": "Bangun putaran agen sendiri",
+      "description": "Putaran manual dengan SDK Python resmi. Kode ini **lolos `mypy --strict`** terhadap tipe SDK `anthropic` 1.12.1 dan diuji dengan transport HTTP tiruan — tool paralel, galat, tanpa tool, dan `max_tokens`:\n\n```python\ndef tanya(pertanyaan: str) -> str:\n    messages: list[MessageParam] = [{\"role\": \"user\", \"content\": pertanyaan}]\n    while True:\n        response = client.messages.create(\n            model=\"claude-opus-5-5\",\n            max_tokens=16000,\n            tools=TOOLS,\n            messages=messages,\n        )\n        messages.append({\"role\": \"assistant\", \"content\": response.content})\n        if response.stop_reason != \"tool_use\":\n            break  # end_turn, atau max_tokens / refusal yang perlu ditangani aplikasimu\n\n        hasil: list[ToolResultBlockParam] = []\n        for blok in response.content:\n            if blok.type != \"tool_use\":\n                continue\n            try:\n                isi = jalankan_tool(blok.name, blok.input)\n                hasil.append({\"type\": \"tool_result\", \"tool_use_id\": blok.id, \"content\": isi})\n            except Exception as galat:\n                hasil.append({\"type\": \"tool_result\", \"tool_use_id\": blok.id,\n                              \"content\": str(galat), \"is_error\": True})\n        messages.append({\"role\": \"user\", \"content\": hasil})  # SEMUA hasil, satu pesan\n\n    return \"\".join(b.text for b in response.content if b.type == \"text\")\n```\n\n> [!TIPS]\n> Uji putaranmu tanpa kunci API dan tanpa biaya: beri klien SDK `http_client=httpx2.Client(transport=httpx2.MockTransport(...))` yang membalas respons tiruan. SDK 1.x memakai `httpx2`, fork `httpx`; transport dari paket `httpx` lama tak terlihat olehnya."
+    },
+    {
+      "title": "Kembalikan galat yang mengarahkan, bukan pengecualian",
+      "description": "Bila tool gagal, jangan biarkan putaranmu mati: kembalikan `tool_result` dengan `is_error: true` dan pesan yang bisa ditindaklanjuti model.\n\n| Buruk | Baik |\n|---|---|\n| `\"failed\"` | `\"Rate limit exceeded. Retry after 60 seconds.\"` |\n| jejak tumpukan Python | `\"Tak ada buku yang cocok dengan 'Tere Liye'. Coba kata kunci lain.\"` |\n\nDokumentasi Claude menyebut model biasanya mencoba **2–3 kali** memperbaiki panggilan yang tak sah (mis. parameter wajib hilang) sebelum meminta maaf kepada pengguna — jadi pesan galatmu adalah petunjuk perbaikannya.\n\nTiga jenis galat, tiga penanganan:\n\n- **Tool gagal dijalankan** (jaringan, layanan mati) → `is_error: true` berisi penyebab dan saran.\n- **Argumen tak sah** → `is_error: true` yang menyebut medan yang salah; di masa pengembangan, perbaiki deskripsinya. `strict: true` menghapus jenis galat ini.\n- **Galat tool server** (mis. `web_search`) → ditangani model sendiri; tak ada `is_error` darimu.\n\nDiukur di pengujian langkah 4: menghapus `\"is_error\": True` dari kode membuat hasil galat terkirim sebagai hasil biasa, dan pemeriksaannya merah."
+    },
+    {
+      "title": "Jalankan tool paralel, balas sekaligus",
+      "description": "::media[paralel-satu-pesan]\n\nBila satu giliran memuat beberapa `tool_use`, kamu bebas menjalankannya bersamaan (`asyncio.gather`) atau berurutan:\n\n- **Bersamaan** untuk operasi baca yang saling bebas — latensinya turun.\n- **Berurutan** untuk tool berefek samping atau yang saling bergantung. Berhenti di kegagalan pertama, dan balas panggilan yang tak jadi dijalankan dengan `is_error: true`, mis. `\"Not executed: the preceding write_file call failed.\"`\n\nApa pun strateginya, semua hasil kembali dalam **satu** pesan `user`, urut sesuai `tool_use_id`. Bila model terlalu sering menggabungkan panggilan yang sebenarnya bergantung satu sama lain, dokumentasi menyarankan satu kalimat di prompt sistem: *\"Only batch tool calls that are independent of each other.\"*\n\n**Latihan:** buat dua tool, satu membaca dan satu menulis. Rancang kapan putaranmu menjalankan keduanya bersamaan dan kapan tidak."
+    },
+    {
+      "title": "Kendalikan pemanggilan: tool_choice dan strict",
+      "description": "`tool_choice` mengatur **apakah** model memanggil tool; `strict` mengatur **bentuk** argumennya. Contoh tool ketat — skemanya wajib `additionalProperties: false`:\n\n```json\n{\n  \"name\": \"pinjam_buku\",\n  \"description\": \"Meminjamkan satu buku kepada anggota. Hanya dipanggil sesudah pengguna menyetujui peminjaman secara eksplisit.\",\n  \"strict\": true,\n  \"input_schema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"id_buku\": { \"type\": \"string\" },\n      \"id_anggota\": { \"type\": \"string\" },\n      \"lama_hari\": { \"type\": \"integer\", \"enum\": [7, 14] }\n    },\n    \"required\": [\"id_buku\", \"id_anggota\", \"lama_hari\"],\n    \"additionalProperties\": false\n  }\n}\n```\n\nDengan `strict`, `lama_hari` dijamin `7` atau `14` dan bertipe angka — bukan `\"seminggu\"`.\n\n> [!PERINGATAN]\n> Pada Claude Opus 5.5, Claude Sonnet 5.5, Claude Fable 5.1, dan Claude Mythos 5.1, `tool_choice` `any` dan `tool` menghasilkan 400. Pakai `auto`, sebut tool-nya di instruksi, dan periksa apakah respons benar-benar memuat `tool_use`. `none` dan `disable_parallel_tool_use` tetap berlaku.\n\nButuh JSON berbentuk tetap tanpa memanggil apa pun? Itu tugas *structured outputs* (`output_config.format`), bukan tool palsu."
+    },
+    {
+      "title": "Biarkan SDK memutar: Tool Runner",
+      "description": "Untuk kebanyakan agen, SDK bisa memutar putarannya sendiri. Dengan `@beta_tool`, skema dibuat dari tanda tangan fungsi dan docstring-nya:\n\n```python\n@beta_tool\ndef cari_buku(kata_kunci: str, maks_hasil: int = 5) -> str:\n    \"\"\"Mencari buku di katalog perpustakaan berdasarkan judul atau nama penulis.\n\n    Args:\n        kata_kunci: Judul atau nama penulis, mis. 'Laskar Pelangi'.\n        maks_hasil: Jumlah hasil paling banyak, 1 sampai 10.\n    \"\"\"\n    return \"B-017 | Laskar Pelangi | Andrea Hirata | tersedia 2\"\n\n\nrunner = client.beta.messages.tool_runner(\n    model=\"claude-opus-5-5\",\n    max_tokens=16000,\n    tools=[cari_buku],\n    messages=[{\"role\": \"user\", \"content\": \"Apakah Laskar Pelangi ada?\"}],\n)\nfor message in runner:  # satu BetaMessage per giliran; berhenti saat model selesai\n    print(message.stop_reason)\n```\n\nDiukur dengan transport tiruan: SDK mengirim skema `cari_buku` dengan `kata_kunci` wajib, `maks_hasil` berbawaan `5`, dan `additionalProperties: false`; ia menjalankan fungsinya, mengirim `tool_result`, dan berhenti setelah `end_turn`.\n\nTool Runner masih **beta**, tetapi tidak menutup kendali: setiap giliran bisa diperiksa sebelum tool dijalankan, untuk persetujuan, pencatatan, atau penolakan. Turun ke putaran manual hanya bila kamu butuh kendali yang tak disediakannya."
+    },
+    {
+      "title": "Rancang tool untuk agen, bukan untuk programmer",
+      "description": "Prinsip dari *Writing effective tools for agents* (Anthropic, 2025):\n\n- **Sedikit tool yang bijak, bukan bungkus setiap endpoint.** Ganti `list_contacts` dengan `search_contacts`; ganti `list_users` + `list_events` + `create_event` dengan `schedule_event`. Agen membaca hasil token demi token — mengembalikan semua kontak memboroskan konteksnya.\n- **Namespace** yang memisahkan layanan dan sumber daya: `asana_projects_search`, `asana_users_search`.\n- **Kembalikan konteks yang bermakna.** Nama dan istilah alami lebih mudah dipakai model daripada UUID samar; buang medan teknis yang tak membantu langkah berikutnya.\n- **Hemat token.** Paginasi, filter, dan pemotongan dengan bawaan yang masuk akal — Claude Code membatasi respons tool 25.000 token. Parameter `response_format` (`concise` atau `detailed`) membiarkan agen memilih.\n- **Galat yang mendidik.** Pesan galat dan pemotongan bisa mengarahkan agen ke strategi yang lebih hemat, mis. pencarian yang lebih sempit.\n- **Deskripsikan seperti kepada pegawai baru.** Jadikan eksplisit konteks yang biasanya kamu anggap jelas: format kueri, istilah khusus, hubungan antarsumber daya. Nama parameter tak boleh ambigu: `user_id`, bukan `user`.\n\n**Latihan:** ambil satu API yang kamu kenal dan rancang **tiga** tool untuk agen di atasnya — bukan satu tool per endpoint."
+    },
+    {
+      "title": "Amankan tool-mu",
+      "description": "Perlakukan setiap argumen tool sebagai keluaran model yang **belum dipercaya**, dan setiap hasil tool dari luar sebagai **masukan yang bisa berbahaya**.\n\n- **Validasi argumen** sebelum menjalankan, bahkan bila `strict` aktif: skema menjamin bentuk, bukan izin.\n- **Persetujuan manusia** untuk tindakan berefek samping — mengirim, menghapus, membayar. Di putaran manual, periksa `tool_use` sebelum menjalankannya; di Tool Runner, gerbangnya bisa di dalam fungsi tool atau di pemeriksaan per giliran.\n- **Hak akses minimum.** Tool yang hanya perlu membaca jangan diberi kredensial tulis.\n- **Kurung jalur berkas.** Ubah `path` dari model ke bentuk kanonik dan pastikan tetap di bawah direktori proyek (`Path.resolve()` lalu `.is_relative_to(root)`); tolak `..`, symlink, dan jalur absolut di luarnya.\n- **Perintah shell:** allowlist program, tolak operator `&&`, `|`, `;`, dan jalankan di lingkungan terisolasi dengan batas waktu. Blocklist tidak cukup.\n- **Injeksi prompt tidak langsung.** Halaman web atau email yang dikembalikan tool bisa berisi instruksi palsu. Biarkan isinya di dalam `tool_result`, dan jangan memberi tool berbahaya kepada agen yang membaca isi tak tepercaya tanpa gerbang persetujuan.\n\n> [!PERINGATAN]\n> Parameter yang meminta model menuliskan *penalarannya* langkah demi langkah dapat memicu penolakan `reasoning_extraction`. Minta *penjelasan singkat* atau *bukti pendukung* saja."
+    },
+    {
+      "title": "Ukur: evaluasi tool-mu",
+      "description": "Tool yang \"terasa\" bagus belum tentu dipakai dengan benar. Langkah dari *Writing effective tools for agents*:\n\n1. **Buat banyak tugas evaluasi dari pemakaian nyata**, masing-masing dengan jawaban atau hasil yang bisa diverifikasi. Tugas kuat butuh beberapa panggilan tool: *\"Jadwalkan rapat dengan Jane minggu depan, lampirkan catatan rapat terakhir, dan pesan ruangan.\"* Tugas lemah terlalu harfiah: *\"Jadwalkan rapat dengan jane@acme.corp minggu depan.\"*\n2. **Jalankan secara terprogram** dengan putaran agen sederhana, satu putaran per tugas.\n3. **Catat lebih dari akurasi**: jumlah panggilan tool, token yang dipakai, waktu, dan galat tool.\n4. **Baca transkripnya.** Panggilan berlebihan sering menandakan kebutuhan paginasi atau tool yang perlu digabung; parameter keliru sering menandakan deskripsi yang ambigu.\n5. **Ubah satu hal, ukur lagi** — dengan set uji yang tak dipakai saat memperbaiki, supaya tak *overfit*.\n\n> [!CATATAN]\n> Setiap evaluasi dengan model sungguhan memakan biaya API. Uji bentuk putaran dan pesan galat lebih dulu dengan transport tiruan seperti langkah 4; simpan anggaran untuk mengukur perilaku model."
+    }
+  ],
+  "tools": [
+    {
+      "slug": "anthropic-python-sdk",
+      "name": "Anthropic Python SDK",
+      "summary": "SDK resmi untuk Messages API Claude di Python: tipe untuk definisi tool, blok tool_use dan tool_result, serta Tool Runner (beta) yang memutar putaran agen sendiri.",
+      "homepage": "https://github.com/anthropics/anthropic-sdk-python",
+      "note": "Dipakai di langkah 4 dan 8. Paket PyPI-nya anthropic; versi 1.x butuh Python 3.10+ dan memakai httpx2 untuk HTTP, termasuk untuk transport tiruan di pengujian."
+    },
+    {
+      "slug": "python-jsonschema",
+      "name": "jsonschema (Python)",
+      "summary": "Implementasi JSON Schema untuk Python: memeriksa apakah sebuah skema sah dan apakah sebuah objek cocok dengannya.",
+      "homepage": "https://github.com/python-jsonschema/jsonschema",
+      "note": "Dipakai untuk memvalidasi input_schema dan argumen tool sebelum dijalankan, terutama untuk tool tanpa strict atau di luar Tool Runner."
+    },
+    {
+      "slug": "mypy",
+      "name": "mypy",
+      "summary": "Pemeriksa tipe statis untuk Python yang membaca anotasi tipe dan melaporkan ketidakcocokan sebelum kode dijalankan.",
+      "homepage": "https://github.com/python/mypy",
+      "note": "Dipakai dengan --strict terhadap tipe SDK (MessageParam, ToolParam, ToolResultBlockParam) untuk menangkap definisi tool atau pesan yang salah bentuk tanpa memanggil API."
+    }
+  ],
+  "projects": [
+    {
+      "title": "Agen perpustakaan dengan tiga tool dan gerbang persetujuan",
+      "brief": "Bangun agen di atas putaran manual (langkah 4) dengan tiga tool: `cari_buku`, `riwayat_pinjaman(id_anggota)`, dan `pinjam_buku(id_buku, id_anggota, lama_hari)`. Tool terakhir **ketat** (`strict: true`) dan **berefek samping**: sebelum dijalankan, aplikasimu menampilkan rinciannya dan meminta persetujuan pengguna.\n\n**Selesai bila:**\n\n1. ketiga definisi tool lolos pemeriksaan skema (`jsonschema`), dan kode putaranmu lolos `mypy --strict`;\n2. pengujian dengan transport HTTP tiruan membuktikan dua `tool_use` dalam satu giliran dibalas dengan **dua** `tool_result` dalam **satu** pesan, urut sesuai `tool_use_id`;\n3. buku yang tak ada menghasilkan `is_error: true` dengan saran yang bisa ditindaklanjuti, bukan pengecualian yang mematikan putaran;\n4. pengguna yang menolak peminjaman menghasilkan `tool_result` berisi penolakan itu, dan **tak satu pun** peminjaman tercatat;\n5. respons `max_tokens` yang memuat `tool_use` tidak menjalankan tool apa pun;\n6. sesudah semuanya hijau dengan transport tiruan, satu percakapan sungguhan dijalankan dan transkripnya disimpan."
+    },
+    {
+      "title": "Evaluasi kecil: apakah deskripsimu benar-benar membantu?",
+      "brief": "Ambil agen dari proyek pertama dan ukur dua versi deskripsi `cari_buku`: versi satu kalimat dan versi lengkap dari langkah 2.\n\n- Tulis **sepuluh** tugas realistis dengan hasil yang bisa diverifikasi; sedikitnya empat di antaranya butuh lebih dari satu panggilan tool.\n- Bagi menjadi enam tugas untuk memperbaiki dan empat tugas uji yang tak disentuh.\n- Jalankan setiap tugas dengan kedua versi, dan catat per tugas: benar atau salah, jumlah panggilan tool, token masukan dan keluaran, serta galat tool.\n\n**Selesai bila:**\n\n1. tabel hasil kedua versi tersedia untuk keempat tugas uji;\n2. setiap tugas yang salah punya satu kalimat penyebab yang diambil dari **transkrip**, bukan tebakan;\n3. satu perubahan deskripsi diusulkan dari temuan itu dan diukur ulang di tugas uji yang sama;\n4. biaya total evaluasinya dicatat dari `usage` di setiap respons."
+    }
+  ],
+  "resources": [
+    {
+      "type": "OfficialDocs",
+      "title": "Tool use dengan Claude — ikhtisar resmi",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "How tool use works — kontrak, tempat tool berjalan, dan putaran agen",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Define tools — skema, deskripsi, input_examples, dan tool_choice",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Handle tool calls — tool_use, tool_result, dan is_error",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Parallel tool use — menjalankan dan membalas panggilan paralel",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Strict tool use — grammar-constrained sampling",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Tool Runner — putaran agen yang diurus SDK",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Server tools — web search, web fetch, code execution, dan pause_turn",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Writing effective tools for agents — Anthropic Engineering (11 September 2025)",
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Building effective agents — Anthropic Engineering",
+      "url": "https://www.anthropic.com/engineering/building-effective-agents"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Function calling — OpenAI API",
+      "url": "https://developers.openai.com/api/docs/guides/function-calling"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Function calling — Gemini API",
+      "url": "https://ai.google.dev/gemini-api/docs/function-calling"
+    },
+    {
+      "type": "Video",
+      "title": "Building with MCP and the Claude API — Anthropic, Oktober 2025",
+      "url": "https://www.youtube.com/watch?v=aZLr962R6Ag"
+    },
+    {
+      "type": "Video",
+      "title": "Building more effective AI agents — Anthropic, Oktober 2025",
+      "url": "https://www.youtube.com/watch?v=uhJJgc-0iTQ"
+    },
+    {
+      "type": "Repository",
+      "title": "Claude Cookbooks — notebook tool use resmi (paralel, tool_choice, Pydantic, dan lainnya)",
+      "url": "https://github.com/anthropics/claude-cookbooks/tree/main/tool_use"
+    }
+  ],
+  "requires": []
+}

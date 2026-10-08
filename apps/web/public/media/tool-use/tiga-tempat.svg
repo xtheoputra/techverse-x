@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 600" role="img" aria-labelledby="judul desk">
+  <title id="judul">Tiga tempat tool berjalan</title>
+  <desc id="desk">Tiga kolom. Tool yang didefinisikan pengguna: kamu menulis skemanya dan menjalankan kodenya, lalu mengirim tool_result. Tool berskema Anthropic: skemanya dari Anthropic dan sudah dilatihkan ke model, misalnya bash, text_editor, memory, computer, dan browser, tetapi kodenya tetap kamu yang menjalankan dan kamu yang mengirim tool_result. Tool yang dijalankan server: web_search, web_fetch, code_execution, dan tool_search dijalankan Anthropic; respons berisi server_tool_use dan hasilnya, dan kamu tidak membuat tool_result.</desc>
+  <rect width="640" height="600" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Di mana kodenya berjalan?</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Itu yang menentukan apa tugas aplikasimu.</text>
+
+  <!-- Kolom 1 -->
+  <rect x="24" y="100" width="188" height="420" rx="16" fill="#22d3ee" fill-opacity="0.06" stroke="#22d3ee" stroke-width="2"/>
+  <text x="40" y="132" fill="#67e8f9" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1">DIDEFINISIKAN</text>
+  <text x="40" y="152" fill="#67e8f9" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1">PENGGUNA</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">
+    <text x="40" y="190" fill="#98a3c4">skema</text>
+    <text x="40" y="212" fill="#eef2ff" font-weight="600">kamu</text>
+    <text x="40" y="250" fill="#98a3c4">kode berjalan di</text>
+    <text x="40" y="272" fill="#eef2ff" font-weight="600">aplikasimu</text>
+    <text x="40" y="310" fill="#98a3c4">tool_result dari</text>
+    <text x="40" y="332" fill="#eef2ff" font-weight="600">kamu</text>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#a5f3fc">
+    <rect x="40" y="370" width="156" height="34" rx="8" fill="#0d1226" stroke="#22d3ee" stroke-width="1.2"/>
+    <text x="52" y="392">cari_buku</text>
+    <rect x="40" y="414" width="156" height="34" rx="8" fill="#0d1226" stroke="#22d3ee" stroke-width="1.2"/>
+    <text x="52" y="436">kirim_email</text>
+    <rect x="40" y="458" width="156" height="34" rx="8" fill="#0d1226" stroke="#22d3ee" stroke-width="1.2"/>
+    <text x="52" y="480">kueri_pesanan</text>
+  </g>
+
+  <!-- Kolom 2 -->
+  <rect x="226" y="100" width="188" height="420" rx="16" fill="#8b5cf6" fill-opacity="0.07" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="242" y="132" fill="#c4b5fd" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1">SKEMA</text>
+  <text x="242" y="152" fill="#c4b5fd" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1">ANTHROPIC</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">
+    <text x="242" y="190" fill="#98a3c4">skema</text>
+    <text x="242" y="212" fill="#eef2ff" font-weight="600">Anthropic (dilatihkan)</text>
+    <text x="242" y="250" fill="#98a3c4">kode berjalan di</text>
+    <text x="242" y="272" fill="#eef2ff" font-weight="600">aplikasimu</text>
+    <text x="242" y="310" fill="#98a3c4">tool_result dari</text>
+    <text x="242" y="332" fill="#eef2ff" font-weight="600">kamu</text>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#ddd6fe">
+    <rect x="242" y="370" width="156" height="34" rx="8" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.2"/>
+    <text x="254" y="392">bash · text_editor</text>
+    <rect x="242" y="414" width="156" height="34" rx="8" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.2"/>
+    <text x="254" y="436">memory</text>
+    <rect x="242" y="458" width="156" height="34" rx="8" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.2"/>
+    <text x="254" y="480">computer · browser</text>
+  </g>
+
+  <!-- Kolom 3 -->
+  <rect x="428" y="100" width="188" height="420" rx="16" fill="#34d399" fill-opacity="0.06" stroke="#34d399" stroke-width="2"/>
+  <text x="444" y="132" fill="#6ee7b7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1">DIJALANKAN</text>
+  <text x="444" y="152" fill="#6ee7b7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1">SERVER</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">
+    <text x="444" y="190" fill="#98a3c4">skema</text>
+    <text x="444" y="212" fill="#eef2ff" font-weight="600">Anthropic</text>
+    <text x="444" y="250" fill="#98a3c4">kode berjalan di</text>
+    <text x="444" y="272" fill="#eef2ff" font-weight="600">server Anthropic</text>
+    <text x="444" y="310" fill="#98a3c4">tool_result dari</text>
+    <text x="444" y="332" fill="#eef2ff" font-weight="600">— tak ada darimu</text>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#a7f3d0">
+    <rect x="444" y="370" width="156" height="34" rx="8" fill="#0d1226" stroke="#34d399" stroke-width="1.2"/>
+    <text x="456" y="392">web_search</text>
+    <rect x="444" y="414" width="156" height="34" rx="8" fill="#0d1226" stroke="#34d399" stroke-width="1.2"/>
+    <text x="456" y="436">web_fetch</text>
+    <rect x="444" y="458" width="156" height="34" rx="8" fill="#0d1226" stroke="#34d399" stroke-width="1.2"/>
+    <text x="456" y="480">code_execution</text>
+  </g>
+
+  <text x="32" y="552" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">Dua kolom kiri = tool klien: aplikasimu yang memutar putarannya.</text>
+  <text x="32" y="574" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">Kolom kanan memutar sendiri; giliran bisa berhenti dengan pause_turn.</text>
+</svg>

@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-labelledby="judul desk">
+  <title id="judul">Putaran tool use antara aplikasi dan model</title>
+  <desc id="desk">Lima langkah berulang. Satu: aplikasi mengirim pesan pengguna beserta daftar tools. Dua: model menjawab dengan stop_reason tool_use dan satu atau lebih blok tool_use berisi nama tool dan argumen JSON. Tiga: aplikasi menjalankan fungsi yang diminta di kodenya sendiri. Empat: aplikasi mengirim permintaan baru berisi giliran asisten tadi dan pesan user berisi blok tool_result dengan tool_use_id yang sama. Langkah dua sampai empat berulang selama stop_reason bernilai tool_use. Lima: model menjawab dengan stop_reason end_turn dan teks akhir.</desc>
+  <defs>
+    <marker id="panah-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#22d3ee"/>
+    </marker>
+    <marker id="panah-ungu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#a78bfa"/>
+    </marker>
+    <marker id="panah-kuning" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#fbbf24"/>
+    </marker>
+    <marker id="panah-mint" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#34d399"/>
+    </marker>
+  </defs>
+  <rect width="640" height="640" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Model meminta, aplikasi menjalankan</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Model tak pernah menjalankan fungsimu sendiri.</text>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" letter-spacing="1.5">
+    <text x="104" y="112" fill="#67e8f9" text-anchor="middle">APLIKASIMU</text>
+    <text x="536" y="112" fill="#c4b5fd" text-anchor="middle">MODEL</text>
+  </g>
+  <g stroke="#2a3150" stroke-width="2">
+    <path d="M104 122 V560"/>
+    <path d="M536 122 V560"/>
+  </g>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">
+    <!-- 1 -->
+    <path d="M110 160 H528" stroke="#22d3ee" stroke-width="2.5" marker-end="url(#panah-cyan)"/>
+    <text x="320" y="150" fill="#a5f3fc" text-anchor="middle">1 · messages + tools</text>
+    <!-- 2 -->
+    <path d="M530 214 H112" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#panah-ungu)"/>
+    <text x="320" y="196" fill="#ddd6fe" text-anchor="middle">2 · stop_reason: "tool_use"</text>
+    <text x="320" y="234" fill="#ddd6fe" text-anchor="middle">tool_use { id, name, input }</text>
+  </g>
+
+  <!-- 3: kotak eksekusi di sisi aplikasi -->
+  <rect x="32" y="256" width="250" height="84" rx="14" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="2"/>
+  <text x="48" y="286" fill="#a5f3fc" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700">3 · JALANKAN DI KODEMU</text>
+  <text x="48" y="310" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">cari_buku(**input)</text>
+  <text x="48" y="330" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">kueri, HTTP, berkas — apa pun</text>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">
+    <!-- 4 -->
+    <path d="M110 384 H528" stroke="#22d3ee" stroke-width="2.5" marker-end="url(#panah-cyan)"/>
+    <text x="320" y="366" fill="#a5f3fc" text-anchor="middle">4 · + giliran asisten + tool_result</text>
+    <text x="320" y="404" fill="#a5f3fc" text-anchor="middle">tool_use_id sama dengan id</text>
+  </g>
+
+  <!-- Ulang -->
+  <path d="M600 384 C628 384 628 214 600 214" stroke="#fbbf24" stroke-width="2" fill="none" stroke-dasharray="6 5" marker-end="url(#panah-kuning)"/>
+  <text x="604" y="292" fill="#fde68a" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="end">ulang</text>
+  <text x="604" y="310" fill="#fde68a" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="end">selama</text>
+  <text x="604" y="328" fill="#fde68a" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="end">tool_use</text>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">
+    <!-- 5 -->
+    <path d="M530 470 H112" stroke="#34d399" stroke-width="2.5" marker-end="url(#panah-mint)"/>
+    <text x="320" y="452" fill="#a7f3d0" text-anchor="middle">5 · stop_reason: "end_turn"</text>
+    <text x="320" y="490" fill="#a7f3d0" text-anchor="middle">teks jawaban akhir</text>
+  </g>
+
+  <rect x="32" y="516" width="576" height="48" rx="12" fill="#0d1226" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="48" y="545" fill="#fecdd3" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">max_tokens atau refusal: berhenti — jangan jalankan tool dari giliran itu.</text>
+
+  <text x="32" y="608" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">Nama di kabel mengikuti Messages API Claude; vendor lain memakai nama lain.</text>
+</svg>
