@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 560" role="img" aria-labelledby="judul desk">
+  <title id="judul">Skor pengambilan memori: recency, importance, relevance</title>
+  <desc id="desk">Tiga memori kandidat dengan batang bertumpuk untuk tiga komponen skor yang sudah dinormalisasi ke rentang nol sampai satu. "Anggota A-9 suka novel sejarah": recency 0,96, importance 0,60, relevance 1,00, total 2,56. "Anggota A-9 terlambat mengembalikan buku sekali": recency 0, importance 1, relevance 0,54, total 1,54. "Perpustakaan tutup hari Senin": recency 1, importance 0, relevance 0, total 1,00. Dua teratas masuk ke konteks.</desc>
+  <rect width="640" height="560" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Memori mana yang masuk konteks?</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">skor = recency + importance + relevance (Park dkk., 2023)</text>
+
+  <!-- Legenda -->
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">
+    <rect x="32" y="96" width="14" height="14" rx="3" fill="#22d3ee"/>
+    <text x="52" y="108" fill="#c3cce6">recency (baru dibaca)</text>
+    <rect x="216" y="96" width="14" height="14" rx="3" fill="#fbbf24"/>
+    <text x="236" y="108" fill="#c3cce6">importance (1–10)</text>
+    <rect x="388" y="96" width="14" height="14" rx="3" fill="#a78bfa"/>
+    <text x="408" y="108" fill="#c3cce6">relevance (kemiripan)</text>
+  </g>
+
+  <!-- Skala: 1 satuan = 100 px, mulai x=200 -->
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">
+    <!-- Memori 1 -->
+    <text x="32" y="160" fill="#eef2ff">suka novel sejarah</text>
+    <rect x="200" y="140" width="96" height="30" fill="#22d3ee"/>
+    <rect x="296" y="140" width="60" height="30" fill="#fbbf24"/>
+    <rect x="356" y="140" width="100" height="30" fill="#a78bfa"/>
+    <text x="466" y="161" fill="#a7f3d0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="700">2,56 ✓</text>
+
+    <!-- Memori 2 -->
+    <text x="32" y="222" fill="#eef2ff">terlambat kembali</text>
+    <text x="32" y="240" fill="#98a3c4" font-size="12">sekali, lama tak dibaca</text>
+    <rect x="200" y="202" width="100" height="30" fill="#fbbf24"/>
+    <rect x="300" y="202" width="54" height="30" fill="#a78bfa"/>
+    <text x="364" y="223" fill="#a7f3d0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="700">1,54 ✓</text>
+
+    <!-- Memori 3 -->
+    <text x="32" y="286" fill="#eef2ff">tutup hari Senin</text>
+    <rect x="200" y="266" width="100" height="30" fill="#22d3ee"/>
+    <text x="310" y="287" fill="#fda4af" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="700">1,00 ✗</text>
+  </g>
+
+  <path d="M200 128 V310" stroke="#2a3150" stroke-width="2"/>
+
+  <!-- Penjelasan -->
+  <rect x="24" y="336" width="592" height="176" rx="14" fill="#0d1226" stroke="#2a3150" stroke-width="1.5"/>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" fill="#c3cce6">
+    <text x="40" y="366"><tspan fill="#a5f3fc" font-weight="600">recency</tspan> · 0,995 pangkat jam sejak terakhir dibaca</text>
+    <text x="40" y="394"><tspan fill="#fde68a" font-weight="600">importance</tspan> · model memberi nilai 1–10 saat memori ditulis</text>
+    <text x="40" y="422"><tspan fill="#ddd6fe" font-weight="600">relevance</tspan> · kosinus embedding memori terhadap kueri</text>
+    <text x="40" y="458" fill="#98a3c4">Ketiganya dinormalisasi min-max ke 0–1, bobotnya sama.</text>
+    <text x="40" y="482" fill="#98a3c4">Ambil k teratas; sisanya tetap di penyimpanan.</text>
+  </g>
+
+  <text x="32" y="540" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">Angka dari contoh di langkah 7, dijalankan saat halaman ini ditulis.</text>
+</svg>

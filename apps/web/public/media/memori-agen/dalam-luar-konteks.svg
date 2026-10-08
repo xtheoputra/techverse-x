@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 600" role="img" aria-labelledby="judul desk">
+  <title id="judul">Memori di dalam dan di luar jendela konteks</title>
+  <desc id="desk">Kiri: jendela konteks, yaitu memori kerja agen, berisi prompt sistem dan definisi tool, riwayat percakapan, hasil tool, dan memori yang baru diambil. Kanan: penyimpanan di luar konteks yang bertahan lintas sesi, yaitu berkas catatan di /memories, profil pengguna di basis data, indeks vektor untuk pencarian, dan log episode. Panah tulis mengalir dari konteks ke penyimpanan lewat tool, panah ambil mengalir dari penyimpanan ke konteks. Yang tidak masuk konteks pada saat model dipanggil tidak diingat model.</desc>
+  <defs>
+    <marker id="panah-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#22d3ee"/>
+    </marker>
+    <marker id="panah-mint" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#34d399"/>
+    </marker>
+  </defs>
+  <rect width="640" height="600" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Yang tak ada di konteks, tak diingat</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">API-nya tanpa keadaan; memori adalah apa yang kamu masukkan lagi.</text>
+
+  <!-- Jendela konteks -->
+  <rect x="24" y="100" width="262" height="420" rx="16" fill="#8b5cf6" fill-opacity="0.08" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="42" y="130" fill="#c4b5fd" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1.5">JENDELA KONTEKS</text>
+  <text x="42" y="150" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">memori kerja · terbatas · hilang</text>
+  <text x="42" y="168" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">saat sesi berakhir</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" fill="#eef2ff">
+    <rect x="42" y="188" width="226" height="52" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="56" y="219">prompt sistem + tools</text>
+    <rect x="42" y="252" width="226" height="76" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="56" y="283">riwayat percakapan</text>
+    <text x="56" y="305" fill="#98a3c4" font-size="13">tumbuh setiap giliran</text>
+    <rect x="42" y="340" width="226" height="76" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="56" y="371">hasil tool</text>
+    <text x="56" y="393" fill="#98a3c4" font-size="13">sering yang paling besar</text>
+    <rect x="42" y="428" width="226" height="74" rx="10" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="56" y="459" fill="#a7f3d0">memori yang diambil</text>
+    <text x="56" y="481" fill="#98a3c4" font-size="13">hanya yang relevan</text>
+  </g>
+
+  <!-- Di luar konteks -->
+  <rect x="354" y="100" width="262" height="420" rx="16" fill="#34d399" fill-opacity="0.06" stroke="#34d399" stroke-width="2"/>
+  <text x="372" y="130" fill="#6ee7b7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1.5">DI LUAR KONTEKS</text>
+  <text x="372" y="150" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">jangka panjang · bertahan</text>
+  <text x="372" y="168" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">lintas sesi · milik aplikasimu</text>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#a7f3d0">
+    <rect x="372" y="188" width="226" height="52" rx="10" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="386" y="219">/memories/*.md</text>
+    <rect x="372" y="252" width="226" height="52" rx="10" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="386" y="283">profil pengguna (DB)</text>
+    <rect x="372" y="316" width="226" height="52" rx="10" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="386" y="347">indeks vektor</text>
+    <rect x="372" y="380" width="226" height="52" rx="10" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="386" y="411">log episode</text>
+  </g>
+
+  <!-- Panah -->
+  <path d="M288 300 H346" stroke="#22d3ee" stroke-width="2.5" marker-end="url(#panah-cyan)"/>
+  <text x="317" y="290" fill="#a5f3fc" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle">tulis</text>
+  <path d="M352 462 H294" stroke="#34d399" stroke-width="2.5" marker-end="url(#panah-mint)"/>
+  <text x="323" y="452" fill="#a7f3d0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle">ambil</text>
+
+  <text x="32" y="556" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">Menulis dan mengambil memori adalah tool: model meminta, aplikasimu</text>
+  <text x="32" y="578" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">yang menyimpan dan memilih apa yang masuk lagi.</text>
+</svg>
