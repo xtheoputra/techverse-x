@@ -26,7 +26,7 @@ Pegangan itu kini tertulis di `isi/README.md`, bagian **Gaya bahasa: hangat dan 
 
 | PR | Topik | Kata (sebelum → sesudah) | Blok kode identik |
 |---|---|---|---|
-| PR ini | Tool use (+ pegangan gaya + catatan ini) | 3.065 → 3.937 | 5 dari 5; `cek_isi` 8 ok |
+| [#101](https://github.com/xtheoputra/techverse-x/pull/101) | Tool use (+ pegangan gaya + catatan ini) | 3.065 → 3.937 | 5 dari 5; `cek_isi` 8 ok |
 | [#98](https://github.com/xtheoputra/techverse-x/pull/98) | Model Context Protocol | 2.795 → 3.317 | 9 dari 9 |
 | [#99](https://github.com/xtheoputra/techverse-x/pull/99) | Agent2Agent (A2A) | 3.298 → 3.702 | 10 dari 10 |
 | [#100](https://github.com/xtheoputra/techverse-x/pull/100) | Memori agen (+ satu baris di SVG skor) | 2.711 → 3.015 | 5 dari 5; `cek_isi` 7 ok |
@@ -41,7 +41,7 @@ Pegangan itu kini tertulis di `isi/README.md`, bagian **Gaya bahasa: hangat dan 
 
 **Produksi:** 17 bidang, **4 topik** (Tool use, MCP, A2A, Memori agen; semuanya `draf`), 3 sisi Knowledge Graph, **0 dari 22 `tinjau`**. Teks di produksi masih versi lama sampai keempat PR di-merge dan dipasang ulang.
 
-**PR terbuka:** #98, #99, #100, dan PR ini, semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung. Sesudah masing-masing di-merge: *Pasang isi* dengan **ganti dicentang**, `sha` = citra API yang tayang (`e262bb1` selama tak ada merge yang mengubah API).
+**PR terbuka:** #98, #99, #100, dan #101 (yang membawa catatan ini), semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung. Sesudah masing-masing di-merge: *Pasang isi* dengan **ganti dicentang**, `sha` = citra API yang tayang (`e262bb1` selama tak ada merge yang mengubah API).
 
 **Berikutnya, saya:** topik kelima, **Evals & observability**, langsung dengan gaya yang baru.
 
