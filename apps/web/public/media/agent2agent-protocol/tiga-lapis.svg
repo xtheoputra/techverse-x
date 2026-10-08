@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 600" role="img" aria-labelledby="judul desk">
+  <title id="judul">Tiga lapis spesifikasi A2A 1.0</title>
+  <desc id="desk">Lapis pertama adalah model data di berkas a2a.proto: Task, Message, Part, Artifact, AgentCard, dan Extension. Lapis kedua adalah operasi abstrak seperti Send Message, Send Streaming Message, Get Task, List Tasks, Cancel Task, dan Subscribe to Task. Lapis ketiga adalah binding protokol. Operasi Send Message yang sama ditulis sebagai metode SendMessage di JSON-RPC 2.0, RPC SendMessage di gRPC, dan POST /message:send di HTTP+JSON.</desc>
+  <defs>
+    <marker id="panah-abu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#c3cce6"/>
+    </marker>
+  </defs>
+  <rect width="640" height="600" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Satu model, tiga cara mengirim</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Spesifikasi 1.0 memisahkan apa yang dikirim dari cara mengirimnya.</text>
+
+  <!-- Lapis 1 -->
+  <rect x="24" y="100" width="592" height="116" rx="16" fill="#8b5cf6" fill-opacity="0.08" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="44" y="130" fill="#c4b5fd" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" letter-spacing="1.5">1 · MODEL DATA</text>
+  <text x="596" y="130" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="end">a2a.proto = sumber normatif</text>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle" fill="#eef2ff">
+    <rect x="44" y="150" width="84" height="44" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="86" y="177">Task</text>
+    <rect x="138" y="150" width="96" height="44" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="186" y="177">Message</text>
+    <rect x="244" y="150" width="76" height="44" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="282" y="177">Part</text>
+    <rect x="330" y="150" width="100" height="44" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="380" y="177">Artifact</text>
+    <rect x="440" y="150" width="88" height="44" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="484" y="177">AgentCard</text>
+    <rect x="538" y="150" width="60" height="44" rx="10" fill="#0d1226" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="568" y="177">dll.</text>
+  </g>
+
+  <path d="M320 216 V244" stroke="#c3cce6" stroke-width="2.5" fill="none" marker-end="url(#panah-abu)"/>
+
+  <!-- Lapis 2 -->
+  <rect x="24" y="250" width="592" height="116" rx="16" fill="#22d3ee" fill-opacity="0.06" stroke="#22d3ee" stroke-width="2"/>
+  <text x="44" y="280" fill="#67e8f9" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" letter-spacing="1.5">2 · OPERASI ABSTRAK</text>
+  <text x="596" y="280" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="end">11 operasi inti</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" text-anchor="middle" fill="#eef2ff">
+    <rect x="44" y="298" width="132" height="48" rx="10" fill="#0d1226" stroke="#22d3ee" stroke-width="2.5"/>
+    <text x="110" y="327" font-weight="700">Send Message</text>
+    <rect x="186" y="298" width="96" height="48" rx="10" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="234" y="327">Get Task</text>
+    <rect x="292" y="298" width="96" height="48" rx="10" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="340" y="327">List Tasks</text>
+    <rect x="398" y="298" width="104" height="48" rx="10" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="450" y="327">Cancel Task</text>
+    <rect x="512" y="298" width="86" height="48" rx="10" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="555" y="327">…</text>
+  </g>
+
+  <path d="M110 346 V398" stroke="#c3cce6" stroke-width="2.5" fill="none" marker-end="url(#panah-abu)"/>
+  <text x="122" y="380" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">operasi yang sama, di tiap binding:</text>
+
+  <!-- Lapis 3 -->
+  <rect x="24" y="404" width="592" height="148" rx="16" fill="#34d399" fill-opacity="0.06" stroke="#34d399" stroke-width="2"/>
+  <text x="44" y="434" fill="#6ee7b7" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" letter-spacing="1.5">3 · BINDING PROTOKOL</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="44" y="452" width="176" height="80" rx="12" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="60" y="480" fill="#eef2ff" font-size="15" font-weight="600">JSON-RPC 2.0</text>
+    <text x="60" y="510" fill="#a7f3d0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">"SendMessage"</text>
+
+    <rect x="232" y="452" width="176" height="80" rx="12" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="248" y="480" fill="#eef2ff" font-size="15" font-weight="600">gRPC</text>
+    <text x="248" y="510" fill="#a7f3d0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">rpc SendMessage</text>
+
+    <rect x="420" y="452" width="178" height="80" rx="12" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="436" y="480" fill="#eef2ff" font-size="15" font-weight="600">HTTP+JSON</text>
+    <text x="436" y="510" fill="#a7f3d0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">POST /message:send</text>
+  </g>
+
+  <text x="32" y="580" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">Agent Card menyebut binding mana yang tersedia, di URL mana, versi berapa.</text>
+</svg>

@@ -4,6 +4,98 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-08 — Sesi 24: pilot MCP tayang di produksi, dan topik kedua (A2A) ditulis dengan contoh yang dijalankan
+
+Permintaan pemilik, berurutan: *"sudah berapa % proyek ini?"* → *"lanjutkan progress"*.
+
+### *"Berapa %?"* — dijawab, tidak ditulis ke RENCANA-V1
+
+Diukur dari produksi pagi itu: 17 bidang, 1 topik (MCP, `draf`), 0 `tinjau`. **Angka resmi 0 dari 22 (0%).** Per bulan rencana ± 33% (Bulan 1 selesai, Bulan 2 ± 20%, Bulan 3 ± 80%, Bulan 4–6 0%), visi penuh ± 10%, waktu terpakai ± 19% (34 dari ± 183 hari). Sama dengan Sesi 22. Saya menawarkan menulisnya ke RENCANA-V1; pemilik belum memintanya.
+
+### Keadaan saat "lanjutkan" — diukur, bukan dari 🏁
+
+Pohon kerja bersih. **#92 dan #91 ter-merge 03:33–03:34 UTC** (`main` = `20be7b1`), sesaat sebelum sesi ini mengukur; `Rilis citra` dan CI keduanya masih berjalan. Tak ada migrasi di kedua PR, jadi tak ada jendela 500 seperti #90.
+
+### 1. Pasang isi MCP ke produksi — atas izin yang diminta lebih dulu
+
+Dua pertanyaan pilihan; pemilik memilih **"Ya, jalankan"** (Pasang isi) dan **"Ya, mulai A2A"** (topik berikutnya). Sebelum memicu: `Rilis citra` untuk `20be7b1` hijau, dan alias produksi API di Vercel menunjuk deployment yang lognya berbunyi `Cloning github.com/xtheoputra/techverse-x (Branch: main, Commit: 20be7b1)`.
+
+Run **`37723758309`** (03:39:29 → 03:40:36 UTC, sukses): **36 baris rencana** — sama dengan tiruan lokal Sesi 23 — lalu `selesai … sama dengan berkas`.
+
+| API produksi `model-context-protocol` | Sebelum | Sesudah |
+|---|---|---|
+| langkah roadmap (termasuk langkah 0) | 10 | **12** |
+| media | 0 | **6** |
+| proyek / sumber | 1 / 8 | **2 / 15** |
+| `overview` | kosong | **8.040** karakter |
+| `updatedAt` | 2026-10-06 07:08 | 2026-10-08 03:40 |
+
+Halaman produksinya 200: 6 figur (4 SVG, 2 video), 9 blok kode, 4 tabel, 1910/1920 tanpa luber horizontal. Status tetap `draf`.
+
+### 2. Topik kedua: Agent2Agent (A2A) Protocol — [PR #94](https://github.com/xtheoputra/techverse-x/pull/94)
+
+Cabang `fase-1/isi-a2a` dari `main` (`20be7b1`), berdiri sendiri.
+
+**Sumber dibaca mentah saat menulis**, bukan dari ingatan: spesifikasi dan `a2a.proto` di `a2aproject/A2A` commit `12e9d2fbb9` (2026-10-07), dokumentasi `a2a-protocol.org`, blog 1.0 dan AAIF, `roadmap.md`, README SDK Python/.NET, Inspector, TCK, dan CLI. 🔑 **Ingatan model saya berhenti di A2A 0.3.** Yang tayang ternyata **1.0 (12 Maret 2026)**, patch 1.0.1 (Mei), diterima sebagai proyek *Growth* di AAIF (27 Agustus 2026), dan CLI resmi diumumkan 1 Oktober 2026. Nama metode, enum, bentuk Part, Agent Card, dan model galatnya semuanya berubah dari 0.3.
+
+**Contoh dijalankan — hal yang pilot MCP belum lakukan.** Agen contoh (diringkas dari *helloworld* resmi) dan klien SDK dijalankan dengan `a2a-sdk` 1.2.2 di venv scratchpad, lalu diukur dengan skrip 20 pemeriksaan:
+
+| Diukur pada agen 1.0 | Hasil |
+|---|---|
+| Agent Card | 200, dengan `ETag`; dikutip di langkah 2 dan **sama persis** (perbandingan JSON) dengan yang disajikan |
+| `SendMessage` + `A2A-Version: 1.0` | Task `TASK_STATE_COMPLETED`, Artifact `4 kata` |
+| tanpa header `A2A-Version` | `-32009`, *"A2A version '0.3' is not supported"* — header kosong dibaca 0.3, seperti spesifikasi 3.6.2 |
+| `A2A-Version: 0.5` / metode 0.3 `message/send` | `-32009` / `-32601` |
+| Task tak ada / pesan ke Task terminal / `contextId` tak cocok | `-32001` / `-32004` / `-32602` |
+| `SendStreamingMessage` | `task` SUBMITTED → `statusUpdate` WORKING → `artifactUpdate` → `statusUpdate` COMPLETED |
+| pesan kosong → lanjutan dengan `taskId` sama | `INPUT_REQUIRED` → `COMPLETED` pada Task yang sama |
+| `ListTasks` / klien SDK | `nextPageToken` ada / 4 event, Artifact `7 kata` |
+| skrip ukur tanpa agen | setiap pemeriksaan GAGAL (dihentikan `timeout` 60 detik) |
+
+Kode di langkah 5 dan 6 adalah **substring harfiah** berkas yang dijalankan (server uji disamakan dulu dengan potongan yang dikutip, lalu seluruh pengukuran diulang).
+
+**Empat diagram SVG** (horizontal-vertikal, siklus Task, tiga lapis, tiga cara menerima kabar) dirender lewat `sharp` dan dilihat: **lima** tabrakan atau kepadatan label diperbaiki sebelum dipakai. **Dua video** dari tautan repo resmi A2A (Google Cloud Tech, DeepLearning.AI; keduanya Februari 2026, sebelum 1.0): oEmbed 200, `playableInEmbed: true`, dan **diputar di `https://techverse-x-web.vercel.app`** dengan atribut `MediaFigure` — durasi 8:00 dan 3:07 terbaca, takarir berjalan.
+
+| Gerbang | Hasil |
+|---|---|
+| pemeriksa berkas | sah, **3.292 kata** |
+| `run.ps1 gerbang-isi` | **VONIS: HIJAU** — 2 topik dari nol dua kali (kedua nol tulisan), 36 + 36 ok |
+| tampilan (build produksi, Chrome, API lokal berisi kedua topik) | dilihat bagian demi bagian; desktop 1910/1910; ponsel 390 px: **380 = 380** |
+| pemindai halaman ADR-024 | **merah dulu** (`localhost` di saran SSRF) → ditulis ulang → 21 halaman, 19 dari 19, **0 kena** |
+| `run.ps1 verify` | **hijau**, 173 detik (186 unit + 133 integrasi, 0 peringatan) |
+
+`requires: model-context-protocol` — proyek 2 memakai server MCP dari proyek MCP. Begitu dipasang, ia menjadi **sisi Knowledge Graph pertama di produksi** yang datang dari isi sungguhan.
+
+### Kesalahan dan temuan
+
+- **Teks isi topik tak pernah dipindai pola ADR-024 di CI** — job `citra` memindai bentuk produksi yang nol topik, dan `pasang.mjs --cek` tak memuat polanya. Temuan `localhost` di A2A hanya tertangkap karena pemindai dijalankan lokal. → [#93](https://github.com/xtheoputra/techverse-x/issues/93), sengaja tak ditambal di PR isi.
+- **Jalan kedua pemindai membaca isi lama** dari cache fetch `.next` — jebakan yang sudah tercatat di kepala pemindai, dan tetap terinjak. Web dihentikan, `apps/web/.next/cache/fetch-cache` (152 berkas) dibuang, web dinyalakan ulang.
+- **Spesifikasi A2A bertentangan dengan dirinya sendiri di dua tempat**: 3.1.1 menulis `SendMessage` *"MUST return immediately"*, sedangkan 3.2.2 dan `a2a.proto` menjadikan menunggu sebagai bawaan; contoh 6.4 masih memakai galat `application/problem+json` gaya 0.3. Isinya mengikuti `a2a.proto` dan 3.2.2, dan contoh 6.4 tidak dikutip.
+- **Skrip Python lewat heredoc Bash kehilangan satu garis miring terbalik** (`\\` di regex menjadi `\`, regex rusak). Skrip ditulis ulang dengan alat Write.
+
+### Yang TIDAK dikerjakan
+
+- Tak ada yang di-merge. Isi A2A belum di produksi.
+- Yang dijalankan hanya Python + JSON-RPC. gRPC, HTTP+JSON, push notification, Agent Card bertanda tangan, dan TCK hanya dikutip.
+- RENCANA-V1 tidak diperbarui; #93 tidak ditambal.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**PR terbuka:** [#94](https://github.com/xtheoputra/techverse-x/pull/94) (topik A2A), berbasis `main` (`20be7b1`), berdiri sendiri, tanpa migrasi. **CI hijau seluruhnya** di `f5213e5` (run `37726571706`): Backend — runner memasang kedua topik beserta sisi A2A → MCP, `VONIS: HIJAU`, 36 + 36 ok —, Frontend, Citra peti kemas, Pindai rahasia, dan kedua pratinjau Vercel. **Produksi:** 17 bidang, 1 topik (MCP, isi Tahap 4, `draf`), **0 dari 22 `tinjau`**.
+
+**Menunggu pemilik:**
+
+1. **Baca halaman MCP di produksi** (<https://techverse-x-web.vercel.app/teknologi/model-context-protocol>), lalu *Naikkan ke tinjau* bila layak — itu yang menjadi angka resmi pertama.
+2. **Baca #94** dan merge bila layak.
+3. **Sesudah merge:** `Rilis citra` hijau → Actions → *Pasang isi* (`sha` = SHA merge, `slug` = `agent2agent-protocol`; **ganti tak perlu** karena topiknya baru) — atau izinkan Claude menjalankannya seperti pagi ini.
+4. **#93:** pilih cara menjaga teks isi topik dengan pola ADR-024.
+
+**Berikutnya, saya:** topik ketiga AI Agents dengan pola yang sama, satu PR per topik. Kandidat terkuat **Tool use**: ADR-023 memakai *"MCP di atas tool use"* sebagai contoh relasi prasyarat yang masuk akal.
+
+**Lingkungan — akhir sesi:** semua proses yang saya mulai sudah dihentikan setelah PID-nya dicocokkan dengan baris perintah dan waktu mulai (agen uji `31320` dan `25392` di 9999; API `24076` beserta induk `dotnet run` `24056` di 5098; web `26872` dan `27136` di 3401). Basis data `techversex_a2a` dibuang; basis data `techversex_isi` milik gerbang dibuang oleh gerbangnya sendiri. Tab Chrome tertutup. Venv `a2a-sdk` tinggal di scratchpad sesi. Container `techversex-*` tak disentuh.
+
+---
+
 ## 2026-10-07 — Sesi 23: produksi yang 500 selama tiga jam dipulihkan, gerbang isi jadi satu berkas, dan pilot MCP ditulis ulang (Tahap 4)
 
 Permintaan pemilik: *"lanjutkan progress sebanyak mungkin"*.

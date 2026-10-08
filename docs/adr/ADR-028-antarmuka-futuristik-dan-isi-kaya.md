@@ -1,6 +1,6 @@
 # ADR-028 — Antarmuka futuristik gelap-neon dan isi kaya: Markdown terbatas, blok media, dan jalan ubah
 
-**Status:** Diusulkan — **Tahap 1 (antarmuka) dibangun dan diukur (2026-10-06); Tahap 2 (jalan ubah) dibangun dan diukur (2026-10-07, lihat Pembaruan di bawah); keduanya ter-merge ke `main` 2026-10-07; Tahap 3 dipecah 3a/3b dan keputusannya ditulis (Pembaruan (2)); Tahap 3a (Markdown terbatas) dibangun, diukur, dan ter-merge (#88; Pembaruan (2), butir 7); Tahap 3b (media dan `overview`) dibangun, diukur, ter-merge (#90), dan dimigrasi ke Neon (Pembaruan (3) dan (4)); Tahap 4 (pilot MCP ditulis ulang) dibangun dan diukur, belum ter-merge dan belum dipasang di produksi (Pembaruan (4)).** Keputusan arahnya diambil pemilik di percakapan yang sama dengan penulisan ADR ini; yang belum diputuskan tertulis di bagian *Yang SENGAJA tidak diputuskan*.
+**Status:** Diusulkan — **Tahap 1 (antarmuka) dibangun dan diukur (2026-10-06); Tahap 2 (jalan ubah) dibangun dan diukur (2026-10-07, lihat Pembaruan di bawah); keduanya ter-merge ke `main` 2026-10-07; Tahap 3 dipecah 3a/3b dan keputusannya ditulis (Pembaruan (2)); Tahap 3a (Markdown terbatas) dibangun, diukur, dan ter-merge (#88; Pembaruan (2), butir 7); Tahap 3b (media dan `overview`) dibangun, diukur, ter-merge (#90), dan dimigrasi ke Neon (Pembaruan (3) dan (4)); Tahap 4 (pilot MCP ditulis ulang) dibangun, diukur, ter-merge (#92), dan dipasang di produksi 2026-10-08 (Pembaruan (4) dan (5)).** Keputusan arahnya diambil pemilik di percakapan yang sama dengan penulisan ADR ini; yang belum diputuskan tertulis di bagian *Yang SENGAJA tidak diputuskan*.
 **Tanggal:** 2026-10-06
 
 ## Konteks
@@ -315,3 +315,10 @@ Berkas `isi/ai-agents/model-context-protocol.json` ditulis ulang untuk revisi sp
 - **Contoh kode dikutip dari tutorial dan spesifikasi, tidak saya jalankan.** Yang terverifikasi adalah teksnya sama dengan sumber yang tayang, bukan bahwa server cuacanya berjalan di mesin ini.
 - **Isi ini mengikat revisi 2026-07-28.** Begitu revisi berikutnya terbit, tautan `/specification/latest` berpindah lebih dulu daripada teksnya; tabel "dulu/kini" dan bagian *deprecated* yang pertama perlu dicocokkan ulang.
 - Sisa enam topik AI Agents **tetap menunggu** penilaian pemilik atas pilot ini (pola *pilot dulu*).
+
+## Pembaruan 2026-10-08 (5) — Tahap 4 tayang, dan polanya dipakai untuk topik kedua
+
+- **Merge.** Pemilik me-merge [#92](https://github.com/xtheoputra/techverse-x/pull/92) dan [#91](https://github.com/xtheoputra/techverse-x/pull/91) pada 03:33–03:34 UTC (`main` = `20be7b1`). Tak ada migrasi. `Rilis citra` dan CI `main` hijau; alias produksi API di Vercel menunjuk deployment yang lognya berbunyi `Cloning github.com/xtheoputra/techverse-x (Branch: main, Commit: 20be7b1)`.
+- **Pasang isi** (run `37723758309`, `sha=20be7b1`, `slug=model-context-protocol`, **ganti** dicentang) — dipicu Claude atas izin pemilik yang diminta lebih dulu di percakapan. Lognya mencetak **36 baris rencana**, sama dengan tiruan lokal di Pembaruan (4), lalu `selesai … sama dengan berkas`. Diukur sesudahnya di produksi: API topik 200 dengan 12 langkah (termasuk langkah 0), 6 media, 2 proyek, 15 sumber, `overview` 8.040 karakter; halaman 200 dengan 4 diagram, 2 video, 9 blok kode, 4 tabel, tanpa luber horizontal di desktop.
+- **Pola pilot diterima.** Pemilik menjawab *"Ya, mulai A2A"*: topik kedua AI Agents ditulis dengan pola yang sama, satu PR per topik. Satu batas jujur Pembaruan (4) — *"contoh kode … tidak saya jalankan"* — ditutup untuk topik itu: contoh kodenya **dijalankan** dan keluarannya dikutip.
+- **Angka resmi tetap 0 dari 22 `tinjau`.** Topik MCP tetap `draf` sampai pemilik membaca halaman produksinya dan menjalankan *Naikkan ke tinjau*.

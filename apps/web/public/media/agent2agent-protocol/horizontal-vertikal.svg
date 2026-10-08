@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 580" role="img" aria-labelledby="judul desk">
+  <title id="judul">A2A di antara agen, MCP di dalam agen</title>
+  <desc id="desk">Pengguna meminta kepada Agen A, yang berperan sebagai client. Agen A mendelegasikan tugas lewat A2A kepada dua agen jarak jauh, Agen B (tiket) dan Agen C (hotel). Di dalam setiap agen jarak jauh ada wilayah buram berisi alat-alatnya, yang disambungkan lewat MCP: API maskapai dan basis data harga untuk Agen B, sistem kamar dan pembayaran untuk Agen C. Agen A hanya melihat Agent Card dan hasil kerja mereka, bukan isi wilayah buram itu.</desc>
+  <defs>
+    <marker id="panah-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#22d3ee"/>
+    </marker>
+    <marker id="panah-abu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#c3cce6"/>
+    </marker>
+  </defs>
+  <rect width="640" height="580" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">A2A di antara agen, MCP di dalam agen</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Agen lain hanya melihat Agent Card dan hasil, bukan isinya.</text>
+
+  <!-- Pengguna -->
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="32" y="108" width="168" height="56" rx="28" fill="#0d1226" stroke="#c3cce6" stroke-width="2"/>
+    <text x="116" y="142" fill="#eef2ff" font-size="18" font-weight="600" text-anchor="middle">Pengguna</text>
+  </g>
+  <path d="M116 164 V222" stroke="#c3cce6" stroke-width="2.5" fill="none" marker-end="url(#panah-abu)"/>
+  <text x="128" y="198" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">"Atur perjalananku"</text>
+
+  <!-- Agen A: client -->
+  <rect x="32" y="228" width="168" height="250" rx="16" fill="#8b5cf6" fill-opacity="0.08" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="50" y="260" fill="#c4b5fd" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="700" letter-spacing="2">AGEN A</text>
+  <text x="50" y="284" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">berperan client</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" fill="#98a3c4">
+    <text x="50" y="326">1. baca Agent Card</text>
+    <text x="50" y="350">2. pilih agen</text>
+    <text x="50" y="374">3. kirim Message</text>
+    <text x="50" y="398">4. pantau Task</text>
+    <text x="50" y="422">5. terima Artifact</text>
+  </g>
+
+  <!-- Agen B -->
+  <rect x="268" y="108" width="340" height="190" rx="16" fill="#0d1226" stroke="#22d3ee" stroke-width="2"/>
+  <text x="286" y="138" fill="#67e8f9" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="700" letter-spacing="2">AGEN B · TIKET</text>
+  <text x="286" y="162" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">jarak jauh, organisasi lain</text>
+  <rect x="284" y="178" width="308" height="104" rx="12" fill="none" stroke="#5b6585" stroke-width="1.5" stroke-dasharray="6 6"/>
+  <text x="298" y="200" fill="#8b93b0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" letter-spacing="1.5">BURAM BAGI AGEN A</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="300" y="226" width="128" height="40" rx="10" fill="#070a16" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="364" y="251" fill="#eef2ff" font-size="14" text-anchor="middle">API maskapai</text>
+    <rect x="448" y="226" width="128" height="40" rx="10" fill="#070a16" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="512" y="251" fill="#eef2ff" font-size="14" text-anchor="middle">basis data harga</text>
+  </g>
+  <text x="580" y="213" fill="#c4b5fd" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" text-anchor="end">MCP</text>
+  <g stroke="#8b5cf6" stroke-width="2"><path d="M364 208 V226"/><path d="M512 208 V226"/><path d="M364 208 H542"/></g>
+
+  <!-- Agen C -->
+  <rect x="268" y="326" width="340" height="190" rx="16" fill="#0d1226" stroke="#22d3ee" stroke-width="2"/>
+  <text x="286" y="356" fill="#67e8f9" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="700" letter-spacing="2">AGEN C · HOTEL</text>
+  <text x="286" y="380" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">jarak jauh, framework lain</text>
+  <rect x="284" y="396" width="308" height="104" rx="12" fill="none" stroke="#5b6585" stroke-width="1.5" stroke-dasharray="6 6"/>
+  <text x="298" y="418" fill="#8b93b0" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700" letter-spacing="1.5">BURAM BAGI AGEN A</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="300" y="444" width="128" height="40" rx="10" fill="#070a16" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="364" y="469" fill="#eef2ff" font-size="14" text-anchor="middle">sistem kamar</text>
+    <rect x="448" y="444" width="128" height="40" rx="10" fill="#070a16" stroke="#8b5cf6" stroke-width="1.5"/>
+    <text x="512" y="469" fill="#eef2ff" font-size="14" text-anchor="middle">pembayaran</text>
+  </g>
+  <text x="580" y="431" fill="#c4b5fd" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" text-anchor="end">MCP</text>
+  <g stroke="#8b5cf6" stroke-width="2"><path d="M364 426 V444"/><path d="M512 426 V444"/><path d="M364 426 H542"/></g>
+
+  <!-- Panah A2A -->
+  <g stroke="#22d3ee" stroke-width="3" fill="none" stroke-linecap="round">
+    <path d="M200 300 C236 300 236 256 262 256" marker-end="url(#panah-cyan)"/>
+    <path d="M200 400 C236 400 236 422 262 422" marker-end="url(#panah-cyan)"/>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" font-weight="700" fill="#22d3ee">
+    <text x="206" y="258">A2A</text>
+    <text x="206" y="392">A2A</text>
+  </g>
+
+  <text x="32" y="548" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Horizontal: A2A lintas agen. Vertikal: MCP memberi satu agen alatnya.</text>
+</svg>
