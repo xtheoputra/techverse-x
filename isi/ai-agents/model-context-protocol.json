@@ -225,5 +225,7 @@
       "url": "https://github.com/modelcontextprotocol/quickstart-resources"
     }
   ],
-  "requires": []
+  "requires": [
+    "tool-use"
+  ]
 }
