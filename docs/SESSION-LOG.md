@@ -4,6 +4,64 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-08 — Sesi 24 (Lanjutan 2): Tool use ditulis tanpa biaya API, dan tiga topik tayang
+
+Permintaan pemilik: *"lanjutkan"* (sesudah Lanjutan 1), lalu *"lanjutkan"* lagi sesudah #95 dan #96 ter-merge.
+
+### 1. Topik ketiga: Tool Use (Function Calling) — [PR #96](https://github.com/xtheoputra/techverse-x/pull/96)
+
+Sumber dibaca mentah saat menulis: halaman `.md` tool use di dokumentasi Claude (`how-tool-use-works`, `define-tools`, `handle-tool-calls`, `parallel-tool-use`, `strict-tool-use`, `tool-runner`, `server-tools`), *Writing effective tools for agents* (Anthropic Engineering, 11 September 2025), serta function calling OpenAI (`.md`) dan Gemini (`.md.txt`). Istilah Gemini dicocokkan langsung di dokumennya: langkah `function_call` ber-`id` dan balasan `function_result` ber-`call_id`. Panduannya tak menyebut cara mematikan panggilan paralel, dan tabel menuliskan itu apa adanya.
+
+**Diverifikasi tanpa satu pun panggilan API** (aturan nol biaya): SDK `anthropic` 1.12.1 asli dengan `httpx2.MockTransport`. SDK menyusun permintaan sungguhan, sedangkan respons model adalah tiruan berbentuk persis contoh dokumentasi.
+
+| Yang dibuktikan | Hasil |
+|---|---|
+| putaran manual (langkah 4) | **12 ok**: dua `tool_use` paralel dibalas dua `tool_result` dalam satu pesan, satu `is_error`; tanpa tool; `max_tokens` → tool tak dijalankan |
+| bukti merah | buang `is_error` → merah; cek `stop_reason` sesudah menjalankan tool → merah |
+| Tool Runner (langkah 8) | berputar sendiri; skema dibuat dari tanda tangan fungsi dan docstring |
+| tipe | `mypy --strict` bersih untuk kedua contoh |
+| kutipan = yang diuji | **8 ok**: definisi tool, dua blok kode, JSON "di kabel" (badan permintaan kedua yang **direkam** dari SDK), skema `jsonschema` |
+| gerbang isi | **HIJAU**, 3 topik, sisi `model-context-protocol butuh tool-use` |
+| jalur produksi ditiru | MCP tanpa relasi → tool-use baru → MCP **tanpa ganti** menambah sisi; ulang = nol tulisan |
+| tampilan, pemindai ADR-024, `verify` | desktop 1910/1910, ponsel 380 = 380; 22 halaman, 0 kena; hijau 121 detik |
+| video | dua video Anthropic (Oktober 2025) dimuat di origin https produksi dengan atribut `MediaFigure` |
+| CI #96 | hijau; runner memasang ketiga topik beserta kedua sisi |
+
+Isinya: 3.065 kata, 3 diagram, 2 video, 15 sumber. `model-context-protocol` kini `requires: tool-use`, sehingga rantainya **Tool use → MCP → A2A**.
+
+🔧 **Venv SDK harus di jalur pendek.** Pemasangan `anthropic` di scratchpad gagal di tengah jalan (*"No such file or directory"* untuk nama berkas tipe yang panjang) karena batas `MAX_PATH` Windows. Venv dipindah ke `%TEMP%\tv-claude`.
+
+### 2. Merge #95 dan #96 — diukur di Vercel
+
+Keduanya ter-merge 06:14 UTC (`main` = `e262bb1`).
+
+- **API, merge #95** (`c6c525a`): *"jalur API berubah … sejak deployment sukses terakhir 20be7b1 — BANGUN"*, Ready.
+- **API, merge #96** (`e262bb1`): **juga** BANGUN. Build-nya mulai sebelum deployment #95 selesai, sehingga pembandingnya masih `20be7b1`, dan selisihnya memuat `vercel.json` dari #95. Pilihan skripnya aman, dengan biaya satu citra tambahan. Merge yang berdekatan berikutnya akan berperilaku sama.
+- **Web**: `e262bb1` Ready (*"bukan proyek API, BANGUN seperti biasa"*). Satu deployment web *Canceled* tanpa log build: tergantikan oleh build yang lebih baru.
+- Alias API dan web sama-sama di `e262bb1`; `/health/ready`, bidang, dan kedua topik 200.
+
+### 3. Pasang isi Tool use dan MCP — atas izin pemilik
+
+Pemilik memilih **"Ya, jalankan keduanya"**. Run `37737849008` (`tool-use`, `sha=e262bb1`) selesai sebagai `draf`. Run `37737962610` (`model-context-protocol`, **tanpa ganti**) menulis *"sisi model-context-protocol butuh tool-use"* lalu `selesai`. Diukur di produksi:
+
+| Topik | Status | `requires` | `requiredBy` |
+|---|---|---|---|
+| `tool-use` | `draf` | — | `model-context-protocol` |
+| `model-context-protocol` | `draf` | `tool-use` | `agent2agent-protocol` |
+| `agent2agent-protocol` | `draf` | `model-context-protocol` | — |
+
+Bidang AI Agents: **3 topik, 0 `tinjau`**. Halaman Tool use 200, dengan 3 SVG, 2 video, dan *Dibutuhkan oleh → MCP*.
+
+### 🏁 Keadaan sesudah bagian ini
+
+**Produksi:** 17 bidang, 3 topik (Tool use, MCP, A2A; semuanya `draf`), 2 sisi Knowledge Graph, **0 dari 22 `tinjau`**. Registri VCR: 10 dari 50 citra.
+
+**Menunggu pemilik:** baca ketiga halaman di produksi lalu *Naikkan ke tinjau* bila layak; pilih cara di #93.
+
+**Berikutnya, saya:** topik keempat, **Memori agen**, di cabang `fase-1/isi-memori-agen` (PR yang sama dengan catatan ini).
+
+---
+
 ## 2026-10-08 — Sesi 24 (Lanjutan): A2A tayang, dan registri kontainer Vercel yang penuh
 
 Permintaan pemilik: *"sudah merge 94, lanjutkan progress"*.
