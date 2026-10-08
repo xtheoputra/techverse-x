@@ -335,14 +335,14 @@ Produksi tetap aman — alias tetap menunjuk deployment `20be7b1` yang sehat —
 yang **mengubah** API akan gagal tayang dengan cara yang sama. Pemilik mengizinkan pembersihan:
 45 citra tertua dihapus (`vercel vcr image rm`), lima terbaru disisakan, termasuk `20be7b1`.
 
-**Pencegahnya: `vercel.json` di akar repo.** Berkas itu hanya dibaca proyek API (*Root Directory*
-proyek web adalah `apps/web`). Isinya satu `ignoreCommand` yang memanggil
-[`infrastructure/vercel/abaikan-build-api.sh`](../infrastructure/vercel/abaikan-build-api.sh):
+**Pencegahnya: `vercel.json` di akar repo**, berisi satu `ignoreCommand` yang memanggil
+[`infrastructure/vercel/abaikan-build-api.sh`](../infrastructure/vercel/abaikan-build-api.sh)
+lewat `git rev-parse --show-toplevel`:
 
 | Kode keluar | Arti | Kapan |
 |---|---|---|
 | `0` | **lewati** — deployment `CANCELED`, citra lama tetap melayani | tak ada perubahan di jalur API sejak pembandingnya |
-| `1` | **bangun** | jalur API berubah, **atau** `git diff` gagal, **atau** tak ada pembanding |
+| `1` | **bangun** | jalur API berubah, **atau** `git diff` gagal, **atau** tak ada pembanding, **atau** bukan proyek API |
 
 - **Jalur API** = semua yang disalin `Dockerfile.vercel` (`apps/api`, `services/technology`,
   `packages/contracts`, `global.json`, `Directory.*.props`, `.editorconfig`, `.config/dotnet-tools.json`)
@@ -352,10 +352,17 @@ proyek web adalah `apps/web`). Isinya satu `ignoreCommand` yang memanggil
   (variabel ini hanya ada di *Ignored Build Step*). Ia menangkap juga perubahan dari deployment yang
   gagal di antaranya. Vercel meng-clone `--depth=10`; bila SHA itu di luar clone, pembandingnya
   `HEAD^` (induk pertama — untuk commit merge berarti seluruh PR).
-- **Diuji di clone dangkal `--depth=10`**: 7 skenario hijau (merge #94 yang hanya isi → lewati, dengan
+- 🔴 **Proyek web IKUT membaca `vercel.json` di akar** walau *Root Directory*-nya `apps/web` — diukur di
+  pratinjau #95: perintah relatif pertama tak menemukan skrip dari `apps/web`, keluar 127, dan Vercel
+  menandai deployment web **Error** (bukan "bangun", walau KB Vercel menulis "1 atau lebih = bangun").
+  Karena itu skrip dipanggil dari akar git dan mengenali proyek dari direktori kerjanya: hanya proyek
+  yang *Root Directory*-nya akar repo yang boleh dilewati; proyek lain selalu dibangun.
+- **Diuji di clone dangkal `--depth=10`**: 8 skenario hijau (merge #94 yang hanya isi → lewati, dengan
   dan tanpa pembanding, dan dengan pembanding di luar clone; merge #90 dan #82 yang mengubah
-  `services/technology` → bangun; cabang yang menambah `vercel.json` → bangun). **Merah** bila
-  `services/technology` dibuang dari daftar: merge #82 salah dilewati.
+  `services/technology` → bangun; cabang yang menambah `vercel.json` → bangun; proyek web dari `apps/web` → bangun). **Merah** bila
+  `services/technology` dibuang dari daftar (merge #82 salah dilewati), dan bila penjaga direktori
+  dibuang (proyek web salah dilewati). **Di Vercel sungguhan** (pratinjau #95): commit yang mengubah
+  `vercel.json` → BANGUN dan Ready; commit dokumen sesudahnya → LEWATI, *Canceled* dalam 889 ms.
 
 ### Akibatnya bagi *Pasang isi*
 

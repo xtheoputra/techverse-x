@@ -16,6 +16,17 @@
 # perubahan di jalur itu tak pernah sampai ke produksi.
 set -u
 
+# 🔴 vercel.json di akar ternyata dibaca JUGA oleh proyek web (Root Directory `apps/web`) — diukur
+# 2026-10-08: pratinjau web Error karena perintah relatif tak menemukan skrip ini dari apps/web,
+# dan Vercel memperlakukan kode 127 sebagai GAGAL, bukan "bangun". Karena itu ignoreCommand memanggil
+# skrip lewat `git rev-parse --show-toplevel`, dan di sini proyek dikenali dari direktori kerjanya:
+# hanya proyek API yang Root Directory-nya akar repo. Proyek lain selalu dibangun, seperti sebelumnya.
+akar="$(git rev-parse --show-toplevel 2> /dev/null)" || { echo 'abaikan-build-api: bukan repo git — BANGUN'; exit 1; }
+if [ "$(cd "$akar" && pwd -P)" != "$(pwd -P)" ]; then
+  echo "abaikan-build-api: Root Directory bukan akar repo ($(pwd -P)) — bukan proyek API, BANGUN seperti biasa"
+  exit 1
+fi
+
 JALUR=(
   Dockerfile.vercel
   apps/api
