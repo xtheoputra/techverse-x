@@ -18,6 +18,7 @@ Log build produksi `ab887ed`: build lolos (56 detik), push citra ditolak dengan 
 
 - **Pembersihan, atas izin pemilik** ("Ya, sisakan 5 terbaru"): daftar diambil ulang, dipastikan `20be7b1` termasuk yang disisakan, lalu **45 citra tertua dihapus** (45 ok, 0 gagal; 2026-10-05 06:25 → 2026-10-07 10:31 UTC). Lima tersisa: `2767f1e`, `f5213e5`, `20be7b1`, `e42718c`, `3f04cb9`. Sesudahnya API produksi menjawab 200 di `/health/live`, `/health/ready`, bidang, dan kedua topik.
 - **Pencegahnya, #95**: `vercel.json` di akar (hanya dibaca proyek API) dengan `ignoreCommand` ke `infrastructure/vercel/abaikan-build-api.sh`. Skrip itu melewati build bila jalur yang disalin `Dockerfile.vercel` tak berubah sejak `VERCEL_GIT_PREVIOUS_SHA` (cadangan `HEAD^`), dan membangun untuk galat apa pun. Diuji di clone `--depth=10`: **7 skenario hijau**, **merah** bila `services/technology` dibuang dari daftar (merge #82 salah dilewati). **Di Vercel sungguhan**, commit pertama #95 (`a0a1c3a`): *"jalur API berubah … — BANGUN"*, citra dibangun dan di-push, Ready.
+- 🔴 **Temuan di pratinjau #95, sebelum merge: proyek web IKUT membaca `vercel.json` akar.** Versi pertama memanggil skrip dengan jalur relatif. Dari *Root Directory* `apps/web` skrip itu tak ditemukan, kode 127, dan **deployment web Error** — bukan "bangun" seperti yang ditulis KB Vercel untuk kode "1 atau lebih". Seandainya ter-merge, web produksi berhenti tayang. Anggapan saya "hanya dibaca proyek API" keliru dan tak diuji sebelum push. Perbaikan `950b770`: skrip dipanggil lewat `git rev-parse --show-toplevel` dan hanya boleh melewati build bila direktori kerjanya akar repo. Uji clone dangkal kini **8 hijau** (baru: web → bangun), merah bila penjaga itu dibuang. Di Vercel: web `950b770` *"bukan proyek API, BANGUN seperti biasa"*, **Ready**; API Ready.
 - **Akibat yang didokumentasikan** (PENYEBARAN.md, isi/README.md): `sha` *Pasang isi* adalah citra yang **tayang**, yang kini bisa lebih tua dari kepala `main`.
 
 ### Koreksi
@@ -26,7 +27,7 @@ Log build produksi `ab887ed`: build lolos (56 detik), push citra ditolak dengan 
 
 ### 🏁 Keadaan sesudah bagian ini
 
-**PR terbuka:** [#95](https://github.com/xtheoputra/techverse-x/pull/95), berbasis `main` (`ab887ed`), tanpa migrasi; merge-nya membangun ulang API produksi sekali (ia mengubah `vercel.json`). **Produksi:** 17 bidang, 2 topik (MCP, A2A; keduanya `draf`), 1 sisi Knowledge Graph, **0 dari 22 `tinjau`**. **Registri:** 5 dari 50 citra (ditambah pratinjau #95).
+**PR terbuka:** [#95](https://github.com/xtheoputra/techverse-x/pull/95), berbasis `main` (`ab887ed`), tanpa migrasi; pratinjau API dan web keduanya Ready di `950b770`. Merge-nya membangun ulang API produksi sekali (ia mengubah `vercel.json`) — periksa web **dan** API produksi sesudahnya. **Produksi:** 17 bidang, 2 topik (MCP, A2A; keduanya `draf`), 1 sisi Knowledge Graph, **0 dari 22 `tinjau`**. **Registri:** 5 dari 50 citra (ditambah pratinjau #95).
 
 **Menunggu pemilik:** baca halaman MCP dan A2A di produksi lalu *Naikkan ke tinjau* bila layak; merge #95; pilih cara di #93.
 
