@@ -52,13 +52,33 @@ Pemilik memilih **"Ya, jalankan keduanya"**. Run `37737849008` (`tool-use`, `sha
 
 Bidang AI Agents: **3 topik, 0 `tinjau`**. Halaman Tool use 200, dengan 3 SVG, 2 video, dan *Dibutuhkan oleh → MCP*.
 
+### 4. Topik keempat: Memori Agen — [PR #97](https://github.com/xtheoputra/techverse-x/pull/97)
+
+Sumber dibaca mentah: dokumentasi Claude (`memory-tool`, `context-editing`, `compaction`, `context-windows`), *Effective context engineering for AI agents* (29 September 2025), teks lengkap HTML arXiv untuk CoALA dan Generative Agents, abstrak MemGPT, serta konsep memori LangGraph. Kanal video `@claude` dipastikan resmi karena `claude.com` menautkannya.
+
+| Yang dibuktikan | Hasil |
+|---|---|
+| memory tool SDK + Tool Runner + transport tiruan | **14 ok**: berkas sungguhan; sesi kedua (proses baru) membacanya; `../../`, `..\..\`, `/etc/passwd` → `is_error`; `%2e%2e%2f` tetap di dalam |
+| bukti merah | validasi naif tanpa `resolve()` → 3 GAGAL, dan `rahasia.env` **benar-benar tercipta** di luar direktori memori |
+| context editing | header beta dan bentuk `edits` direkam dari permintaan SDK |
+| skor pengambilan | 2,56 / 1,54 / 1,00, cocok dengan hitungan tangan |
+| `mypy --strict`, kutipan = yang diuji | bersih; **7 ok** |
+| gerbang isi, tampilan, pemindai, `verify` | HIJAU (4 topik); 1910/1910 dan 380 = 380; 23 halaman, 0 kena; hijau 106 detik |
+| video | dimuat di origin https produksi (1:21 dan 24:29) |
+
+Isinya: 2.711 kata, 3 diagram, 2 video, 15 sumber (3 makalah), `requires: tool-use`.
+
+**`vercel.json` terbukti lagi di cabang ini:** kedua commit (`0ac3c24` dokumen, `41a9f4d` isi + media) → pratinjau API **Canceled** dalam 1 detik, pratinjau web Ready; registri tetap **10** citra.
+
 ### 🏁 Keadaan sesudah bagian ini
 
 **Produksi:** 17 bidang, 3 topik (Tool use, MCP, A2A; semuanya `draf`), 2 sisi Knowledge Graph, **0 dari 22 `tinjau`**. Registri VCR: 10 dari 50 citra.
 
 **Menunggu pemilik:** baca ketiga halaman di produksi lalu *Naikkan ke tinjau* bila layak; pilih cara di #93.
 
-**Berikutnya, saya:** topik keempat, **Memori agen**, di cabang `fase-1/isi-memori-agen` (PR yang sama dengan catatan ini).
+**PR terbuka:** #97 (Memori agen + catatan ini), berbasis `main` (`e262bb1`), tanpa migrasi. Sesudah merge: *Pasang isi* `memori-agen` tanpa ganti, `sha` = citra API yang **tayang** (`e262bb1` selama tak ada merge yang mengubah API).
+
+**Berikutnya, saya:** topik kelima, **Evals & observability**.
 
 ---
 
