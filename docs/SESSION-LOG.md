@@ -4,6 +4,59 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-09 — Sesi 25 (Lanjutan): topik keenam, Keamanan Agen
+
+Permintaan pemilik: *"lanjutkan progress"*. Belum ada PR yang di-merge (`main` tetap `1cd5edb`), jadi saya mengerjakan langkah berikutnya yang tercatat.
+
+### Keamanan Agen — [PR #104](https://github.com/xtheoputra/techverse-x/pull/104)
+
+Cabang `fase-1/isi-keamanan-agen` dari `origin/main`. Isinya 13 langkah, 4 diagram SVG, 2 video resmi (kanal Claude, 6 Oktober 2026, dan kanal OWASP GenAI Security Project), 16 sumber, 2 proyek mini, dan `requires: tool-use`. Halamannya mengajak pembaca menyerang agen perpustakaan lewat ulasan buku, lalu menutup celahnya lapis demi lapis.
+
+**Temuan dari sumber yang dibaca saat itu:**
+
+- OWASP menerbitkan **Top 10 for LLM Applications 2026** (PDF, 3 Agustus 2026). Peringkatnya ditata ulang: *Excessive Agency* naik ke LLM03, dan ada entri baru *Hidden Context Exposure*. Halaman indeks `genai.owasp.org/llm-top-10/` masih menampilkan versi 2025, jadi saya memakai PDF-nya. PDF dibaca dengan `pypdf`, karena mesin ini tak punya poppler.
+- Dokumentasi *structured outputs* Claude menyatakan skema `strict: true` **tidak mendukung** `minimum`/`maximum`; API menjawab 400. Versi pertama contoh saya memakainya. Batas hari kini ditegakkan di kode, dan halaman menjelaskan alasannya.
+- `anthropic-experimental/sandbox-runtime` kini pindah ke `anthropics/sandbox-runtime`.
+
+**Diverifikasi tanpa panggilan API**, dengan model tiruan yang *sengaja selalu termakan injeksi*, supaya yang diuji adalah pertahanan di luar model:
+
+| Uji | ok |
+|---|--:|
+| `uji_aman.py`: rentan vs aman, bukti merah per pertahanan, egress, trifecta, penyaring | 36 |
+| kutipan = yang diuji | 39 |
+
+Hasil ukur ala AgentDojo (5 trial per konfigurasi): versi rentan **100%** serangan berhasil; versi aman **0%**, dengan kegunaan tetap 100%. Tanpa gerbang persetujuan, injeksi yang meminta 7 hari berhasil lagi (100%), jadi gerbang itu terbukti bekerja.
+
+Gerbang lokal: `.\run.ps1 isi` sah; `.\run.ps1 gerbang-isi` **HIJAU** (25 detik, gerbang 2 dan 3 masing-masing 36 ok); pemindai ADR-024 **24 halaman, 0 kena**; `.\run.ps1 verify` semua hijau (75 detik).
+
+🔧 **Kesalahan urutan dari saya:** `verify` pertama merah di `Ready_hijau_saat_Redis_tidak_dikonfigurasi`, karena Postgres sudah saya matikan sebelum `verify`. Uji itu sengaja memakai PostgreSQL sungguhan. Setelah `up`, `verify` hijau. Pelajarannya dicatat di memori: matikan Docker **sesudah** `verify`, bukan sebelumnya.
+
+CI #104: Backend, Frontend, pemindai rahasia, dan kedua pratinjau Vercel hijau. Job citra merah dengan satu temuan saja, `next` 16.3.6 (CVE-2026-94483), sama seperti #101 dan #102, dan tambalannya #103.
+
+Tanpa Chrome, yang belum diverifikasi untuk #104: luberan di 390 px dan bingkai video di https. Yang terbukti: halaman, keempat SVG, dan kedua bingkai tersaji 200; diagram dirender dengan `sharp` di 760 dan 340 px.
+
+### Lingkungan
+
+Docker Desktop dinyalakan dua kali (gerbang isi, lalu `verify`) dan dimatikan lagi bersama WSL. API `:5096` dan web `:3401` sudah dimatikan, dan basis data sementara `techversex_ka` sudah dibuang.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** tak berubah, yaitu 17 bidang dan 4 topik `draf`.
+
+**PR terbuka, semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung:**
+
+- **#103 lebih dulu**: tambalan Next.js 16.3.8 dan `source-map-js` 1.2.2, dengan CI hijau semua.
+- #98, #99, #100, #101: penulisan ulang bergaya hangat. Sesudah merge, *Pasang isi* dengan **ganti** dicentang.
+- #102 (Evals & Observability) dan #104 (Keamanan Agen): topik baru. Sesudah merge, *Pasang isi* **tanpa ganti**.
+- Untuk semuanya, `sha` = citra API yang **tayang** (`e262bb1` selama tak ada merge yang mengubah jalur API).
+- Sesudah #103 masuk, job citra #98–#102 dan #104 baru bisa hijau bila cabangnya **diperbarui dengan `main`** (tombol *Update branch*), bukan sekadar *Re-run*.
+
+**Belum diverifikasi:** bingkai video #102 dan #104 di https, serta luberan 390 px #104.
+
+**Berikutnya, saya:** topik ketujuh dan terakhir bidang ini, **Human-in-the-loop**.
+
+---
+
 ## 2026-10-09 — Sesi 25: topik kelima, Evals & Observability, ditulis langsung dengan gaya hangat
 
 Permintaan pemilik: *"lanjutkan progress"*. Di tengah sesi: *"jangan buka di chrome, mengganggu pc lain"*.
@@ -49,7 +102,7 @@ Tambalannya, atas inisiatif saya sendiri, ada di #103 dari `origin/main` (worktr
 
 Docker Desktop dinyalakan untuk gerbang isi; memori mesin sempat tinggal ± 0,5 GB karena Visual Studio juga terbuka. API `:5096` dan web `:3401` yang saya nyalakan sudah dimatikan (PID dicocokkan dengan baris perintahnya), dan basis data sementara `techversex_eo` sudah dibuang. Sesudah itu Docker Desktop dan WSL dimatikan lagi, sehingga kembali seperti saat sesi dimulai, dan memori bebas naik dari 2,3 menjadi 5,3 GB. Kontainer `wellsy-*` milik proyek lain sempat ikut menyala bersama Docker, lalu ikut berhenti. Worktree tambalan ada di `%TEMP%\wts\next1638`.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan sesudah bagian pertama (digantikan oleh 🏁 di Lanjutan, di atas)
 
 **Produksi:** tak berubah sejak Lanjutan 3, yaitu 17 bidang dan 4 topik `draf`.
 
