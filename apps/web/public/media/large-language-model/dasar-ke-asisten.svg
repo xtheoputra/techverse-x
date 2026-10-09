@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 560" role="img" aria-labelledby="judul desk">
+  <title id="judul">Dari model dasar ke asisten</title>
+  <desc id="desk">Tiga tahap. Satu, pretraining: model belajar menebak token berikutnya dari teks dalam jumlah yang sangat besar, menghasilkan model dasar yang pandai melanjutkan teks tetapi belum pandai mengikuti instruksi. Dua, fine-tuning dengan contoh: manusia menulis contoh jawaban yang baik untuk berbagai permintaan. Tiga, belajar dari preferensi: model menghasilkan beberapa jawaban, lalu manusia (RLHF) atau model lain yang berpegang pada sebuah konstitusi (RLAIF, Constitutional AI) memilih yang lebih baik; model preferensi dilatih dari pilihan itu dan dipakai sebagai sinyal hadiah untuk reinforcement learning. Hasilnya asisten yang membantu, jujur, dan tidak membahayakan.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="640" height="560" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Dari model dasar ke asisten</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Pretraining memberi pengetahuan; tahap berikutnya memberi sikap.</text>
+
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="32" y="98" width="576" height="96" rx="14" fill="#22d3ee" fill-opacity="0.07" stroke="#22d3ee" stroke-width="2"/>
+    <text x="48" y="126" fill="#a5f3fc" font-size="16" font-weight="700">1 · Pretraining</text>
+    <text x="48" y="150" fill="#c3cce6" font-size="14">tebak token berikutnya dari teks dalam jumlah yang sangat besar</text>
+    <text x="48" y="174" fill="#98a3c4" font-size="13">hasil: model dasar, pandai melanjutkan teks, belum pandai mengikuti instruksi</text>
+
+    <path d="M320 196 V218" stroke="#98a3c4" stroke-width="2" marker-end="url(#panah)"/>
+
+    <rect x="32" y="222" width="576" height="84" rx="14" fill="#a78bfa" fill-opacity="0.07" stroke="#a78bfa" stroke-width="2"/>
+    <text x="48" y="250" fill="#ddd6fe" font-size="16" font-weight="700">2 · Fine-tuning dengan contoh</text>
+    <text x="48" y="274" fill="#c3cce6" font-size="14">manusia menulis jawaban yang baik untuk berbagai permintaan</text>
+    <text x="48" y="294" fill="#98a3c4" font-size="13">model meniru bentuk jawaban seorang asisten</text>
+
+    <path d="M320 308 V330" stroke="#98a3c4" stroke-width="2" marker-end="url(#panah)"/>
+
+    <rect x="32" y="334" width="576" height="124" rx="14" fill="#fbbf24" fill-opacity="0.07" stroke="#fbbf24" stroke-width="2"/>
+    <text x="48" y="362" fill="#fde68a" font-size="16" font-weight="700">3 · Belajar dari preferensi</text>
+    <text x="48" y="386" fill="#c3cce6" font-size="14">beberapa jawaban dibandingkan, yang lebih baik dipilih:</text>
+    <text x="64" y="408" fill="#c3cce6" font-size="14">• oleh manusia — RLHF</text>
+    <text x="64" y="428" fill="#c3cce6" font-size="14">• oleh model yang berpegang pada konstitusi — RLAIF</text>
+    <text x="48" y="448" fill="#98a3c4" font-size="13">model preferensi menjadi sinyal hadiah untuk reinforcement learning</text>
+
+    <path d="M320 460 V482" stroke="#98a3c4" stroke-width="2" marker-end="url(#panah)"/>
+
+    <rect x="110" y="486" width="420" height="52" rx="14" fill="#34d399" fill-opacity="0.1" stroke="#34d399" stroke-width="2"/>
+    <text x="320" y="510" fill="#a7f3d0" font-size="15" font-weight="700" text-anchor="middle">asisten: membantu, jujur, tak membahayakan</text>
+    <text x="320" y="528" fill="#98a3c4" font-size="12" text-anchor="middle">"HHH": helpful, honest, harmless</text>
+  </g>
+</svg>

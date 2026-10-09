@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 540" role="img" aria-labelledby="judul desk">
+  <title id="judul">Bobot atensi kausal untuk lima token</title>
+  <desc id="desk">Matriks 5 kali 5. Baris adalah token yang sedang diproses, kolom adalah token yang dilihatnya. Segitiga kanan atas kosong karena masker kausal: token tak boleh melihat token sesudahnya. Setiap baris berjumlah 1. Baris t1: 1,00. Baris t2: 0,22, 0,78. Baris t3: 0,57, 0,34, 0,09. Baris t4: 0,03, 0,72, 0,19, 0,06. Baris t5: 0,52, 0,06, 0,10, 0,13, 0,19. Angka berasal dari vektor acak dengan benih tetap, hanya untuk memperlihatkan bentuknya.</desc>
+  <rect width="640" height="540" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Siapa melihat siapa</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Bobot atensi dengan masker kausal; setiap baris berjumlah 1.</text>
+  <text x="185" y="108" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="middle">t1</text>
+  <text x="255" y="108" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="middle">t2</text>
+  <text x="325" y="108" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="middle">t3</text>
+  <text x="395" y="108" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="middle">t4</text>
+  <text x="465" y="108" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="middle">t5</text>
+  <text x="136" y="160" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="end">t1</text>
+  <rect x="151" y="121" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="1.00"/>
+  <text x="185" y="160" fill="#070a16" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">1,00</text>
+  <rect x="221" y="121" width="68" height="68" rx="6" fill="#0b1022" stroke="#1c2340" stroke-dasharray="4 4"/>
+  <rect x="291" y="121" width="68" height="68" rx="6" fill="#0b1022" stroke="#1c2340" stroke-dasharray="4 4"/>
+  <rect x="361" y="121" width="68" height="68" rx="6" fill="#0b1022" stroke="#1c2340" stroke-dasharray="4 4"/>
+  <rect x="431" y="121" width="68" height="68" rx="6" fill="#0b1022" stroke="#1c2340" stroke-dasharray="4 4"/>
+  <text x="136" y="230" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="end">t2</text>
+  <rect x="151" y="191" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.31"/>
+  <text x="185" y="230" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,22</text>
+  <rect x="221" y="191" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.81"/>
+  <text x="255" y="230" fill="#070a16" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,78</text>
+  <rect x="291" y="191" width="68" height="68" rx="6" fill="#0b1022" stroke="#1c2340" stroke-dasharray="4 4"/>
+  <rect x="361" y="191" width="68" height="68" rx="6" fill="#0b1022" stroke="#1c2340" stroke-dasharray="4 4"/>
+  <rect x="431" y="191" width="68" height="68" rx="6" fill="#0b1022" stroke="#1c2340" stroke-dasharray="4 4"/>
+  <text x="136" y="300" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="end">t3</text>
+  <rect x="151" y="261" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.62"/>
+  <text x="185" y="300" fill="#070a16" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,57</text>
+  <rect x="221" y="261" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.42"/>
+  <text x="255" y="300" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,34</text>
+  <rect x="291" y="261" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.20"/>
+  <text x="325" y="300" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,09</text>
+  <rect x="361" y="261" width="68" height="68" rx="6" fill="#0b1022" stroke="#1c2340" stroke-dasharray="4 4"/>
+  <rect x="431" y="261" width="68" height="68" rx="6" fill="#0b1022" stroke="#1c2340" stroke-dasharray="4 4"/>
+  <text x="136" y="370" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="end">t4</text>
+  <rect x="151" y="331" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.15"/>
+  <text x="185" y="370" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,03</text>
+  <rect x="221" y="331" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.75"/>
+  <text x="255" y="370" fill="#070a16" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,72</text>
+  <rect x="291" y="331" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.29"/>
+  <text x="325" y="370" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,19</text>
+  <rect x="361" y="331" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.17"/>
+  <text x="395" y="370" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,06</text>
+  <rect x="431" y="331" width="68" height="68" rx="6" fill="#0b1022" stroke="#1c2340" stroke-dasharray="4 4"/>
+  <text x="136" y="440" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="end">t5</text>
+  <rect x="151" y="401" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.58"/>
+  <text x="185" y="440" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,52</text>
+  <rect x="221" y="401" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.17"/>
+  <text x="255" y="440" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,06</text>
+  <rect x="291" y="401" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.21"/>
+  <text x="325" y="440" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,10</text>
+  <rect x="361" y="401" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.23"/>
+  <text x="395" y="440" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,13</text>
+  <rect x="431" y="401" width="68" height="68" rx="6" fill="#3987e5" fill-opacity="0.29"/>
+  <text x="465" y="440" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">0,19</text>
+  <text x="512" y="160" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">kotak kosong:</text>
+  <text x="512" y="178" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">masa depan</text>
+  <text x="512" y="196" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">ditutup (−∞)</text>
+  <text x="32" y="510" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">Baris = token yang sedang diproses; kolom = token yang dilihatnya. Angka dari vektor acak</text>
+  <text x="32" y="530" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">dengan benih tetap, hanya untuk memperlihatkan bentuknya.</text>
+</svg>

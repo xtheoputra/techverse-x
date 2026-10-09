@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" role="img" aria-labelledby="judul desk">
+  <title id="judul">Byte Pair Encoding: dari huruf ke token</title>
+  <desc id="desk">BPE dilatih pada korpus kecil berisi baca, membaca, pembaca, bacaan, buku, pustaka, perpustakaan, dan pustakawan. Aturan penggabungan pertama: b dan a menjadi ba, ba dan c menjadi bac, bac dan a menjadi baca, baca dan penanda akhir kata menjadi baca akhir kata, e dan m menjadi em, lalu em dan baca akhir kata menjadi embaca akhir kata. Hasilnya, kata membaca menjadi dua token, m dan embaca. Kata yang tak pernah dilihat, dibaca, tetap bisa dipecah menjadi d, i, dan baca. Kata kepustakaan dipecah menjadi k, e, pusta, k, a, dan an.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="640" height="520" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Dari huruf ke token</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Byte Pair Encoding menggabungkan pasangan yang paling sering muncul.</text>
+
+  <text x="32" y="112" fill="#c3cce6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1.5">ATURAN YANG DIPELAJARI (urut)</text>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
+    <rect x="32" y="124" width="576" height="104" rx="12" fill="#0d1226" stroke="#2a3150"/>
+    <text x="48" y="152" fill="#a5f3fc">1  b + a → ba</text>
+    <text x="232" y="152" fill="#a5f3fc">2  ba + c → bac</text>
+    <text x="432" y="152" fill="#a5f3fc">3  bac + a → baca</text>
+    <text x="48" y="180" fill="#a5f3fc">4  baca + &lt;/w&gt; → baca&lt;/w&gt;</text>
+    <text x="352" y="180" fill="#a5f3fc">5  e + m → em</text>
+    <text x="48" y="208" fill="#a5f3fc">6  em + baca&lt;/w&gt; → embaca&lt;/w&gt;</text>
+    <text x="400" y="208" fill="#98a3c4">… 12 aturan</text>
+  </g>
+
+  <text x="32" y="264" fill="#c3cce6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1.5">"membaca" (sering muncul)</text>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15">
+    <g fill="#0d1226" stroke="#2a3150">
+      <rect x="32" y="276" width="34" height="34" rx="6"/><rect x="70" y="276" width="34" height="34" rx="6"/><rect x="108" y="276" width="34" height="34" rx="6"/><rect x="146" y="276" width="34" height="34" rx="6"/><rect x="184" y="276" width="34" height="34" rx="6"/><rect x="222" y="276" width="34" height="34" rx="6"/><rect x="260" y="276" width="34" height="34" rx="6"/>
+    </g>
+    <g fill="#eef2ff" text-anchor="middle">
+      <text x="49" y="298">m</text><text x="87" y="298">e</text><text x="125" y="298">m</text><text x="163" y="298">b</text><text x="201" y="298">a</text><text x="239" y="298">c</text><text x="277" y="298">a</text>
+    </g>
+    <path d="M304 293 H344" stroke="#98a3c4" stroke-width="2" marker-end="url(#panah)"/>
+    <rect x="352" y="276" width="34" height="34" rx="6" fill="#3987e5" fill-opacity="0.25" stroke="#3987e5"/>
+    <text x="369" y="298" fill="#eef2ff" text-anchor="middle">m</text>
+    <rect x="392" y="276" width="160" height="34" rx="6" fill="#3987e5" fill-opacity="0.25" stroke="#3987e5"/>
+    <text x="472" y="298" fill="#eef2ff" text-anchor="middle">embaca&lt;/w&gt;</text>
+    <text x="566" y="298" fill="#a7f3d0" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">2 token</text>
+  </g>
+
+  <text x="32" y="350" fill="#c3cce6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1.5">"dibaca" (tak pernah dilihat)</text>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15">
+    <rect x="32" y="362" width="34" height="34" rx="6" fill="#3987e5" fill-opacity="0.25" stroke="#3987e5"/><text x="49" y="384" fill="#eef2ff" text-anchor="middle">d</text>
+    <rect x="70" y="362" width="34" height="34" rx="6" fill="#3987e5" fill-opacity="0.25" stroke="#3987e5"/><text x="87" y="384" fill="#eef2ff" text-anchor="middle">i</text>
+    <rect x="108" y="362" width="120" height="34" rx="6" fill="#3987e5" fill-opacity="0.25" stroke="#3987e5"/><text x="168" y="384" fill="#eef2ff" text-anchor="middle">baca&lt;/w&gt;</text>
+    <text x="244" y="384" fill="#a7f3d0" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">tetap terbaca, tanpa "kata tak dikenal"</text>
+  </g>
+
+  <text x="32" y="436" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">Korpus: baca, membaca, pembaca, bacaan, buku, pustaka, perpustakaan, pustakawan.</text>
+  <text x="32" y="458" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">&lt;/w&gt; menandai akhir kata, seperti di makalah Sennrich dkk. (2016).</text>
+  <text x="32" y="490" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">Tokenizer sungguhan dilatih pada korpus jauh lebih besar; token bisa kata, potongan kata, huruf, atau byte.</text>
+</svg>
