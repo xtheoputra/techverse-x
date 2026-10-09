@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 560" role="img" aria-labelledby="judul desk">
+  <title id="judul">Dari RNN ke BERT dan LLM</title>
+  <desc id="desk">Empat tahap dari atas ke bawah: RNN dan LSTM membaca kata satu per satu; seq2seq (Sutskever dkk., 2014) memadatkan kalimat menjadi satu vektor lalu mendekodekannya; atensi (Bahdanau dkk., 2014) membiarkan decoder menengok ke setiap kata sumber; Transformer (Vaswani dkk., 2017) hanya memakai atensi dan lebih mudah diproses paralel. Dari Transformer lahir dua cabang: encoder seperti BERT (2018) yang membaca konteks kiri dan kanan untuk memahami teks, dan model pembangkit teks seperti LLM yang menebak token berikutnya untuk menulis teks.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="640" height="560" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Dari RNN ke BERT dan LLM</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Bagaimana model bahasa belajar membaca kalimat utuh.</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="32" y="100" width="576" height="62" rx="12" fill="#98a3c4" fill-opacity="0.08" stroke="#98a3c4" stroke-width="1.5"/>
+    <text x="48" y="126" fill="#eef2ff" font-size="15" font-weight="700">RNN dan LSTM</text>
+    <text x="48" y="147" fill="#c3cce6" font-size="13">membaca kata satu per satu, membawa ingatan</text>
+    <path d="M320 162 V176" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <rect x="32" y="178" width="576" height="62" rx="12" fill="#3987e5" fill-opacity="0.08" stroke="#3987e5" stroke-width="1.5"/>
+    <text x="48" y="204" fill="#eef2ff" font-size="15" font-weight="700">Seq2seq, 2014</text>
+    <text x="592" y="204" fill="#98a3c4" font-size="12" text-anchor="end">Sutskever dkk.</text>
+    <text x="48" y="225" fill="#c3cce6" font-size="13">encoder memadatkan kalimat menjadi satu vektor; decoder menulis terjemahan</text>
+    <path d="M320 240 V254" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <rect x="32" y="256" width="576" height="62" rx="12" fill="#a78bfa" fill-opacity="0.08" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="48" y="282" fill="#eef2ff" font-size="15" font-weight="700">Atensi, 2014</text>
+    <text x="592" y="282" fill="#98a3c4" font-size="12" text-anchor="end">Bahdanau dkk.</text>
+    <text x="48" y="303" fill="#c3cce6" font-size="13">decoder boleh menengok ke setiap kata sumber, tak terkunci di satu vektor</text>
+    <path d="M320 318 V332" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <rect x="32" y="334" width="576" height="62" rx="12" fill="#199e70" fill-opacity="0.08" stroke="#199e70" stroke-width="1.5"/>
+    <text x="48" y="360" fill="#eef2ff" font-size="15" font-weight="700">Transformer, 2017</text>
+    <text x="592" y="360" fill="#98a3c4" font-size="12" text-anchor="end">Vaswani dkk.</text>
+    <text x="48" y="381" fill="#c3cce6" font-size="13">hanya atensi, tanpa pengulangan; jauh lebih mudah diproses paralel</text>
+    <path d="M240 412 L150 436" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <path d="M400 412 L490 436" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <rect x="32" y="440" width="272" height="96" rx="12" fill="#fbbf24" fill-opacity="0.08" stroke="#fbbf24" stroke-width="1.5"/>
+    <text x="48" y="464" fill="#eef2ff" font-size="14" font-weight="700">encoder · BERT, 2018</text>
+    <text x="48" y="486" fill="#c3cce6" font-size="13">membaca konteks kiri dan kanan</text>
+    <text x="48" y="504" fill="#c3cce6" font-size="13">cocok untuk memahami: klasifikasi,</text>
+    <text x="48" y="522" fill="#c3cce6" font-size="13">entitas, tanya jawab</text>
+    <rect x="336" y="440" width="272" height="96" rx="12" fill="#d95926" fill-opacity="0.08" stroke="#d95926" stroke-width="1.5"/>
+    <text x="352" y="464" fill="#eef2ff" font-size="14" font-weight="700">pembangkit teks · LLM</text>
+    <text x="352" y="486" fill="#c3cce6" font-size="13">menebak token berikutnya</text>
+    <text x="352" y="504" fill="#c3cce6" font-size="13">cocok untuk menulis: jawaban,</text>
+    <text x="352" y="522" fill="#c3cce6" font-size="13">ringkasan, terjemahan</text>
+  </g>
+</svg>
