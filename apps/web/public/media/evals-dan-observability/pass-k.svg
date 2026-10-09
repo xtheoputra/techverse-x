@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 540" role="img" aria-labelledby="judul desk">
+  <title id="judul">pass@k dan pass^k untuk agen yang berhasil 75% per trial</title>
+  <desc id="desk">Grafik garis dengan k dari 1 sampai 10 di sumbu datar dan persen di sumbu tegak. pass@k, peluang setidaknya satu dari k trial berhasil: k=1 75%, k=2 94%, k=3 98%, k=4 100%, k=5 100%, k=6 100%, k=7 100%, k=8 100%, k=9 100%, k=10 100%. pass^k, peluang semua k trial berhasil: k=1 75%, k=2 56%, k=3 42%, k=4 32%, k=5 24%, k=6 18%, k=7 13%, k=8 10%, k=9 8%, k=10 6%. Pada k=1 keduanya 75%; makin besar k, pass@k mendekati 100% dan pass^k mendekati 0%.</desc>
+  <rect width="640" height="540" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Satu agen, dua cerita</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Peluang sukses per trial 75%. Makin banyak trial k, makin jauh keduanya berpisah.</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">
+    <path d="M32 101 H56" stroke="#3987e5" stroke-width="2.5"/><circle cx="44" cy="101" r="4.5" fill="#3987e5" stroke="#070a16" stroke-width="2"/>
+    <text x="64" y="106" fill="#c3cce6">pass@k: setidaknya satu berhasil</text>
+    <path d="M330 101 H354" stroke="#d95926" stroke-width="2.5" stroke-dasharray="6 4"/><rect x="338" y="97" width="9" height="9" fill="#d95926" stroke="#070a16" stroke-width="2"/>
+    <text x="362" y="106" fill="#c3cce6">pass^k: semuanya berhasil</text>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" fill="#98a3c4">
+    <path d="M92 432.0 H584" stroke="#1c2340" stroke-width="1"/>
+    <text x="82" y="436.0" text-anchor="end">0%</text>
+    <path d="M92 357.0 H584" stroke="#1c2340" stroke-width="1"/>
+    <text x="82" y="361.0" text-anchor="end">25%</text>
+    <path d="M92 282.0 H584" stroke="#1c2340" stroke-width="1"/>
+    <text x="82" y="286.0" text-anchor="end">50%</text>
+    <path d="M92 207.0 H584" stroke="#1c2340" stroke-width="1"/>
+    <text x="82" y="211.0" text-anchor="end">75%</text>
+    <path d="M92 132.0 H584" stroke="#1c2340" stroke-width="1"/>
+    <text x="82" y="136.0" text-anchor="end">100%</text>
+    <text x="92.0" y="454" text-anchor="middle">1</text>
+    <text x="146.7" y="454" text-anchor="middle">2</text>
+    <text x="201.3" y="454" text-anchor="middle">3</text>
+    <text x="256.0" y="454" text-anchor="middle">4</text>
+    <text x="310.7" y="454" text-anchor="middle">5</text>
+    <text x="365.3" y="454" text-anchor="middle">6</text>
+    <text x="420.0" y="454" text-anchor="middle">7</text>
+    <text x="474.7" y="454" text-anchor="middle">8</text>
+    <text x="529.3" y="454" text-anchor="middle">9</text>
+    <text x="584.0" y="454" text-anchor="middle">10</text>
+    <text x="338.0" y="478" text-anchor="middle" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">jumlah trial k</text>
+  </g>
+  <polyline points="92.0,207.0 146.7,150.8 201.3,136.7 256.0,133.2 310.7,132.3 365.3,132.1 420.0,132.0 474.7,132.0 529.3,132.0 584.0,132.0" fill="none" stroke="#3987e5" stroke-width="2.5" stroke-linejoin="round"/>
+  <polyline points="92.0,207.0 146.7,263.2 201.3,305.4 256.0,337.1 310.7,360.8 365.3,378.6 420.0,392.0 474.7,402.0 529.3,409.5 584.0,415.1" fill="none" stroke="#d95926" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="6 4"/>
+  <circle cx="92.0" cy="207.0" r="4.5" fill="#3987e5" stroke="#070a16" stroke-width="2"/>
+  <circle cx="146.7" cy="150.8" r="4.5" fill="#3987e5" stroke="#070a16" stroke-width="2"/>
+  <circle cx="201.3" cy="136.7" r="4.5" fill="#3987e5" stroke="#070a16" stroke-width="2"/>
+  <circle cx="256.0" cy="133.2" r="4.5" fill="#3987e5" stroke="#070a16" stroke-width="2"/>
+  <circle cx="310.7" cy="132.3" r="4.5" fill="#3987e5" stroke="#070a16" stroke-width="2"/>
+  <circle cx="365.3" cy="132.1" r="4.5" fill="#3987e5" stroke="#070a16" stroke-width="2"/>
+  <circle cx="420.0" cy="132.0" r="4.5" fill="#3987e5" stroke="#070a16" stroke-width="2"/>
+  <circle cx="474.7" cy="132.0" r="4.5" fill="#3987e5" stroke="#070a16" stroke-width="2"/>
+  <circle cx="529.3" cy="132.0" r="4.5" fill="#3987e5" stroke="#070a16" stroke-width="2"/>
+  <circle cx="584.0" cy="132.0" r="4.5" fill="#3987e5" stroke="#070a16" stroke-width="2"/>
+  <rect x="87.5" y="202.5" width="9" height="9" fill="#d95926" stroke="#070a16" stroke-width="2"/>
+  <rect x="142.2" y="258.8" width="9" height="9" fill="#d95926" stroke="#070a16" stroke-width="2"/>
+  <rect x="196.8" y="300.9" width="9" height="9" fill="#d95926" stroke="#070a16" stroke-width="2"/>
+  <rect x="251.5" y="332.6" width="9" height="9" fill="#d95926" stroke="#070a16" stroke-width="2"/>
+  <rect x="306.2" y="356.3" width="9" height="9" fill="#d95926" stroke="#070a16" stroke-width="2"/>
+  <rect x="360.8" y="374.1" width="9" height="9" fill="#d95926" stroke="#070a16" stroke-width="2"/>
+  <rect x="415.5" y="387.5" width="9" height="9" fill="#d95926" stroke="#070a16" stroke-width="2"/>
+  <rect x="470.2" y="397.5" width="9" height="9" fill="#d95926" stroke="#070a16" stroke-width="2"/>
+  <rect x="524.8" y="405.0" width="9" height="9" fill="#d95926" stroke="#070a16" stroke-width="2"/>
+  <rect x="579.5" y="410.6" width="9" height="9" fill="#d95926" stroke="#070a16" stroke-width="2"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#eef2ff">
+    <text x="104.0" y="212.0" text-anchor="start">keduanya 75%</text>
+    <text x="205.3" y="124.7" text-anchor="start">k=3: 98%</text>
+    <text x="189.3" y="331.4" text-anchor="end">k=3: 42%</text>
+    <text x="584.0" y="120.0" text-anchor="end">100%</text>
+    <text x="584.0" y="403.1" text-anchor="end">6%</text>
+  </g>
+  <text x="32" y="520" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">pass@k = 1 − (1 − 0,75)^k dan pass^k = 0,75^k, contoh dari tulisan Anthropic tentang evals agen.</text>
+</svg>

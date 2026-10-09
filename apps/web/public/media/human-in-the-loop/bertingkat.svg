@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" role="img" aria-labelledby="judul desk">
+  <title id="judul">Penegakan bertingkat: tanyakan hanya yang perlu</title>
+  <desc id="desk">Empat tingkat. Otomatis: aksi baca seperti cari_buku berjalan tanpa bertanya. Catat: aksi kecil yang bisa dibatalkan seperti perpanjang_pinjaman berjalan otomatis tetapi dicatat di jejak audit. Tanya: aksi berakibat seperti pinjam_buku menunggu persetujuan anggota. Tolak: aksi yang tak boleh dilakukan agen, misalnya hapus_anggota, selalu ditolak dan diserahkan ke petugas. Dalam sesi contoh berisi 10 aksi, yaitu 6 cari_buku, 3 perpanjang_pinjaman, dan 1 pinjam_buku, kebijakan tanya-semua mengajukan 10 pertanyaan, sedangkan kebijakan bertingkat hanya 1, dengan 3 aksi tercatat otomatis.</desc>
+  <rect width="640" height="520" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Tanyakan hanya yang perlu</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Penegakan bertingkat ala OWASP: audit, peringatkan, blokir, eskalasi.</text>
+
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="32" y="96" width="576" height="62" rx="12" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="48" y="122" fill="#a7f3d0" font-size="15" font-weight="700">otomatis</text>
+    <text x="48" y="144" fill="#98a3c4" font-size="13">aksi baca, tanpa akibat</text>
+    <text x="592" y="132" fill="#c3cce6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="end">cari_buku</text>
+
+    <rect x="32" y="166" width="576" height="62" rx="12" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="48" y="192" fill="#a5f3fc" font-size="15" font-weight="700">catat</text>
+    <text x="48" y="214" fill="#98a3c4" font-size="13">kecil dan bisa dibatalkan; jalan otomatis, masuk jejak audit</text>
+    <text x="592" y="202" fill="#c3cce6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="end">perpanjang_pinjaman</text>
+
+    <rect x="32" y="236" width="576" height="62" rx="12" fill="#fbbf24" fill-opacity="0.08" stroke="#fbbf24" stroke-width="2"/>
+    <text x="48" y="262" fill="#fde68a" font-size="15" font-weight="700">tanya</text>
+    <text x="48" y="284" fill="#98a3c4" font-size="13">berakibat nyata; menunggu persetujuan anggota</text>
+    <text x="592" y="272" fill="#c3cce6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="end">pinjam_buku</text>
+
+    <rect x="32" y="306" width="576" height="62" rx="12" fill="#0d1226" stroke="#fb7185" stroke-width="1.5"/>
+    <text x="48" y="332" fill="#fecdd3" font-size="15" font-weight="700">tolak</text>
+    <text x="48" y="354" fill="#98a3c4" font-size="13">tak pernah oleh agen; serahkan ke petugas</text>
+    <text x="592" y="342" fill="#c3cce6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" text-anchor="end">hapus_anggota</text>
+  </g>
+
+  <!-- Tile angka -->
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="32" y="392" width="282" height="104" rx="14" fill="#0d1226" stroke="#2a3150" stroke-width="1.5"/>
+    <text x="48" y="418" fill="#98a3c4" font-size="13">tanya semua (10 aksi)</text>
+    <text x="48" y="468" fill="#eef2ff" font-size="44" font-weight="700">10</text>
+    <text x="110" y="468" fill="#98a3c4" font-size="14">pertanyaan</text>
+
+    <rect x="326" y="392" width="282" height="104" rx="14" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="342" y="418" fill="#98a3c4" font-size="13">bertingkat (10 aksi yang sama)</text>
+    <text x="342" y="468" fill="#eef2ff" font-size="44" font-weight="700">1</text>
+    <text x="378" y="468" fill="#98a3c4" font-size="14">pertanyaan, 3 tercatat</text>
+  </g>
+</svg>
