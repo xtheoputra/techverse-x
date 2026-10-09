@@ -4,6 +4,49 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-09 — Sesi 25 (Lanjutan 3): pemilik memilih AI & Machine Learning; topik pertamanya, Large Language Model
+
+Permintaan pemilik: *"lanjutkan progress"*. Belum ada PR yang di-merge. Karena bidang AI Agents sudah lengkap, bidang berikutnya saya tanyakan lewat pertanyaan pilihan. Pemilik memilih **AI & Machine Learning** (pilihan yang saya rekomendasikan: bidang urutan 1, fondasi AI Agents), dimulai dari topik LLM.
+
+### Large Language Model (LLM) — [PR #106](https://github.com/xtheoputra/techverse-x/pull/106)
+
+Cabang `fase-1/isi-llm` dari `origin/main`, folder baru `isi/ai-machine-learning/`. Isinya 12 langkah, 4 diagram SVG (dua dihitung langsung dari keluaran uji), 3 video (dua dari 3Blue1Brown, satu dari Andrej Karpathy), 17 sumber, dan 2 proyek mini. `requires` dibiarkan kosong karena topik fondasi; alat baru di katalog adalah `numpy`.
+
+**Temuan dari sumber yang dibaca saat itu**, yang membantah tutorial umum dan ingatan saya sendiri:
+
+- Pada model Claude terbaru, `temperature`, `top_p`, dan `top_k` selain bawaan **ditolak 400**. Referensi API menandai ketiganya *deprecated* untuk model sesudah Claude Opus 4.6. Kendalinya kini `output_config.effort`; pada Claude Opus 5.5 bawaannya `medium` dan *adaptive thinking* selalu aktif.
+- Tokenizer sejak Claude Opus 4.7 menghitung sekitar 30% lebih banyak token, sehingga perkiraan "3,5 karakter per token" di glosarium tak lagi cocok. Penghitungan token lewat API gratis.
+- Dicek ulang: topik Tool use di `main` sudah benar menyebut bahwa *forced tool use* ditolak di Opus 5.5 dan kawan-kawannya.
+
+**Diverifikasi tanpa panggilan API:**
+
+| Uji | ok |
+|---|--:|
+| `uji_llm.py`: BPE = *Algorithm 1* makalah Sennrich (dijalankan sebagai pembanding), atensi kausal dan ragam q·k 64,6 → 1,01, sampling dan nucleus, bigram, biaya, permintaan `effort` lewat SDK | 22 |
+| kutipan = yang diuji | 16 |
+
+Gerbang lokal: `.\run.ps1 isi` sah; `.\run.ps1 gerbang-isi` **HIJAU** (23 detik); pemindai ADR-024 **24 halaman, 0 kena**; `.\run.ps1 verify` semua hijau (85 detik). CI #106: semua hijau kecuali job citra, dengan advisori Next.js yang sama.
+
+Dua frasa di diagram yang belum bersumber ("triliunan kali", "bekerja di tingkat byte"), dan satu kalimat tentang arah di ruang embedding, dibuang sebelum commit.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** tak berubah, yaitu 17 bidang dan 4 topik `draf`.
+
+**PR terbuka, semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung:**
+
+- **#103 lebih dulu**: tambalan Next.js 16.3.8 dan `source-map-js` 1.2.2, dengan CI hijau semua.
+- #98, #99, #100, #101: penulisan ulang bergaya hangat. Sesudah merge, *Pasang isi* dengan **ganti** dicentang.
+- #102 (Evals & Observability), #104 (Keamanan Agen), #105 (Human-in-the-Loop), dan #106 (Large Language Model): topik baru. Sesudah merge, *Pasang isi* **tanpa ganti**.
+- Untuk semuanya, `sha` = citra API yang **tayang** (`e262bb1` selama tak ada merge yang mengubah jalur API).
+- Sesudah #103 masuk, job citra PR lain baru bisa hijau bila cabangnya **diperbarui dengan `main`** (tombol *Update branch*), bukan sekadar *Re-run*.
+
+**Belum diverifikasi:** bingkai video #102, #104, #105, #106 di https, serta luberan 390 px #104, #105, #106.
+
+**Berikutnya, saya:** topik kedua AI & Machine Learning. Urutan ADR-010: ML klasik, Deep learning, Computer Vision, NLP, Reinforcement Learning, Multimodal AI. Saya akan mulai dari **Deep learning**, yang menjadi dasar LLM.
+
+---
+
 ## 2026-10-09 — Sesi 25 (Lanjutan 2): topik ketujuh, Human-in-the-Loop; ketujuh topik AI Agents kini punya isi
 
 Permintaan pemilik: *"lanjutkan progress"*. Belum ada PR yang di-merge (`main` tetap `1cd5edb`).
@@ -26,7 +69,7 @@ Gerbang lokal, kali ini dalam urutan yang benar (Docker dimatikan **sesudah** `v
 
 Dengan ini **ketujuh topik AI Agents** di ADR-010 punya isi. Empat sudah di `main` dan tayang sebagai `draf`; tiga lainnya (#102, #104, #105) menunggu merge.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan sesudah Lanjutan 2 (digantikan oleh 🏁 di Lanjutan 3, di atas)
 
 **Produksi:** tak berubah, yaitu 17 bidang dan 4 topik `draf`.
 
