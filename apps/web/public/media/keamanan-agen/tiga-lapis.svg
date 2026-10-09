@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 560" role="img" aria-labelledby="judul desk">
+  <title id="judul">Tiga sumber bahaya dan tiga lapis pertahanan agen</title>
+  <desc id="desk">Kiri: tiga sumber bahaya, yaitu penyalahgunaan oleh pengguna, perilaku model yang menyimpang, dan penyerang dari luar lewat tool, berkas, atau jaringan. Kanan: tiga lapis pertahanan. Lapis model berisi prompt sistem, pengklasifikasi, dan pelatihan; sifatnya probabilistik, hanya membentuk kecenderungan. Lapis konten luar berisi pembatasan tool dan izin serta penyaringan hasil tool. Lapis lingkungan berisi sandbox, mesin virtual, batas berkas, dan kendali jalan keluar jaringan; sifatnya deterministik, menetapkan apa yang bisa dijangkau. Catatan bawah: batas deterministik adalah yang tersisa ketika semua yang probabilistik meleset.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#fb7185"/>
+    </marker>
+  </defs>
+  <rect width="640" height="560" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Tiga sumber bahaya, tiga lapis</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Menurut "How we contain Claude across products" (Anthropic, Mei 2026).</text>
+
+  <!-- Sumber bahaya -->
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <text x="32" y="114" fill="#fecdd3" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1.5">BAHAYA</text>
+    <rect x="32" y="128" width="190" height="80" rx="12" fill="#0d1226" stroke="#fb7185" stroke-width="1.5"/>
+    <text x="48" y="156" fill="#eef2ff" font-size="15" font-weight="700">Pengguna</text>
+    <text x="48" y="178" fill="#98a3c4" font-size="13">sengaja atau lalai</text>
+    <text x="48" y="196" fill="#98a3c4" font-size="13">menyuruh yang merusak</text>
+    <rect x="32" y="222" width="190" height="80" rx="12" fill="#0d1226" stroke="#fb7185" stroke-width="1.5"/>
+    <text x="48" y="250" fill="#eef2ff" font-size="15" font-weight="700">Model</text>
+    <text x="48" y="272" fill="#98a3c4" font-size="13">mengambil jalan pintas</text>
+    <text x="48" y="290" fill="#98a3c4" font-size="13">yang tak diminta</text>
+    <rect x="32" y="316" width="190" height="80" rx="12" fill="#0d1226" stroke="#fb7185" stroke-width="1.5"/>
+    <text x="48" y="344" fill="#eef2ff" font-size="15" font-weight="700">Penyerang luar</text>
+    <text x="48" y="366" fill="#98a3c4" font-size="13">prompt injection lewat</text>
+    <text x="48" y="384" fill="#98a3c4" font-size="13">tool, berkas, jaringan</text>
+  </g>
+
+  <path d="M228 262 H262" stroke="#fb7185" stroke-width="2.5" marker-end="url(#panah)"/>
+
+  <!-- Lapis bersarang -->
+  <rect x="270" y="104" width="338" height="300" rx="18" fill="#34d399" fill-opacity="0.06" stroke="#34d399" stroke-width="2"/>
+  <text x="286" y="130" fill="#a7f3d0" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15" font-weight="700">Lingkungan · deterministik</text>
+  <text x="286" y="150" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">sandbox, VM, batas berkas, kendali egress</text>
+
+  <rect x="290" y="166" width="298" height="140" rx="14" fill="#a78bfa" fill-opacity="0.07" stroke="#a78bfa" stroke-width="2"/>
+  <text x="306" y="192" fill="#ddd6fe" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15" font-weight="700">Konten luar</text>
+  <text x="306" y="212" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">tool seminimal mungkin, izin sempit,</text>
+  <text x="306" y="230" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">hasil tool disaring</text>
+
+  <rect x="310" y="244" width="258" height="50" rx="12" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="2"/>
+  <text x="326" y="266" fill="#a5f3fc" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15" font-weight="700">Model · probabilistik</text>
+  <text x="326" y="284" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12">prompt sistem, pengklasifikasi, pelatihan</text>
+
+  <text x="286" y="338" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">Model hanya membentuk apa yang cenderung</text>
+  <text x="286" y="356" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">dilakukan agen; lingkungan menetapkan apa</text>
+  <text x="286" y="374" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">yang bisa ia jangkau.</text>
+
+  <rect x="32" y="430" width="576" height="104" rx="14" fill="#0d1226" stroke="#2a3150" stroke-width="1.5"/>
+  <text x="48" y="460" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15" font-weight="700">Kenapa lingkungan lebih dulu?</text>
+  <text x="48" y="484" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">Bila kredensial tak pernah masuk sandbox, ia tak bisa dicuri, siapa pun pelakunya.</text>
+  <text x="48" y="504" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">Batas deterministik adalah yang tersisa ketika semua pertahanan</text>
+  <text x="48" y="522" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">probabilistik meleset.</text>
+</svg>

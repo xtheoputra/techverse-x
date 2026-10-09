@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 600" role="img" aria-labelledby="judul desk">
+  <title id="judul">Enam pola desain agen yang tahan prompt injection</title>
+  <desc id="desk">Enam kartu. Action-selector: model hanya memilih aksi dari daftar tetap, dan hasil aksi tak kembali ke model. Plan-then-execute: daftar tool ditetapkan sebelum data luar dibaca, sehingga injeksi tak bisa menambah tool, tetapi masih bisa mengubah argumennya. LLM map-reduce: setiap dokumen diproses model terisolasi tanpa tool, lalu hasilnya digabung dengan aturan ketat. Dual LLM: model berhak istimewa memegang tool tapi tak pernah membaca data luar; model karantina membaca data luar tanpa tool, dan hasilnya hanya dirujuk lewat variabel. Code-then-execute: model menulis program yang memanggil tool, lalu program dijalankan atas data luar. Context-minimization: permintaan pengguna dibuang dari konteks sesudah diterjemahkan menjadi aksi. Prinsip bersama: sesudah membaca masukan tak tepercaya, agen dibatasi supaya masukan itu tak mungkin memicu aksi yang berakibat.</desc>
+  <rect width="640" height="600" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Enam pola yang tahan injeksi</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Beurer-Kellner dkk., 2025. Setiap pola menukar keleluasaan dengan keamanan.</text>
+
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="32" y="98" width="280" height="118" rx="14" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="48" y="126" fill="#a5f3fc" font-size="15" font-weight="700">1 · Action-selector</text>
+    <text x="48" y="150" fill="#98a3c4" font-size="13">model hanya memilih dari daftar</text>
+    <text x="48" y="170" fill="#98a3c4" font-size="13">aksi tetap; hasilnya tak kembali</text>
+    <text x="48" y="190" fill="#98a3c4" font-size="13">ke model</text>
+
+    <rect x="328" y="98" width="280" height="118" rx="14" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="344" y="126" fill="#a5f3fc" font-size="15" font-weight="700">2 · Plan-then-execute</text>
+    <text x="344" y="150" fill="#98a3c4" font-size="13">tool ditetapkan sebelum data luar</text>
+    <text x="344" y="170" fill="#98a3c4" font-size="13">dibaca; argumen masih bisa</text>
+    <text x="344" y="190" fill="#98a3c4" font-size="13">dimanipulasi</text>
+
+    <rect x="32" y="230" width="280" height="118" rx="14" fill="#0d1226" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="48" y="258" fill="#ddd6fe" font-size="15" font-weight="700">3 · LLM map-reduce</text>
+    <text x="48" y="282" fill="#98a3c4" font-size="13">tiap dokumen dibaca model</text>
+    <text x="48" y="302" fill="#98a3c4" font-size="13">terisolasi tanpa tool; hasil</text>
+    <text x="48" y="322" fill="#98a3c4" font-size="13">digabung dengan aturan ketat</text>
+
+    <rect x="328" y="230" width="280" height="118" rx="14" fill="#0d1226" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="344" y="258" fill="#ddd6fe" font-size="15" font-weight="700">4 · Dual LLM</text>
+    <text x="344" y="282" fill="#98a3c4" font-size="13">model istimewa pegang tool, tak</text>
+    <text x="344" y="302" fill="#98a3c4" font-size="13">membaca data luar; model karantina</text>
+    <text x="344" y="322" fill="#98a3c4" font-size="13">membaca, hasilnya lewat variabel</text>
+
+    <rect x="32" y="362" width="280" height="118" rx="14" fill="#0d1226" stroke="#fbbf24" stroke-width="1.5"/>
+    <text x="48" y="390" fill="#fde68a" font-size="15" font-weight="700">5 · Code-then-execute</text>
+    <text x="48" y="414" fill="#98a3c4" font-size="13">model menulis program yang</text>
+    <text x="48" y="434" fill="#98a3c4" font-size="13">memanggil tool; program lalu</text>
+    <text x="48" y="454" fill="#98a3c4" font-size="13">dijalankan atas data luar (CaMeL)</text>
+
+    <rect x="328" y="362" width="280" height="118" rx="14" fill="#0d1226" stroke="#fbbf24" stroke-width="1.5"/>
+    <text x="344" y="390" fill="#fde68a" font-size="15" font-weight="700">6 · Context-minimization</text>
+    <text x="344" y="414" fill="#98a3c4" font-size="13">permintaan pengguna dibuang dari</text>
+    <text x="344" y="434" fill="#98a3c4" font-size="13">konteks sesudah diterjemahkan</text>
+    <text x="344" y="454" fill="#98a3c4" font-size="13">menjadi aksi</text>
+  </g>
+
+  <rect x="32" y="498" width="576" height="76" rx="14" fill="#34d399" fill-opacity="0.07" stroke="#34d399" stroke-width="1.5"/>
+  <text x="48" y="526" fill="#a7f3d0" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" font-weight="700">Prinsip bersama</text>
+  <text x="48" y="550" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">Sesudah membaca masukan tak tepercaya, agen dibatasi sehingga</text>
+  <text x="48" y="566" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">masukan itu tak mungkin memicu aksi yang berakibat.</text>
+</svg>
