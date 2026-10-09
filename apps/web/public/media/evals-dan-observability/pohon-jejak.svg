@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" role="img" aria-labelledby="judul desk">
+  <title id="judul">Satu permintaan, satu jejak: span agen, model, dan tool</title>
+  <desc id="desk">Pohon span OpenTelemetry dari satu permintaan peminjaman yang gagal karena stok habis. Akar: invoke_agent perpustakaan dengan conversation.id sesi-a9-0002. Anaknya berurutan: chat claude-opus-5-5 dengan 2234 token masukan, 64 token keluaran, finish_reasons tool_call; execute_tool cari_buku dengan tool.call.id toolu_001; chat claude-opus-5-5 dengan 2340 token masukan, 55 keluaran, tool_call; execute_tool pinjam_buku berstatus ERROR dengan error.type ValueError; chat claude-opus-5-5 dengan 2374 token masukan, 26 keluaran, stop. Span agen sendiri tidak berstatus error karena galat tool ditangani dan dikembalikan ke model.</desc>
+  <rect width="640" height="520" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Satu permintaan, satu jejak</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Span yang benar-benar direkam dari contoh di langkah 10 (stok habis).</text>
+
+  <!-- Akar -->
+  <rect x="32" y="100" width="576" height="56" rx="12" fill="#a78bfa" fill-opacity="0.1" stroke="#a78bfa" stroke-width="2"/>
+  <text x="48" y="124" fill="#ddd6fe" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="700">invoke_agent perpustakaan</text>
+  <text x="48" y="145" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12">INTERNAL · conversation.id=sesi-a9-0002 · status: tidak error</text>
+
+  <!-- Garis pohon -->
+  <path d="M56 156 V444" stroke="#2a3150" stroke-width="2"/>
+  <g stroke="#2a3150" stroke-width="2">
+    <path d="M56 188 H76"/>
+    <path d="M56 244 H76"/>
+    <path d="M56 300 H76"/>
+    <path d="M56 356 H76"/>
+    <path d="M56 444 H76"/>
+  </g>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    <!-- chat 1 -->
+    <rect x="80" y="166" width="528" height="44" rx="10" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="96" y="185" fill="#a5f3fc" font-size="14" font-weight="700">chat claude-opus-5-5</text>
+    <text x="96" y="202" fill="#98a3c4" font-size="12">CLIENT · masuk 2234 · keluar 64 · finish tool_call</text>
+    <!-- tool 1 -->
+    <rect x="80" y="222" width="528" height="44" rx="10" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+    <text x="96" y="241" fill="#a7f3d0" font-size="14" font-weight="700">execute_tool cari_buku</text>
+    <text x="96" y="258" fill="#98a3c4" font-size="12">INTERNAL · tool.call.id=toolu_001</text>
+    <!-- chat 2 -->
+    <rect x="80" y="278" width="528" height="44" rx="10" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="96" y="297" fill="#a5f3fc" font-size="14" font-weight="700">chat claude-opus-5-5</text>
+    <text x="96" y="314" fill="#98a3c4" font-size="12">CLIENT · masuk 2340 · keluar 55 · finish tool_call</text>
+    <!-- tool 2: error -->
+    <rect x="80" y="334" width="528" height="78" rx="10" fill="#fb7185" fill-opacity="0.08" stroke="#fb7185" stroke-width="2"/>
+    <text x="96" y="353" fill="#fecdd3" font-size="14" font-weight="700">execute_tool pinjam_buku</text>
+    <text x="596" y="353" fill="#fecdd3" font-size="13" font-weight="700" text-anchor="end">✕ ERROR</text>
+    <text x="96" y="370" fill="#98a3c4" font-size="12">INTERNAL · tool.call.id=toolu_002</text>
+    <text x="96" y="388" fill="#fecdd3" font-size="12">error.type=ValueError</text>
+    <text x="96" y="404" fill="#98a3c4" font-size="12">"Stok habis; peminjaman tidak dicatat."</text>
+    <!-- chat 3 -->
+    <rect x="80" y="422" width="528" height="44" rx="10" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+    <text x="96" y="441" fill="#a5f3fc" font-size="14" font-weight="700">chat claude-opus-5-5</text>
+    <text x="96" y="458" fill="#98a3c4" font-size="12">CLIENT · masuk 2374 · keluar 26 · finish stop</text>
+  </g>
+
+  <text x="32" y="496" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">Token masukan di span sudah termasuk 1024 token dari cache prompt.</text>
+</svg>
