@@ -4,6 +4,64 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-09 — Sesi 25 (Lanjutan 6): sepuluh topik dipasang ke produksi atas izin pemilik; topik keempat AI & Machine Learning, NLP
+
+Permintaan pemilik: *"sudah, lanjutkan"*. Keadaan diukur dulu.
+
+### Merge dan *Pasang isi*
+
+- Pemilik me-merge **#107** (07:19 UTC), **#108** (07:45), dan **#109** (07:45). Tak ada jalur API yang berubah, jadi citra API yang tayang tetap `e262bb1`.
+- *Pasang isi* belum pernah berjalan sejak 2026-10-08, jadi sepuluh topik yang sudah di-merge belum tampil. Saya bertanya lewat pertanyaan pilihan, dan pemilik menjawab **"Ya, jalankan semua"**.
+- Sepuluh jalan `isi.yml` dari `main` dengan `sha=e262bb1`, **berurutan**, satu topik per jalan:
+  - **dengan ganti**: `tool-use` (37901045666), `model-context-protocol` (37901134953), `agent2agent-protocol` (37901193119), `memori-agen` (37901294083);
+  - **tanpa ganti**: `evals-dan-observability` (37901383358), `keamanan-agen` (37901512270), `human-in-the-loop` (37901587073), `large-language-model` (37901726869), `deep-learning` (37901793755), `computer-vision` (37901910771).
+  Semuanya **success** dan mencetak `selesai … sama dengan berkas`.
+- Produksi diukur sesudahnya:
+  - Untuk kesepuluh topik, API 200, ringkasan sama dengan berkas di `main`, jumlah langkah dan media cocok, dan status tetap `MachineDrafted` (`draf`).
+  - Setiap halaman web memuat semua judul langkah, setiap gambar 200, dan bingkai videonya ada.
+  - Halaman MCP sempat menyajikan isi lama pada permintaan pertama. Penyebabnya cache halaman (`REVALIDATE_SECONDS = 300` di `apps/web/src/lib/api.ts`): permintaan pertama memicu penyegaran, dan permintaan berikutnya sudah baru.
+- Pemindai ADR-024 dijalankan **langsung di produksi** (hanya GET): 29 halaman, **0 kena**, setiap halaman 200.
+
+### NLP — [PR #110](https://github.com/xtheoputra/techverse-x/pull/110)
+
+Cabang `fase-1/isi-nlp` dari `origin/main` (`32fe43a`). Ceritanya kotak obrolan perpustakaan yang menebak maksud pesan pengunjung. Isinya 12 langkah, 3 diagram SVG dari keluaran kode, 2 video tersemat, 18 sumber, dan 2 proyek mini. **`requires: ["deep-learning"]`**, yang sudah tayang. Alat baru di katalog adalah `scikit-learn` dan `pysastrawi`.
+
+**Temuan dari sumber yang dibaca saat itu:**
+
+- Keluaran terstruktur Claude tak menjamin huruf besar-kecil nilai `enum` (dokumentasi *Structured outputs*), jadi kode membandingkannya tanpa memedulikan huruf besar-kecil.
+- Anthropic tak menyediakan model embedding sendiri (dokumentasi *Embeddings*).
+- Pola token bawaan scikit-learn membelah kata ulang dan membuang token satu karakter.
+- Buku Jurafsky & Martin edisi ketiga punya rilis baru, 19 Agustus 2026.
+- Kuliah CS224N Spring 2024 tak bisa disematkan (oEmbed 401), jadi yang disematkan adalah rekaman Winter 2021.
+
+**Diverifikasi tanpa biaya** dengan scikit-learn 1.9.1, PySastrawi 1.2.1, dan NumPy:
+
+| Uji | ok |
+|---|--:|
+| `uji_nlp.py`: token, kata dasar, idf, tiga varian pengelompok maksud (token 90%, kata dasar 90%, n-gram karakter 95% pada 40 pesan uji tulisan tangan), presisi/recall/F1 = scikit-learn, vektor kata PPMI + SVD, dan Claude dengan keluaran terstruktur lewat transport tiruan | 26 |
+| kutipan = yang diuji (6 blok Python, setiap angka) | 18 |
+
+Gerbang lokal: `.\run.ps1 isi` sah (11 topik); `.\run.ps1 gerbang-isi` **HIJAU**; halaman lokal 200 dengan 6 blok kode, 6 tabel, 3 gambar, 2 bingkai video, dan tautan prasyarat Deep Learning; pemindai ADR-024 **0 kena**; `.\run.ps1 verify` semua hijau (57 detik). Docker dinyalakan untuk gerbang, lalu dimatikan lagi sesudah `verify`.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** 17 bidang dan **10 topik `draf`**, semuanya sama dengan berkas di `main` (`32fe43a`). Citra API yang tayang `e262bb1`.
+
+**PR terbuka, berbasis `main`, tanpa migrasi:**
+
+- #110 (NLP): sesudah merge, *Pasang isi* `natural-language-processing` **tanpa ganti**, `sha` = citra API yang tayang (`e262bb1` selama tak ada merge yang menyentuh jalur API).
+- PR catatan sesi ini: hanya `docs/SESSION-LOG.md`.
+
+**Izin pemilik untuk *Pasang isi* berlaku untuk sepuluh jalan hari ini saja.** Untuk #110, tanyakan lagi sesudah merge, atau pemilik menjalankannya sendiri.
+
+**Belum diverifikasi:** bingkai video di origin https untuk #102, #104–#107, #109, dan #110 (tanpa Chrome), serta luberan 390 px untuk #104–#107, #109, dan #110.
+
+**Sisi Knowledge Graph yang tertunda:** Large Language Model dan Computer Vision belum mencantumkan `requires: deep-learning`. Ini butuh PR kecil yang mengubah kedua berkas itu, lalu *Pasang isi* dengan **ganti**.
+
+**Berikutnya, saya:** topik kelima AI & Machine Learning. Urutan ADR-010 yang tersisa: ML klasik, Reinforcement Learning, Multimodal AI. Saya akan mulai dari **Multimodal AI**, yang menggabungkan Computer Vision dan NLP.
+
+---
+
 ## 2026-10-09 — Sesi 25 (Lanjutan 5): pemilik me-merge #102, #104, #105, #106; topik ketiga AI & Machine Learning, Computer Vision
 
 Permintaan pemilik: *"lanjut"*. Keadaan diukur dulu sebelum menulis.
@@ -34,7 +92,7 @@ Cabang `fase-1/isi-computer-vision` dari `origin/main` (`af450a2`). Ceritanya: k
 
 Gerbang lokal: `.\run.ps1 isi` sah (9 topik); `.\run.ps1 gerbang-isi` **HIJAU**; halaman lokal 200 dengan 12 blok kode, 6 tabel, 5 gambar, dan 3 bingkai video; pemindai ADR-024 **28 halaman, 0 kena**; `.\run.ps1 verify` semua hijau (87 detik). Docker dinyalakan untuk gerbang, lalu dimatikan lagi sesudah `verify`.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan sesudah Lanjutan 5 (digantikan oleh 🏁 di Lanjutan 6, di atas)
 
 **Produksi:** 17 bidang dan 4 topik `draf`. Halamannya 200, tetapi isinya masih versi lama, dan empat topik baru yang sudah di-merge belum tampil.
 
