@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 560" role="img" aria-labelledby="judul desk">
+  <title id="judul">Trifecta mematikan: tiga kemampuan yang tak boleh berkumpul di satu agen</title>
+  <desc id="desk">Tiga lingkaran yang saling beririsan. Satu: akses ke data pribadi, misalnya riwayat pinjaman anggota. Dua: paparan konten tak tepercaya, misalnya ulasan pembaca atau halaman web. Tiga: kemampuan berkomunikasi ke luar, misalnya mengambil URL atau mengirim email. Di irisan ketiganya tertulis bahaya: penyerang bisa menyuruh agen mencuri data. Di bawahnya: putus satu kaki, maka pencurian lewat jalan ini tertutup.</desc>
+  <rect width="640" height="560" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Trifecta mematikan</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Istilah Simon Willison (Juni 2025). Satu agen, ketiga kemampuan: data bisa dicuri.</text>
+
+  <g fill-opacity="0.12" stroke-width="2.5">
+    <circle cx="240" cy="236" r="130" fill="#22d3ee" stroke="#22d3ee"/>
+    <circle cx="400" cy="236" r="130" fill="#a78bfa" stroke="#a78bfa"/>
+    <circle cx="320" cy="364" r="130" fill="#fbbf24" stroke="#fbbf24"/>
+  </g>
+
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" text-anchor="middle">
+    <text x="196" y="196" fill="#a5f3fc" font-size="16" font-weight="700">Data pribadi</text>
+    <text x="196" y="218" fill="#98a3c4" font-size="13">riwayat pinjaman,</text>
+    <text x="196" y="236" fill="#98a3c4" font-size="13">profil anggota</text>
+
+    <text x="440" y="190" fill="#ddd6fe" font-size="15" font-weight="700">Konten tak</text>
+    <text x="440" y="208" fill="#ddd6fe" font-size="15" font-weight="700">tepercaya</text>
+    <text x="440" y="228" fill="#98a3c4" font-size="13">ulasan pembaca,</text>
+    <text x="440" y="246" fill="#98a3c4" font-size="13">halaman web, email</text>
+
+    <text x="320" y="430" fill="#fde68a" font-size="16" font-weight="700">Komunikasi keluar</text>
+    <text x="320" y="452" fill="#98a3c4" font-size="13">ambil URL, kirim email,</text>
+    <text x="320" y="470" fill="#98a3c4" font-size="13">gambar dari alamat luar</text>
+  </g>
+
+  <!-- Irisan -->
+  <rect x="262" y="270" width="116" height="52" rx="10" fill="#fb7185" fill-opacity="0.16" stroke="#fb7185" stroke-width="2"/>
+  <text x="320" y="292" fill="#fecdd3" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="middle">✕ data dicuri</text>
+  <text x="320" y="311" fill="#fecdd3" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">bila ketiganya ada</text>
+
+  <rect x="32" y="508" width="576" height="36" rx="10" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+  <text x="48" y="531" fill="#a7f3d0" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">Putus satu kaki, misalnya buang tool yang bisa berkomunikasi ke luar.</text>
+</svg>
