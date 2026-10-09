@@ -142,6 +142,33 @@ memakai pembaca layar, atau menemui video yang penyematannya dibatasi.
   stabil (`/specification/latest`) daripada yang menyebut tanggal.
 - Tulis **kriteria selesai** di proyek mini, bukan hanya perintahnya.
 
+## Gaya bahasa: hangat dan bercerita
+
+Halaman topik adalah **bahan belajar**, bukan spesifikasi atau laporan uji. Pembacanya ingin paham, dan
+sering baru pertama kali bertemu istilahnya. Pemilik menilai versi pertama topik AI Agents *"terlalu kaku
+bahasa robot"* (2026-10-08), jadi semua topik ditulis dengan pegangan ini:
+
+- **Mulai dari yang sudah dikenal.** Buka bagian dengan analogi atau situasi nyata, jelaskan *kenapa* sesuatu
+  dibutuhkan, baru *bagaimana* caranya.
+- **Jelaskan istilah saat pertama muncul.** Istilah Inggris yang memang dipakai dokumentasinya boleh dipertahankan,
+  asal maknanya diterangkan sekali: "*indirect prompt injection* (injeksi prompt tidak langsung)".
+- **Kalimat utuh yang mengalir.** Sapa pembaca dengan *kamu*; pertanyaan retoris boleh. Hindari rentetan potongan
+  kalimat, dan jangan biarkan daftar berdiri tanpa kalimat pengantar.
+- **Kode, tabel, dan diagram diantar narasi.** Sebelum kode, katakan apa yang akan dilihat; sesudahnya, apa yang
+  perlu diperhatikan. Tabel untuk membandingkan, bukan pengganti penjelasan.
+- **Catatan verifikasi tinggal di PR.** "Diukur …", transport tiruan, `mypy`, jumlah uji: semua itu bukti untuk
+  peninjau dan ditulis di deskripsi PR serta SESSION-LOG. Di halaman cukup satu kalimat ramah bila membantu pembaca
+  percaya, mis. "contoh ini diambil dari permintaan yang benar-benar disusun SDK".
+- **Proyek mini tetap punya kriteria selesai**, ditulis sebagai tujuan yang bisa dicek pembaca sendiri
+  ("**Kamu selesai bila:** …").
+- **Gaya berubah, ketelitian tidak.** Fakta, nama API, dan kode yang sudah diverifikasi tetap persis sama.
+
+| Kaku | Hangat |
+|---|---|
+| Tool use adalah kontrak antara aplikasimu dan model. | Bayangkan kamu menelepon seorang pustakawan yang sedang di kota lain. Ia hafal ribuan judul, tetapi tak bisa melihat rakmu … |
+| Diukur di pengujian langkah 4: menghapus `is_error` membuat pemeriksaannya merah. | *(pindah ke PR)* |
+| **Selesai bila:** | **Kamu selesai bila:** |
+
 ## Alur kerja
 
 ```
