@@ -4,6 +4,46 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-09 — Sesi 25 (Lanjutan 2): topik ketujuh, Human-in-the-Loop; ketujuh topik AI Agents kini punya isi
+
+Permintaan pemilik: *"lanjutkan progress"*. Belum ada PR yang di-merge (`main` tetap `1cd5edb`).
+
+### Human-in-the-Loop — [PR #105](https://github.com/xtheoputra/techverse-x/pull/105)
+
+Cabang `fase-1/isi-human-in-the-loop` dari `origin/main`. Isinya 12 langkah, 4 diagram SVG, 2 video resmi (kanal Claude, Agustus 2026, dan kanal LangChain, Desember 2024; keterangan video kedua menyebut bahwa API-nya lebih tua dari yang diajarkan), 15 sumber, 2 proyek mini, dan `requires: tool-use`. Alat baru di katalog: `claude-agent-sdk`. `langgraph` memakai definisi bersama yang sama persis dengan topik Memori agen.
+
+**Sumber yang dibaca saat itu**: dokumentasi Claude Agent SDK, yang ternyata tinggal di `code.claude.com/docs/en/agent-sdk/*` dan tak tercantum di `llms.txt` platform; hooks (`defer`); *permission policies* Managed Agents; dua tulisan Anthropic (*Measuring AI agent autonomy*, Februari 2026; *auto mode*, Maret 2026); dokumentasi `interrupt` LangGraph; *Elicitation* MCP 2026-07-28; serta makalah *Levels of Autonomy for AI Agents* (Feng dkk., 2025). **Temuan:** dokumentasi LangGraph kini menyarankan `stream_events(..., version="v3")`, dan saat dijalankan dengan LangGraph 1.2.14, protokol itu masih memunculkan peringatan *experimental*. Halaman menyebutnya.
+
+**Diverifikasi tanpa panggilan API**, dengan SDK `anthropic` asli dan model tiruan berskenario; LangGraph dijalankan sungguhan karena `interrupt()` tak butuh model:
+
+| Uji | ok |
+|---|--:|
+| `uji_hitl.py`: jeda ke berkas lalu lanjut di proses baru, tolak, paralel, cek ulang (+ bukti merah stok −1), kedaluwarsa, kebijakan bertingkat | 18 |
+| `uji_graf.py`: efek samping sebelum `interrupt()` terjadi 2 kali (merah), sesudahnya 1 kali | 6 |
+| kutipan = yang diuji | 16 |
+
+Gerbang lokal, kali ini dalam urutan yang benar (Docker dimatikan **sesudah** `verify`): `.\run.ps1 isi` sah; `.\run.ps1 gerbang-isi` **HIJAU** (31 detik); pemindai ADR-024 **24 halaman, 0 kena**; `.\run.ps1 verify` semua hijau (105 detik). CI #105: semua hijau kecuali job citra, dengan satu temuan `next` 16.3.6 yang sama, ditambal #103.
+
+Dengan ini **ketujuh topik AI Agents** di ADR-010 punya isi. Empat sudah di `main` dan tayang sebagai `draf`; tiga lainnya (#102, #104, #105) menunggu merge.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** tak berubah, yaitu 17 bidang dan 4 topik `draf`.
+
+**PR terbuka, semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung:**
+
+- **#103 lebih dulu**: tambalan Next.js 16.3.8 dan `source-map-js` 1.2.2, dengan CI hijau semua.
+- #98, #99, #100, #101: penulisan ulang bergaya hangat. Sesudah merge, *Pasang isi* dengan **ganti** dicentang.
+- #102 (Evals & Observability), #104 (Keamanan Agen), dan #105 (Human-in-the-Loop): topik baru. Sesudah merge, *Pasang isi* **tanpa ganti**.
+- Untuk semuanya, `sha` = citra API yang **tayang** (`e262bb1` selama tak ada merge yang mengubah jalur API).
+- Sesudah #103 masuk, job citra #98–#102, #104, dan #105 baru bisa hijau bila cabangnya **diperbarui dengan `main`** (tombol *Update branch*), bukan sekadar *Re-run*.
+
+**Belum diverifikasi:** bingkai video #102, #104, #105 di https, serta luberan 390 px #104 dan #105.
+
+**Berikutnya:** bidang AI Agents selesai ditulis. Bidang atau topik berikutnya akan saya tanyakan kepada pemilik, bukan saya tebak.
+
+---
+
 ## 2026-10-09 — Sesi 25 (Lanjutan): topik keenam, Keamanan Agen
 
 Permintaan pemilik: *"lanjutkan progress"*. Belum ada PR yang di-merge (`main` tetap `1cd5edb`), jadi saya mengerjakan langkah berikutnya yang tercatat.
@@ -39,7 +79,7 @@ Tanpa Chrome, yang belum diverifikasi untuk #104: luberan di 390 px dan bingkai 
 
 Docker Desktop dinyalakan dua kali (gerbang isi, lalu `verify`) dan dimatikan lagi bersama WSL. API `:5096` dan web `:3401` sudah dimatikan, dan basis data sementara `techversex_ka` sudah dibuang.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan sesudah Lanjutan (digantikan oleh 🏁 di Lanjutan 2, di atas)
 
 **Produksi:** tak berubah, yaitu 17 bidang dan 4 topik `draf`.
 
