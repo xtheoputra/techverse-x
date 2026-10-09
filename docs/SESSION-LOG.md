@@ -4,6 +4,56 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-09 — Sesi 25 (Lanjutan 5): pemilik me-merge #102, #104, #105, #106; topik ketiga AI & Machine Learning, Computer Vision
+
+Permintaan pemilik: *"lanjut"*. Keadaan diukur dulu sebelum menulis.
+
+### Yang sudah terjadi sebelum sesi ini
+
+- Pemilik me-merge **#102** (06:27 UTC), **#104** (06:33), **#105** (06:34), dan **#106** (06:54). CI dan *Rilis citra* di `main` (`af450a2`) hijau. Tak ada yang membawa migrasi.
+- Tak satu pun berkas yang dibaca citra API berubah sejak `f7eceb8` (dibandingkan dengan daftar jalur di `abaikan-build-api.sh`), jadi citra API yang tayang tetap `e262bb1`. Produksi diukur: `/health/ready`, API topik, beranda, dan halaman topik semuanya **200**.
+- *Pasang isi* belum dijalankan sejak 2026-10-08. Kini **delapan** topik menunggu: empat yang ditulis ulang (#98–#101) dan empat topik baru (#102, #104, #105, #106).
+- Cabang #107 (Deep Learning) diperbarui dengan `main`.
+
+### Computer Vision — [PR #109](https://github.com/xtheoputra/techverse-x/pull/109)
+
+Cabang `fase-1/isi-computer-vision` dari `origin/main` (`af450a2`). Ceritanya: kamera di troli pengembalian mengenali stiker bentuk di punggung buku. Isinya 12 langkah, 5 diagram SVG dari keluaran kode, 3 video tersemat, 24 sumber, dan 2 proyek mini. `requires` kosong, karena #107 belum di-merge dan PR tak boleh bertumpuk. Alat baru di katalog adalah `torchvision`. `pytorch` disalin persis dari #107, sedangkan `numpy` dan `anthropic-python-sdk` disalin dari `main`.
+
+**Temuan dari sumber yang dibaca saat itu:**
+
+- Claude menghitung gambar per petak 28 × 28 piksel, dengan rumus ⌈lebar/28⌉ × ⌈tinggi/28⌉ token visual. Tingkat resolusi tinggi (Claude 4.7 ke atas) berbatas tepi 2576 px dan 4784 token.
+- Dokumentasi Claude tak konsisten dengan dirinya sendiri. Untuk gambar 2000 × 1500, tabel *Vision* menulis 1269 × 952, sedangkan implementasi rujukan di *vision-coordinates* menghasilkan 1270 × 952 (tokennya sama, 1564). Ditemukan karena uji gagal, lalu dibuktikan dengan menjalankan implementasi rujukan itu.
+- Kuliah CS231N 2025 di kanal Stanford Online tak bisa disematkan (oEmbed 401), jadi yang disematkan adalah rekaman 2017 dari kanal Stanford School of Engineering.
+
+**Diverifikasi tanpa biaya** dengan PyTorch 2.14.1 dan torchvision 0.29.1 di CPU. Data stiker dibuat oleh kode, dan bobot ImageNet tak diunduh:
+
+| Uji | ok |
+|---|--:|
+| `uji_cv.py`: tensor gambar, konvolusi dan rumus ukuran, CNN vs MLP, stiker bergeser dengan dan tanpa augmentasi (3 benih), transfer learning, IoU dan NMS = `torchvision.ops`, tambalan ViT, ukuran dan token Claude Vision, permintaan gambar lewat SDK dengan transport tiruan, FGSM | 55 |
+| kutipan = yang diuji (12 blok Python, setiap angka) | 28 |
+
+Gerbang lokal: `.\run.ps1 isi` sah (9 topik); `.\run.ps1 gerbang-isi` **HIJAU**; halaman lokal 200 dengan 12 blok kode, 6 tabel, 5 gambar, dan 3 bingkai video; pemindai ADR-024 **28 halaman, 0 kena**; `.\run.ps1 verify` semua hijau (87 detik). Docker dinyalakan untuk gerbang, lalu dimatikan lagi sesudah `verify`.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** 17 bidang dan 4 topik `draf`. Halamannya 200, tetapi isinya masih versi lama, dan empat topik baru yang sudah di-merge belum tampil.
+
+**Menunggu pemilik, sekarang juga:** *Pasang isi* dengan `sha` = `e262bb1`:
+
+- **dengan ganti**: `model-context-protocol`, `agent2agent-protocol`, `memori-agen`, `tool-use`;
+- **tanpa ganti**: `evals-dan-observability`, `keamanan-agen`, `human-in-the-loop`, `large-language-model`.
+
+**PR terbuka, semuanya berbasis `main`, tanpa migrasi, dan tak saling bergantung:**
+
+- #107 (Deep Learning) dan #109 (Computer Vision): topik baru. Sesudah merge, *Pasang isi* **tanpa ganti**.
+- #108: catatan sesi ini, hanya `docs/SESSION-LOG.md`.
+
+**Belum diverifikasi:** bingkai video di https untuk #102, #104–#107, dan #109, serta luberan 390 px untuk #104–#107 dan #109. Secara struktur, tabel dan blok kode #107 dan #109 punya `overflow-x: auto`.
+
+**Berikutnya, saya:** topik keempat AI & Machine Learning. Urutan ADR-010 yang tersisa: ML klasik, NLP, Reinforcement Learning, Multimodal AI. Saya akan mulai dari **NLP**, pasangan teks dari Computer Vision yang menjembatani Deep Learning dan LLM.
+
+---
+
 ## 2026-10-09 — Sesi 25 (Lanjutan 4): pemilik me-merge #103 dan #98–#101; topik kedua AI & Machine Learning, Deep Learning
 
 Permintaan pemilik: *"lanjutkan progress"*. Sesuai kebiasaan, saya mengukur keadaan dulu sebelum menulis.
@@ -32,7 +82,7 @@ Satu kegagalan uji dijadikan bahan ajar: pemeriksaan gradien pertama gagal untuk
 
 Gerbang lokal: `.\run.ps1 isi` sah (5 topik); `.\run.ps1 gerbang-isi` **HIJAU**; halaman lokal (API Release dan `next start` di atas basis data sekali pakai) 200 dengan 11 blok kode, 6 tabel, 4 gambar, dan 3 bingkai video; pemindai ADR-024 **24 halaman, 0 kena**; `.\run.ps1 verify` semua hijau (80 detik). Docker dinyalakan untuk gerbang, lalu dimatikan lagi sesudah `verify`, seperti keadaan awal.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan sesudah Lanjutan 4 (digantikan oleh 🏁 di Lanjutan 5, di atas)
 
 **Produksi:** 17 bidang dan 4 topik `draf`. Halamannya 200, tetapi isinya masih versi sebelum penulisan ulang.
 
