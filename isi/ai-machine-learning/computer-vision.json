@@ -1,0 +1,296 @@
+{
+  "slug": "computer-vision",
+  "name": "Computer Vision",
+  "fieldSlug": "ai-machine-learning",
+  "summary": "Computer vision mengajari komputer memahami gambar dan video: mengenali benda, menemukan letaknya, dan memisahkan setiap piksel menurut artinya. Bagi komputer, gambar hanyalah tabel angka, dan jaringan konvolusi (CNN) belajar menemukan pola di dalamnya: mula-mula tepi dan sudut, lalu bentuk, lalu benda utuh. Di halaman ini kamu belajar lewat cerita perpustakaan yang memasang kamera di troli pengembalian untuk mengenali stiker di punggung buku. Kamu menulis konvolusi dengan tangan, membangun dan melatih CNN pertamamu, melihat sendiri kenapa model bisa gagal ketika gambar sedikit bergeser, lalu memperbaikinya dengan augmentasi. Sesudah itu kamu mengenal arsitektur penting dari AlexNet sampai Vision Transformer, transfer learning dengan torchvision, deteksi objek dengan IoU dan non-maximum suppression, cara mengirim gambar ke Claude beserta hitungan biayanya, dan batas-batas computer vision seperti contoh adversarial. Semua contoh kode sudah dijalankan di CPU laptop biasa, tanpa GPU dan tanpa biaya.",
+  "overview": "## Kamera di troli pengembalian\n\nPerpustakaan kita sedang sibuk. Setiap hari ratusan buku dikembalikan, dan setiap buku harus kembali ke raknya. Untung setiap punggung buku sudah ditempeli stiker bentuk: **lingkaran** untuk fiksi, **persegi** untuk sains, dan **segitiga** untuk sejarah. Kepala perpustakaan lalu punya ide: pasang kamera kecil di troli pengembalian, biarkan komputer melihat stikernya, lalu tunjukkan rak tujuannya.\n\nKedengarannya mudah, karena manusia mengenali bentuk tanpa berpikir. Tetapi bagi komputer, foto stiker hanyalah tabel angka kecerahan. Ia harus belajar sendiri bahwa sekumpulan angka tertentu berarti \"lingkaran\", di mana pun stiker itu menempel dan seburam apa pun fotonya. Itulah pekerjaan **computer vision**.\n\n::media[stiker-contoh]\n\n## Peta perjalanan\n\n| Bagian | Pertanyaan yang dijawab | Langkah |\n|---|---|---|\n| Bahan dasar | bagaimana gambar disimpan, dan apa itu konvolusi | 1–3 |\n| CNN pertama | membangun, melatih, dan menguji di luar kebiasaan | 4–6 |\n| Berdiri di pundak raksasa | arsitektur terkenal dan transfer learning | 7–8 |\n| Lebih dari sekadar label | deteksi objek, segmentasi, dan Vision Transformer | 9–10 |\n| Praktik dan batas | mengirim gambar ke Claude, dan cara model bisa dikelabui | 11–12 |\n\n## Hubungannya dengan topik lain\n\nHalaman ini memakai bahan dari topik Deep Learning: neuron, loss, rambat balik, dan putaran latihan PyTorch. Bila istilah-istilah itu belum akrab, mulailah dari sana. Di langkah 10 kamu juga akan melihat bahwa Vision Transformer memakai atensi yang sama dengan Large Language Model.\n\n> [!CATATAN]\n> Data stiker di halaman ini dibuat sendiri dengan kode, sehingga siapa pun bisa mengulang percobaannya tanpa mengunduh apa-apa. Angka-angkanya berasal dari kode yang dijalankan dengan PyTorch 2.14.1 dan torchvision 0.29.1 di CPU.",
+  "media": [
+    {
+      "key": "stiker-contoh",
+      "kind": "Image",
+      "url": "/media/computer-vision/stiker-contoh.svg",
+      "alt": "Enam gambar 32 kali 32 piksel berderau. Baris atas: lingkaran, persegi, dan segitiga terang di tengah punggung buku yang gelap. Baris bawah: bentuk yang sama tetapi bergeser sampai 8 piksel dari tengah.",
+      "caption": "Gambar dari kode di langkah 5, diperbesar; kecerahan dibulatkan ke 6 tingkat.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "konvolusi-sobel",
+      "kind": "Image",
+      "url": "/media/computer-vision/konvolusi-sobel.svg",
+      "alt": "Gambar 6 kali 6 piksel, tiga kolom kiri bernilai 0 dan tiga kolom kanan bernilai 1. Filter Sobel 3 kali 3 dengan baris minus 1, 0, 1; minus 2, 0, 2; minus 1, 0, 1. Keluaran 4 kali 4, setiap barisnya 0, 4, 4, 0.",
+      "caption": "Angka dari fungsi konvolusi di atas.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "cnn-lapisan",
+      "kind": "Image",
+      "url": "/media/computer-vision/cnn-lapisan.svg",
+      "alt": "Enam tahap CNN: gambar 1 kali 32 kali 32; konvolusi dan ReLU menjadi 8 kali 32 kali 32 dengan 80 parameter; max pooling menjadi 8 kali 16 kali 16; konvolusi dan ReLU menjadi 16 kali 16 kali 16 dengan 1.168 parameter; max pooling menjadi 16 kali 8 kali 8; lapisan linear ke 3 skor dengan 3.075 parameter. Total 4.323 parameter, dibandingkan 65.795 untuk MLP.",
+      "caption": "Bentuk dan jumlah parameter dihitung dari model di atas.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "akurasi-geser",
+      "kind": "Image",
+      "url": "/media/computer-vision/akurasi-geser.svg",
+      "alt": "Grafik batang akurasi, rata-rata 3 benih. MLP: 96,8% di tengah, 40,9% bergeser. CNN: 99,9% di tengah, 39,5% bergeser. MLP dengan augmentasi: 65,6% dan 70,0%. CNN dengan augmentasi: 99,7% dan 99,3%.",
+      "caption": "Dihitung dari percobaan di langkah 5 dan 6.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "iou-nms",
+      "kind": "Image",
+      "url": "/media/computer-vision/iou-nms.svg",
+      "alt": "Dua buku. Sebelum NMS: tiga kotak menumpuk di buku pertama dengan skor 0,90, 0,75, dan 0,60, dan satu kotak di buku kedua dengan skor 0,80. Sesudah NMS dengan ambang 0,5: tersisa kotak 0,90 di buku pertama dan 0,80 di buku kedua. IoU kotak 0,90 dan 0,75 adalah 0,88.",
+      "caption": "Koordinat dan skor dari uji di langkah ini.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "video-konvolusi",
+      "kind": "Video",
+      "videoId": "KuXjwB4LzSA",
+      "alt": "But what is a convolution?",
+      "caption": "Konvolusi dijelaskan dengan animasi, dari peluang sampai pengolahan gambar seperti memburamkan dan mendeteksi tepi (23 menit, November 2022).",
+      "sourceName": "3Blue1Brown di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=KuXjwB4LzSA",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-arsitektur",
+      "kind": "Video",
+      "videoId": "DAOcjicFr1Y",
+      "alt": "Lecture 9 | CNN Architectures",
+      "caption": "Kuliah CS231n Stanford tentang AlexNet, VGG, GoogLeNet, ResNet, dan arsitektur lain (78 menit, rekaman 2017).",
+      "sourceName": "Stanford University School of Engineering di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=DAOcjicFr1Y",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-cnn",
+      "kind": "Video",
+      "videoId": "bNb2fEVKeEo",
+      "alt": "Lecture 5 | Convolutional Neural Networks",
+      "caption": "Kuliah CS231n Stanford tentang lapisan konvolusi, pooling, dan cara menyusunnya menjadi CNN (69 menit, rekaman 2017).",
+      "sourceName": "Stanford University School of Engineering di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=bNb2fEVKeEo",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    }
+  ],
+  "prerequisite": {
+    "title": "Yang perlu kamu kenal dulu: PyTorch dan dasar deep learning",
+    "description": "Sebelum mulai, pastikan hal-hal ini sudah akrab bagimu:\n\n- **Dasar deep learning**: neuron, loss, gradient descent, dan putaran latihan `zero_grad()`, `backward()`, `step()`. Semuanya dibahas di topik Deep Learning.\n- **Python dan PyTorch**: membuat tensor, mengubah bentuknya dengan `reshape`, dan memanggil `nn.Sequential`.\n- **Data latih, validasi, dan uji**, serta gagasan overfitting.\n\nPasang pustakanya dengan `pip install torch torchvision`. Semua contoh berjalan di CPU dalam hitungan detik sampai satu menit, dan tak ada yang memanggil API berbayar."
+  },
+  "roadmap": [
+    {
+      "title": "Gambar di mata komputer: tabel angka",
+      "description": "Bagi komputer, foto hitam-putih adalah tabel angka kecerahan, satu angka per piksel. Foto berwarna punya tiga tabel seperti itu, masing-masing untuk merah, hijau, dan biru. Tabel-tabel ini disebut **kanal**. PyTorch menyimpan gambar sebagai tensor berbentuk `(kanal, tinggi, lebar)`.\n\nBegini cara kita membuat foto stiker untuk percobaan, langsung dari rumus bentuknya:\n\n```python\ndef stiker(kelas: int, cx: float = 16.0, cy: float = 16.0, r: float = 6.0, ukuran: int = 32) -> torch.Tensor:\n    \"\"\"Gambar abu-abu 1 x 32 x 32: stiker terang (1,0) di atas punggung buku gelap (0,0).\"\"\"\n    y, x = torch.meshgrid(torch.arange(ukuran, dtype=torch.float32),\n                          torch.arange(ukuran, dtype=torch.float32), indexing=\"ij\")\n    if kelas == 0:\n        isi = (x - cx) ** 2 + (y - cy) ** 2 <= r ** 2\n    elif kelas == 1:\n        isi = ((x - cx).abs() <= 0.85 * r) & ((y - cy).abs() <= 0.85 * r)\n    else:  # segitiga, puncaknya di atas\n        isi = (y >= cy - r) & (y <= cy + r) & ((x - cx).abs() <= (y - (cy - r)) / 2)\n    return isi.float().unsqueeze(0)  # tambahkan sumbu kanal: (1, 32, 32)\n```\n\nHasilnya tensor `(1, 32, 32)`: satu kanal, 32 × 32 = 1,024 piksel, dengan nilai 0 untuk punggung buku yang gelap dan 1 untuk stiker yang terang.\n\nDua kebiasaan yang perlu kamu tahu saat memakai foto sungguhan:\n\n- Berkas gambar biasanya menyimpan setiap piksel sebagai bilangan bulat 0 sampai 255. `v2.ToDtype(torch.float32, scale=True)` dari torchvision mengubahnya menjadi 0 sampai 1. Uji kami: 0, 128, dan 255 menjadi 0; 0,502; dan 1.\n- Mengubah foto berwarna menjadi abu-abu bukan sekadar rata-rata ketiga kanal. Fungsi `rgb_to_grayscale` di torchvision memberi bobot 0,2989 untuk merah, 0,587 untuk hijau, dan 0,114 untuk biru. Uji kami memastikan piksel merah murni menjadi 0,2989.\n\nKarena bentuk tensornya penting, biasakan mencetak `.shape` setiap kali ragu. Banyak galat dalam computer vision ternyata hanya kanal yang tertukar tempat."
+    },
+    {
+      "title": "Konvolusi: kaca pembesar yang digeser",
+      "description": "Bayangkan kamu memeriksa poster dengan kaca pembesar kecil. Kamu menggesernya sedikit demi sedikit, dan di setiap posisi kamu hanya bertanya satu hal, misalnya \"apakah di sini ada batas gelap dan terang?\". Itulah **konvolusi**. Kaca pembesarnya disebut **filter** atau **kernel**: tabel bobot kecil, misalnya 3 × 3.\n\n```python\ndef konvolusi(gambar: Larik, filter_: Larik) -> Larik:\n    \"\"\"Geser filter ke setiap posisi; di tiap posisi, kalikan lalu jumlahkan.\"\"\"\n    tf, lf = filter_.shape\n    tinggi, lebar = gambar.shape[0] - tf + 1, gambar.shape[1] - lf + 1\n    hasil = np.zeros((tinggi, lebar))\n    for i in range(tinggi):\n        for j in range(lebar):\n            hasil[i, j] = np.sum(gambar[i:i + tf, j:j + lf] * filter_)\n    return hasil\n```\n\nFilter Sobel di bawah peka terhadap tepi tegak. Pada gambar yang separuh kirinya gelap dan separuh kanannya terang, setiap baris keluarannya bernilai 0, 4, 4, 0. Angka besar hanya muncul tepat di perbatasan:\n\n::media[konvolusi-sobel]\n\nSatu fakta kecil yang sering membingungkan: dokumentasi PyTorch menyebut `nn.Conv2d` sebagai operasi *cross-correlation*, bukan konvolusi dalam arti matematika yang membalik filternya lebih dulu. Uji kami: fungsi di atas memberi angka yang sama persis dengan `F.conv2d`, sedangkan filter Sobel yang dibalik memberi tanda kebalikannya. Dalam CNN perbedaan ini tak penting, karena bobot filternya dipelajari, bukan ditulis tangan.\n\nInilah kekuatan CNN: ia tak diberi filter Sobel, melainkan menemukan sendiri filter yang berguna. Yosinski dkk. (2014) mencatat bahwa lapisan pertama jaringan yang dilatih pada foto alami cenderung mempelajari filter mirip detektor tepi dan gumpalan warna, dan fitur seumum itu berguna untuk banyak tugas lain.\n\n::media[video-konvolusi]"
+    },
+    {
+      "title": "Padding, stride, dan pooling",
+      "description": "Tiga pengaturan menentukan ukuran keluaran sebuah konvolusi:\n\n- **Ukuran filter** (F): seberapa luas yang dilihat sekali geser.\n- **Padding** (P): bingkai nol yang ditambahkan di tepi, supaya piksel pinggir ikut terlihat dan ukuran tak menyusut.\n- **Stride** (S): sejauh apa filter melompat setiap kali digeser.\n\nCatatan kuliah CS231n dari Stanford merangkumnya dalam satu rumus untuk masukan selebar W:\n\n```python\ndef ukuran_keluaran(W: int, F: int, P: int = 0, S: int = 1) -> int:\n    \"\"\"Lebar keluaran untuk masukan selebar W, filter F, padding P, dan stride S.\"\"\"\n    return (W - F + 2 * P) // S + 1\n```\n\nContoh dari catatan itu: masukan 7 × 7 dengan filter 3 × 3 menghasilkan 5 × 5. Dengan stride 2, hasilnya 3 × 3. Uji kami mencocokkan rumus ini dengan `nn.Conv2d` pada tujuh kombinasi, termasuk lapisan pertama AlexNet: gambar 227 piksel, filter 11, stride 4, menjadi 55.\n\n**Pooling** mengecilkan peta fitur dengan meringkas setiap petak kecil. *Max pooling* 2 × 2 mengambil angka terbesar di setiap petak 2 × 2, sehingga 32 × 32 menjadi 16 × 16. Hasilnya, lapisan berikutnya \"melihat\" daerah yang lebih luas dengan perhitungan yang lebih sedikit.\n\nKenapa konvolusi hemat? Karena satu filter **dipakai bersama** di semua posisi. Catatan CS231n menghitung lapisan pertama AlexNet: 55 × 55 × 96 = 290.400 neuron, masing-masing dengan 363 bobot dan 1 bias. Bila setiap neuron punya bobotnya sendiri, lapisan itu saja butuh 105.705.600 parameter. Dengan berbagi bobot, cukup 96 filter, masing-masing 364 parameter: total 34.944."
+    },
+    {
+      "title": "Membangun CNN pertamamu",
+      "description": "Sekarang kita susun CNN untuk mengenali stiker. Polanya klasik: konvolusi, ReLU, pooling, diulang dua kali, lalu satu lapisan linear yang memberi skor untuk ketiga kelas.\n\n```python\ndef cnn() -> nn.Sequential:\n    return nn.Sequential(\n        nn.Conv2d(1, 8, kernel_size=3, padding=1), nn.ReLU(), nn.MaxPool2d(2),  # 8 x 16 x 16\n        nn.Conv2d(8, 16, kernel_size=3, padding=1), nn.ReLU(), nn.MaxPool2d(2),  # 16 x 8 x 8\n        nn.Flatten(), nn.Linear(16 * 8 * 8, 3),  # satu skor per kelas\n    )\n```\n\n::media[cnn-lapisan]\n\nPerhatikan dua hal:\n\n- **Peta fitur makin kecil tetapi makin banyak.** Dari 1 × 32 × 32 menjadi 8 × 16 × 16, lalu 16 × 8 × 8. Lapisan awal melihat potongan kecil seperti tepi. Lapisan sesudahnya menggabungkan tepi-tepi itu menjadi pola yang lebih besar, seperti lengkungan atau sudut.\n- **Parameternya sedikit.** Seluruh CNN ini hanya berisi **4.323** parameter. Sebagai pembanding, MLP sederhana yang menyambungkan setiap piksel ke 64 neuron butuh **65.795** parameter, lima belas kali lebih banyak.\n\nBentuk tensor di setiap tahap mudah salah hitung. Uji kami menjalankan gambar kosong melewati model dan mencatat bentuk sesudah setiap pooling, persis 8 × 16 × 16 dan 16 × 8 × 8. Kebiasaan ini layak kamu tiru: buat tensor nol berbentuk benar, lewatkan ke model, lalu cetak bentuk keluarannya sebelum mulai melatih.\n\n::media[video-cnn]"
+    },
+    {
+      "title": "Latih, lalu uji di luar kebiasaan",
+      "description": "Kita buat 900 foto stiker untuk latihan, 300 per bentuk, dengan ukuran acak dan derau seperti hasil pindaian. Semuanya kira-kira di tengah, karena di troli percobaan buku selalu diletakkan rapi.\n\n```python\ndef kumpulan(n: int, benih: int, geser: float, derau: float = 0.15) -> tuple[torch.Tensor, torch.Tensor]:\n    \"\"\"n gambar per kelas, ukuran acak; `geser` = pergeseran acak terjauh dari tengah, dalam piksel.\"\"\"\n    g = torch.Generator().manual_seed(benih)\n    X, y = [], []\n    for k in range(len(KELAS)):\n        for _ in range(n):\n            r = 4 + 4 * torch.rand(1, generator=g).item()\n            dx, dy = ((torch.rand(2, generator=g) * 2 - 1) * geser).tolist()\n            gambar = stiker(k, cx=16 + dx, cy=16 + dy, r=r)\n            X.append(gambar + derau * torch.randn(gambar.shape, generator=g))\n            y.append(k)\n    return torch.stack(X), torch.tensor(y)\n```\n\nLalu kita uji pada dua kumpulan baru, masing-masing 600 gambar: stiker di tengah, dan stiker yang **bergeser** sampai 8 piksel, seperti buku yang diletakkan miring oleh pengunjung yang terburu-buru. Rata-rata dari 3 benih acak:\n\n| Model | Stiker di tengah | Stiker bergeser |\n|---|---|---|\n| MLP | 96,8% | 40,9% |\n| CNN | 99,9% | 39,5% |\n\nDi tengah, keduanya nyaris sempurna. Begitu stiker bergeser, keduanya jatuh ke sekitar 40%, tak jauh dari menebak asal untuk 3 kelas.\n\nHasil CNN mungkin mengejutkan. Bukankah konvolusi ikut bergeser bersama gambar? Benar, tetapi lapisan terakhirnya adalah lapisan linear yang punya bobot sendiri untuk setiap posisi di peta 8 × 8. Selama latihan ia hanya pernah melihat stiker di tengah, jadi bobot untuk posisi pinggir tak pernah belajar apa-apa.\n\nPelajarannya lebih besar dari stiker: **model hanya andal pada data yang mirip data latihnya**. Kamera di troli sungguhan akan menemui sudut, cahaya, dan jarak yang tak pernah ada di data latih. Selalu uji modelmu pada data yang sengaja dibuat berbeda."
+    },
+    {
+      "title": "Augmentasi: mengajari dengan variasi",
+      "description": "Bila data latih kurang beragam, kita bisa membuat ragamnya sendiri. **Augmentasi data** mengubah setiap gambar secara acak setiap kali ia diambil, misalnya digeser, diputar, dipotong, atau dicerminkan, tanpa mengubah labelnya. Model jadi melihat versi baru dari setiap stiker di setiap epoch.\n\n```python\n    def __getitem__(self, i: int) -> tuple[torch.Tensor, torch.Tensor]:\n        x = self.X[i]\n        return (self.ubah(x) if self.ubah else x), self.y[i]  # augmentasi baru setiap kali diambil\n\n\naugmentasi = v2.RandomAffine(degrees=0, translate=(0.25, 0.25))  # geser acak sampai 25% lebar\n```\n\n`v2.RandomAffine` dari `torchvision.transforms.v2` menggeser setiap gambar secara acak sampai 25% lebarnya, yaitu 8 piksel. Karena dipanggil di `__getitem__`, pergeserannya berbeda setiap kali gambar yang sama diambil.\n\n::media[akurasi-geser]\n\nDengan augmentasi, CNN bertahan di **99,3%** pada stiker bergeser, dan di ketiga benih tak pernah di bawah 98,2%. MLP dengan augmentasi yang sama hanya mencapai 70,0%. Konvolusi membuat pelajaran dari satu posisi berlaku di posisi lain, sedangkan MLP harus mempelajari setiap posisi satu per satu.\n\nAugmentasi termasuk teknik terpenting dalam computer vision. Makalah U-Net (2015) bahkan menyebut penggunaan augmentasi yang kuat sebagai kunci melatih jaringan dari sangat sedikit gambar.\n\n> [!PERINGATAN]\n> Augmentasi tak boleh mengubah arti gambar. Mencerminkan foto kucing tetap kucing, tetapi memutar angka \"6\" setengah lingkaran mengubahnya menjadi \"9\". Pilih augmentasi yang sesuai dengan datamu."
+    },
+    {
+      "title": "Arsitektur yang mengubah sejarah",
+      "description": "Banyak gagasan di halaman ini lahir dari lomba **ImageNet Large Scale Visual Recognition Challenge** (ILSVRC). Russakovsky dkk. (2015) menggambarkannya sebagai tolok ukur klasifikasi dan deteksi dengan ratusan kategori dan jutaan gambar, yang digelar setiap tahun sejak 2010. Beberapa arsitektur yang menandai perjalanannya:\n\n| Model | Tahun | Gagasan kunci |\n|---|---|---|\n| LeNet | 1998 | CNN yang dilatih dengan gradien untuk mengenali dokumen |\n| AlexNet | 2012 | CNN besar di GPU: 60 juta parameter, dilatih pada 1,3 juta gambar untuk 1.000 kelas |\n| VGG | 2014 | hanya filter kecil 3 × 3, ditumpuk sampai 16–19 lapisan berbobot |\n| ResNet | 2015 | sambungan residual, sampai 152 lapisan; juara ILSVRC 2015 dengan galat 3,57% |\n| Vision Transformer | 2020 | gambar dipotong menjadi tambalan dan diproses seperti token teks (langkah 10) |\n\nAda satu benang merah. AlexNet membuktikan bahwa CNN besar yang dilatih di GPU pada data sangat banyak bisa jauh mengungguli metode lama: galat top-5 18,9% pada data uji ILSVRC-2010. VGG menunjukkan bahwa kedalaman penting. ResNet membuat kedalaman itu bisa dilatih. Vision Transformer membuktikan bahwa konvolusi pun tak mutlak wajib, asalkan data latihnya cukup besar.\n\nArsitektur-arsitektur ini tersedia siap pakai di `torchvision.models`, lengkap dengan bobot hasil latihan di ImageNet. Itulah bahan langkah berikutnya.\n\n::media[video-arsitektur]"
+    },
+    {
+      "title": "Transfer learning: meminjam mata yang sudah terlatih",
+      "description": "Melatih ResNet dari nol butuh jutaan gambar dan berhari-hari GPU. Untungnya kamu tak perlu melakukannya. Dengan **transfer learning**, kamu memakai jaringan yang sudah dilatih di ImageNet, lalu hanya mengganti bagian akhirnya untuk tugasmu sendiri.\n\n```python\ndef siapkan(jumlah_kelas: int, unduh_bobot: bool = True) -> ResNet:\n    bobot = ResNet18_Weights.DEFAULT if unduh_bobot else None  # DEFAULT = bobot terbaik yang tersedia\n    model = resnet18(weights=bobot)\n    for p in model.parameters():\n        p.requires_grad = False  # bekukan: fitur ImageNet dipakai apa adanya\n    model.fc = nn.Linear(model.fc.in_features, jumlah_kelas)  # kepala baru, satu-satunya yang dilatih\n    return model\n```\n\nTutorial resmi PyTorch menyebut dua cara:\n\n- **Fitur tetap** (seperti kode di atas): semua bobot dibekukan dengan `requires_grad = False`, lalu lapisan terakhir diganti dan hanya lapisan itu yang dilatih.\n- **Fine-tuning**: bobot ImageNet hanya dipakai sebagai titik awal, lalu seluruh jaringan ikut dilatih ulang dengan laju belajar kecil.\n\nUji kami memeriksa kode di atas tanpa mengunduh bobotnya. Dari 11.178.051 parameter ResNet-18, hanya **1.539** yang dilatih, yaitu kepala barunya. Sesudah `backward()`, hanya `fc.weight` dan `fc.bias` yang punya gradien.\n\nMetadata bobotnya bisa dibaca tanpa mengunduh apa pun. `ResNet18_Weights.DEFAULT` mencatat 1.000 kategori ImageNet dan akurasi top-1 **69,758%**. `weights.transforms()` memberi resep praproses yang harus dipakai: ubah ukuran ke 256, potong tengah 224, lalu normalisasi dengan rata-rata dan simpangan baku ImageNet. Memakai praproses yang berbeda dari saat latihan adalah kesalahan yang sering terjadi.\n\nYosinski dkk. (2014) menjelaskan kenapa cara ini berhasil. Fitur lapisan awal bersifat umum dan berguna untuk banyak tugas, sedangkan lapisan akhir makin khusus untuk tugas aslinya. Karena itu, lapisan akhirlah yang paling perlu diganti."
+    },
+    {
+      "title": "Deteksi objek dan segmentasi",
+      "description": "Sejauh ini model kita menjawab \"stiker apa ini?\". Rak yang difoto utuh memuat banyak buku sekaligus, jadi pertanyaannya bertambah:\n\n| Tugas | Keluarannya | Contoh model |\n|---|---|---|\n| klasifikasi | satu label per gambar | ResNet |\n| deteksi objek | kotak pembatas + label untuk setiap benda | Faster R-CNN, YOLO |\n| segmentasi semantik | label untuk setiap piksel | U-Net |\n| segmentasi instans | topeng piksel terpisah untuk setiap benda | Mask R-CNN |\n\nDetektor biasanya mengusulkan banyak kotak yang menumpuk untuk satu benda. Tumpang tindihnya diukur dengan **IoU** (*intersection over union*):\n\n```python\ndef iou(a: Kotak, b: Kotak) -> float:\n    \"\"\"Luas irisan dibagi luas gabungan: 1 bila kedua kotak sama persis, 0 bila tak bersentuhan.\"\"\"\n    lebar = max(0.0, min(a[2], b[2]) - max(a[0], b[0]))\n    tinggi = max(0.0, min(a[3], b[3]) - max(a[1], b[1]))\n    irisan = lebar * tinggi\n    luas_a = (a[2] - a[0]) * (a[3] - a[1])\n    luas_b = (b[2] - b[0]) * (b[3] - b[1])\n    return irisan / (luas_a + luas_b - irisan)\n```\n\nLalu **non-maximum suppression** (NMS) merapikannya:\n\n```python\ndef nms(kotak: list[Kotak], skor: list[float], ambang: float = 0.5) -> list[int]:\n    \"\"\"Simpan kotak berskor tertinggi, buang yang terlalu tumpang tindih dengannya, ulangi.\"\"\"\n    urutan = sorted(range(len(kotak)), key=lambda i: skor[i], reverse=True)\n    simpan: list[int] = []\n    for i in urutan:\n        if all(iou(kotak[i], kotak[j]) <= ambang for j in simpan):\n            simpan.append(i)\n    return simpan\n```\n\n::media[iou-nms]\n\nKeduanya memberi hasil yang sama dengan `torchvision.ops.box_iou` dan `torchvision.ops.nms`, juga pada 20 kotak acak.\n\nFaster R-CNN (2015) memakai jaringan pengusul daerah yang berbagi fitur konvolusi dengan detektornya. YOLO (2015) memakai satu jaringan yang menebak semua kotak sekaligus, sekitar 45 gambar per detik. Mask R-CNN (2017) menambahkan cabang topeng piksel ke Faster R-CNN."
+    },
+    {
+      "title": "Vision Transformer: gambar sebagai deretan tambalan",
+      "description": "Transformer lahir untuk teks. Dosovitskiy dkk. (2020) lalu bertanya: bagaimana bila gambar diperlakukan seperti kalimat? Jawabannya ada di judul makalah mereka, *An Image is Worth 16x16 Words*. Gambar dipotong menjadi **tambalan** 16 × 16 piksel, dan setiap tambalan diperlakukan seperti satu token.\n\n```python\ndef potong_tambalan(gambar: torch.Tensor, p: int = 16) -> torch.Tensor:\n    \"\"\"(C, H, W) -> (jumlah tambalan, C * p * p): satu baris per tambalan p x p.\"\"\"\n    C, H, W = gambar.shape\n    t = gambar.reshape(C, H // p, p, W // p, p)  # pecah tinggi dan lebar menjadi kisi tambalan\n    t = t.permute(1, 3, 0, 2, 4)  # (baris kisi, kolom kisi, C, p, p)\n    return t.reshape((H // p) * (W // p), C * p * p)\n```\n\nUntuk gambar 224 × 224 dengan 3 kanal, hasilnya 14 × 14 = **196 tambalan**, masing-masing berisi 16 × 16 × 3 = **768 angka**. Uji kami memastikan tambalan pertama adalah pojok kiri atas, dan tambalan ke-15 adalah awal baris kedua.\n\nDi `torchvision`, langkah ini dikerjakan oleh `conv_proj`, konvolusi 16 × 16 dengan stride 16. Uji kami membuktikan konvolusi itu **sama persis** dengan lapisan linear yang dikenakan pada setiap tambalan. Sesudahnya, satu token kelas ditambahkan di depan, sehingga model mengolah 197 posisi. Sisanya Transformer biasa: atensi membuat setiap tambalan bisa \"melihat\" semua tambalan lain, seperti setiap token melihat token lain di topik Large Language Model.\n\nViT-B/16 di torchvision berisi **86.567.656** parameter, dengan akurasi top-1 ImageNet 81,072% menurut metadata bobotnya. Makalahnya mencatat syaratnya. Transformer tak punya sebagian bias bawaan CNN, seperti lokalitas dan kepekaan terhadap pergeseran, sehingga kurang baik bila datanya sedikit. Dilatih dulu pada 14 sampai 300 juta gambar, ViT justru unggul.\n\nGagasan tambalan ini juga dipakai Claude. Dokumentasinya menyebut Claude melihat gambar dalam petak-petak 28 × 28 piksel, yang dibahas di langkah berikutnya."
+    },
+    {
+      "title": "Melihat dengan Claude",
+      "description": "Semua model Claude saat ini menerima gambar, dikirim sebagai blok `image` bersumber base64, URL, atau `file_id` dari Files API. Dokumentasinya menyarankan gambar ditaruh sebelum teks.\n\n```python\ndef jelaskan(client: anthropic.Anthropic, berkas: Path, pertanyaan: str) -> str:\n    respons = client.messages.create(\n        model=\"claude-opus-5-5\",\n        max_tokens=1024,\n        messages=[{\"role\": \"user\", \"content\": [\n            {\"type\": \"image\", \"source\": {  # gambar lebih dulu, lalu teks\n                \"type\": \"base64\", \"media_type\": \"image/png\",\n                \"data\": base64.standard_b64encode(berkas.read_bytes()).decode(),\n            }},\n            {\"type\": \"text\", \"text\": pertanyaan},\n        ]}],\n    )\n    return \"\".join(b.text for b in respons.content if b.type == \"text\")\n```\n\nDiuji dengan SDK `anthropic` asli dan server tiruan, tanpa biaya: blok gambar terkirim lebih dulu, dan base64-nya sama persis dengan isi berkas PNG.\n\nBiayanya dihitung per **token visual**, satu token untuk setiap petak 28 × 28 piksel: `math.ceil(lebar / 28) * math.ceil(tinggi / 28)`. Gambar 1000 × 1000 berarti 36 × 36 = **1.296 token**. Dengan harga masukan Claude Opus 5.5, $4 per juta token, seribu gambar seperti itu memakan sekitar **$5,18**, belum termasuk teks dan jawabannya.\n\nGambar yang terlalu besar dikecilkan dulu dengan rasio sisi tetap:\n\n| Tingkat | Model | Sisi terpanjang | Token visual maksimum |\n|---|---|---|---|\n| resolusi tinggi | Claude 4.7 dan sesudahnya | 2576 px | 4784 |\n| standar | model lain | 1568 px | 1568 |\n\nKode uji kami menghitung ukuran itu, dan hasilnya cocok dengan implementasi rujukan di dokumentasi untuk 400 ukuran acak. Satu temuan kecil: untuk 2000 × 1500 di tingkat standar, tabel dokumentasi menulis 1269 × 952, sedangkan implementasi rujukannya menghasilkan 1270 × 952. Tokennya sama, 1564. Uji sendiri angka yang penting bagimu.\n\nBatas lainnya: maksimum 8000 × 8000 piksel dan 10 MB per gambar, dengan format JPEG, PNG, GIF, atau WebP."
+    },
+    {
+      "title": "Batas computer vision: mudah dikelabui",
+      "description": "Szegedy dkk. (2013) menemukan bahwa gangguan yang nyaris tak terlihat bisa membuat jaringan salah menebak. Goodfellow dkk. (2014) lalu memberi cara cepat membuatnya, **FGSM**: geser setiap piksel sedikit ke arah yang paling menaikkan loss.\n\n```python\ndef fgsm(model: nn.Module, x: torch.Tensor, y: torch.Tensor, eps: float) -> torch.Tensor:\n    \"\"\"Geser setiap piksel sejauh eps ke arah yang paling menaikkan loss (Goodfellow dkk., 2014).\"\"\"\n    x = x.clone().requires_grad_(True)\n    loss = nn.functional.cross_entropy(model(x), y)\n    (grad,) = torch.autograd.grad(loss, x)  # turunan loss terhadap setiap piksel\n    return (x + eps * grad.sign()).detach()\n```\n\nKami menyerang CNN dengan augmentasi dari langkah 6, yang akurasinya 98,2% pada stiker bergeser. Sebagai pembanding, gangguan dengan besar yang sama tetapi arahnya acak:\n\n| Besar gangguan (eps) | Akurasi dengan FGSM | Akurasi dengan derau acak |\n|---|---|---|\n| 0,05 | 48,8% | 98,2% |\n| 0,1 | 7,7% | 97,2% |\n| 0,2 | 1,0% | 94,2% |\n\nDerau acak hampir tak berpengaruh. Gangguan yang **dipilih dengan sengaja** sebesar 0,1, sepersepuluh rentang kecerahan, menjatuhkan akurasi ke 7,7%. Model yang hebat pada data biasa belum tentu tangguh terhadap lawan yang mencari celahnya.\n\nBatas lain yang sudah kamu temui: model rapuh terhadap data yang berbeda dari data latihnya (langkah 5). Dokumentasi Claude juga mencatat batas model vision secara terbuka:\n\n- Claude tak boleh dipakai untuk menyebut nama orang di gambar, dan menolaknya.\n- Ia bisa keliru pada gambar buram, terputar, atau sangat kecil, di bawah 200 piksel.\n- Hitungan benda dan koordinatnya hanya perkiraan.\n- Ia tak bisa memastikan apakah sebuah gambar dibuat AI.\n- Ia tak dirancang untuk membaca pindaian diagnosis seperti CT atau MRI.\n\nUntuk keputusan penting, hasil computer vision, dari model mana pun, perlu diperiksa manusia."
+    }
+  ],
+  "tools": [
+    {
+      "slug": "pytorch",
+      "name": "PyTorch",
+      "summary": "Pustaka deep learning sumber terbuka untuk Python: tensor yang bisa berjalan di GPU, autograd yang menghitung gradien secara otomatis, serta modul lapisan, fungsi loss, dan optimizer.",
+      "homepage": "https://github.com/pytorch/pytorch",
+      "note": "Dipakai di seluruh halaman untuk konvolusi, CNN, dan putaran latihan. Contoh diuji dengan versi 2.14.1 di CPU."
+    },
+    {
+      "slug": "torchvision",
+      "name": "torchvision",
+      "summary": "Pustaka pendamping PyTorch untuk computer vision: arsitektur model beserta bobot terlatihnya, transformasi dan augmentasi gambar, kumpulan data, serta operasi seperti IoU dan non-maximum suppression.",
+      "homepage": "https://github.com/pytorch/vision",
+      "note": "Dipakai untuk augmentasi (langkah 6), ResNet-18 (langkah 8), IoU dan NMS (langkah 9), serta ViT-B/16 (langkah 10). Contoh diuji dengan versi 0.29.1."
+    },
+    {
+      "slug": "numpy",
+      "name": "NumPy",
+      "summary": "Pustaka sumber terbuka untuk komputasi numerik di Python: larik berdimensi banyak, perkalian matriks, dan fungsi matematika yang cepat.",
+      "homepage": "https://github.com/numpy/numpy",
+      "note": "Dipakai di langkah 2 dan 3 untuk menulis konvolusi dengan tangan."
+    },
+    {
+      "slug": "anthropic-python-sdk",
+      "name": "Anthropic Python SDK",
+      "summary": "SDK resmi untuk Messages API Claude di Python: tipe untuk definisi tool, blok tool_use dan tool_result, serta Tool Runner (beta) yang memutar putaran agen sendiri.",
+      "homepage": "https://github.com/anthropics/anthropic-sdk-python",
+      "note": "Dipakai di langkah 11 untuk mengirim gambar ke Claude sebagai blok image, dan di proyek kedua."
+    }
+  ],
+  "projects": [
+    {
+      "title": "Pemilah benda di mejamu",
+      "brief": "Buat pengenal tiga jenis benda di sekitarmu, misalnya buku, cangkir, dan pena. Ambil sendiri fotonya dengan ponsel, setidaknya 50 foto per jenis, dari berbagai sudut.\n\n- Latih dua model: CNN kecil dari nol, dan ResNet-18 dengan transfer learning (kepala baru, bobot ImageNet dibekukan).\n- Pakai augmentasi dari `torchvision.transforms.v2` untuk data latih saja, dan praproses `weights.transforms()` untuk ResNet.\n- Siapkan data uji kedua: foto yang diambil di ruangan, cahaya, atau latar yang berbeda.\n\n**Kamu selesai bila:**\n\n1. tabelmu membandingkan akurasi kedua model di data uji biasa dan data uji kedua;\n2. kamu membandingkan hasil dengan dan tanpa augmentasi, dan menjelaskan bedanya;\n3. jumlah parameter yang dilatih untuk setiap model dicatat;\n4. kamu menampilkan 5 foto yang paling sering salah ditebak dan menebak penyebabnya;\n5. data uji tak pernah dipakai untuk memilih model atau pengaturan."
+    },
+    {
+      "title": "Asisten katalog dengan Claude Vision",
+      "brief": "Proyek kedua melatih kebiasaan memakai model vision dengan hati-hati. Kumpulkan 10 foto sampul buku milikmu, lalu minta Claude membaca judul dan pengarangnya.\n\n- Sebelum mengirim, hitung ukuran yang akan dilihat Claude dan jumlah token visualnya, lalu perkirakan biayanya.\n- Kecilkan foto yang terlalu besar sendiri, supaya biaya dan hasilnya bisa diperkirakan.\n- Bandingkan jawaban Claude dengan judul dan pengarang yang kamu tulis sendiri.\n\n**Kamu selesai bila:**\n\n1. tabelmu memuat ukuran asli, ukuran yang dilihat, token visual, dan perkiraan biaya untuk setiap foto, lalu dibandingkan dengan `usage` dari respons;\n2. kamu menghitung berapa judul dan pengarang yang terbaca benar;\n3. kamu menguji setidaknya satu foto yang buram atau miring, dan mencatat apa yang terjadi;\n4. kodemu menaruh gambar sebelum teks dan tak pernah meminta Claude menyebut nama orang di sampul."
+    }
+  ],
+  "resources": [
+    {
+      "type": "OfficialDocs",
+      "title": "Vision — dokumentasi resmi Claude",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Coordinates and bounding boxes — dokumentasi resmi Claude",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision-coordinates"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Models and pre-trained weights — dokumentasi torchvision",
+      "url": "https://docs.pytorch.org/vision/stable/models.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Transforming and augmenting images — dokumentasi torchvision",
+      "url": "https://docs.pytorch.org/vision/stable/transforms.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Transfer Learning for Computer Vision — tutorial resmi PyTorch",
+      "url": "https://docs.pytorch.org/tutorials/beginner/transfer_learning_tutorial.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Convolutional Neural Networks — catatan kuliah CS231n Stanford",
+      "url": "https://cs231n.github.io/convolutional-networks/"
+    },
+    {
+      "type": "Paper",
+      "title": "Gradient-Based Learning Applied to Document Recognition (LeNet) — LeCun dkk., 1998",
+      "url": "http://yann.lecun.com/exdb/publis/pdf/lecun-01a.pdf"
+    },
+    {
+      "type": "Paper",
+      "title": "ImageNet Classification with Deep Convolutional Neural Networks (AlexNet) — Krizhevsky dkk., 2012",
+      "url": "https://papers.nips.cc/paper_files/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html"
+    },
+    {
+      "type": "Paper",
+      "title": "Very Deep Convolutional Networks for Large-Scale Image Recognition (VGG) — Simonyan dan Zisserman, 2014",
+      "url": "https://arxiv.org/abs/1409.1556"
+    },
+    {
+      "type": "Paper",
+      "title": "ImageNet Large Scale Visual Recognition Challenge — Russakovsky dkk., 2015",
+      "url": "https://arxiv.org/abs/1409.0575"
+    },
+    {
+      "type": "Paper",
+      "title": "Deep Residual Learning for Image Recognition (ResNet) — He dkk., 2015",
+      "url": "https://arxiv.org/abs/1512.03385"
+    },
+    {
+      "type": "Paper",
+      "title": "How transferable are features in deep neural networks? — Yosinski dkk., 2014",
+      "url": "https://arxiv.org/abs/1411.1792"
+    },
+    {
+      "type": "Paper",
+      "title": "Faster R-CNN — Ren dkk., 2015",
+      "url": "https://arxiv.org/abs/1506.01497"
+    },
+    {
+      "type": "Paper",
+      "title": "You Only Look Once (YOLO) — Redmon dkk., 2015",
+      "url": "https://arxiv.org/abs/1506.02640"
+    },
+    {
+      "type": "Paper",
+      "title": "U-Net: Convolutional Networks for Biomedical Image Segmentation — Ronneberger dkk., 2015",
+      "url": "https://arxiv.org/abs/1505.04597"
+    },
+    {
+      "type": "Paper",
+      "title": "Mask R-CNN — He dkk., 2017",
+      "url": "https://arxiv.org/abs/1703.06870"
+    },
+    {
+      "type": "Paper",
+      "title": "An Image is Worth 16x16 Words (Vision Transformer) — Dosovitskiy dkk., 2020",
+      "url": "https://arxiv.org/abs/2010.11929"
+    },
+    {
+      "type": "Paper",
+      "title": "Intriguing properties of neural networks — Szegedy dkk., 2013",
+      "url": "https://arxiv.org/abs/1312.6199"
+    },
+    {
+      "type": "Paper",
+      "title": "Explaining and Harnessing Adversarial Examples (FGSM) — Goodfellow dkk., 2014",
+      "url": "https://arxiv.org/abs/1412.6572"
+    },
+    {
+      "type": "Video",
+      "title": "But what is a convolution? — 3Blue1Brown",
+      "url": "https://www.youtube.com/watch?v=KuXjwB4LzSA"
+    },
+    {
+      "type": "Video",
+      "title": "Lecture 5: Convolutional Neural Networks — CS231n Stanford, 2017",
+      "url": "https://www.youtube.com/watch?v=bNb2fEVKeEo"
+    },
+    {
+      "type": "Video",
+      "title": "Lecture 9: CNN Architectures — CS231n Stanford, 2017",
+      "url": "https://www.youtube.com/watch?v=DAOcjicFr1Y"
+    },
+    {
+      "type": "Video",
+      "title": "Lecture 5: Image Classification with CNNs — Stanford CS231N, Spring 2025",
+      "url": "https://www.youtube.com/watch?v=f3g1zGdxptI"
+    },
+    {
+      "type": "Repository",
+      "title": "torchvision — kode sumber",
+      "url": "https://github.com/pytorch/vision"
+    }
+  ],
+  "requires": []
+}
