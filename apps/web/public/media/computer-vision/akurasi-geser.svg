@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 470" role="img" aria-labelledby="judul desk">
+  <title id="judul">Akurasi pada stiker di tengah dan yang bergeser</title>
+  <desc id="desk">Grafik batang akurasi pada dua data uji, rata-rata tiga benih. MLP: stiker di tengah 96,8%, stiker bergeser 40,9%; CNN: stiker di tengah 99,9%, stiker bergeser 39,5%; MLP + augmentasi: stiker di tengah 65,6%, stiker bergeser 70,0%; CNN + augmentasi: stiker di tengah 99,7%, stiker bergeser 99,3%. Tanpa augmentasi, kedua model jatuh ke sekitar 40% bila stiker bergeser. Dengan augmentasi geser, CNN bertahan di atas 98%, sedangkan MLP tertahan sekitar 70%.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="640" height="470" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Ketika stiker tak lagi di tengah</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Akurasi pada dua data uji, rata-rata 3 benih acak.</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="32" y="98" width="14" height="14" rx="3" fill="#3987e5"/>
+    <text x="54" y="110" fill="#c3cce6" font-size="13">stiker di tengah</text>
+    <rect x="200.4" y="98" width="14" height="14" rx="3" fill="#d95926"/>
+    <text x="222.4" y="110" fill="#c3cce6" font-size="13">stiker bergeser</text>
+    <path d="M78 360.0 H608" stroke="#2a3354" stroke-width="1"/>
+    <text x="68" y="364.0" fill="#98a3c4" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="end">0%</text>
+    <path d="M78 302.5 H608" stroke="#2a3354" stroke-width="1"/>
+    <text x="68" y="306.5" fill="#98a3c4" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="end">25%</text>
+    <path d="M78 245.0 H608" stroke="#2a3354" stroke-width="1"/>
+    <text x="68" y="249.0" fill="#98a3c4" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="end">50%</text>
+    <path d="M78 187.5 H608" stroke="#2a3354" stroke-width="1"/>
+    <text x="68" y="191.5" fill="#98a3c4" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="end">75%</text>
+    <path d="M78 130.0 H608" stroke="#2a3354" stroke-width="1"/>
+    <text x="68" y="134.0" fill="#98a3c4" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="end">100%</text>
+    <path d="M103.2 360 V141.4 Q103.2 137.4 107.2 137.4 H139.2 Q143.2 137.4 143.2 141.4 V360 Z" fill="#3987e5"/>
+    <text x="123.2" y="129.4" fill="#c3cce6" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle">96,8%</text>
+    <path d="M145.2 360 V269.9 Q145.2 265.9 149.2 265.9 H181.2 Q185.2 265.9 185.2 269.9 V360 Z" fill="#d95926"/>
+    <text x="165.2" y="257.9" fill="#c3cce6" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle">40,9%</text>
+    <text x="144.2" y="382" fill="#c3cce6" font-size="13" text-anchor="middle">MLP</text>
+    <path d="M235.8 360 V134.2 Q235.8 130.2 239.8 130.2 H271.8 Q275.8 130.2 275.8 134.2 V360 Z" fill="#3987e5"/>
+    <text x="255.8" y="122.2" fill="#c3cce6" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle">99,9%</text>
+    <path d="M277.8 360 V273.1 Q277.8 269.1 281.8 269.1 H313.8 Q317.8 269.1 317.8 273.1 V360 Z" fill="#d95926"/>
+    <text x="297.8" y="261.1" fill="#c3cce6" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle">39,5%</text>
+    <text x="276.8" y="382" fill="#c3cce6" font-size="13" text-anchor="middle">CNN</text>
+    <path d="M368.2 360 V213.1 Q368.2 209.1 372.2 209.1 H404.2 Q408.2 209.1 408.2 213.1 V360 Z" fill="#3987e5"/>
+    <text x="388.2" y="201.1" fill="#c3cce6" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle">65,6%</text>
+    <path d="M410.2 360 V203.0 Q410.2 199.0 414.2 199.0 H446.2 Q450.2 199.0 450.2 203.0 V360 Z" fill="#d95926"/>
+    <text x="430.2" y="191.0" fill="#c3cce6" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle">70,0%</text>
+    <text x="409.2" y="382" fill="#c3cce6" font-size="13" text-anchor="middle">MLP</text>
+    <text x="409.2" y="400" fill="#98a3c4" font-size="12" text-anchor="middle">+ augmentasi</text>
+    <path d="M500.8 360 V134.7 Q500.8 130.7 504.8 130.7 H536.8 Q540.8 130.7 540.8 134.7 V360 Z" fill="#3987e5"/>
+    <text x="520.8" y="122.7" fill="#c3cce6" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle">99,7%</text>
+    <path d="M542.8 360 V135.6 Q542.8 131.6 546.8 131.6 H578.8 Q582.8 131.6 582.8 135.6 V360 Z" fill="#d95926"/>
+    <text x="562.8" y="123.6" fill="#c3cce6" font-size="12" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="middle">99,3%</text>
+    <text x="541.8" y="382" fill="#c3cce6" font-size="13" text-anchor="middle">CNN</text>
+    <text x="541.8" y="400" fill="#98a3c4" font-size="12" text-anchor="middle">+ augmentasi</text>
+    <text x="32" y="446" fill="#98a3c4" font-size="12">900 gambar latih (semua di tengah), 600 gambar per data uji, 20 epoch. Dihitung dari kode langkah 5 dan 6.</text>
+  </g>
+</svg>

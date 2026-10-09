@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 560" role="img" aria-labelledby="judul desk">
+  <title id="judul">Susunan CNN kecil untuk stiker 32 kali 32</title>
+  <desc id="desk">Enam tahap dari atas ke bawah. Gambar 1 kali 32 kali 32. Konvolusi dengan 8 filter 3 kali 3 dan ReLU: 8 kali 32 kali 32, 80 parameter. Max pooling: 8 kali 16 kali 16. Konvolusi dengan 16 filter: 16 kali 16 kali 16, 1168 parameter. Max pooling: 16 kali 8 kali 8. Lapisan linear ke 3 skor kelas: 3075 parameter. Totalnya 4323 parameter, dibandingkan 65795 parameter untuk MLP yang menyambungkan setiap piksel ke 64 neuron.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="640" height="560" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Susunan CNN kecil</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Peta fitur makin kecil tetapi makin banyak; parameternya sedikit.</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="32" y="104" width="400" height="50" rx="12" fill="#3987e5" fill-opacity="0.1" stroke="#3987e5" stroke-width="1.5"/>
+    <text x="48" y="135" fill="#eef2ff" font-size="15" font-weight="700">gambar</text>
+    <text x="416" y="135" fill="#c3cce6" font-size="14" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="end">1 × 32 × 32</text>
+    <path d="M232 154 V168" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <rect x="32" y="170" width="400" height="50" rx="12" fill="#a78bfa" fill-opacity="0.1" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="48" y="201" fill="#eef2ff" font-size="15" font-weight="700">konvolusi + ReLU</text>
+    <text x="416" y="201" fill="#c3cce6" font-size="14" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="end">8 × 32 × 32</text>
+    <text x="452" y="201" fill="#98a3c4" font-size="13">80 parameter</text>
+    <path d="M232 220 V234" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <rect x="32" y="236" width="400" height="50" rx="12" fill="#98a3c4" fill-opacity="0.1" stroke="#98a3c4" stroke-width="1.5"/>
+    <text x="48" y="267" fill="#eef2ff" font-size="15" font-weight="700">max pooling</text>
+    <text x="416" y="267" fill="#c3cce6" font-size="14" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="end">8 × 16 × 16</text>
+    <text x="452" y="267" fill="#98a3c4" font-size="13">0 parameter</text>
+    <path d="M232 286 V300" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <rect x="32" y="302" width="400" height="50" rx="12" fill="#a78bfa" fill-opacity="0.1" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="48" y="333" fill="#eef2ff" font-size="15" font-weight="700">konvolusi + ReLU</text>
+    <text x="416" y="333" fill="#c3cce6" font-size="14" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="end">16 × 16 × 16</text>
+    <text x="452" y="333" fill="#98a3c4" font-size="13">1.168 parameter</text>
+    <path d="M232 352 V366" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <rect x="32" y="368" width="400" height="50" rx="12" fill="#98a3c4" fill-opacity="0.1" stroke="#98a3c4" stroke-width="1.5"/>
+    <text x="48" y="399" fill="#eef2ff" font-size="15" font-weight="700">max pooling</text>
+    <text x="416" y="399" fill="#c3cce6" font-size="14" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="end">16 × 8 × 8</text>
+    <text x="452" y="399" fill="#98a3c4" font-size="13">0 parameter</text>
+    <path d="M232 418 V432" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <rect x="32" y="434" width="400" height="50" rx="12" fill="#199e70" fill-opacity="0.1" stroke="#199e70" stroke-width="1.5"/>
+    <text x="48" y="465" fill="#eef2ff" font-size="15" font-weight="700">linear</text>
+    <text x="416" y="465" fill="#c3cce6" font-size="14" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" text-anchor="end">3 skor</text>
+    <text x="452" y="465" fill="#98a3c4" font-size="13">3.075 parameter</text>
+    <text x="32" y="510" fill="#c3cce6" font-size="14">Total 4.323 parameter. MLP untuk gambar yang sama: 65.795.</text>
+    <text x="32" y="534" fill="#98a3c4" font-size="12">Bentuk ditulis kanal × tinggi × lebar. Dihitung dari model di langkah 4.</text>
+  </g>
+</svg>
