@@ -4,6 +4,61 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-09 — Sesi 25: topik kelima, Evals & Observability, ditulis langsung dengan gaya hangat
+
+Permintaan pemilik: *"lanjutkan progress"*. Di tengah sesi: *"jangan buka di chrome, mengganggu pc lain"*.
+
+### Keadaan saat mulai
+
+Pohon kerja bersih. #98–#101 masih terbuka dan belum di-merge, `main` tetap `1cd5edb`. Ujung transkrip kemarin cocok dengan 🏁 Lanjutan 3: tak ada pekerjaan yang terputus. Jadi yang dikerjakan adalah langkah berikutnya yang tercatat, yaitu topik kelima.
+
+### Topik kelima: Evals & Observability — [PR #102](https://github.com/xtheoputra/techverse-x/pull/102)
+
+Cabang `fase-1/isi-evals-observability` dari `origin/main`, tanpa tumpukan. Isinya 13 langkah, 4 diagram SVG buatan sendiri, 2 video resmi (kanal Claude dan Langfuse), 16 sumber, 2 proyek mini, dan `requires: tool-use`. Topik ini langsung ditulis mengikuti pegangan gaya di `isi/README.md`.
+
+**Dua hal yang pindah tempat, ditemukan karena sumbernya dibaca saat itu juga.** Konvensi semantik GenAI OpenTelemetry kini tinggal di repositori `semantic-conventions-genai`; halaman lamanya di `semantic-conventions` hanya berisi pemberitahuan pindah. Instrumentasi GenAI untuk Python juga pindah ke `opentelemetry-python-genai`, dan di sanalah paket resmi `opentelemetry-instrumentation-genai-anthropic` (1.2b0) berada.
+
+**Diverifikasi tanpa panggilan API.** SDK `anthropic` 1.12.1 dipakai bersama model tiruan lewat `httpx2.MockTransport`. Instrumentasi OpenTelemetry resmi dibaca lewat `InMemorySpanExporter`, dan Inspect 0.3.277 dijalankan dengan `mockllm`. Hasilnya, dalam jumlah `ok` yang tercatat dari keluaran:
+
+| Uji | ok |
+|---|--:|
+| harness eval, termasuk bukti merah lingkungan bersama | 19 |
+| jejak dari instrumentasi resmi | 13 |
+| hakim LLM dan kesepakatan | 14 |
+| statistik | 10 |
+| Inspect (reducer `pass_at_3`/`pass_k_3` = fungsi kita) | 6 |
+| kutipan = yang diuji | 28 |
+
+Tiga temuan dari jejak yang direkam dan masuk ke halaman: `gen_ai.usage.input_tokens` sudah memuat token cache (2234 = 1210 + 1024); `stop_reason` dibakukan (`tool_use` → `tool_call`, `end_turn` → `stop`); dan isi pesan tidak terekam selama variabel penangkap isi tidak diatur.
+
+Gerbang lokal: `.\run.ps1 isi` sah (5 topik); `.\run.ps1 gerbang-isi` **HIJAU** (36 detik, 5 topik, gerbang 2 dan 3 masing-masing 36 ok); pemindai ADR-024 **24 halaman, 0 kena**; `.\run.ps1 verify` semua hijau (120 detik). Diagram dirender dengan `sharp` di 760 dan 340 px. Satu label yang menimpa garis di grafik pass-k diperbaiki, dan warnanya lolos `validate_palette.js` untuk mode gelap.
+
+### Chrome tidak dipakai lagi
+
+Pemeriksaan tampilan dimulai seperti biasa lewat Chrome (halaman di desktop, lalu bingkai 390 px: `scrollWidth` 380 = `clientWidth` 380). Pemilik lalu menghentikannya karena tab itu **mengganggu PC lain**. Tab yang saya buka sudah tertutup dari sana. Sejak saat itu tak ada alat browser yang dipanggil. Pemeriksaan sisanya memakai `curl`, render `sharp`, dan pemindai Node. Akibatnya, **bingkai kedua video belum dilihat di origin https**; yang terbukti baru oEmbed 200 dan `"playableInEmbed":true`. Aturan ini dicatat di memori agar sesi berikutnya mengikutinya.
+
+### Lingkungan
+
+Docker Desktop dinyalakan untuk gerbang isi; memori mesin sempat tinggal ± 0,5 GB karena Visual Studio juga terbuka. API `:5096` dan web `:3401` yang saya nyalakan sudah dimatikan (PID dicocokkan dengan baris perintahnya), dan basis data sementara `techversex_eo` sudah dibuang. Kontainer `techversex-*` dibiarkan menyala; kontainer `wellsy-*` milik proyek lain ikut menyala bersama Docker dan tidak saya sentuh.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** tak berubah sejak Lanjutan 3, yaitu 17 bidang dan 4 topik `draf`.
+
+**PR terbuka, semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung:**
+
+- #98, #99, #100, #101: penulisan ulang bergaya hangat. Sesudah merge, *Pasang isi* dengan **ganti** dicentang.
+- #102: topik baru. Sesudah merge, *Pasang isi* `evals-dan-observability` **tanpa ganti**.
+- Untuk keduanya, `sha` = citra API yang **tayang** (`e262bb1` selama tak ada merge yang mengubah jalur API).
+
+Catatan ini menumpang di #101 karena hanya PR itu yang menyentuh `docs/SESSION-LOG.md`.
+
+**Belum diverifikasi:** bingkai video #102 di https (lihat di atas).
+
+**Berikutnya, saya:** topik keenam, **Keamanan agen**, lalu Human-in-the-loop.
+
+---
+
 ## 2026-10-08 — Sesi 24 (Lanjutan 3): Memori tayang, lalu keempat topik ditulis ulang dengan bahasa yang hangat
 
 Permintaan pemilik: *"1. terlalu kaku bahasa robot, gunakan bahasa yang baik untuk pembelajaran. 2. merged"*.
