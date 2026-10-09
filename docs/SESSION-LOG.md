@@ -4,6 +4,47 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-09 — Sesi 25 (penutup): pemilik me-merge #110 dan #111, lalu menutup sesi
+
+Permintaan pemilik: *"sudah saya merge, simpan commit dan push dulu, akan saya akhiri sesi hari ini"*.
+
+- Pemilik me-merge **#110** (NLP, 08:31 UTC) dan **#111** (catatan Lanjutan 6, 08:35). CI dan *Rilis citra* untuk `c76c1ab` hijau.
+- Sejak `32fe43a`, tak ada berkas yang dibaca citra API berubah, jadi citra API yang tayang tetap `e262bb1`.
+- Produksi diukur pukul 08:35 UTC: `/health/ready` 200 dan beranda 200. `/api/v1/technologies/natural-language-processing` menjawab **404**, karena *Pasang isi* untuk NLP belum dijalankan. Izin pemilik tadi hanya untuk sepuluh jalan sebelumnya, jadi saya tidak menjalankannya.
+- Tidak ada pekerjaan yang tertinggal di luar commit. Docker dan WSL mati, dan tak ada server dari sesi ini yang masih berjalan (port 3401, 5096, dan 5099 kosong).
+
+**Hari ini 14 PR masuk ke `main`** (#98–#111):
+
+- penulisan ulang bergaya hangat untuk MCP, A2A, Memori Agen, dan Tool use;
+- tambalan Next.js;
+- tujuh topik baru: Evals & Observability, Keamanan Agen, Human-in-the-Loop, Large Language Model, Deep Learning, Computer Vision, dan NLP;
+- catatan sesi.
+
+Sepuluh topik kini tayang di produksi. NLP tampil sesudah *Pasang isi* dijalankan.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** 17 bidang dan **10 topik `draf`**. Citra API yang tayang `e262bb1`, dan `main` = `59bcfee`.
+
+**Menunggu pemilik:** *Pasang isi* `natural-language-processing` **tanpa ganti**, `sha=e262bb1`. Pemilik bisa menjalankannya sendiri, atau mengizinkan saya di sesi berikutnya. Sesudahnya, ukur `/api/v1/technologies/natural-language-processing` dan halaman `/teknologi/natural-language-processing`.
+
+**PR terbuka:** hanya PR catatan penutup ini, yang berisi `docs/SESSION-LOG.md` saja.
+
+**Tertunda, dengan syarat:**
+
+- Sisi Knowledge Graph: Large Language Model dan Computer Vision belum mencantumkan `requires: deep-learning`. Ini butuh PR kecil yang mengubah kedua berkas itu, lalu *Pasang isi* dengan **ganti**.
+
+**Belum diverifikasi** (tanpa Chrome):
+
+- bingkai video di origin https untuk #102, #104–#107, #109, dan #110;
+- luberan 390 px untuk #104–#107, #109, dan #110. Secara struktur, tabel dan blok kode punya `overflow-x: auto`.
+
+**Lingkungan:** venv uji tetap ada di `%TEMP%\tv-evals`, dengan torch 2.14.1, torchvision 0.29.1, scikit-learn 1.9.1, PySastrawi 1.2.1, dan anthropic 1.12.1. Berkas uji per topik ada di `uji-dl`, `uji-cv`, dan `uji-nlp` di folder yang sama, di luar repo. Docker mati.
+
+**Berikutnya, saya:** topik kelima AI & Machine Learning. Urutan ADR-010 yang tersisa: ML klasik, Reinforcement Learning, Multimodal AI. Saya akan mulai dari **Multimodal AI**, yang menggabungkan Computer Vision dan NLP. Sebelum itu, saya cek dulu apakah *Pasang isi* NLP sudah berjalan.
+
+---
+
 ## 2026-10-09 — Sesi 25 (Lanjutan 6): sepuluh topik dipasang ke produksi atas izin pemilik; topik keempat AI & Machine Learning, NLP
 
 Permintaan pemilik: *"sudah, lanjutkan"*. Keadaan diukur dulu.
@@ -43,7 +84,7 @@ Cabang `fase-1/isi-nlp` dari `origin/main` (`32fe43a`). Ceritanya kotak obrolan 
 
 Gerbang lokal: `.\run.ps1 isi` sah (11 topik); `.\run.ps1 gerbang-isi` **HIJAU**; halaman lokal 200 dengan 6 blok kode, 6 tabel, 3 gambar, 2 bingkai video, dan tautan prasyarat Deep Learning; pemindai ADR-024 **0 kena**; `.\run.ps1 verify` semua hijau (57 detik). Docker dinyalakan untuk gerbang, lalu dimatikan lagi sesudah `verify`.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan sesudah Lanjutan 6 (digantikan oleh 🏁 di penutup Sesi 25, di atas)
 
 **Produksi:** 17 bidang dan **10 topik `draf`**, semuanya sama dengan berkas di `main` (`32fe43a`). Citra API yang tayang `e262bb1`.
 
