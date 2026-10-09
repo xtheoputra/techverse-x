@@ -1,0 +1,242 @@
+{
+  "slug": "natural-language-processing",
+  "name": "Natural Language Processing (NLP)",
+  "fieldSlug": "ai-machine-learning",
+  "summary": "Natural Language Processing (NLP) mengajari komputer bekerja dengan bahasa manusia: memahami maksud sebuah pesan, mengenali nama orang dan tempat, menerjemahkan, merangkum, sampai menjawab pertanyaan. Tantangannya, bahasa itu berantakan: satu kata bisa bermakna ganda, orang menulis dengan singkatan dan bahasa gaul, dan bahasa Indonesia penuh imbuhan. Di halaman ini kamu belajar lewat kotak obrolan perpustakaan yang harus menebak maksud setiap pesan pengunjung. Kamu memecah teks menjadi token, mencari kata dasar dengan Sastrawi, menimbang kata dengan TF-IDF, melatih pengelompok teks pertamamu, lalu mengukurnya dengan presisi, recall, dan F1. Sesudah itu kamu membangun vektor kata dari tetangga-tetangganya, mengenal word2vec, perjalanan dari RNN ke Transformer dan BERT, sumber daya NLP berbahasa Indonesia, cara memakai Claude dengan keluaran terstruktur, dan batas-batas NLP. Semua contoh kode sudah dijalankan di laptop biasa tanpa biaya.",
+  "overview": "## Kotak obrolan perpustakaan\n\nPerpustakaan kita kini punya kotak obrolan di situsnya. Setiap hari puluhan pesan masuk: ada yang ingin meminjam buku, ada yang minta masa pinjamnya diperpanjang, ada yang bertanya soal denda, dan ada yang sekadar ingin tahu jam buka. Pustakawan ingin setiap pesan langsung diteruskan ke petugas yang tepat.\n\nMasalahnya, pengunjung tidak menulis seperti buku pelajaran. Mereka menulis \"kak, mau minjem komik dong\", \"boleh extend seminggu?\", atau \"besok buka gk min?\". Bagi manusia maksudnya jelas. Bagi komputer, itu hanya deretan huruf. Mengajari komputer menangkap maksud dari deretan huruf seperti itu adalah pekerjaan **Natural Language Processing** (NLP).\n\n::media[alur-teks]\n\n::media[video-cs224n]\n\n## Peta perjalanan\n\n| Bagian | Pertanyaan yang dijawab | Langkah |\n|---|---|---|\n| Teks menjadi angka | kenapa bahasa sulit, token, kata dasar, TF-IDF | 1–4 |\n| Pengelompok pertama | melatih model dan mengukurnya dengan jujur | 5–6 |\n| Makna | vektor kata, word2vec, dan embedding | 7–8 |\n| Model modern | dari RNN ke Transformer, dan NLP berbahasa Indonesia | 9–10 |\n| Praktik dan batas | memakai Claude dengan keluaran terstruktur, serta batas-batas NLP | 11–12 |\n\n## Hubungannya dengan topik lain\n\nHalaman ini memakai gagasan dari topik Deep Learning: loss, model linear, dan data latih, validasi, serta uji. Langkah 9 menyambung ke topik Large Language Model, yang membahas Transformer dan atensi lebih dalam. Langkah 7 sejalan dengan topik Computer Vision: di sana gambar menjadi angka, di sini kata menjadi angka.\n\n> [!CATATAN]\n> Data pesan di halaman ini kecil dan dibuat sendiri: 160 pesan latih dari templat, dan 40 pesan uji yang ditulis tangan dengan gaya berbeda. Angka-angkanya berasal dari kode yang dijalankan dengan scikit-learn 1.9.1 dan PySastrawi 1.2.1. Pada data sungguhan yang jauh lebih besar dan beragam, angkanya akan berbeda, tetapi pelajarannya sama.",
+  "media": [
+    {
+      "key": "alur-teks",
+      "kind": "Image",
+      "url": "/media/natural-language-processing/alur-teks.svg",
+      "alt": "Pesan 'Kak, saya mau memperpanjang pinjaman ya?' melewati empat tahap. Token: kak, saya, mau, memperpanjang, pinjaman, ya. Kata dasar: memperpanjang menjadi panjang, pinjaman menjadi pinjam. TF-IDF mengubahnya menjadi angka. Regresi logistik memberi peluang: perpanjang 0,66; denda 0,13; pinjam 0,13; jam buka 0,08.",
+      "caption": "Peluang dari model dengan kata dasar di langkah 5.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "matriks-kebingungan",
+      "kind": "Image",
+      "url": "/media/natural-language-processing/matriks-kebingungan.svg",
+      "alt": "Matriks kebingungan 4 kali 4 untuk 40 pesan uji. Pinjam: 9 benar, 1 ditebak denda. Perpanjang: 7 benar, 3 ditebak pinjam. Denda: 10 benar. Jam buka: 10 benar. Presisi dan recall: pinjam 0,75 dan 0,90; perpanjang 1,00 dan 0,70; denda 0,91 dan 1,00; jam buka 1,00 dan 1,00.",
+      "caption": "Model token dari langkah 5.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "rnn-ke-transformer",
+      "kind": "Image",
+      "url": "/media/natural-language-processing/rnn-ke-transformer.svg",
+      "alt": "Empat tahap: RNN dan LSTM membaca kata satu per satu; seq2seq 2014 memadatkan kalimat menjadi satu vektor; atensi 2014 membiarkan decoder menengok ke setiap kata sumber; Transformer 2017 hanya memakai atensi. Dari Transformer lahir encoder seperti BERT 2018 untuk memahami teks, dan model pembangkit teks seperti LLM untuk menulis.",
+      "caption": "Ringkasan dari makalah Sutskever dkk., Bahdanau dkk., Vaswani dkk., dan Devlin dkk.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "video-cs224n",
+      "kind": "Video",
+      "videoId": "rmVRLeJRkl4",
+      "alt": "Stanford CS224N: NLP with Deep Learning | Winter 2021 | Lecture 1 - Intro & Word Vectors",
+      "caption": "Kuliah pembuka CS224N Stanford: bahasa manusia, makna kata, dan algoritme word2vec (84 menit, rekaman 2021).",
+      "sourceName": "Stanford Online di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=rmVRLeJRkl4",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-transformer",
+      "kind": "Video",
+      "videoId": "wjZofJX0v4M",
+      "alt": "Transformers, the tech behind LLMs | Deep Learning Chapter 5",
+      "caption": "Cara kerja Transformer dijelaskan dengan animasi, dari embedding sampai menebak token berikutnya (27 menit, April 2024).",
+      "sourceName": "3Blue1Brown di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=wjZofJX0v4M",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    }
+  ],
+  "prerequisite": {
+    "title": "Yang perlu kamu kenal dulu: Python dan dasar machine learning",
+    "description": "Sebelum mulai, pastikan hal-hal ini sudah akrab bagimu:\n\n- **Python 3.10 atau lebih baru**: string, list, dictionary, dan ekspresi reguler sederhana.\n- **Dasar machine learning**: model dilatih pada data latih lalu diuji pada data yang belum pernah dilihatnya. Topik Deep Learning menjelaskannya.\n- **Vektor**: deretan angka, dan kosinus sudut antara dua vektor sebagai ukuran kemiripan.\n\nPasang pustakanya dengan `pip install scikit-learn PySastrawi numpy`. Semua contoh berjalan dalam hitungan detik, dan tak ada yang memanggil API berbayar."
+  },
+  "roadmap": [
+    {
+      "title": "Bahasa itu berantakan",
+      "description": "Coba baca kalimat ini: \"Di kebun binatang itu ada beruang.\" Lalu yang ini: \"Dia sekarang sudah beruang.\" Kata yang sama, *beruang*, berarti binatang di kalimat pertama dan punya uang di kalimat kedua. Manusia membedakannya dari konteks tanpa berpikir. Komputer harus belajar melakukannya.\n\nKesulitan seperti ini ada di mana-mana:\n\n- **Makna ganda.** *Bisa* berarti mampu atau racun ular. *Apel* bisa buah, bisa upacara pagi.\n- **Gaya tulis sehari-hari.** \"gk\", \"yg\", \"min\", \"minjem\", dan campuran bahasa Inggris seperti \"extend\".\n- **Imbuhan bahasa Indonesia.** *Pinjam*, *meminjam*, *dipinjam*, *peminjaman*, dan *pinjaman* berasal dari satu kata dasar.\n\nNLP mencakup banyak tugas. Beberapa yang paling sering ditemui:\n\n| Tugas | Contoh di perpustakaan |\n|---|---|\n| klasifikasi teks | menebak maksud pesan: pinjam, perpanjang, denda, atau jam buka |\n| analisis sentimen | apakah ulasan buku bernada positif atau negatif |\n| pengenalan entitas | menemukan judul buku dan nama pengarang di dalam pesan |\n| terjemahan | menerjemahkan sinopsis dari bahasa Inggris |\n| ringkasan | merangkum laporan kunjungan bulanan |\n| tanya jawab | menjawab \"buku ini ada di rak mana?\" dari katalog |\n\nHalaman ini mengikuti satu tugas dari awal sampai akhir: **klasifikasi maksud** untuk kotak obrolan perpustakaan. Buku *Speech and Language Processing* edisi ketiga karya Jurafsky dan Martin membahas klasifikasi teks dengan regresi logistik di bab 4, dan alat yang kita pakai berlaku juga untuk tugas lain.\n\nBahasa Indonesia punya tantangan tambahan. Wilie dkk. (2020) mencatat bahwa bahasa Indonesia adalah bahasa keempat yang paling sering dipakai di internet, tetapi riset NLP-nya berjalan lambat karena sumber dayanya kurang. Langkah 10 membahas apa yang sudah tersedia."
+    },
+    {
+      "title": "Memotong teks menjadi token",
+      "description": "Langkah pertama hampir selalu sama: potong teks menjadi **token**, satuan kecil yang akan diolah. Untuk bahasa Indonesia, cara sederhana adalah menjadikan semuanya huruf kecil, membuang tanda baca, lalu memisahkan di spasi:\n\n```python\ndef token(teks: str) -> list[str]:\n    teks = teks.lower()  # \"Buku\" dan \"buku\" dianggap sama\n    teks = re.sub(r\"[^\\w\\s-]\", \" \", teks)  # buang tanda baca, kecuali tanda hubung kata ulang\n    return teks.split()\n```\n\n`\"Buku-buku itu, BAGUS sekali!\"` menjadi `[\"buku-buku\", \"itu\", \"bagus\", \"sekali\"]`. Tanda hubung sengaja dipertahankan, supaya kata ulang tetap satu token.\n\nKeputusan sekecil ini berpengaruh. Pemecah bawaan `TfidfVectorizer` di scikit-learn memakai pola `(?u)\\b\\w\\w+\\b`: hanya rangkaian huruf atau angka yang panjangnya minimal dua. Uji kami pada `\"Buku-buku 3 a bagus\"` menghasilkan `[\"buku\", \"buku\", \"bagus\"]`. Kata ulang terbelah dua, sedangkan angka \"3\" dan huruf \"a\" hilang. Untuk pesan seperti \"boleh pinjam 3 buku?\", angka itu mungkin penting.\n\nPelajarannya: jangan menerima pemecah token apa adanya. Coba pada beberapa kalimat dari datamu sendiri, lalu periksa hasilnya dengan mata.\n\nModel bahasa besar memakai cara lain lagi, yaitu potongan kata yang dipelajari dari data, seperti Byte Pair Encoding di topik Large Language Model. Kata yang jarang dipecah menjadi beberapa potongan, sehingga tak ada kata yang benar-benar asing."
+    },
+    {
+      "title": "Kata dasar: menyatukan keluarga kata",
+      "description": "*Memperpanjang*, *diperpanjang*, dan *perpanjangan* punya inti makna yang sama. Bagi pemecah token, ketiganya kata yang berbeda sama sekali. **Stemming** memangkas imbuhan sehingga keluarga kata itu menyatu.\n\nUntuk bahasa Indonesia, pustaka sumber terbuka **Sastrawi** sudah siap pakai:\n\n```python\ndef kata_dasar(kata: str) -> str:\n    return str(_pemotong.stem(kata))  # \"memperpanjang\" -> \"panjang\", \"dipinjam\" -> \"pinjam\"\n```\n\nHasil uji kami:\n\n| Kata | Kata dasar |\n|---|---|\n| memperpanjang, perpanjangan | panjang |\n| dipinjam, peminjaman | pinjam |\n| pengembalian | kembali |\n| buku-buku | buku |\n| perpustakaan | pustaka |\n| pustakawan | pustakawan |\n| beruang | beruang |\n\nContoh dari README Sastrawi juga lolos: \"Perekonomian Indonesia sedang dalam pertumbuhan yang membanggakan\" menjadi \"ekonomi indonesia sedang dalam tumbuh yang bangga\".\n\nPerhatikan dua baris terakhir. *Pustakawan* tak dipangkas, karena memang kata dasar tersendiri. *Beruang* juga tak dipangkas, sehingga makna \"punya uang\" dari langkah 1 hilang. Stemming bekerja kata per kata, tanpa melihat konteks.\n\nStemming juga bisa menyatukan terlalu banyak. *Perpanjangan* dan *panjang* menjadi satu, padahal \"perpanjangan pinjaman\" dan \"panjang buku\" sangat berbeda. Langkah 5 memperlihatkan akibatnya pada model kita."
+    },
+    {
+      "title": "TF-IDF: menimbang setiap kata",
+      "description": "Model butuh angka, bukan kata. Cara klasik adalah **kantong kata** (*bag of words*): setiap pesan menjadi daftar hitungan, berapa kali setiap kata muncul. Urutan kata diabaikan.\n\nTidak semua kata sama penting. Kata \"saya\" muncul di hampir setiap pesan, sehingga tak banyak membantu membedakan maksud. Kata \"denda\" jauh lebih khas. **TF-IDF** menimbang setiap kata dengan dua hal: seberapa sering ia muncul di pesan itu (*term frequency*), dan seberapa jarang ia muncul di seluruh kumpulan pesan (*inverse document frequency*).\n\nDokumentasi scikit-learn menulis rumus bawaannya untuk n dokumen:\n\n`idf(t) = ln((1 + n) / (1 + df(t))) + 1`\n\ndengan df(t) adalah jumlah dokumen yang memuat kata t. Pada empat pesan contoh kami, \"saya\" muncul di 3 pesan dan mendapat idf **1,223**. \"Denda\" muncul di 2 pesan, idf-nya **1,511**. \"Buku\" hanya di 1 pesan, idf-nya **1,916**. Uji kami memastikan angka dari `TfidfVectorizer` sama dengan rumus itu. Sesudahnya, setiap vektor dinormalkan supaya panjangnya 1.\n\nDokumentasi yang sama mencatat batas kantong kata. Ia tak menangkap frasa dan urutan kata, dan tak tahan salah ketik atau kata turunan. Ada dua penolong yang kita pakai di langkah berikutnya:\n\n- **n-gram kata**: hitung juga pasangan kata berurutan, misalnya \"tambah waktu\", supaya sebagian urutan ikut tercatat.\n- **n-gram karakter**: potong kata menjadi rangkaian 2 sampai 4 huruf. \"Minjem\" dan \"pinjam\" berbagi potongan seperti \"inj\", sehingga tak lagi asing satu sama lain."
+    },
+    {
+      "title": "Melatih pengelompok maksud pertamamu",
+      "description": "Kita siapkan 160 pesan latih dari templat, 40 per maksud, misalnya \"kak mau pinjam buku laskar pelangi?\". Lalu kita tulis **40 pesan uji dengan tangan**, sengaja dengan kata dan gaya yang tak ada di templat: \"aku pengen minjem komik one piece vol 3\", \"boleh extend pinjaman 1 minggu lagi?\".\n\nModelnya TF-IDF ditambah **regresi logistik**, model linear yang memberi peluang untuk setiap maksud:\n\n```python\ndef buat_model(cara: Cara = \"token\") -> Pipeline:\n    if cara == \"karakter\":\n        vektor = TfidfVectorizer(analyzer=\"char_wb\", ngram_range=(2, 4))  # potongan 2-4 huruf: tahan salah ketik\n    else:\n        vektor = TfidfVectorizer(tokenizer=pecah_kata_dasar if cara == \"kata_dasar\" else pecah_token,\n                                 token_pattern=None, ngram_range=(1, 2))  # kata tunggal dan pasangan kata\n    return make_pipeline(vektor, LogisticRegression(max_iter=1000))\n```\n\nHasilnya:\n\n| Cara memecah | Akurasi latih | Akurasi uji | Recall \"perpanjang\" |\n|---|---|---|---|\n| token | 99,4% | 90,0% | 70,0% |\n| kata dasar | 100,0% | 90,0% | 90,0% |\n| n-gram karakter | 100,0% | 95,0% | 80,0% |\n\nTiga pelajaran:\n\n- **Latih hampir sempurna, uji tidak.** Pesan latih dari templat terlalu seragam. Pesan sungguhan selalu lebih beragam.\n- **Kata dasar adalah pertukaran.** Recall \"perpanjang\" naik dari 70% ke 90%, karena \"memperpanjang\" dan \"perpanjang\" kini menyatu. Tetapi recall \"pinjam\" turun dari 90% ke 80%, kemungkinan besar karena \"pinjaman\" juga menjadi \"pinjam\", padahal kata itu sering muncul di pesan perpanjangan. Akurasi totalnya sama, 90%.\n- **N-gram karakter tahan bahasa gaul.** Akurasinya naik ke 95%, dan \"minjem\" kini dikenali. Dua kesalahan yang tersisa adalah \"bisa ditambah?\" dan \"bisa diundur?\". Keduanya soal *makna*, bukan ejaan: model tak tahu bahwa menambah waktu sama dengan memperpanjang.\n\nUntuk kesalahan jenis terakhir, kita butuh representasi yang menangkap makna. Itulah bahan langkah 7 sampai 11."
+    },
+    {
+      "title": "Mengukur dengan jujur: presisi, recall, dan F1",
+      "description": "Akurasi saja bisa menipu. Jurafsky dan Martin memberi contoh: dari sejuta cuitan, hanya 100 yang membicarakan pai. Pengelompok malas yang selalu menjawab \"bukan tentang pai\" mendapat akurasi 99,99%, padahal tak menemukan satu pun cuitan yang dicari. Uji kami mengulang hitungannya, dan hasilnya sama.\n\nKarena itu kita mengukur setiap maksud dengan dua pertanyaan:\n\n- **Presisi**: dari semua pesan yang model tebak \"pinjam\", berapa yang benar-benar \"pinjam\"?\n- **Recall**: dari semua pesan \"pinjam\" yang sebenarnya, berapa yang berhasil ditemukan model?\n\n```python\ndef prf(benar: list[str], tebak: list[str], kelas: str) -> tuple[float, float, float]:\n    tp = sum(b == kelas and t == kelas for b, t in zip(benar, tebak))\n    fp = sum(b != kelas and t == kelas for b, t in zip(benar, tebak))  # salah tunjuk\n    fn = sum(b == kelas and t != kelas for b, t in zip(benar, tebak))  # terlewat\n    presisi = tp / (tp + fp) if tp + fp else 0.0\n    recall = tp / (tp + fn) if tp + fn else 0.0\n    f1 = 2 * presisi * recall / (presisi + recall) if presisi + recall else 0.0  # rata-rata harmonik\n    return presisi, recall, f1\n```\n\n**F1** menggabungkan keduanya dengan rata-rata harmonik. Menurut Jurafsky dan Martin, rata-rata harmonik lebih dekat ke nilai yang lebih kecil, sehingga F1 hanya tinggi bila presisi dan recall sama-sama tinggi.\n\n::media[matriks-kebingungan]\n\nMatriks kebingungan model token memperlihatkan polanya. Tiga pesan \"perpanjang\" ditebak \"pinjam\", sehingga recall \"perpanjang\" hanya 0,70 dan presisi \"pinjam\" hanya 0,75. Model terlalu cepat menjawab \"pinjam\" setiap kali melihat kata itu.\n\nUntuk banyak kelas, ada dua cara merata-rata. **Makro** merata-ratakan F1 setiap kelas, sehingga kelas kecil berbobot sama dengan kelas besar. **Mikro** menggabungkan semua keputusan dulu; untuk satu label per pesan, hasilnya sama dengan akurasi. Fungsi `prf` di atas memberi angka yang sama dengan `precision_recall_fscore_support` scikit-learn."
+    },
+    {
+      "title": "Makna dari tetangga: vektor kata",
+      "description": "Bagaimana komputer bisa tahu bahwa \"novel\" mirip \"buku\"? Jawabannya datang dari pengamatan para ahli bahasa tahun 1950-an. Jurafsky dan Martin menyebutnya **hipotesis distribusional**: kata yang muncul dalam konteks yang mirip cenderung bermakna mirip. Harris (1954) menulis bahwa beda makna dua kata kira-kira sebanding dengan beda lingkungan tempat keduanya muncul.\n\nKita bisa mencobanya sendiri. Dari 29 kalimat perpustakaan pendek, kita hitung seberapa sering setiap pasangan kata muncul bersebelahan. Lalu hitungan itu ditimbang dengan **PPMI** (*positive pointwise mutual information*): seberapa sering dua kata bertemu dibandingkan dengan bila mereka bertemu secara kebetulan.\n\n```python\ndef ppmi(M: Larik) -> Larik:\n    total = M.sum()\n    p_kata = M.sum(axis=1, keepdims=True) / total\n    p_konteks = M.sum(axis=0, keepdims=True) / total\n    with np.errstate(divide=\"ignore\"):\n        pmi = np.log2((M / total) / (p_kata * p_konteks))  # seberapa sering melebihi kebetulan\n    hasil: Larik = np.maximum(pmi, 0.0)  # nilai negatif dan -inf menjadi 0\n    return hasil\n```\n\nSesudah dipadatkan menjadi 5 angka per kata dengan SVD, tetangga terdekat menurut kosinus adalah:\n\n| Kata | Tiga tetangga terdekat |\n|---|---|\n| novel | buku, komik, majalah |\n| denda | biaya, tagihan, dibayar |\n| senin | minggu, tutup, buka |\n| membaca | meminjam, sambil, itu |\n\nTak ada yang memberi tahu komputer bahwa \"denda\", \"biaya\", dan \"tagihan\" sejenis. Ketiganya sama-sama muncul di sekitar \"membayar\" dan \"dihitung\".\n\nBaris terakhir adalah pengingat. \"Membaca\" bertetangga dengan \"meminjam\" karena keduanya muncul di posisi yang mirip (\"saya meminjam ...\", \"saya membaca ...\"), bukan karena maknanya sama. Kemiripan distribusional menangkap *keterkaitan*, belum tentu sinonim.\n\nKorpus sekecil ini membuat hasilnya rapuh: ubah lebar jendela atau jumlah dimensinya, dan urutan tetangganya bergeser. Vektor kata yang berguna dilatih pada jutaan sampai miliaran kata."
+    },
+    {
+      "title": "Word2vec dan embedding",
+      "description": "Vektor kata seperti di langkah 7 disebut **embedding**. Mikolov dkk. (2013) memperkenalkan **word2vec**, cara melatih embedding yang jauh lebih efisien. Menurut makalahnya, vektor kata bermutu tinggi bisa dipelajari dari 1,6 miliar kata dalam waktu kurang dari sehari.\n\nJurafsky dan Martin meringkas intuisi varian *skip-gram with negative sampling* dalam empat langkah:\n\n1. Pasangan kata sasaran dan kata tetangganya menjadi contoh positif.\n2. Kata lain yang diambil acak dari kosakata menjadi contoh negatif.\n3. Regresi logistik dilatih untuk membedakan keduanya.\n4. Bobot hasil latihan itulah embedding-nya.\n\nSelain word2vec, ada GloVe (Pennington dkk., 2014) dan fastText. Ketiganya menghasilkan **embedding statis**: satu vektor per kata, apa pun konteksnya. Akibatnya, \"beruang\" binatang dan \"beruang\" punya uang mendapat vektor yang sama. **Embedding kontekstual** dari model Transformer, seperti BERT di langkah 9, memberi vektor berbeda untuk kata yang sama di kalimat yang berbeda.\n\nEmbedding juga dipakai untuk kalimat dan dokumen utuh, misalnya untuk mencari pesan yang mirip atau dokumen yang relevan untuk sebuah pertanyaan.\n\n> [!CATATAN]\n> Dokumentasi Claude menyatakan bahwa Anthropic tidak menyediakan model embedding sendiri, dan menyebut Voyage AI sebagai salah satu penyedia. Model `voyage-4` di tabel dokumentasi itu menerima konteks sampai 32.000 token dan, secara bawaan, menghasilkan vektor 1024 dimensi. Bandingkan beberapa penyedia sebelum memilih."
+    },
+    {
+      "title": "Membaca kalimat utuh: dari RNN ke Transformer",
+      "description": "Kantong kata dan embedding statis melupakan urutan. Padahal \"pustakawan menegur pengunjung\" dan \"pengunjung menegur pustakawan\" berbeda jauh. Jalan menuju model yang membaca urutan berlangsung bertahap:\n\n::media[rnn-ke-transformer]\n\n- **Seq2seq** (Sutskever dkk., 2014) memakai LSTM untuk memadatkan kalimat sumber menjadi satu vektor berukuran tetap, lalu LSTM lain menuliskan terjemahannya. Pada terjemahan Inggris–Prancis WMT'14, skor BLEU-nya 34,8, di atas 33,3 milik sistem statistik berbasis frasa.\n- **Atensi** (Bahdanau dkk., 2014) lahir dari dugaan bahwa vektor berukuran tetap itu menjadi **leher botol**. Solusinya, biarkan model mencari sendiri bagian kalimat sumber yang relevan untuk setiap kata yang sedang diterjemahkan.\n- **Transformer** (Vaswani dkk., 2017) membuang pengulangan sama sekali dan hanya memakai atensi. Hasilnya lebih bermutu, lebih mudah diproses paralel, dan jauh lebih cepat dilatih.\n- **BERT** (Devlin dkk., 2018) melatih bagian *encoder* Transformer agar membaca konteks kiri dan kanan sekaligus. Cukup dengan satu lapisan keluaran tambahan, BERT mencetak hasil terbaik di sebelas tugas NLP saat itu.\n\nDua keluarga besar lahir dari Transformer. Model seperti BERT unggul untuk **memahami** teks, misalnya klasifikasi dan tanya jawab. Model pembangkit teks seperti LLM menebak token berikutnya, sehingga unggul untuk **menulis**. Topik Large Language Model membedah keluarga kedua.\n\n::media[video-transformer]"
+    },
+    {
+      "title": "NLP berbahasa Indonesia, dan memilih jalannya",
+      "description": "Wilie dkk. (2020) menjawab kurangnya sumber daya bahasa Indonesia dengan **IndoNLU**: tolok ukur berisi dua belas tugas, dari klasifikasi satu kalimat sampai pelabelan urutan pasangan kalimat. Mereka juga merilis **IndoBERT**, model BERT yang dilatih pada Indo4B, kumpulan teks bahasa Indonesia dari media sosial, blog, berita, dan situs web publik. Kode dan datanya terbuka.\n\nUntuk tugas seperti kotak obrolan perpustakaan, ada tiga jalan:\n\n| Jalan | Kapan cocok | Yang perlu disiapkan |\n|---|---|---|\n| model klasik (TF-IDF + regresi logistik) | data berlabel cukup, maksudnya sedikit dan jelas | ratusan contoh berlabel; murah dan cepat dijalankan di mana saja |\n| fine-tuning model terlatih (misalnya IndoBERT) | butuh mutu lebih tinggi, data berlabel ada | contoh berlabel, GPU untuk melatih, server untuk menjalankan |\n| LLM dengan prompt (misalnya Claude) | data berlabel sedikit, maksud sering berubah, atau butuh penjelasan | prompt yang jelas, anggaran per permintaan, dan uji pada data uji yang sama |\n\nTak ada jalan yang selalu menang. Cara memilihnya adalah dengan mengukur. Pakai **data uji yang sama** dan **metrik yang sama** (langkah 6) untuk setiap kandidat, lalu timbang mutunya terhadap biaya, kecepatan, dan kemudahan merawatnya.\n\nSatu hal yang sering terlupa: model yang dilatih pada teks formal belum tentu paham bahasa obrolan. Model token kita gagal pada \"minjem\" (langkah 5). Bila datamu penuh singkatan dan bahasa gaul, pastikan data latih dan data ujimu juga begitu."
+    },
+    {
+      "title": "Menebak maksud dengan Claude dan keluaran terstruktur",
+      "description": "LLM bisa menebak maksud tanpa data latih, cukup dengan instruksi. Supaya jawabannya bisa diolah program, kita minta **keluaran terstruktur**: JSON yang mengikuti skema, dengan `maksud` dibatasi `enum` pada empat pilihan.\n\n```python\ndef tebak_maksud(client: anthropic.Anthropic, pesan: str) -> str | None:\n    respons = client.messages.create(\n        model=\"claude-haiku-5-5\",\n        max_tokens=256,\n        system=\"Golongkan pesan pengunjung perpustakaan ke salah satu maksud yang tersedia.\",\n        messages=[{\"role\": \"user\", \"content\": pesan}],\n        output_config={\"format\": {\"type\": \"json_schema\", \"schema\": SKEMA}},\n    )\n    if respons.stop_reason != \"end_turn\":  # misalnya \"refusal\" atau \"max_tokens\": jangan dipercaya\n        return None\n    teks = next(b.text for b in respons.content if b.type == \"text\")\n    maksud = str(json.loads(teks)[\"maksud\"]).lower()  # huruf besar-kecil enum tak dijamin\n    return maksud if maksud in MAKSUD else None\n```\n\nTiga kebiasaan dari dokumentasi *Structured outputs*:\n\n- **Huruf besar-kecil enum tak dijamin.** Dokumentasinya menyebut Claude bisa mengembalikan nilai yang hanya berbeda kapitalisasinya, tanpa galat. Karena itu hasilnya diubah ke huruf kecil lalu dicek lagi.\n- **Periksa `stop_reason`.** Bila `refusal` atau `max_tokens`, keluarannya bisa tak mengikuti skema.\n- **Minta penjelasan singkat, bukan langkah berpikir.** Properti yang meminta model menuliskan penalarannya bisa memicu penolakan. Karena itu kolomnya bernama `alasan`.\n\nDiuji dengan SDK `anthropic` asli dan server tiruan, tanpa biaya: skema terkirim di `output_config.format`, `\"Perpanjang\"` dikenali sebagai `perpanjang`, dan `refusal` atau maksud di luar daftar menghasilkan `None`.\n\nKodenya memakai Claude Haiku 5.5, model tercepat, yang menurut dokumentasi mendukung keluaran terstruktur. Untuk tahu apakah Claude lebih baik dari model klasik, jalankan keduanya pada 40 pesan uji yang sama, lalu bandingkan F1 dan biayanya, seperti di proyek pertama."
+    },
+    {
+      "title": "Batas NLP, dan cara memakainya dengan hati-hati",
+      "description": "Kemampuan NLP sudah jauh, tetapi batasnya nyata:\n\n- **Data menentukan segalanya.** Model kita tampak hampir sempurna di data latih dan jatuh ke 90% di pesan sungguhan (langkah 5). Pesan dari pengguna sungguhan selalu lebih liar dari yang kamu bayangkan.\n- **Makna dan konteks.** Stemming tak bisa membedakan dua makna \"beruang\" (langkah 3). Model kantong kata tak tahu bahwa \"ditambah\" berarti diperpanjang. Model yang lebih besar lebih baik dalam hal ini, tetapi tak pernah sempurna.\n- **Bahasa dan ragam yang kurang terwakili.** Sumber daya bahasa Indonesia jauh lebih sedikit dari bahasa Inggris, apalagi bahasa daerah dan bahasa gaul.\n- **Bias.** Model mempelajari pola dari teksnya, termasuk pola yang tak adil. Periksa kesalahan model per kelompok, bukan hanya angka rata-rata.\n- **Privasi.** Pesan pengunjung bisa berisi nama, nomor telepon, atau nomor anggota. Simpan secukupnya, dan pikirkan dulu sebelum mengirimnya ke layanan pihak ketiga.\n- **Mengarang jawaban.** LLM bisa menulis jawaban yang terdengar yakin tetapi salah. Untuk tugas klasifikasi, keluaran terstruktur dan pengecekan di kode membantu. Untuk jawaban bebas, topik Large Language Model membahasnya lebih jauh.\n\nKebiasaan yang membuat semuanya lebih aman: simpan data uji yang benar-benar mewakili pengguna, ukur dengan presisi dan recall per kelas, baca sendiri contoh-contoh yang salah, dan sediakan jalan ke manusia untuk pesan yang tak yakin dikenali. Di kotak obrolan perpustakaan, pesan yang ditebak dengan peluang rendah sebaiknya diteruskan ke pustakawan, bukan dijawab otomatis."
+    }
+  ],
+  "tools": [
+    {
+      "slug": "scikit-learn",
+      "name": "scikit-learn",
+      "summary": "Pustaka machine learning sumber terbuka untuk Python: model klasik seperti regresi logistik, pengolahan fitur seperti TF-IDF, pemisahan data, dan metrik evaluasi.",
+      "homepage": "https://github.com/scikit-learn/scikit-learn",
+      "note": "Dipakai di langkah 4 sampai 6 untuk TF-IDF, regresi logistik, dan metrik. Contoh diuji dengan versi 1.9.1."
+    },
+    {
+      "slug": "pysastrawi",
+      "name": "PySastrawi",
+      "summary": "Pustaka Python sumber terbuka berlisensi MIT untuk mencari kata dasar bahasa Indonesia dengan memangkas imbuhan; port dari Sastrawi untuk PHP.",
+      "homepage": "https://github.com/har07/PySastrawi",
+      "note": "Dipakai di langkah 3 dan 5 untuk kata dasar. Contoh diuji dengan versi 1.2.1."
+    },
+    {
+      "slug": "numpy",
+      "name": "NumPy",
+      "summary": "Pustaka sumber terbuka untuk komputasi numerik di Python: larik berdimensi banyak, perkalian matriks, dan fungsi matematika yang cepat.",
+      "homepage": "https://github.com/numpy/numpy",
+      "note": "Dipakai di langkah 7 untuk matriks tetangga, PPMI, dan SVD."
+    },
+    {
+      "slug": "anthropic-python-sdk",
+      "name": "Anthropic Python SDK",
+      "summary": "SDK resmi untuk Messages API Claude di Python: tipe untuk definisi tool, blok tool_use dan tool_result, serta Tool Runner (beta) yang memutar putaran agen sendiri.",
+      "homepage": "https://github.com/anthropics/anthropic-sdk-python",
+      "note": "Dipakai di langkah 11 untuk menebak maksud dengan keluaran terstruktur, dan di proyek pertama."
+    }
+  ],
+  "projects": [
+    {
+      "title": "Kotak obrolan perpustakaanmu sendiri",
+      "brief": "Bangun penebak maksud untuk kotak obrolan perpustakaan, atau layanan lain yang kamu kenal, dengan pesan sungguhan.\n\n- Kumpulkan setidaknya 30 pesan per maksud dari teman atau keluarga, dengan gaya tulis mereka sendiri. Pisahkan seperempatnya sebagai data uji sejak awal.\n- Bandingkan tiga model: TF-IDF kata, TF-IDF n-gram karakter, dan Claude dengan keluaran terstruktur.\n- Tambahkan maksud \"lainnya\" untuk pesan yang tak termasuk mana pun.\n\n**Kamu selesai bila:**\n\n1. tabelmu memuat presisi, recall, dan F1 per maksud untuk ketiga model, pada data uji yang sama;\n2. kamu menghitung biaya Claude untuk seluruh data uji dari `usage` respons;\n3. kamu membaca semua pesan yang salah ditebak dan mengelompokkan penyebabnya: ejaan, makna, atau label yang memang meragukan;\n4. pesan dengan peluang rendah atau maksud \"lainnya\" diteruskan ke manusia, bukan dijawab otomatis;\n5. kodemu membandingkan nilai enum tanpa memedulikan huruf besar-kecil dan memeriksa `stop_reason`."
+    },
+    {
+      "title": "Peta makna kata bahasa Indonesia",
+      "brief": "Proyek kedua membangun vektor kata dari teks bahasa Indonesia yang lebih besar, misalnya artikel Wikipedia bahasa Indonesia yang berlisensi bebas.\n\n- Bersihkan teksnya dengan pemecah token dari langkah 2, lalu bangun matriks tetangga, PPMI, dan SVD seperti langkah 7.\n- Ulangi dengan kata dasar dari Sastrawi, lalu bandingkan.\n\n**Kamu selesai bila:**\n\n1. kamu mencatat ukuran korpus, ukuran kosakata, lebar jendela, dan jumlah dimensi yang dipakai;\n2. kamu menampilkan lima tetangga terdekat untuk setidaknya 10 kata pilihanmu, dengan dan tanpa kata dasar;\n3. kamu menemukan setidaknya tiga pasangan tetangga yang terkait tetapi bukan sinonim, dan menjelaskannya;\n4. kamu menunjukkan satu kata bermakna ganda dan menjelaskan kenapa embedding statis tak bisa memisahkan maknanya."
+    }
+  ],
+  "resources": [
+    {
+      "type": "OfficialDocs",
+      "title": "Speech and Language Processing, edisi ketiga (draf Agustus 2026) — Jurafsky dan Martin",
+      "url": "https://web.stanford.edu/~jurafsky/slp3/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "CS224N: Natural Language Processing with Deep Learning — Stanford",
+      "url": "https://web.stanford.edu/class/cs224n/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Feature extraction: text — dokumentasi scikit-learn",
+      "url": "https://scikit-learn.org/stable/modules/feature_extraction.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Structured outputs — dokumentasi resmi Claude",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Embeddings — dokumentasi resmi Claude",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/embeddings"
+    },
+    {
+      "type": "Paper",
+      "title": "Efficient Estimation of Word Representations in Vector Space (word2vec) — Mikolov dkk., 2013",
+      "url": "https://arxiv.org/abs/1301.3781"
+    },
+    {
+      "type": "Paper",
+      "title": "GloVe: Global Vectors for Word Representation — Pennington dkk., 2014",
+      "url": "https://aclanthology.org/D14-1162/"
+    },
+    {
+      "type": "Paper",
+      "title": "Sequence to Sequence Learning with Neural Networks — Sutskever dkk., 2014",
+      "url": "https://arxiv.org/abs/1409.3215"
+    },
+    {
+      "type": "Paper",
+      "title": "Neural Machine Translation by Jointly Learning to Align and Translate — Bahdanau dkk., 2014",
+      "url": "https://arxiv.org/abs/1409.0473"
+    },
+    {
+      "type": "Paper",
+      "title": "Attention Is All You Need — Vaswani dkk., 2017",
+      "url": "https://arxiv.org/abs/1706.03762"
+    },
+    {
+      "type": "Paper",
+      "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding — Devlin dkk., 2018",
+      "url": "https://arxiv.org/abs/1810.04805"
+    },
+    {
+      "type": "Paper",
+      "title": "IndoNLU: Benchmark and Resources for Evaluating Indonesian Natural Language Understanding — Wilie dkk., 2020",
+      "url": "https://arxiv.org/abs/2009.05387"
+    },
+    {
+      "type": "Video",
+      "title": "Lecture 1: Intro and Word Vectors — Stanford CS224N, Winter 2021",
+      "url": "https://www.youtube.com/watch?v=rmVRLeJRkl4"
+    },
+    {
+      "type": "Video",
+      "title": "Lecture 1: Intro and Word Vectors — Stanford CS224N, Spring 2024",
+      "url": "https://www.youtube.com/watch?v=DzpHeXVSC5I"
+    },
+    {
+      "type": "Video",
+      "title": "Transformers, the tech behind LLMs — 3Blue1Brown",
+      "url": "https://www.youtube.com/watch?v=wjZofJX0v4M"
+    },
+    {
+      "type": "Repository",
+      "title": "PySastrawi — kode sumber dan README",
+      "url": "https://github.com/har07/PySastrawi"
+    },
+    {
+      "type": "Repository",
+      "title": "IndoNLU — kode, data, dan model IndoBERT",
+      "url": "https://github.com/IndoNLP/indonlu"
+    },
+    {
+      "type": "Repository",
+      "title": "scikit-learn — kode sumber",
+      "url": "https://github.com/scikit-learn/scikit-learn"
+    }
+  ],
+  "requires": [
+    "deep-learning"
+  ]
+}
