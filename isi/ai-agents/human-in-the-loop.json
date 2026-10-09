@@ -1,0 +1,228 @@
+{
+  "slug": "human-in-the-loop",
+  "name": "Human-in-the-Loop",
+  "fieldSlug": "ai-agents",
+  "summary": "Agen yang baik tahu kapan harus berhenti dan bertanya. Human-in-the-loop adalah cara merancang agen supaya manusia ikut memutuskan di titik yang tepat: menyetujui aksi yang berakibat, menjawab pertanyaan ketika agen ragu, dan bisa turun tangan ketika agen melenceng. Kedengarannya sederhana, tetapi data nyata menunjukkan jebakannya: pengguna Claude Code menyetujui 93% permintaan izin, sehingga pertanyaan yang terlalu sering malah membuat orang berhenti membaca. Halaman ini mengajakmu merancang pengawasan yang sungguh bekerja untuk agen perpustakaan dari topik Tool use: memilih tingkat otonomi, menanyakan hanya yang perlu, menulis pertanyaan persetujuan dari fakta, menjeda putaran lalu melanjutkannya berjam-jam kemudian, memeriksa ulang saat aksi dijalankan, dan memakai Agent SDK, LangGraph, serta elicitation MCP. Semua contohnya bisa kamu jalankan tanpa memanggil API berbayar.",
+  "overview": "## Pustakawan magang dan kepala perpustakaan\n\nBayangkan perpustakaanmu menerima seorang pustakawan magang yang cekatan. Ia boleh mencari buku dan menjawab pertanyaan sendiri. Tetapi untuk hal yang berakibat, seperti meminjamkan buku langka atau menghapus data anggota, ia harus bertanya dulu kepada kepala perpustakaan. Kalau ia bertanya untuk *setiap* hal kecil, kepala perpustakaan akan kewalahan dan lama-lama asal mengangguk. Kalau ia tak pernah bertanya, cepat atau lambat ada keputusan penting yang diambil tanpa sepengetahuan siapa pun.\n\nAgen AI berada di posisi pustakawan magang itu. **Human-in-the-loop** (manusia di dalam putaran) adalah cara merancang di titik mana manusia ikut memutuskan, dan bagaimana caranya supaya keputusannya sungguh bermakna.\n\n## Otonomi adalah pilihan desain\n\nSeberapa mandiri agenmu bukan hanya soal seberapa pintar modelnya. Feng, McDonald, dan Zhang (2025) memisahkan dua hal: **agensi**, yaitu kemampuan agen bertindak (tool apa yang ia punya), dan **otonomi**, yaitu seberapa jauh ia dirancang untuk bekerja tanpa keterlibatan pengguna. Agen dengan banyak tool bisa saja sengaja meminta umpan balik sesering mungkin. Mereka lalu membagi otonomi menjadi lima tingkat, dinamai menurut peran penggunanya:\n\n::media[lima-tingkat]\n\nDi tingkat 4, pengguna adalah **pemberi persetujuan**: agen bekerja sendiri dan hanya menghubungi pengguna untuk hambatan yang tak bisa ia atasi, kredensial yang belum dibagikan, atau aksi yang berakibat. Agen perpustakaan kita dirancang di tingkat ini.\n\n## Data dari dunia nyata\n\nAnthropic menganalisis jutaan interaksi manusia dengan agen, dan hasilnya mengubah cara kita memikirkan persetujuan. Tulisan *Measuring AI agent autonomy in practice* (Februari 2026) dan tulisan tentang *auto mode* Claude Code (Maret 2026) memberi beberapa angka penting:\n\n::media[pengawasan]\n\nDua pelajaran utamanya:\n\n- **Pertanyaan yang terlalu sering melemahkan pengawasan.** Pengguna menyetujui 93% permintaan izin. Makin banyak yang ditanyakan, makin sedikit perhatian yang diberikan pada setiap pertanyaan. Gejala ini disebut *approval fatigue* (kelelahan menyetujui).\n- **Pengguna berpengalaman tak berhenti mengawasi; mereka mengubah caranya.** Mereka lebih jarang menyetujui satu per satu, tetapi lebih sering memantau lalu menginterupsi bila agen melenceng. Kesimpulan Anthropic: pengawasan yang efektif bukan menyetujui setiap aksi, tetapi **berada di posisi untuk turun tangan saat diperlukan**.\n\nAgen juga ikut mengawasi dirinya sendiri. Pada tugas yang paling rumit, Claude Code berhenti untuk bertanya lebih dari dua kali lipat lebih sering dibanding tugas yang paling sederhana, dan lebih sering daripada manusia menginterupsinya.\n\n## Apa yang dibangun di halaman ini\n\nLangkah-langkah di bawah mengubah gerbang persetujuan sederhana dari topik Tool use menjadi alur yang kokoh. Ada tujuh bagian utamanya:\n\n- kebijakan bertingkat yang menanyakan hanya aksi yang berakibat;\n- pertanyaan persetujuan yang disusun dari fakta;\n- putaran yang bisa dijeda dan disimpan, lalu dilanjutkan di proses lain;\n- penolakan yang disampaikan kepada model beserta alasannya;\n- pemeriksaan ulang ketika aksi akhirnya dijalankan;\n- jejak audit setiap keputusan;\n- cara melakukan semua itu dengan Claude Agent SDK, Claude Managed Agents, LangGraph, dan elicitation MCP.\n\nContoh kodenya memakai SDK resmi `anthropic` dengan model tiruan, jadi kamu bisa menjalankannya tanpa kunci API.",
+  "media": [
+    {
+      "key": "lima-tingkat",
+      "kind": "Image",
+      "url": "/media/human-in-the-loop/lima-tingkat.svg",
+      "alt": "Tangga lima tingkat otonomi dari rendah ke tinggi: 1 operator, pengguna merencanakan dan memegang kendali; 2 kolaborator, rencana dibuat bersama; 3 konsultan, agen memimpin dan pengguna memberi umpan balik; 4 pemberi persetujuan, agen hanya bertanya untuk hambatan, kredensial, atau aksi berakibat; 5 pengamat, agen sepenuhnya mandiri dan pengguna hanya melihat log serta punya tombol mati.",
+      "caption": "Lima tingkat otonomi dari Feng, McDonald, dan Zhang (2025).",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "pengawasan",
+      "kind": "Image",
+      "url": "/media/human-in-the-loop/pengawasan.svg",
+      "alt": "Empat angka: 93 persen permintaan izin disetujui; sesi dengan persetujuan otomatis penuh naik dari sekitar 20 persen menjadi lebih dari 40 persen setelah 750 sesi; giliran yang diinterupsi naik dari 5 persen menjadi sekitar 9 persen; pada tugas paling rumit agen berhenti untuk bertanya lebih dari dua kali lipat dibanding tugas paling sederhana.",
+      "caption": "Data Claude Code dari tulisan Anthropic, Februari dan Maret 2026.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "bertingkat",
+      "kind": "Image",
+      "url": "/media/human-in-the-loop/bertingkat.svg",
+      "alt": "Empat tingkat kebijakan: otomatis untuk cari_buku, catat untuk perpanjang_pinjaman, tanya untuk pinjam_buku, dan tolak untuk hapus_anggota. Untuk sesi berisi 10 aksi, tanya semua menghasilkan 10 pertanyaan, sedangkan kebijakan bertingkat hanya 1 pertanyaan dengan 3 aksi tercatat.",
+      "caption": "Angka dari uji di langkah 3: 6 cari_buku, 3 perpanjang_pinjaman, 1 pinjam_buku.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "jeda-lanjut",
+      "kind": "Image",
+      "url": "/media/human-in-the-loop/jeda-lanjut.svg",
+      "alt": "Enam langkah: model meminta pinjam_buku; kebijakan menilai tanya, sementara tool otomatis tetap dijalankan; keadaan disimpan sebagai JSON berisi pesan, tool yang menunggu, dan hasil sementara; anggota membaca ringkasan yang disusun kode lalu memutuskan; bila setuju, tool dijalankan dengan cek ulang, bila ditolak atau kedaluwarsa model menerima is_error berisi alasannya; semua tool_result giliran itu dikirim dalam satu pesan dan putaran lanjut.",
+      "caption": "Persetujuan boleh datang besok pagi, dari proses yang lain.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "video-langgraph",
+      "kind": "Video",
+      "videoId": "6t7YJcEFUIY",
+      "alt": "LangGraph interrupt: Making it easier to build human-in-the-loop agents",
+      "caption": "Pengumuman fungsi interrupt dari tim LangChain (8 menit, Desember 2024). Video ini direkam sebelum cara stream_events versi 3 yang kini disarankan dokumentasi, jadi bagian cara menjalankan grafnya sedikit berbeda.",
+      "sourceName": "LangChain di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=6t7YJcEFUIY",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-auto-mode",
+      "kind": "Video",
+      "videoId": "b8SV4U6fEIc",
+      "alt": "How auto mode works with Claude Code",
+      "caption": "Cara kerja pengklasifikasi yang menyaring setiap aksi menggantikan persetujuan manual, kenapa Claude tak pernah menyetujui aksinya sendiri, dan cara mengaturnya (6 menit, Agustus 2026).",
+      "sourceName": "Claude di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=b8SV4U6fEIc",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    }
+  ],
+  "prerequisite": {
+    "title": "Yang perlu kamu kenal dulu: putaran tool use dan gerbang persetujuan pertama",
+    "description": "Sebelum mulai, pastikan hal-hal ini sudah akrab bagimu:\n\n- **Putaran tool use** dari topik Tool use: `tool_use`, `tool_result`, `is_error`, dan aturan bahwa semua hasil satu giliran dikirim dalam satu pesan. Proyek di topik itu sudah meminta gerbang persetujuan untuk `pinjam_buku`; di sini kita membuatnya kokoh.\n- **Topik Keamanan agen**, terutama langkah tentang otorisasi di kode dan persetujuan yang tak melelahkan. Persetujuan manusia adalah satu lapis pertahanan, bukan satu-satunya.\n- **Python 3.10 atau lebih baru**, `dataclass`, `datetime`, dan JSON.\n- Sedikit pengalaman membuat antarmuka, karena pertanyaan persetujuan pada akhirnya dibaca manusia.\n\nTak perlu kunci API. Semua contoh dijalankan dengan model tiruan."
+  },
+  "roadmap": [
+    {
+      "title": "Pilih tingkat otonomi agenmu dengan sengaja",
+      "description": "Langkah pertama bukan menulis kode, melainkan memutuskan peran pengguna. Lima tingkat dari Feng dkk. (2025) membantu memilih:\n\n| Tingkat | Peran pengguna | Cocok untuk |\n|---|---|---|\n| 1 | operator | pengguna memegang kendali; agen membantu saat dipanggil |\n| 2 | kolaborator | rencana dibuat bersama dan pekerjaan dibagi |\n| 3 | konsultan | agen memimpin; pengguna memberi umpan balik dan preferensi |\n| 4 | pemberi persetujuan | agen bekerja sendiri dan hanya bertanya untuk hambatan atau aksi berakibat |\n| 5 | pengamat | agen sepenuhnya mandiri; pengguna melihat log dan punya tombol mati |\n\nMakalah itu juga jujur tentang biayanya. Tingkat 4 cocok untuk pekerjaan dengan banyak keputusan berisiko rendah, karena mengurangi beban pengguna. Tetapi makin tinggi otonominya, makin banyak hal sensitif yang dipegang agen, misalnya kredensial, dan kesalahan bisa menumpuk tanpa ada yang melihat.\n\nUntuk agen perpustakaan, tingkat 4 masuk akal. Mencari buku dan menjawab pertanyaan tak perlu ditanyakan. Meminjamkan buku mengubah stok dan catatan anggota, jadi ia menunggu persetujuan.\n\n> [!TIPS]\n> Tuliskan tingkat yang kamu pilih, dan alasannya, di samping kode agen. Ketika kamu menambah tool, cek lagi apakah tool itu masih cocok dengan tingkat tersebut."
+    },
+    {
+      "title": "Petakan setiap aksi menurut risikonya",
+      "description": "Tak semua aksi sama beratnya. Anthropic menemukan bahwa di API publiknya hanya sekitar **0,8%** aksi agen yang tampak tak bisa dibatalkan, misalnya mengirim email ke pelanggan. Sebagian besar aksi berisiko rendah. Karena itu, kelompokkan aksi menurut akibatnya, lalu beri setiap kelompok perlakuan yang berbeda:\n\n```python\ndef tingkat(nama_tool: str) -> str:\n    \"\"\"Penegakan bertingkat: otomatis, otomatis tapi dicatat, tanya manusia, atau tolak.\"\"\"\n    return {\"cari_buku\": \"otomatis\", \"perpanjang_pinjaman\": \"catat\", \"pinjam_buku\": \"tanya\"}.get(nama_tool, \"tolak\")\n```\n\nEmpat tingkat ini mengikuti saran OWASP 2026 tentang penegakan bertingkat (*audit, warn, block, escalate*):\n\n- **otomatis** untuk aksi baca yang tak mengubah apa pun;\n- **catat** untuk aksi kecil yang bisa dibatalkan; ia jalan sendiri, tetapi masuk jejak audit supaya bisa ditinjau;\n- **tanya** untuk aksi yang berakibat nyata;\n- **tolak** untuk aksi yang memang tak boleh dilakukan agen, dan juga untuk tool yang tak dikenal.\n\nPerhatikan bawaannya: tool yang tak ada di daftar jatuh ke **tolak**, bukan ke otomatis. Kalau suatu hari ada tool baru yang lupa didaftarkan, agen tak diam-diam mendapat kebebasan baru.\n\nSaat memutuskan tingkat sebuah aksi, tanyakan dua hal: seberapa besar kerugiannya bila salah, dan seberapa mudah kerugian itu dibatalkan. Meminjamkan buku bisa dibatalkan, tetapi stok yang berubah memengaruhi anggota lain. Menghapus anggota hampir tak bisa dibatalkan."
+    },
+    {
+      "title": "Tanyakan hanya yang perlu",
+      "description": "Ingat angka 93% tadi. Setiap pertanyaan yang tak perlu bukan sekadar mengganggu; ia melatih pengguna untuk menekan \"setuju\" tanpa membaca. Tulisan Anthropic tentang *auto mode* menyebutnya terang-terangan: pertanyaan manual berada di tengah-tengah antara aman dan nyaman, tetapi dalam praktik pengguna menerima 93% di antaranya.\n\nKebijakan bertingkat dari langkah 2 langsung terlihat dampaknya:\n\n::media[bertingkat]\n\nDalam sesi contoh berisi 10 aksi, yaitu 6 kali `cari_buku`, 3 kali `perpanjang_pinjaman`, dan 1 kali `pinjam_buku`, kebijakan \"tanya semua\" mengajukan **10** pertanyaan. Kebijakan bertingkat hanya mengajukan **1**, dengan 3 aksi tercatat otomatis. Satu pertanyaan yang dibaca sungguh-sungguh lebih berharga daripada sepuluh yang diabaikan.\n\nAda cara lain untuk mengurangi pertanyaan tanpa mengurangi keamanan: **kurung lingkungannya**. Sandbox Claude Code, yang membatasi berkas dan jaringan di tingkat sistem operasi, mengurangi permintaan izin sebesar 84%. Aksi di dalam batas yang aman tak perlu ditanyakan, dan pertanyaan disimpan untuk yang benar-benar keluar dari batas itu.\n\n> [!PERINGATAN]\n> Mengurangi pertanyaan tak sama dengan mematikannya. Bypass semua izin memang tanpa repot, tetapi juga tanpa perlindungan sama sekali."
+    },
+    {
+      "title": "Tulis pertanyaan persetujuan dari fakta, bukan dari kata-kata model",
+      "description": "Model bisa saja menulis kalimat yang meyakinkan sebelum meminta tool: *\"Ini cuma pencatatan rutin, aman disetujui tanpa dibaca.\"* Kalau kalimat itu yang ditampilkan kepada pengguna, persetujuannya tak lagi berarti. OWASP mencatat risiko ini sebagai ASI09 *Human-Agent Trust Exploitation*: kepercayaan manusia kepada agen dimanfaatkan.\n\nJadi pertanyaan persetujuan sebaiknya disusun **kode**, dari argumen tool dan data di sistemmu:\n\n```python\ndef ringkasan_persetujuan(env: Perpustakaan, id_anggota: str, nama_tool: str, masukan: dict[str, Any],\n                          sekarang: datetime) -> str:\n    \"\"\"Disusun KODE dari argumen dan data, bukan dari kalimat model: nilai apa yang dilakukan, bukan yang dikatakan.\"\"\"\n    if nama_tool == \"pinjam_buku\":\n        buku = env.buku[masukan[\"id_buku\"]]\n        kembali = (sekarang + timedelta(days=int(masukan[\"lama_hari\"]))).date().isoformat()\n        return (f\"Pinjam \\\"{buku['judul']}\\\" ({masukan['id_buku']}) untuk {id_anggota} selama \"\n                f\"{masukan['lama_hari']} hari, kembali {kembali}. Stok sekarang {buku['tersedia']}.\")\n    return f\"{nama_tool} {json.dumps(masukan, ensure_ascii=False)}\"\n```\n\nUntuk permintaan meminjam *Laskar Pelangi*, ringkasan yang muncul adalah:\n\n> Pinjam \"Laskar Pelangi\" (B-017) untuk A-9 selama 7 hari, kembali 2026-10-16. Stok sekarang 1.\n\nKalimat persuasif model tadi tak ikut tampil. Prinsip yang sama dipakai *auto mode* Claude Code. Pengklasifikasi yang menggantikan persetujuan manusia sengaja **tak membaca teks Claude sendiri**, hanya pesan pengguna dan panggilan tool, supaya agen tak bisa membujuknya. Kata tulisan itu, yang dinilai adalah apa yang dilakukan agen, bukan apa yang dikatakannya.\n\nRingkasan yang baik menjawab pertanyaan yang sungguh dipikirkan pengguna: apa yang akan terjadi, untuk siapa, berapa lama, dan apa akibatnya. Tanggal kembali dihitung kode, dan stok dibaca dari katalog. Tak ada yang diserahkan kepada karangan model."
+    },
+    {
+      "title": "Jeda putaran dan simpan keadaannya",
+      "description": "Manusia tak selalu menjawab dalam hitungan detik. Karena itu putaran agen harus bisa **berhenti**, menyimpan keadaannya, lalu dilanjutkan nanti, bahkan dari proses lain.\n\n::media[jeda-lanjut]\n\nIni bagian putaran yang menangani satu giliran berisi panggilan tool:\n\n```python\n        hasil: list[dict[str, Any] | None] = []\n        menunggu: list[dict[str, Any]] = []\n        for b in r.content:\n            if b.type != \"tool_use\":\n                continue\n            t = tingkat(b.name)\n            if t == \"tanya\":\n                menunggu.append({\"id\": b.id, \"nama\": b.name, \"masukan\": b.input, \"dibuat\": sekarang.isoformat(),\n                                 \"ringkasan\": ringkasan_persetujuan(env, keadaan[\"id_anggota\"], b.name,\n                                                                    dict(b.input), sekarang)})\n                hasil.append(None)\n                continue\n            if t == \"catat\":\n                log.append({\"waktu\": sekarang.isoformat(), \"tool\": b.name, \"masukan\": b.input, \"keputusan\": \"otomatis\"})\n            hasil.append(_hasil(env, keadaan[\"id_anggota\"], b.id, b.name, dict(b.input), t))\n        if menunggu:  # SEMUA hasil turn ini harus dikirim bersama, jadi simpan yang sudah ada\n            return {**keadaan, \"status\": \"menunggu\", \"menunggu\": menunggu, \"hasil_sementara\": hasil}\n```\n\nDetail yang mudah terlewat: model bisa meminta `cari_buku` (otomatis) dan `pinjam_buku` (tanya) dalam satu giliran, dan Messages API meminta **semua** hasil giliran itu dikirim dalam satu pesan. Jadi hasil `cari_buku` disimpan dulu di `hasil_sementara`, dan tempat `pinjam_buku` diisi `None`.\n\nKeadaan itu hanya data biasa, sehingga bisa ditulis sebagai JSON. Dalam uji kita, ia disimpan ke berkas, lalu **proses baru** membacanya dan melanjutkan sampai selesai; pinjamannya tercatat tepat sekali."
+    },
+    {
+      "title": "Lanjutkan dengan keputusan manusia",
+      "description": "Ketika jawaban datang, terapkan keputusan untuk **setiap** tool yang menunggu, lalu lanjutkan putaran:\n\n```python\ndef lanjutkan(client: anthropic.Anthropic, env: Perpustakaan, keadaan: dict[str, Any], keputusan: dict[str, Any],\n              oleh: str, log: list[dict[str, Any]], sekarang: datetime) -> dict[str, Any]:\n    \"\"\"Terapkan keputusan manusia untuk SETIAP tool yang menunggu, lalu lanjutkan putaran.\"\"\"\n    hasil = list(keadaan[\"hasil_sementara\"])\n    for p in keadaan[\"menunggu\"]:\n        k = keputusan.get(p[\"id\"], {\"setuju\": False, \"alasan\": \"Tidak ada jawaban.\"})\n        if sekarang - datetime.fromisoformat(p[\"dibuat\"]) > BATAS_TUNGGU:\n            k = {\"setuju\": False, \"alasan\": \"Persetujuan kedaluwarsa; minta ulang.\"}\n        log.append({\"waktu\": sekarang.isoformat(), \"oleh\": oleh, \"tool\": p[\"nama\"], \"masukan\": p[\"masukan\"],\n                    \"ringkasan\": p[\"ringkasan\"], \"keputusan\": \"setuju\" if k[\"setuju\"] else \"tolak\"})\n        isi = (_hasil(env, keadaan[\"id_anggota\"], p[\"id\"], p[\"nama\"], p[\"masukan\"], \"tanya\") if k[\"setuju\"] else\n               {\"type\": \"tool_result\", \"tool_use_id\": p[\"id\"], \"is_error\": True,\n                \"content\": f\"Anggota menolak: {k['alasan']}\"})\n        hasil[hasil.index(None)] = isi\n    keadaan = {k: v for k, v in keadaan.items() if k not in (\"menunggu\", \"hasil_sementara\")}\n    keadaan[\"messages\"].append({\"role\": \"user\", \"content\": hasil})\n    return jalan(client, env, keadaan, log, sekarang)\n```\n\nEmpat hal yang perlu diperhatikan:\n\n- **Penolakan sampai ke model beserta alasannya**, sebagai `is_error`: *\"Anggota menolak: Saya berubah pikiran.\"* Menurut dokumentasi Claude Agent SDK, model melihat pesan itu dan bisa menyesuaikan pendekatannya.\n- **Tak ada jawaban berarti tolak**, bukan setuju.\n- **Persetujuan kedaluwarsa** setelah 24 jam, karena keadaan dunia mungkin sudah berubah.\n- **Setiap keputusan dicatat**: siapa, kapan, tool apa, ringkasan apa, dan keputusannya."
+    },
+    {
+      "title": "Periksa ulang saat aksi akhirnya dijalankan",
+      "description": "Di antara saat pertanyaan diajukan dan saat jawaban datang, dunia tak berhenti. Mungkin anggota lain sudah meminjam eksemplar terakhir *Laskar Pelangi*. Kalau persetujuan dijalankan begitu saja, stok bisa menjadi negatif. Masalah ini dikenal sebagai *time-of-check to time-of-use* (TOCTOU): yang dicek saat bertanya belum tentu masih benar saat dijalankan.\n\nKarena itu syarat aksi dicek **lagi** di tool itu sendiri, tepat sebelum dijalankan:\n\n```python\n    if nama == \"pinjam_buku\":\n        buku = env.buku[masukan[\"id_buku\"]]\n        if buku[\"tersedia\"] < 1:  # dicek ulang SAAT dijalankan, bukan saat diminta\n            raise LookupError(\"Stok habis sejak permintaan ini dibuat; tidak dicatat.\")\n        buku[\"tersedia\"] -= 1\n        env.pinjaman.append({\"id_buku\": masukan[\"id_buku\"], \"id_anggota\": id_anggota,\n                             \"lama_hari\": int(masukan[\"lama_hari\"])})\n        return \"Tercatat.\"\n```\n\nDalam uji kita, stok diubah menjadi 0 selama menunggu, lalu anggota menyetujui. Hasilnya `is_error` dengan pesan *\"Stok habis sejak permintaan ini dibuat\"*, dan stok tetap 0. Tanpa cek ulang itu, uji yang sama mencatat pinjaman dan membuat stok menjadi **−1**.\n\nIngat juga bahwa persetujuan berlaku untuk **aksi yang ditampilkan**, bukan untuk aksi apa pun. Bila argumennya berubah, misalnya karena kamu mengizinkan pengguna menyunting sebelum menyetujui, tampilkan ringkasan baru dan minta persetujuan lagi."
+    },
+    {
+      "title": "Beri pengguna pilihan lebih dari ya atau tidak",
+      "description": "Persetujuan yang baik tak hanya \"setuju\" atau \"tolak\". Dokumentasi Claude Agent SDK merinci pilihan yang bisa diberikan aplikasimu ketika callback `canUseTool` dipanggil:\n\n| Pilihan | Artinya |\n|---|---|\n| setujui | tool berjalan persis seperti yang diminta |\n| setujui dengan perubahan | masukan diubah dulu, misalnya lama pinjam dikurangi |\n| setujui dan ingat | aturan izin disimpan, sehingga panggilan serupa tak ditanyakan lagi |\n| tolak | tool tak berjalan, dan model diberi tahu alasannya |\n| sarankan alternatif | tolak, tetapi arahkan model ke yang sebenarnya diinginkan pengguna |\n| arahkan ulang | kirim instruksi baru lewat *streaming input* |\n\nSpesifikasi MCP punya pembedaan yang berguna untuk *elicitation*, yaitu ketika server meminta masukan dari pengguna. Ada tiga jawaban: **accept** (pengguna menyetujui dan mengirim data), **decline** (pengguna sengaja menolak), dan **cancel** (pengguna menutup tanpa memilih). Bedakan dua yang terakhir. Penolakan berarti \"jangan\"; pembatalan berarti \"belum\", sehingga wajar ditanyakan lagi nanti.\n\nPilihan \"setujui dan ingat\" perlu hati-hati. Ia mengurangi pertanyaan, tetapi aturan yang terlalu luas, misalnya \"selalu izinkan `pinjam_buku`\", diam-diam memindahkan agen ke tingkat otonomi yang lebih tinggi. Simpan aturan sesempit mungkin dan beri pengguna cara melihat serta mencabutnya."
+    },
+    {
+      "title": "Biarkan agen bertanya ketika ragu",
+      "description": "Human-in-the-loop tak hanya soal manusia yang menghentikan agen. Agen yang baik juga tahu kapan harus berhenti sendiri. Data Anthropic menunjukkan alasan paling umum Claude Code berhenti untuk bertanya:\n\n| Alasan agen berhenti | Porsi |\n|---|--:|\n| menawarkan pilihan di antara beberapa pendekatan | 35% |\n| meminta informasi diagnostik atau hasil uji | 21% |\n| memperjelas permintaan yang kabur atau belum lengkap | 13% |\n| meminta kredensial, token, atau akses yang belum ada | 12% |\n| meminta persetujuan sebelum bertindak | 11% |\n\nDi Claude Agent SDK, pertanyaan klarifikasi datang lewat tool `AskUserQuestion`, yang juga memicu callback `canUseTool`. Model menyusun pertanyaan dan pilihannya; aplikasimu menampilkan, lalu mengembalikan jawaban pengguna. Batasnya ditulis di dokumentasi: setiap panggilan memuat 1 sampai 4 pertanyaan dengan 2 sampai 4 pilihan, dan tool ini belum tersedia di sub-agen.\n\nUntuk server MCP, padanannya adalah *elicitation*, dengan satu aturan keamanan yang tegas. Server **tak boleh** memakai mode form untuk meminta informasi sensitif seperti sandi, kunci API, token akses, atau data pembayaran. Untuk itu ada mode URL, yang membuka halaman di luar klien sehingga rahasia tak pernah lewat agen. Klien juga wajib menunjukkan dengan jelas server mana yang meminta informasi itu."
+    },
+    {
+      "title": "Pakai kerangka: interrupt di LangGraph",
+      "description": "Kalau kamu memakai LangGraph, jeda dan lanjut sudah tersedia. Panggil `interrupt()` di dalam node; LangGraph menyimpan keadaan graf lewat *checkpointer* dan menunggu tanpa batas waktu. Untuk melanjutkan, jalankan graf lagi dengan `Command(resume=...)` dan `thread_id` yang sama; nilai `resume` menjadi kembalian `interrupt()`.\n\nAda satu aturan dari dokumentasinya yang paling sering menjebak. Saat dilanjutkan, LangGraph **mengulang seluruh node dari awal**, bukan dari baris `interrupt()`. Jadi efek samping sebelum `interrupt()` akan terjadi lagi:\n\n```python\ndef minta_persetujuan_salah(keadaan: Keadaan) -> dict[str, bool]:\n    notifikasi_terkirim.append(keadaan[\"ringkasan\"])  # ✗ efek samping SEBELUM interrupt\n    jawaban = interrupt({\"pertanyaan\": \"Setujui?\", \"ringkasan\": keadaan[\"ringkasan\"]})\n    return {\"disetujui\": bool(jawaban)}\n\n\ndef minta_persetujuan(keadaan: Keadaan) -> dict[str, bool]:\n    jawaban = interrupt({\"pertanyaan\": \"Setujui?\", \"ringkasan\": keadaan[\"ringkasan\"]})\n    if jawaban:\n        notifikasi_terkirim.append(keadaan[\"ringkasan\"])  # ✓ efek samping SESUDAH interrupt\n    return {\"disetujui\": bool(jawaban)}\n```\n\nKami menjalankan keduanya. Pada versi pertama, notifikasi terkirim **dua kali** untuk satu persetujuan. Pada versi kedua, notifikasi terkirim **sekali**, dan tak terkirim sama sekali bila jawabannya tolak. Aturan praktisnya: taruh efek samping sesudah `interrupt()`, pisahkan ke node lain, atau pastikan ia idempoten, yaitu aman dijalankan berulang.\n\nDua catatan lagi. Di produksi, pakai checkpointer yang tahan lama, misalnya yang disimpan di basis data, bukan `InMemorySaver`. Dokumentasi terbaru menyarankan menjalankan graf lewat `stream_events(..., version=\"v3\")` dan membaca `stream.interrupts`. Saat kami menjalankannya dengan LangGraph 1.2.14, protokol `v3` itu masih ditandai *experimental*; `invoke()` biasa juga mengembalikan jeda di kunci `__interrupt__`.\n\n::media[video-langgraph]"
+    },
+    {
+      "title": "Jeda yang bisa ditinggal lama di Agent SDK dan Managed Agents",
+      "description": "Callback `canUseTool` di Claude Agent SDK bisa menunggu tanpa batas, tetapi prosesmu harus tetap hidup selama itu. Kalau jawaban mungkin baru datang besok, dokumentasinya menyarankan cara lain: hook `PreToolUse` yang mengembalikan keputusan **`defer`**. Prosesnya keluar dengan `stop_reason: \"tool_deferred\"`, panggilan tool yang tertunda disimpan di transkrip, dan aplikasimu melanjutkan sesi nanti dengan `--resume`. Tak ada batas waktu, tetapi berkas sesi dibersihkan setelah 30 hari secara bawaan.\n\nAda satu batasan yang sejalan dengan langkah 5: `defer` hanya bekerja bila Claude membuat **satu** panggilan tool di giliran itu. Bila ada beberapa, `defer` diabaikan, karena melanjutkan sesi hanya bisa menjalankan ulang satu tool tanpa meninggalkan yang lain menggantung.\n\nDi Claude Managed Agents, persetujuan diatur lewat *permission policy* per tool:\n\n- **`always_allow`**: tool berjalan tanpa konfirmasi;\n- **`always_ask`**: sesi berhenti dengan `requires_action` sampai kamu mengirim event `user.tool_confirmation` berisi `allow` atau `deny`, boleh dengan `deny_message`;\n- **`auto`**: server menilai setiap panggilan, lalu menjalankannya, menolaknya, atau menjeda untuk menunggu persetujuanmu.\n\nPenolakan oleh `auto` tak bisa kamu timpa dari klien. Dokumentasinya juga mengingatkan bahwa *permission policy* tak berlaku untuk tool buatanmu sendiri. Untuk tool seperti itu, aplikasimu sendiri yang memutuskan, persis seperti kode di halaman ini."
+    },
+    {
+      "title": "Awasi, jangan hanya menyetujui, lalu ukur pengawasanmu",
+      "description": "Persetujuan per aksi hanyalah satu bentuk pengawasan. Data Anthropic menunjukkan pengguna berpengalaman beralih ke bentuk lain. Sesi dengan persetujuan otomatis penuh naik dari sekitar 20% pada pengguna baru menjadi lebih dari 40% setelah 750 sesi. Pada saat yang sama, porsi giliran yang mereka interupsi naik dari 5% menjadi sekitar 9%. Mereka berhenti menjaga setiap pintu, lalu mulai berpatroli.\n\nSupaya pola itu aman, beri pengguna dua hal yang disarankan Anthropic kepada pengembang produk:\n\n- **visibilitas yang bisa dipercaya** tentang apa yang sedang dikerjakan agen, misalnya jejak OpenTelemetry dari topik Evals & Observability;\n- **mekanisme intervensi yang sederhana** untuk menghentikan atau mengarahkan ulang agen di tengah jalan.\n\nLalu ukur pengawasanmu seperti fitur lain:\n\n| Ukuran | Tanda bahaya |\n|---|---|\n| porsi permintaan yang disetujui | mendekati 100% bisa berarti pertanyaannya tak lagi dibaca |\n| pertanyaan per sesi | terus naik saat tool baru ditambah |\n| waktu sampai keputusan | sangat singkat untuk aksi besar |\n| persetujuan yang kedaluwarsa | banyak berarti pengguna tak tahu ada yang menunggu |\n| aksi tercatat yang dibatalkan kemudian | tingkat \"catat\" mungkin terlalu longgar |\n\nSesekali, uji alurnya dengan permintaan yang seharusnya ditolak, dan lihat apakah penolakan itu sungguh terjadi. Pertanyaan yang tak pernah dijawab \"tidak\" patut dicurigai.\n\n::media[video-auto-mode]"
+    }
+  ],
+  "tools": [
+    {
+      "slug": "anthropic-python-sdk",
+      "name": "Anthropic Python SDK",
+      "summary": "SDK resmi untuk Messages API Claude di Python: tipe untuk definisi tool, blok tool_use dan tool_result, serta Tool Runner (beta) yang memutar putaran agen sendiri.",
+      "homepage": "https://github.com/anthropics/anthropic-sdk-python",
+      "note": "Dipakai untuk putaran yang bisa dijeda dan dilanjutkan di langkah 5 sampai 7, diuji dengan model tiruan lewat transport HTTP."
+    },
+    {
+      "slug": "claude-agent-sdk",
+      "name": "Claude Agent SDK",
+      "summary": "SDK resmi untuk membangun agen di atas harness Claude Code: tool bawaan, aturan izin, mode izin, hook, callback persetujuan canUseTool, dan pertanyaan klarifikasi AskUserQuestion.",
+      "homepage": "https://github.com/anthropics/claude-agent-sdk-python",
+      "note": "Dibahas di langkah 8, 9, dan 11: pilihan jawaban persetujuan, AskUserQuestion, dan keputusan defer untuk jeda yang panjang."
+    },
+    {
+      "slug": "langgraph",
+      "name": "LangGraph",
+      "summary": "Kerangka kerja sumber terbuka untuk agen berbentuk graf, dengan memori jangka pendek per thread lewat checkpointer dan memori jangka panjang per namespace lewat store.",
+      "homepage": "https://github.com/langchain-ai/langgraph",
+      "note": "Dipakai di langkah 10: interrupt() dan Command(resume=...) dengan checkpointer, termasuk aturan bahwa node diulang dari awal saat dilanjutkan."
+    }
+  ],
+  "projects": [
+    {
+      "title": "Gerbang persetujuan yang bisa ditinggal tidur",
+      "brief": "Ambil agen perpustakaan dari proyek Tool use dan beri ia alur persetujuan yang sungguh dipakai: anggota menerima pertanyaan, menjawab kapan saja, dan agen melanjutkan dari tempatnya berhenti.\n\n- Simpan keadaan yang menunggu di basis data atau berkas, bukan di memori proses.\n- Tampilkan pertanyaan di antarmuka sederhana, misalnya halaman web atau perintah CLI, dengan tombol setuju, tolak, dan ubah lama pinjam.\n\n**Kamu selesai bila:**\n\n1. uji membuktikan proses yang berbeda bisa melanjutkan sesi yang dijeda, dan pinjaman tercatat tepat sekali;\n2. ketika model meminta beberapa tool dalam satu giliran, semua `tool_result`-nya dikirim dalam satu pesan, urut sesuai `tool_use`;\n3. ringkasan persetujuan disusun kode dari argumen dan katalog, dan uji membuktikan teks model tak pernah ikut tampil;\n4. penolakan sampai ke model sebagai `is_error` berisi alasan pengguna, dan tak ada jawaban berarti tolak;\n5. persetujuan kedaluwarsa setelah batas yang kamu tetapkan, dan syarat aksi dicek ulang saat dijalankan, dengan uji merah yang menunjukkan apa yang terjadi tanpanya;\n6. setiap keputusan masuk jejak audit yang bisa kamu cari menurut anggota dan tanggal."
+    },
+    {
+      "title": "Kurangi pertanyaan tanpa mengurangi keamanan",
+      "brief": "Proyek kedua menguji keseimbangan yang dibahas di halaman ini. Siapkan 30 sesi skenario, campuran pertanyaan, peminjaman, perpanjangan, dan beberapa permintaan yang seharusnya ditolak, termasuk injeksi dari topik Keamanan agen.\n\n- Jalankan semuanya dengan kebijakan \"tanya semua\", lalu dengan kebijakan bertingkat milikmu.\n- Catat untuk setiap kebijakan: jumlah pertanyaan, aksi yang dicatat otomatis, dan aksi berbahaya yang lolos.\n\n**Kamu selesai bila:**\n\n1. tabel perbandingan kedua kebijakan tersedia untuk ke-30 sesi;\n2. kebijakan bertingkat mengajukan jauh lebih sedikit pertanyaan, dan kamu menyebut angkanya;\n3. tak satu pun aksi berbahaya lolos di kebijakan bertingkat, dibuktikan dengan uji;\n4. tool yang tak terdaftar ditolak secara bawaan, dibuktikan dengan uji;\n5. kamu menuliskan satu aksi yang tingkatnya kamu ubah setelah melihat data, beserta alasannya."
+    }
+  ],
+  "resources": [
+    {
+      "type": "OfficialDocs",
+      "title": "Handle approvals and user input — dokumentasi Claude Agent SDK",
+      "url": "https://code.claude.com/docs/en/agent-sdk/user-input"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Configure permissions — dokumentasi Claude Agent SDK",
+      "url": "https://code.claude.com/docs/en/agent-sdk/permissions"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Hooks reference (keputusan defer) — dokumentasi Claude Code",
+      "url": "https://code.claude.com/docs/en/hooks"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Permission policies — dokumentasi Claude Managed Agents",
+      "url": "https://platform.claude.com/docs/en/managed-agents/permission-policies"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Measuring AI agent autonomy in practice — Anthropic (18 Februari 2026)",
+      "url": "https://www.anthropic.com/news/measuring-agent-autonomy"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "How we built Claude Code auto mode — Anthropic Engineering (25 Maret 2026)",
+      "url": "https://www.anthropic.com/engineering/claude-code-auto-mode"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Interrupts — dokumentasi LangGraph",
+      "url": "https://docs.langchain.com/oss/python/langgraph/interrupts"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Elicitation — spesifikasi Model Context Protocol",
+      "url": "https://modelcontextprotocol.io/specification/latest/client/elicitation"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "OWASP Top 10 for Agentic Applications 2026 — OWASP GenAI Security Project",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "type": "Paper",
+      "title": "Levels of Autonomy for AI Agents — Feng, McDonald, dan Zhang, 2025",
+      "url": "https://arxiv.org/abs/2506.12469"
+    },
+    {
+      "type": "Paper",
+      "title": "Design Patterns for Securing LLM Agents against Prompt Injections — Beurer-Kellner dkk., 2025",
+      "url": "https://arxiv.org/abs/2506.08837"
+    },
+    {
+      "type": "Video",
+      "title": "How auto mode works with Claude Code — Claude, Agustus 2026",
+      "url": "https://www.youtube.com/watch?v=b8SV4U6fEIc"
+    },
+    {
+      "type": "Video",
+      "title": "LangGraph interrupt: Making it easier to build human-in-the-loop agents — LangChain, Desember 2024",
+      "url": "https://www.youtube.com/watch?v=6t7YJcEFUIY"
+    },
+    {
+      "type": "Repository",
+      "title": "Claude Agent SDK untuk Python — kode sumber",
+      "url": "https://github.com/anthropics/claude-agent-sdk-python"
+    },
+    {
+      "type": "Repository",
+      "title": "LangGraph — kode sumber",
+      "url": "https://github.com/langchain-ai/langgraph"
+    }
+  ],
+  "requires": [
+    "tool-use"
+  ]
+}
