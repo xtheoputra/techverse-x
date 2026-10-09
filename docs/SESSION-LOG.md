@@ -4,6 +4,250 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-09 — Sesi 25 (Lanjutan 3): pemilik memilih AI & Machine Learning; topik pertamanya, Large Language Model
+
+Permintaan pemilik: *"lanjutkan progress"*. Belum ada PR yang di-merge. Karena bidang AI Agents sudah lengkap, bidang berikutnya saya tanyakan lewat pertanyaan pilihan. Pemilik memilih **AI & Machine Learning** (pilihan yang saya rekomendasikan: bidang urutan 1, fondasi AI Agents), dimulai dari topik LLM.
+
+### Large Language Model (LLM) — [PR #106](https://github.com/xtheoputra/techverse-x/pull/106)
+
+Cabang `fase-1/isi-llm` dari `origin/main`, folder baru `isi/ai-machine-learning/`. Isinya 12 langkah, 4 diagram SVG (dua dihitung langsung dari keluaran uji), 3 video (dua dari 3Blue1Brown, satu dari Andrej Karpathy), 17 sumber, dan 2 proyek mini. `requires` dibiarkan kosong karena topik fondasi; alat baru di katalog adalah `numpy`.
+
+**Temuan dari sumber yang dibaca saat itu**, yang membantah tutorial umum dan ingatan saya sendiri:
+
+- Pada model Claude terbaru, `temperature`, `top_p`, dan `top_k` selain bawaan **ditolak 400**. Referensi API menandai ketiganya *deprecated* untuk model sesudah Claude Opus 4.6. Kendalinya kini `output_config.effort`; pada Claude Opus 5.5 bawaannya `medium` dan *adaptive thinking* selalu aktif.
+- Tokenizer sejak Claude Opus 4.7 menghitung sekitar 30% lebih banyak token, sehingga perkiraan "3,5 karakter per token" di glosarium tak lagi cocok. Penghitungan token lewat API gratis.
+- Dicek ulang: topik Tool use di `main` sudah benar menyebut bahwa *forced tool use* ditolak di Opus 5.5 dan kawan-kawannya.
+
+**Diverifikasi tanpa panggilan API:**
+
+| Uji | ok |
+|---|--:|
+| `uji_llm.py`: BPE = *Algorithm 1* makalah Sennrich (dijalankan sebagai pembanding), atensi kausal dan ragam q·k 64,6 → 1,01, sampling dan nucleus, bigram, biaya, permintaan `effort` lewat SDK | 22 |
+| kutipan = yang diuji | 16 |
+
+Gerbang lokal: `.\run.ps1 isi` sah; `.\run.ps1 gerbang-isi` **HIJAU** (23 detik); pemindai ADR-024 **24 halaman, 0 kena**; `.\run.ps1 verify` semua hijau (85 detik). CI #106: semua hijau kecuali job citra, dengan advisori Next.js yang sama.
+
+Dua frasa di diagram yang belum bersumber ("triliunan kali", "bekerja di tingkat byte"), dan satu kalimat tentang arah di ruang embedding, dibuang sebelum commit.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** tak berubah, yaitu 17 bidang dan 4 topik `draf`.
+
+**PR terbuka, semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung:**
+
+- **#103 lebih dulu**: tambalan Next.js 16.3.8 dan `source-map-js` 1.2.2, dengan CI hijau semua.
+- #98, #99, #100, #101: penulisan ulang bergaya hangat. Sesudah merge, *Pasang isi* dengan **ganti** dicentang.
+- #102 (Evals & Observability), #104 (Keamanan Agen), #105 (Human-in-the-Loop), dan #106 (Large Language Model): topik baru. Sesudah merge, *Pasang isi* **tanpa ganti**.
+- Untuk semuanya, `sha` = citra API yang **tayang** (`e262bb1` selama tak ada merge yang mengubah jalur API).
+- Sesudah #103 masuk, job citra PR lain baru bisa hijau bila cabangnya **diperbarui dengan `main`** (tombol *Update branch*), bukan sekadar *Re-run*.
+
+**Belum diverifikasi:** bingkai video #102, #104, #105, #106 di https, serta luberan 390 px #104, #105, #106.
+
+**Berikutnya, saya:** topik kedua AI & Machine Learning. Urutan ADR-010: ML klasik, Deep learning, Computer Vision, NLP, Reinforcement Learning, Multimodal AI. Saya akan mulai dari **Deep learning**, yang menjadi dasar LLM.
+
+---
+
+## 2026-10-09 — Sesi 25 (Lanjutan 2): topik ketujuh, Human-in-the-Loop; ketujuh topik AI Agents kini punya isi
+
+Permintaan pemilik: *"lanjutkan progress"*. Belum ada PR yang di-merge (`main` tetap `1cd5edb`).
+
+### Human-in-the-Loop — [PR #105](https://github.com/xtheoputra/techverse-x/pull/105)
+
+Cabang `fase-1/isi-human-in-the-loop` dari `origin/main`. Isinya 12 langkah, 4 diagram SVG, 2 video resmi (kanal Claude, Agustus 2026, dan kanal LangChain, Desember 2024; keterangan video kedua menyebut bahwa API-nya lebih tua dari yang diajarkan), 15 sumber, 2 proyek mini, dan `requires: tool-use`. Alat baru di katalog: `claude-agent-sdk`. `langgraph` memakai definisi bersama yang sama persis dengan topik Memori agen.
+
+**Sumber yang dibaca saat itu**: dokumentasi Claude Agent SDK, yang ternyata tinggal di `code.claude.com/docs/en/agent-sdk/*` dan tak tercantum di `llms.txt` platform; hooks (`defer`); *permission policies* Managed Agents; dua tulisan Anthropic (*Measuring AI agent autonomy*, Februari 2026; *auto mode*, Maret 2026); dokumentasi `interrupt` LangGraph; *Elicitation* MCP 2026-07-28; serta makalah *Levels of Autonomy for AI Agents* (Feng dkk., 2025). **Temuan:** dokumentasi LangGraph kini menyarankan `stream_events(..., version="v3")`, dan saat dijalankan dengan LangGraph 1.2.14, protokol itu masih memunculkan peringatan *experimental*. Halaman menyebutnya.
+
+**Diverifikasi tanpa panggilan API**, dengan SDK `anthropic` asli dan model tiruan berskenario; LangGraph dijalankan sungguhan karena `interrupt()` tak butuh model:
+
+| Uji | ok |
+|---|--:|
+| `uji_hitl.py`: jeda ke berkas lalu lanjut di proses baru, tolak, paralel, cek ulang (+ bukti merah stok −1), kedaluwarsa, kebijakan bertingkat | 18 |
+| `uji_graf.py`: efek samping sebelum `interrupt()` terjadi 2 kali (merah), sesudahnya 1 kali | 6 |
+| kutipan = yang diuji | 16 |
+
+Gerbang lokal, kali ini dalam urutan yang benar (Docker dimatikan **sesudah** `verify`): `.\run.ps1 isi` sah; `.\run.ps1 gerbang-isi` **HIJAU** (31 detik); pemindai ADR-024 **24 halaman, 0 kena**; `.\run.ps1 verify` semua hijau (105 detik). CI #105: semua hijau kecuali job citra, dengan satu temuan `next` 16.3.6 yang sama, ditambal #103.
+
+Dengan ini **ketujuh topik AI Agents** di ADR-010 punya isi. Empat sudah di `main` dan tayang sebagai `draf`; tiga lainnya (#102, #104, #105) menunggu merge.
+
+### Keadaan sesudah Lanjutan 2 (digantikan oleh 🏁 di Lanjutan 3, di atas)
+
+**Produksi:** tak berubah, yaitu 17 bidang dan 4 topik `draf`.
+
+**PR terbuka, semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung:**
+
+- **#103 lebih dulu**: tambalan Next.js 16.3.8 dan `source-map-js` 1.2.2, dengan CI hijau semua.
+- #98, #99, #100, #101: penulisan ulang bergaya hangat. Sesudah merge, *Pasang isi* dengan **ganti** dicentang.
+- #102 (Evals & Observability), #104 (Keamanan Agen), dan #105 (Human-in-the-Loop): topik baru. Sesudah merge, *Pasang isi* **tanpa ganti**.
+- Untuk semuanya, `sha` = citra API yang **tayang** (`e262bb1` selama tak ada merge yang mengubah jalur API).
+- Sesudah #103 masuk, job citra #98–#102, #104, dan #105 baru bisa hijau bila cabangnya **diperbarui dengan `main`** (tombol *Update branch*), bukan sekadar *Re-run*.
+
+**Belum diverifikasi:** bingkai video #102, #104, #105 di https, serta luberan 390 px #104 dan #105.
+
+**Berikutnya:** bidang AI Agents selesai ditulis. Bidang atau topik berikutnya akan saya tanyakan kepada pemilik, bukan saya tebak.
+
+---
+
+## 2026-10-09 — Sesi 25 (Lanjutan): topik keenam, Keamanan Agen
+
+Permintaan pemilik: *"lanjutkan progress"*. Belum ada PR yang di-merge (`main` tetap `1cd5edb`), jadi saya mengerjakan langkah berikutnya yang tercatat.
+
+### Keamanan Agen — [PR #104](https://github.com/xtheoputra/techverse-x/pull/104)
+
+Cabang `fase-1/isi-keamanan-agen` dari `origin/main`. Isinya 13 langkah, 4 diagram SVG, 2 video resmi (kanal Claude, 6 Oktober 2026, dan kanal OWASP GenAI Security Project), 16 sumber, 2 proyek mini, dan `requires: tool-use`. Halamannya mengajak pembaca menyerang agen perpustakaan lewat ulasan buku, lalu menutup celahnya lapis demi lapis.
+
+**Temuan dari sumber yang dibaca saat itu:**
+
+- OWASP menerbitkan **Top 10 for LLM Applications 2026** (PDF, 3 Agustus 2026). Peringkatnya ditata ulang: *Excessive Agency* naik ke LLM03, dan ada entri baru *Hidden Context Exposure*. Halaman indeks `genai.owasp.org/llm-top-10/` masih menampilkan versi 2025, jadi saya memakai PDF-nya. PDF dibaca dengan `pypdf`, karena mesin ini tak punya poppler.
+- Dokumentasi *structured outputs* Claude menyatakan skema `strict: true` **tidak mendukung** `minimum`/`maximum`; API menjawab 400. Versi pertama contoh saya memakainya. Batas hari kini ditegakkan di kode, dan halaman menjelaskan alasannya.
+- `anthropic-experimental/sandbox-runtime` kini pindah ke `anthropics/sandbox-runtime`.
+
+**Diverifikasi tanpa panggilan API**, dengan model tiruan yang *sengaja selalu termakan injeksi*, supaya yang diuji adalah pertahanan di luar model:
+
+| Uji | ok |
+|---|--:|
+| `uji_aman.py`: rentan vs aman, bukti merah per pertahanan, egress, trifecta, penyaring | 36 |
+| kutipan = yang diuji | 39 |
+
+Hasil ukur ala AgentDojo (5 trial per konfigurasi): versi rentan **100%** serangan berhasil; versi aman **0%**, dengan kegunaan tetap 100%. Tanpa gerbang persetujuan, injeksi yang meminta 7 hari berhasil lagi (100%), jadi gerbang itu terbukti bekerja.
+
+Gerbang lokal: `.\run.ps1 isi` sah; `.\run.ps1 gerbang-isi` **HIJAU** (25 detik, gerbang 2 dan 3 masing-masing 36 ok); pemindai ADR-024 **24 halaman, 0 kena**; `.\run.ps1 verify` semua hijau (75 detik).
+
+🔧 **Kesalahan urutan dari saya:** `verify` pertama merah di `Ready_hijau_saat_Redis_tidak_dikonfigurasi`, karena Postgres sudah saya matikan sebelum `verify`. Uji itu sengaja memakai PostgreSQL sungguhan. Setelah `up`, `verify` hijau. Pelajarannya dicatat di memori: matikan Docker **sesudah** `verify`, bukan sebelumnya.
+
+CI #104: Backend, Frontend, pemindai rahasia, dan kedua pratinjau Vercel hijau. Job citra merah dengan satu temuan saja, `next` 16.3.6 (CVE-2026-94483), sama seperti #101 dan #102, dan tambalannya #103.
+
+Tanpa Chrome, yang belum diverifikasi untuk #104: luberan di 390 px dan bingkai video di https. Yang terbukti: halaman, keempat SVG, dan kedua bingkai tersaji 200; diagram dirender dengan `sharp` di 760 dan 340 px.
+
+### Lingkungan
+
+Docker Desktop dinyalakan dua kali (gerbang isi, lalu `verify`) dan dimatikan lagi bersama WSL. API `:5096` dan web `:3401` sudah dimatikan, dan basis data sementara `techversex_ka` sudah dibuang.
+
+### Keadaan sesudah Lanjutan (digantikan oleh 🏁 di Lanjutan 2, di atas)
+
+**Produksi:** tak berubah, yaitu 17 bidang dan 4 topik `draf`.
+
+**PR terbuka, semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung:**
+
+- **#103 lebih dulu**: tambalan Next.js 16.3.8 dan `source-map-js` 1.2.2, dengan CI hijau semua.
+- #98, #99, #100, #101: penulisan ulang bergaya hangat. Sesudah merge, *Pasang isi* dengan **ganti** dicentang.
+- #102 (Evals & Observability) dan #104 (Keamanan Agen): topik baru. Sesudah merge, *Pasang isi* **tanpa ganti**.
+- Untuk semuanya, `sha` = citra API yang **tayang** (`e262bb1` selama tak ada merge yang mengubah jalur API).
+- Sesudah #103 masuk, job citra #98–#102 dan #104 baru bisa hijau bila cabangnya **diperbarui dengan `main`** (tombol *Update branch*), bukan sekadar *Re-run*.
+
+**Belum diverifikasi:** bingkai video #102 dan #104 di https, serta luberan 390 px #104.
+
+**Berikutnya, saya:** topik ketujuh dan terakhir bidang ini, **Human-in-the-loop**.
+
+---
+
+## 2026-10-09 — Sesi 25: topik kelima, Evals & Observability, ditulis langsung dengan gaya hangat
+
+Permintaan pemilik: *"lanjutkan progress"*. Di tengah sesi: *"jangan buka di chrome, mengganggu pc lain"*.
+
+### Keadaan saat mulai
+
+Pohon kerja bersih. #98–#101 masih terbuka dan belum di-merge, `main` tetap `1cd5edb`. Ujung transkrip kemarin cocok dengan 🏁 Lanjutan 3: tak ada pekerjaan yang terputus. Jadi yang dikerjakan adalah langkah berikutnya yang tercatat, yaitu topik kelima.
+
+### Topik kelima: Evals & Observability — [PR #102](https://github.com/xtheoputra/techverse-x/pull/102)
+
+Cabang `fase-1/isi-evals-observability` dari `origin/main`, tanpa tumpukan. Isinya 13 langkah, 4 diagram SVG buatan sendiri, 2 video resmi (kanal Claude dan Langfuse), 16 sumber, 2 proyek mini, dan `requires: tool-use`. Topik ini langsung ditulis mengikuti pegangan gaya di `isi/README.md`.
+
+**Dua hal yang pindah tempat, ditemukan karena sumbernya dibaca saat itu juga.** Konvensi semantik GenAI OpenTelemetry kini tinggal di repositori `semantic-conventions-genai`; halaman lamanya di `semantic-conventions` hanya berisi pemberitahuan pindah. Instrumentasi GenAI untuk Python juga pindah ke `opentelemetry-python-genai`, dan di sanalah paket resmi `opentelemetry-instrumentation-genai-anthropic` (1.2b0) berada.
+
+**Diverifikasi tanpa panggilan API.** SDK `anthropic` 1.12.1 dipakai bersama model tiruan lewat `httpx2.MockTransport`. Instrumentasi OpenTelemetry resmi dibaca lewat `InMemorySpanExporter`, dan Inspect 0.3.277 dijalankan dengan `mockllm`. Hasilnya, dalam jumlah `ok` yang tercatat dari keluaran:
+
+| Uji | ok |
+|---|--:|
+| harness eval, termasuk bukti merah lingkungan bersama | 19 |
+| jejak dari instrumentasi resmi | 13 |
+| hakim LLM dan kesepakatan | 14 |
+| statistik | 10 |
+| Inspect (reducer `pass_at_3`/`pass_k_3` = fungsi kita) | 6 |
+| kutipan = yang diuji | 28 |
+
+Tiga temuan dari jejak yang direkam dan masuk ke halaman: `gen_ai.usage.input_tokens` sudah memuat token cache (2234 = 1210 + 1024); `stop_reason` dibakukan (`tool_use` → `tool_call`, `end_turn` → `stop`); dan isi pesan tidak terekam selama variabel penangkap isi tidak diatur.
+
+Gerbang lokal: `.\run.ps1 isi` sah (5 topik); `.\run.ps1 gerbang-isi` **HIJAU** (36 detik, 5 topik, gerbang 2 dan 3 masing-masing 36 ok); pemindai ADR-024 **24 halaman, 0 kena**; `.\run.ps1 verify` semua hijau (120 detik). Diagram dirender dengan `sharp` di 760 dan 340 px. Satu label yang menimpa garis di grafik pass-k diperbaiki, dan warnanya lolos `validate_palette.js` untuk mode gelap.
+
+### Chrome tidak dipakai lagi
+
+Pemeriksaan tampilan dimulai seperti biasa lewat Chrome (halaman di desktop, lalu bingkai 390 px: `scrollWidth` 380 = `clientWidth` 380). Pemilik lalu menghentikannya karena tab itu **mengganggu PC lain**. Tab yang saya buka sudah tertutup dari sana. Sejak saat itu tak ada alat browser yang dipanggil. Pemeriksaan sisanya memakai `curl`, render `sharp`, dan pemindai Node. Akibatnya, **bingkai kedua video belum dilihat di origin https**; yang terbukti baru oEmbed 200 dan `"playableInEmbed":true`. Aturan ini dicatat di memori agar sesi berikutnya mengikutinya.
+
+### CI merah di #101 dan #102: advisori Next.js baru — [PR #103](https://github.com/xtheoputra/techverse-x/pull/103)
+
+Backend, Frontend, dan Vercel hijau di kedua PR, tetapi job **Citra peti kemas** merah dengan satu temuan: `next` 16.3.6 terkena CVE-2026-94483 / **GHSA-cjq9-62q9-8jv4** (SSRF di Image Optimization, HIGH), yang terbit 7 Oktober 20:30 UTC dan diperbaiki di 16.3.8. Isi PR tak ada hubungannya; ini target bergerak yang sama dengan #76.
+
+Tambalannya, atas inisiatif saya sendiri, ada di #103 dari `origin/main` (worktree jalur pendek), dalam dua commit. Pertama, `next` dan `eslint-config-next` dinaikkan ke 16.3.8, dan lockfile berubah tepat 13 entri. Kedua, `source-map-js` 1.2.1 → 1.2.2 (GHSA-68fv-2mgg-jv7q, HIGH, ditemukan `npm audit`; satu entri). Di worktree: `npm ci`, `npm audit --omit=dev` **0**, lint lolos, dan build web di Next.js 16.3.8 berhasil. Trivy tidak dijalankan lokal karena Docker sudah dimatikan, jadi buktinya job citra di #103.
+
+🔧 **Koreksi atas memori saya sendiri:** sesudah tambalan ter-merge, PR lain **tidak** cukup di-*Re-run*. Dokumentasi GitHub menyatakan run ulang memakai `GITHUB_SHA` dan `GITHUB_REF` yang sama dengan run aslinya. Cabangnya harus diperbarui dengan `main`.
+
+### Lingkungan
+
+Docker Desktop dinyalakan untuk gerbang isi; memori mesin sempat tinggal ± 0,5 GB karena Visual Studio juga terbuka. API `:5096` dan web `:3401` yang saya nyalakan sudah dimatikan (PID dicocokkan dengan baris perintahnya), dan basis data sementara `techversex_eo` sudah dibuang. Sesudah itu Docker Desktop dan WSL dimatikan lagi, sehingga kembali seperti saat sesi dimulai, dan memori bebas naik dari 2,3 menjadi 5,3 GB. Kontainer `wellsy-*` milik proyek lain sempat ikut menyala bersama Docker, lalu ikut berhenti. Worktree tambalan ada di `%TEMP%\wts\next1638`.
+
+### Keadaan sesudah bagian pertama (digantikan oleh 🏁 di Lanjutan, di atas)
+
+**Produksi:** tak berubah sejak Lanjutan 3, yaitu 17 bidang dan 4 topik `draf`.
+
+**PR terbuka, semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung:**
+
+- **#103 lebih dulu**: tambalan Next.js 16.3.8 dan `source-map-js` 1.2.2. Vercel melewati build API karena lockfile tak termasuk jalurnya; web dibangun ulang.
+- #98, #99, #100, #101: penulisan ulang bergaya hangat. Sesudah merge, *Pasang isi* dengan **ganti** dicentang.
+- #102: topik baru. Sesudah merge, *Pasang isi* `evals-dan-observability` **tanpa ganti**.
+- Untuk keduanya, `sha` = citra API yang **tayang** (`e262bb1` selama tak ada merge yang mengubah jalur API).
+- Sesudah #103 masuk, job citra #98–#102 baru bisa hijau bila cabangnya **diperbarui dengan `main`** (tombol *Update branch*), bukan sekadar *Re-run*.
+
+Catatan ini menumpang di #101 karena hanya PR itu yang menyentuh `docs/SESSION-LOG.md`.
+
+**Belum diverifikasi:** bingkai video #102 di https (lihat di atas).
+
+**Berikutnya, saya:** topik keenam, **Keamanan agen**, lalu Human-in-the-loop.
+
+---
+
+## 2026-10-08 — Sesi 24 (Lanjutan 3): Memori tayang, lalu keempat topik ditulis ulang dengan bahasa yang hangat
+
+Permintaan pemilik: *"1. terlalu kaku bahasa robot, gunakan bahasa yang baik untuk pembelajaran. 2. merged"*.
+
+### 1. Pasang isi Memori agen — atas izin pemilik
+
+#97 sudah di-merge, dan pemilik menjawab **"Ya, pasang sekarang"**. Citra API yang tayang dipastikan dulu: `e262bb1`, karena merge #97 tak menyentuh jalur API. Run `37742310161` (`memori-agen`, tanpa ganti) menulis *"sisi memori-agen butuh tool-use"* lalu `selesai`. Diukur di produksi: `memori-agen` berstatus `draf`, 12 langkah, 5 media, `requires: tool-use`, halaman 200.
+
+### 2. Umpan balik gaya: "terlalu kaku bahasa robot"
+
+Pemilik ditanya tiga hal, dan jawabannya:
+
+- **Yang kaku: keduanya**, yaitu halaman topik dan laporan Claude di chat.
+- **Gaya: hangat dan bercerita.** Analogi dulu, lalu *kenapa* sebelum *bagaimana*; istilah dijelaskan saat pertama muncul; kode dan tabel tetap ada tetapi diantar narasi; catatan verifikasi pindah ke PR.
+- **Urutan: langsung keempatnya**, satu PR per topik.
+
+Pegangan itu kini tertulis di `isi/README.md`, bagian **Gaya bahasa: hangat dan bercerita**, lengkap dengan contoh sebelum dan sesudah, supaya topik berikutnya mengikutinya sejak awal.
+
+### 3. Empat PR penulisan ulang
+
+| PR | Topik | Kata (sebelum → sesudah) | Blok kode identik |
+|---|---|---|---|
+| [#101](https://github.com/xtheoputra/techverse-x/pull/101) | Tool use (+ pegangan gaya + catatan ini) | 3.065 → 3.937 | 5 dari 5; `cek_isi` 8 ok |
+| [#98](https://github.com/xtheoputra/techverse-x/pull/98) | Model Context Protocol | 2.795 → 3.317 | 9 dari 9 |
+| [#99](https://github.com/xtheoputra/techverse-x/pull/99) | Agent2Agent (A2A) | 3.298 → 3.702 | 10 dari 10 |
+| [#100](https://github.com/xtheoputra/techverse-x/pull/100) | Memori agen (+ satu baris di SVG skor) | 2.711 → 3.015 | 5 dari 5; `cek_isi` 7 ok |
+
+**Cara menjaga fakta tetap sama.** Tiga topik terakhir ditulis ulang oleh generator yang membaca berkas lama dari `origin/main`, lalu berhenti bila satu blok kode atau satu rujukan `::media` berubah, hilang, atau bertambah. Generator yang sama menolak kata terlarang ADR-024 sebelum menulis. Jumlah langkah dan proyek tak berubah, sehingga *Pasang isi* dengan **ganti** bisa menyamakan semuanya per nomor (membuang langkah belum punya jalan, #79). Ringkasan alat di katalog bersama juga tak disentuh; yang berubah hanya catatan per topik.
+
+**Diukur** di setiap cabang: `.\run.ps1 isi` sah, dan `.\run.ps1 gerbang-isi` **HIJAU** (36 ok di gerbang 2 dan 3), masing-masing sekitar 33 detik. Keempat cabang lalu digabung di cabang lokal sementara (tak di-push, sudah dihapus). Hasilnya: pemindai ADR-024 **23 halaman, 0 kena**; tampilan dilihat di `next start` lewat IP LAN; di 390 px `scrollWidth` 380 = `clientWidth` 380 untuk keempat halaman; `.\run.ps1 verify` semua gerbang hijau (72 detik).
+
+🔧 Satu jebakan lama muncul lagi: generator MCP gagal dengan `SyntaxError` karena docstring Python di dalam blok kode bertabrakan dengan `r"""…"""`. Jalan keluarnya sama seperti di Tool use: langkah itu ditulis dengan `r'''…'''`.
+
+### 🏁 Keadaan sesudah bagian ini
+
+**Produksi:** 17 bidang, **4 topik** (Tool use, MCP, A2A, Memori agen; semuanya `draf`), 3 sisi Knowledge Graph, **0 dari 22 `tinjau`**. Teks di produksi masih versi lama sampai keempat PR di-merge dan dipasang ulang.
+
+**PR terbuka:** #98, #99, #100, dan #101 (yang membawa catatan ini), semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung. Sesudah masing-masing di-merge: *Pasang isi* dengan **ganti dicentang**, `sha` = citra API yang tayang (`e262bb1` selama tak ada merge yang mengubah API).
+
+**Berikutnya, saya:** topik kelima, **Evals & observability**, langsung dengan gaya yang baru.
+
+---
+
 ## 2026-10-08 — Sesi 24 (Lanjutan 2): Tool use ditulis tanpa biaya API, dan tiga topik tayang
 
 Permintaan pemilik: *"lanjutkan"* (sesudah Lanjutan 1), lalu *"lanjutkan"* lagi sesudah #95 dan #96 ter-merge.
