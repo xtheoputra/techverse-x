@@ -37,9 +37,17 @@ Gerbang lokal: `.\run.ps1 isi` sah (5 topik); `.\run.ps1 gerbang-isi` **HIJAU** 
 
 Pemeriksaan tampilan dimulai seperti biasa lewat Chrome (halaman di desktop, lalu bingkai 390 px: `scrollWidth` 380 = `clientWidth` 380). Pemilik lalu menghentikannya karena tab itu **mengganggu PC lain**. Tab yang saya buka sudah tertutup dari sana. Sejak saat itu tak ada alat browser yang dipanggil. Pemeriksaan sisanya memakai `curl`, render `sharp`, dan pemindai Node. Akibatnya, **bingkai kedua video belum dilihat di origin https**; yang terbukti baru oEmbed 200 dan `"playableInEmbed":true`. Aturan ini dicatat di memori agar sesi berikutnya mengikutinya.
 
+### CI merah di #101 dan #102: advisori Next.js baru — [PR #103](https://github.com/xtheoputra/techverse-x/pull/103)
+
+Backend, Frontend, dan Vercel hijau di kedua PR, tetapi job **Citra peti kemas** merah dengan satu temuan: `next` 16.3.6 terkena CVE-2026-94483 / **GHSA-cjq9-62q9-8jv4** (SSRF di Image Optimization, HIGH), yang terbit 7 Oktober 20:30 UTC dan diperbaiki di 16.3.8. Isi PR tak ada hubungannya; ini target bergerak yang sama dengan #76.
+
+Tambalannya, atas inisiatif saya sendiri, ada di #103 dari `origin/main` (worktree jalur pendek), dalam dua commit. Pertama, `next` dan `eslint-config-next` dinaikkan ke 16.3.8, dan lockfile berubah tepat 13 entri. Kedua, `source-map-js` 1.2.1 → 1.2.2 (GHSA-68fv-2mgg-jv7q, HIGH, ditemukan `npm audit`; satu entri). Di worktree: `npm ci`, `npm audit --omit=dev` **0**, lint lolos, dan build web di Next.js 16.3.8 berhasil. Trivy tidak dijalankan lokal karena Docker sudah dimatikan, jadi buktinya job citra di #103.
+
+🔧 **Koreksi atas memori saya sendiri:** sesudah tambalan ter-merge, PR lain **tidak** cukup di-*Re-run*. Dokumentasi GitHub menyatakan run ulang memakai `GITHUB_SHA` dan `GITHUB_REF` yang sama dengan run aslinya. Cabangnya harus diperbarui dengan `main`.
+
 ### Lingkungan
 
-Docker Desktop dinyalakan untuk gerbang isi; memori mesin sempat tinggal ± 0,5 GB karena Visual Studio juga terbuka. API `:5096` dan web `:3401` yang saya nyalakan sudah dimatikan (PID dicocokkan dengan baris perintahnya), dan basis data sementara `techversex_eo` sudah dibuang. Kontainer `techversex-*` dibiarkan menyala; kontainer `wellsy-*` milik proyek lain ikut menyala bersama Docker dan tidak saya sentuh.
+Docker Desktop dinyalakan untuk gerbang isi; memori mesin sempat tinggal ± 0,5 GB karena Visual Studio juga terbuka. API `:5096` dan web `:3401` yang saya nyalakan sudah dimatikan (PID dicocokkan dengan baris perintahnya), dan basis data sementara `techversex_eo` sudah dibuang. Sesudah itu Docker Desktop dan WSL dimatikan lagi, sehingga kembali seperti saat sesi dimulai, dan memori bebas naik dari 2,3 menjadi 5,3 GB. Kontainer `wellsy-*` milik proyek lain sempat ikut menyala bersama Docker, lalu ikut berhenti. Worktree tambalan ada di `%TEMP%\wts\next1638`.
 
 ### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
 
@@ -47,9 +55,11 @@ Docker Desktop dinyalakan untuk gerbang isi; memori mesin sempat tinggal ± 0,5 
 
 **PR terbuka, semuanya berbasis `main` (`1cd5edb`), tanpa migrasi, dan tak saling bergantung:**
 
+- **#103 lebih dulu**: tambalan Next.js 16.3.8 dan `source-map-js` 1.2.2. Vercel melewati build API karena lockfile tak termasuk jalurnya; web dibangun ulang.
 - #98, #99, #100, #101: penulisan ulang bergaya hangat. Sesudah merge, *Pasang isi* dengan **ganti** dicentang.
 - #102: topik baru. Sesudah merge, *Pasang isi* `evals-dan-observability` **tanpa ganti**.
 - Untuk keduanya, `sha` = citra API yang **tayang** (`e262bb1` selama tak ada merge yang mengubah jalur API).
+- Sesudah #103 masuk, job citra #98–#102 baru bisa hijau bila cabangnya **diperbarui dengan `main`** (tombol *Update branch*), bukan sekadar *Re-run*.
 
 Catatan ini menumpang di #101 karena hanya PR itu yang menyentuh `docs/SESSION-LOG.md`.
 
