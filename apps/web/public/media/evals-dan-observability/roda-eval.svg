@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 600" role="img" aria-labelledby="judul desk">
+  <title id="judul">Roda eval: dari jejak produksi kembali ke suite eval</title>
+  <desc id="desk">Lingkaran empat langkah. Satu, produksi: setiap permintaan ke agen meninggalkan satu jejak. Dua, temukan: pemantauan, jempol ke bawah dari pengguna, dan pembacaan transkrip setiap minggu menemukan kegagalan. Tiga, jadikan tugas: kegagalan itu ditulis ulang menjadi tugas eval berisi masukan dan hasil akhir yang benar. Empat, ubah dan uji: prompt, tool, atau model diubah, lalu CI menjalankan suite regresi dan suite kemampuan dengan galat baku. Rilis hanya bila suite regresi tetap hijau, lalu kembali ke langkah satu. Di tengah: tugas di suite kemampuan yang sudah lulus dengan stabil pindah ke suite regresi, yang harus mendekati 100 persen.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#fbbf24"/>
+    </marker>
+  </defs>
+  <rect width="640" height="600" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Kegagalan hari ini, tugas eval besok</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Observability menemukan masalah; eval memastikan ia tak kembali.</text>
+
+  <!-- Lingkaran panah -->
+  <g fill="none" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6 5">
+    <path d="M392 160 Q470 170 500 236" marker-end="url(#panah)"/>
+    <path d="M510 352 Q500 420 430 456" marker-end="url(#panah)"/>
+    <path d="M250 472 Q180 460 140 410" marker-end="url(#panah)"/>
+    <path d="M124 296 Q130 210 200 168" marker-end="url(#panah)"/>
+  </g>
+
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <!-- 1 produksi -->
+    <rect x="200" y="108" width="240" height="68" rx="14" fill="#0d1226" stroke="#a78bfa" stroke-width="2"/>
+    <text x="320" y="136" fill="#ddd6fe" font-size="15" font-weight="700" text-anchor="middle">1 · Produksi</text>
+    <text x="320" y="158" fill="#98a3c4" font-size="13" text-anchor="middle">setiap permintaan = satu jejak</text>
+    <!-- 2 temukan -->
+    <rect x="420" y="240" width="196" height="108" rx="14" fill="#0d1226" stroke="#22d3ee" stroke-width="2"/>
+    <text x="518" y="268" fill="#a5f3fc" font-size="15" font-weight="700" text-anchor="middle">2 · Temukan</text>
+    <text x="518" y="290" fill="#98a3c4" font-size="13" text-anchor="middle">pemantauan, jempol</text>
+    <text x="518" y="308" fill="#98a3c4" font-size="13" text-anchor="middle">ke bawah, baca</text>
+    <text x="518" y="326" fill="#98a3c4" font-size="13" text-anchor="middle">transkrip tiap minggu</text>
+    <!-- 3 jadikan tugas -->
+    <rect x="250" y="440" width="240" height="68" rx="14" fill="#0d1226" stroke="#34d399" stroke-width="2"/>
+    <text x="370" y="468" fill="#a7f3d0" font-size="15" font-weight="700" text-anchor="middle">3 · Jadikan tugas</text>
+    <text x="370" y="490" fill="#98a3c4" font-size="13" text-anchor="middle">masukan + hasil akhir benar</text>
+    <!-- 4 ubah & uji -->
+    <rect x="24" y="300" width="200" height="108" rx="14" fill="#0d1226" stroke="#fbbf24" stroke-width="2"/>
+    <text x="124" y="328" fill="#fde68a" font-size="15" font-weight="700" text-anchor="middle">4 · Ubah dan uji</text>
+    <text x="124" y="350" fill="#98a3c4" font-size="13" text-anchor="middle">prompt, tool, model</text>
+    <text x="124" y="368" fill="#98a3c4" font-size="13" text-anchor="middle">CI: regresi + kemampuan</text>
+    <text x="124" y="386" fill="#98a3c4" font-size="13" text-anchor="middle">dengan galat baku</text>
+  </g>
+
+  <!-- Tengah -->
+  <rect x="236" y="250" width="168" height="120" rx="14" fill="#0b1022" stroke="#2a3150" stroke-width="1.5"/>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" text-anchor="middle">
+    <text x="320" y="276" fill="#c3cce6" font-size="13" font-weight="700">suite kemampuan</text>
+    <text x="320" y="294" fill="#98a3c4" font-size="12">mulai dari lulus rendah</text>
+    <text x="320" y="316" fill="#fde68a" font-size="16">↓ lulus stabil</text>
+    <text x="320" y="340" fill="#c3cce6" font-size="13" font-weight="700">suite regresi</text>
+    <text x="320" y="358" fill="#98a3c4" font-size="12">harus mendekati 100%</text>
+  </g>
+
+  <text x="32" y="556" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">Rilis hanya bila suite regresi tetap hijau, lalu roda berputar lagi.</text>
+  <text x="32" y="576" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">Alur menurut "Demystifying evals for AI agents" (Anthropic, Januari 2026).</text>
+</svg>

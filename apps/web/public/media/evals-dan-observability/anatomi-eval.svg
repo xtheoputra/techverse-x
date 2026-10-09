@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 600" role="img" aria-labelledby="judul desk">
+  <title id="judul">Anatomi sebuah eval agen</title>
+  <desc id="desk">Suite eval berisi beberapa tugas. Setiap tugas dijalankan k kali; setiap percobaan disebut trial dan dimulai dari lingkungan bersih. Di dalam trial, harness agen (model ditambah tools) bekerja dan meninggalkan dua jejak: transkrip, yaitu seluruh pesan dan panggilan tool, serta hasil akhir, yaitu keadaan lingkungan sesudahnya. Penilai berbasis kode, model, atau manusia membaca transkrip atau hasil akhir dan memberi skor. Skor semua trial lalu diringkas menjadi metrik seperti pass@k dan pass^k.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="640" height="600" rx="24" fill="#070a16"/>
+
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Dari tugas sampai angka</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Istilah mengikuti "Demystifying evals for AI agents" (Anthropic, 2026).</text>
+
+  <!-- Suite dan tugas -->
+  <rect x="32" y="100" width="576" height="64" rx="14" fill="#0d1226" stroke="#2a3150" stroke-width="1.5"/>
+  <text x="48" y="124" fill="#c3cce6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1.5">SUITE</text>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">
+    <rect x="48" y="134" width="168" height="22" rx="6" fill="#22d3ee" fill-opacity="0.14" stroke="#22d3ee"/>
+    <text x="132" y="150" fill="#a5f3fc" text-anchor="middle">tugas: pinjam-tersedia</text>
+    <rect x="228" y="134" width="168" height="22" rx="6" fill="#0d1226" stroke="#2a3150"/>
+    <text x="312" y="150" fill="#98a3c4" text-anchor="middle">tugas: pinjam-habis</text>
+    <rect x="408" y="134" width="184" height="22" rx="6" fill="#0d1226" stroke="#2a3150"/>
+    <text x="500" y="150" fill="#98a3c4" text-anchor="middle">tugas: hanya-bertanya</text>
+  </g>
+
+  <path d="M132 158 V190" stroke="#98a3c4" stroke-width="2" marker-end="url(#panah)"/>
+  <text x="146" y="182" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">dijalankan k kali</text>
+
+  <!-- Trial bertumpuk -->
+  <rect x="44" y="208" width="564" height="196" rx="16" fill="#0d1226" stroke="#2a3150" stroke-width="1.5"/>
+  <rect x="38" y="202" width="564" height="196" rx="16" fill="#0d1226" stroke="#2a3150" stroke-width="1.5"/>
+  <rect x="32" y="196" width="564" height="196" rx="16" fill="#0b1022" stroke="#a78bfa" stroke-width="2"/>
+  <text x="48" y="222" fill="#c4b5fd" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1.5">TRIAL 1 dari k</text>
+  <text x="580" y="222" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="end">lingkungan bersih setiap kali</text>
+
+  <rect x="48" y="236" width="532" height="58" rx="12" fill="#a78bfa" fill-opacity="0.08" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="64" y="260" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15" font-weight="700">Harness agen = model + tools + putaran</text>
+  <text x="64" y="282" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">cari_buku → pinjam_buku → jawaban penutup</text>
+
+  <path d="M180 296 V318" stroke="#98a3c4" stroke-width="2" marker-end="url(#panah)"/>
+  <path d="M452 296 V318" stroke="#98a3c4" stroke-width="2" marker-end="url(#panah)"/>
+
+  <rect x="48" y="322" width="256" height="58" rx="12" fill="#0d1226" stroke="#22d3ee" stroke-width="1.5"/>
+  <text x="64" y="346" fill="#a5f3fc" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15" font-weight="700">Transkrip</text>
+  <text x="64" y="368" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">semua pesan, tool, dan teks</text>
+  <rect x="320" y="322" width="260" height="58" rx="12" fill="#0d1226" stroke="#34d399" stroke-width="1.5"/>
+  <text x="336" y="346" fill="#a7f3d0" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15" font-weight="700">Hasil akhir (outcome)</text>
+  <text x="336" y="368" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13">isi basis data sesudah trial</text>
+
+  <path d="M320 394 V428" stroke="#98a3c4" stroke-width="2" marker-end="url(#panah)"/>
+
+  <!-- Penilai -->
+  <text x="32" y="452" fill="#c3cce6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700" letter-spacing="1.5">PENILAI (GRADER)</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14">
+    <rect x="32" y="464" width="180" height="48" rx="10" fill="#0d1226" stroke="#2a3150"/>
+    <text x="122" y="486" fill="#eef2ff" text-anchor="middle" font-weight="700">kode</text>
+    <text x="122" y="504" fill="#98a3c4" text-anchor="middle" font-size="12">cepat, murah, kaku</text>
+    <rect x="230" y="464" width="180" height="48" rx="10" fill="#0d1226" stroke="#2a3150"/>
+    <text x="320" y="486" fill="#eef2ff" text-anchor="middle" font-weight="700">model (LLM)</text>
+    <text x="320" y="504" fill="#98a3c4" text-anchor="middle" font-size="12">luwes, perlu dikalibrasi</text>
+    <rect x="428" y="464" width="180" height="48" rx="10" fill="#0d1226" stroke="#2a3150"/>
+    <text x="518" y="486" fill="#eef2ff" text-anchor="middle" font-weight="700">manusia</text>
+    <text x="518" y="504" fill="#98a3c4" text-anchor="middle" font-size="12">standar emas, mahal</text>
+  </g>
+
+  <path d="M320 516 V540" stroke="#98a3c4" stroke-width="2" marker-end="url(#panah)"/>
+  <rect x="160" y="546" width="320" height="34" rx="10" fill="#fbbf24" fill-opacity="0.1" stroke="#fbbf24" stroke-width="1.5"/>
+  <text x="320" y="568" fill="#fde68a" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" text-anchor="middle">skor per trial → pass@k, pass^k</text>
+</svg>
