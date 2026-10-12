@@ -292,5 +292,7 @@
       "url": "https://github.com/pytorch/vision"
     }
   ],
-  "requires": []
+  "requires": [
+    "deep-learning"
+  ]
 }
