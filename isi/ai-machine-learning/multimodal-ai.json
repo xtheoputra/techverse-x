@@ -1,0 +1,250 @@
+{
+  "slug": "multimodal-ai",
+  "name": "Multimodal AI",
+  "fieldSlug": "ai-machine-learning",
+  "summary": "Multimodal AI adalah AI yang bekerja dengan lebih dari satu jenis data sekaligus: teks, gambar, suara, video, atau dokumen. Model seperti Claude bisa membaca foto dan PDF bersama pertanyaanmu, dan mesin pencari foto bisa menemukan gambar dari sebuah kalimat. Di halaman ini kamu belajar lewat lemari arsip perpustakaan: ribuan foto stiker tanpa label, katalog hasil pindaian, dan rekaman suara. Kamu melatih dua encoder ala CLIP yang menaruh gambar dan kalimat di ruang makna yang sama, lalu memakainya untuk menggolongkan gambar tanpa contoh dan mencari foto dengan kalimat. Kamu juga melihat kenapa model seperti ini bisa tertukar memasangkan warna dengan bentuk, bagaimana gambar disambungkan ke model bahasa, cara mengirim gambar dan PDF ke Claude, bagaimana suara menjadi gambar, bagaimana difusi membuat gambar dari derau, dan cara mengukur halusinasi. Semua contoh kode sudah dijalankan di laptop biasa tanpa biaya.",
+  "overview": "## Lemari arsip yang tak bisa dibaca mesin\n\nPerpustakaan kita menyimpan lemari arsip yang penuh: ribuan foto stiker sampul tanpa keterangan, katalog lama hasil pindaian dalam bentuk PDF, dan rekaman suara pengumuman. Suatu hari seorang peneliti datang dan bertanya, \"Ada foto stiker segitiga biru?\" Pustakawan hanya bisa membuka laci satu per satu.\n\nKomputer yang hanya mengerti teks tak bisa membantu, karena fotonya tak punya teks. Komputer yang hanya mengerti gambar juga tak bisa, karena pertanyaannya berupa kalimat. Yang dibutuhkan adalah model yang memahami **gambar dan bahasa sekaligus**, lalu bisa menghubungkan keduanya. Itulah **Multimodal AI**: AI yang bekerja dengan lebih dari satu *modalitas*, atau jenis data.\n\n::media[ruang-bersama]\n\n::media[video-clip]\n\n## Peta perjalanan\n\n| Bagian | Pertanyaan yang dijawab | Langkah |\n|---|---|---|\n| Ruang bersama | apa itu modalitas, dan bagaimana gambar dan kalimat bisa dibandingkan | 1–3 |\n| Arsip kecil | melatih dua encoder, menggolongkan tanpa contoh, dan mencari dengan kalimat | 4–6 |\n| Batas pertama | kenapa model bisa tertukar memasangkan warna dengan bentuk | 7 |\n| Model besar | menyambung gambar ke model bahasa, lalu memakai Claude untuk gambar dan PDF | 8–9 |\n| Modalitas lain | suara menjadi gambar, dan gambar lahir dari derau | 10–11 |\n| Mengukur | halusinasi, tolok ukur, dan bias | 12 |\n\n## Hubungannya dengan topik lain\n\nHalaman ini menggabungkan dua topik sebelumnya. Dari **Computer Vision** kamu memakai CNN dan gagasan tambalan gambar ViT. Dari **Natural Language Processing** kamu memakai vektor kata dan kemiripan kosinus. Langkah 8 menyambung ke topik **Large Language Model**, karena di sana gambar menjadi token yang dibaca model bahasa.\n\n> [!CATATAN]\n> Stiker di halaman ini dibuat sendiri dengan kode: 4 bentuk, 5 warna, dan 2 ukuran. Siapa pun bisa mengulang percobaannya tanpa mengunduh apa-apa. Angka-angkanya berasal dari kode yang dijalankan dengan PyTorch 2.14.1 di CPU, dan setiap percobaan latihan diulang dengan lima benih acak. Pada foto sungguhan angkanya akan berbeda, tetapi pelajarannya sama.",
+  "media": [
+    {
+      "key": "ruang-bersama",
+      "kind": "Image",
+      "url": "/media/multimodal-ai/ruang-bersama.svg",
+      "alt": "Gambar stiker segitiga biru masuk ke encoder gambar, dan kalimat 'stiker segitiga biru besar' masuk ke encoder teks. Keduanya menjadi vektor 32 angka di ruang bersama. Di sana titik gambar dan kalimat yang berpasangan berdekatan, sedangkan pasangan yang salah berjauhan.",
+      "caption": "Dua encoder memetakan gambar dan kalimat ke ruang yang sama.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "matriks-kemiripan",
+      "kind": "Image",
+      "url": "/media/multimodal-ai/matriks-kemiripan.svg",
+      "alt": "Tabel 6 kali 6: baris adalah gambar stiker, kolom adalah kalimat. Nilai diagonal, yaitu pasangan yang benar: lingkaran merah besar 0,95; persegi hijau kecil 0,97; wajik biru besar 0,96; segitiga biru besar 0,93; lingkaran kuning kecil 0,91; persegi ungu besar 0,94. Nilai di luar diagonal jauh lebih rendah. Tiga baris terakhir adalah kombinasi yang tak pernah dilatih.",
+      "caption": "Kemiripan kosinus dari model yang sudah dilatih (benih 0).",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "tiga-jembatan",
+      "kind": "Image",
+      "url": "/media/multimodal-ai/tiga-jembatan.svg",
+      "alt": "Tiga cara menyambung gambar dan bahasa. Satu: dua encoder ala CLIP yang dibandingkan dengan kosinus, untuk mencari dan menggolongkan. Dua: proyeksi ala LLaVA, gambar 224 kali 224 menjadi 256 tambalan lalu 256 token yang dibaca model bahasa bersama pertanyaan. Tiga: atensi silang bergerbang ala Flamingo, gambar diringkas menjadi 64 token, dibaca lapisan baru di sela lapisan model bahasa yang dibekukan, dengan gerbang tanh mulai dari nol.",
+      "caption": "Ringkasan dari makalah Radford dkk. (2021), Liu dkk. (2023), dan Alayrac dkk. (2022).",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "spektrogram-bel",
+      "kind": "Image",
+      "url": "/media/multimodal-ai/spektrogram-bel.svg",
+      "alt": "Spektrogram satu detik bunyi bel buatan, 201 pita frekuensi kali 101 potongan waktu. Garis terang mendatar di 880 Hz pada setengah detik pertama dan 660 Hz pada setengah detik kedua, ditambah garis miring yang naik dari 1500 Hz ke 6500 Hz.",
+      "caption": "Dihitung dengan torch.stft: jendela 25 ms, bergeser 10 ms.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "difusi-derau",
+      "kind": "Image",
+      "url": "/media/multimodal-ai/difusi-derau.svg",
+      "alt": "Lima gambar stiker segitiga biru yang makin tertutup derau pada langkah 1, 100, 250, 500, dan 1000. Bobot gambar asli: 1,000, 0,947, 0,724, 0,280, 0,006. Panah ke kanan menambah derau; panah ke kiri adalah jaringan yang belajar membuang derau.",
+      "caption": "Proses maju DDPM dengan jadwal dari makalah Ho dkk. (2020).",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "video-clip",
+      "kind": "Video",
+      "videoId": "KcSXcpluDe4",
+      "alt": "How AI 'Understands' Images (CLIP) - Computerphile",
+      "caption": "Dr Mike Pound menjelaskan cara CLIP menghubungkan gambar dan teks (18 menit, April 2024).",
+      "sourceName": "Computerphile di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=KcSXcpluDe4",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-difusi",
+      "kind": "Video",
+      "videoId": "iv-5mZ_9CPY",
+      "alt": "But how do AI images and videos actually work? | Guest video by Welch Labs",
+      "caption": "Difusi dan CLIP dijelaskan dengan animasi, dari derau sampai gambar yang mengikuti kalimat (37 menit, Juli 2025).",
+      "sourceName": "3Blue1Brown di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=iv-5mZ_9CPY",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    }
+  ],
+  "prerequisite": {
+    "title": "Yang perlu kamu kenal dulu: CNN, vektor kata, dan putaran latihan PyTorch",
+    "description": "Sebelum mulai, pastikan hal-hal ini sudah akrab bagimu:\n\n- **CNN**: konvolusi, pooling, dan cara jaringan mengubah gambar menjadi fitur. Topik Computer Vision membahasnya.\n- **Vektor kata dan kemiripan kosinus**: kata menjadi deretan angka, dan dua vektor yang searah berarti maknanya dekat. Topik NLP membahasnya.\n- **Putaran latihan PyTorch**: loss *cross-entropy*, `zero_grad()`, `backward()`, dan `step()`. Topik Deep Learning membahasnya.\n\nPasang pustakanya dengan `pip install torch anthropic`. Latihan terlama di halaman ini selesai dalam dua menit di CPU, dan tak ada yang memanggil API berbayar."
+  },
+  "roadmap": [
+    {
+      "title": "Satu dunia, banyak indra",
+      "description": "Manusia jarang memakai satu indra saja. Saat membaca buku bergambar, kamu melihat gambar, membaca teks, dan menghubungkan keduanya tanpa berpikir. Bagi komputer, setiap jenis data datang dalam bentuk angka yang sangat berbeda:\n\n| Modalitas | Bentuk angkanya | Contoh di halaman ini |\n|---|---|---|\n| Gambar | kisi piksel × 3 warna | stiker 3 × 32 × 32 |\n| Teks | deretan nomor token | \"stiker segitiga biru besar\" |\n| Suara | deretan getaran per detik | 16.000 angka per detik |\n| Dokumen | halaman berisi teks dan gambar | katalog PDF |\n\nTantangan Multimodal AI ada di sini. Bagaimana membandingkan kisi piksel dengan deretan kata, padahal ukuran dan artinya berbeda sama sekali? Jawaban yang dipakai hampir semua model modern adalah **mengubah setiap modalitas menjadi vektor**, lalu belajar menaruh vektor-vektor itu di tempat yang bisa dibandingkan.\n\nDulu \"multimodal\" terdengar seperti kategori khusus. Sekarang ia sudah menjadi kemampuan bawaan model umum. Dokumentasi Claude, misalnya, menyebut semua model aktif bisa membaca gambar dan PDF bersama teks. Dokumentasi yang sama juga terus terang: Claude hanya **memahami** gambar, dan tak bisa membuat atau menyunting gambar. Membuat gambar adalah pekerjaan jenis model lain, yang kamu temui di langkah 11.\n\nDi halaman ini kita mulai dari dua modalitas, gambar dan teks, karena di sanalah gagasan intinya paling mudah dilihat."
+    },
+    {
+      "title": "Ruang makna bersama",
+      "description": "Bayangkan dua pustakawan. Yang satu hanya melihat foto, yang lain hanya membaca kalimat, dan mereka tak berbicara bahasa yang sama. Supaya bisa bekerja sama, mereka sepakat memakai satu peta rak: setiap foto dan setiap kalimat diberi alamat di peta itu. Foto stiker segitiga biru dan kalimat \"stiker segitiga biru\" harus mendapat alamat yang berdekatan.\n\nPeta itu adalah **ruang makna bersama**, dan alamatnya adalah vektor. Kita butuh dua *encoder* (pengubah ke vektor). Encoder gambar adalah CNN kecil seperti di topik Computer Vision. Encoder teks yang paling sederhana merata-ratakan vektor setiap kata:\n\n```python\nclass EncoderTeksKantong(nn.Module):\n    \"\"\"Rata-rata vektor kata: urutan kata hilang, seperti kantong berisi kata.\"\"\"\n\n    def __init__(self, kosakata: int, dimensi: int = 32) -> None:\n        super().__init__()\n        self.kata = nn.EmbeddingBag(kosakata, 64, mode=\"mean\", padding_idx=0)\n        self.proyeksi = nn.Linear(64, dimensi)  # W_t di makalah CLIP\n\n    def forward(self, token: torch.Tensor) -> torch.Tensor:\n        return F.normalize(self.proyeksi(self.kata(token)), dim=-1)\n```\n\nPerhatikan dua hal. Pertama, `proyeksi` membawa vektor ke ukuran yang sama, 32 angka, sehingga gambar dan kalimat bisa dibandingkan. Kedua, `F.normalize` membuat panjang setiap vektor tepat 1. Dengan panjang 1, kemiripan kosinus cukup dihitung dengan **hasil kali titik** (`@`): 1 berarti searah, 0 berarti tak berhubungan.\n\nEncoder ini sengaja diberi nama \"kantong\". Merata-ratakan kata berarti urutannya hilang, seperti kata-kata yang dimasukkan ke kantong lalu dikocok. Di langkah 7 kamu akan melihat akibatnya."
+    },
+    {
+      "title": "Belajar dari pasangan: loss kontrastif",
+      "description": "Sebelum dilatih, kedua encoder menaruh vektor di sembarang tempat. Bagaimana mengajarinya? CLIP (Radford dkk., 2021) memakai cara yang sederhana. Ambil sekumpulan pasangan gambar dan kalimat, lalu minta model menebak kalimat mana milik gambar mana.\n\n```python\ndef loss_clip(gambar: torch.Tensor, teks: torch.Tensor, skala_log: torch.Tensor) -> torch.Tensor:\n    \"\"\"gambar dan teks: (n, d), sudah dinormalkan; pasangan ke-i adalah pasangan yang benar.\"\"\"\n    logit = gambar @ teks.T * skala_log.exp().clamp(max=100)  # (n, n): kemiripan kosinus x skala\n    label = torch.arange(len(gambar))  # jawaban benar ada di diagonal\n    return (F.cross_entropy(logit, label) + F.cross_entropy(logit.T, label)) / 2  # dua arah\n```\n\nHasil `gambar @ teks.T` adalah tabel kemiripan berukuran n × n. Baris ke-*i* membandingkan gambar ke-*i* dengan semua kalimat, dan jawaban benarnya ada di diagonal. *Cross-entropy* per baris mengajari setiap gambar memilih kalimatnya. *Cross-entropy* per kolom mengajari setiap kalimat memilih gambarnya. Itulah kenapa disebut **kontrastif**: pasangan benar ditarik mendekat, sedangkan semua pasangan salah di batch yang sama didorong menjauh.\n\n`skala_log` adalah suhu yang ikut dipelajari. Makalah CLIP memulainya dari 0,07, yang berarti kemiripan dikalikan sekitar 14,3, dan membatasi pengalinya paling besar 100 supaya latihan stabil. Kodenya mengikuti *pseudocode* di makalah itu baris demi baris.\n\nBedanya ada pada skala. CLIP dilatih dengan **400 juta** pasangan gambar dan teks dari internet, dengan batch berisi 32.768 pasangan. Arsip kita jauh lebih kecil, tetapi rumusnya sama persis."
+    },
+    {
+      "title": "Melatih dua encoder di arsip kecil",
+      "description": "Arsip latihan kita berisi stiker dengan 4 bentuk (lingkaran, persegi, segitiga, wajik), 5 warna, dan 2 ukuran, yaitu 40 kombinasi. Setiap gambar diberi kalimat dari salah satu templat, misalnya \"sebuah wajik hijau berukuran kecil\" atau \"gambar persegi besar berwarna merah\".\n\nAda satu hal yang sengaja kita sembunyikan. Empat pasangan bentuk dan warna **tak pernah muncul** saat latihan: segitiga biru, wajik merah, lingkaran kuning, dan persegi ungu. Model pernah melihat segitiga dan pernah melihat warna biru, tetapi tak pernah segitiga yang biru. Jadi tersisa 32 kombinasi untuk latihan.\n\n```python\n        kumpulan = acak.sample(LATIH, len(LATIH))  # 32 kombinasi berbeda: tiap gambar punya tepat satu pasangan\n        gambar = torch.stack([stiker(*k, g) for k in kumpulan])\n        teks = kamus([keterangan(*k, acak) for k in kumpulan])\n        loss = loss_clip(eg(gambar), et(teks), skala)\n```\n\nSetiap batch berisi 32 kombinasi yang **berbeda**. Kenapa? Loss kontrastif menganggap hanya ada satu jawaban benar per baris. Kalau dua gambar segitiga merah besar masuk ke batch yang sama, kalimat milik yang satu akan dihitung salah untuk yang lain, padahal isinya sama.\n\nLatihannya 1.500 langkah, rata-rata 51 detik di CPU. Pada benih pertama, loss turun dari 4,72 menjadi 0,001. Tabel kemiripan di bawah diambil dari model yang sudah dilatih. Tiga baris bawahnya adalah kombinasi yang tak pernah dilatih.\n\n::media[matriks-kemiripan]\n\nNilai tertinggi di setiap baris jatuh di diagonal, termasuk untuk segitiga biru yang belum pernah dilihat model."
+    },
+    {
+      "title": "Zero-shot: menggolongkan tanpa contoh",
+      "description": "Sekarang pakai model itu sebagai penggolong. Tulis 40 kalimat kandidat, satu untuk setiap kombinasi, lalu pilih kalimat yang paling mirip dengan gambar:\n\n```python\n    kandidat = et(kamus([templat.format(b=b, w=w, u=u) for b, w, u in KOMBINASI]))  # (40, d)\n```\n\nCara ini disebut **zero-shot**, karena kelasnya cukup ditulis sebagai kalimat tanpa satu pun contoh berlabel baru. Hasilnya dari lima kali latihan dengan benih acak berbeda:\n\n| | Benar | Rentang lima benih |\n|---|---|---|\n| 32 kombinasi yang dilatih | 99,6% | 99,2%–99,9% |\n| 8 kombinasi yang tak pernah dilihat | 91,0% | 85,0%–95,5% |\n\nModel menggabungkan \"segitiga\" dan \"biru\" yang ia pelajari terpisah. Saat salah pun, polanya menarik. Dari 90 tebakan salah pada kombinasi baru di kelima benih, 88 keliru **bentuk**, sedangkan warnanya benar. Sebanyak 78 di antaranya adalah wajik merah yang ditebak lingkaran merah, kombinasi yang pernah dilihat model saat latihan.\n\nCLIP melakukan hal yang sama dalam skala besar. Tanpa memakai satu pun dari 1,28 juta contoh berlabel ImageNet, ia mencapai akurasi **76,2%**, setara ResNet-50 yang dilatih dengan contoh-contoh itu. Makalahnya juga melaporkan bahwa templat \"A photo of a {label}.\" menaikkan akurasi 1,3%, dan rata-rata 80 templat menambah 3,5% lagi.\n\nKita mencoba hal serupa: templat \"stiker …\" dibandingkan dengan label polos. Hasilnya tak konsisten. Selisihnya untuk kombinasi baru berkisar dari −6,0 sampai +10,5 poin persen, tergantung benihnya. Pelajarannya: perbedaan dari satu kali latihan belum tentu nyata. Ulangi dengan beberapa benih sebelum mempercayainya."
+    },
+    {
+      "title": "Mencari arsip dengan kalimat",
+      "description": "Kembali ke peneliti tadi. Dengan ruang bersama, mencari foto berarti membalik arah zero-shot: kalimat menjadi pertanyaan, dan semua foto arsip menjadi kandidat.\n\n```python\n    galeri = eg(torch.stack([stiker(*kb, g) for kb in label]))  # 400 gambar arsip\n    hasil = {}\n    for kb in KOMBINASI:\n        q = et(kamus([f\"stiker {kb[0]} {kb[1]} {kb[2]}\"]))\n        teratas = (galeri @ q.T).squeeze(1).topk(k).indices.tolist()\n```\n\nLangkah mahalnya, yaitu mengubah 400 foto menjadi vektor, cukup dilakukan **sekali** lalu disimpan. Setiap pencarian baru hanya butuh satu perkalian matriks dan `topk`, yang mengambil k nilai terbesar. Pada arsip berisi jutaan foto, vektor-vektor itu biasanya disimpan di basis data vektor yang bisa mencari tetangga terdekat dengan cepat.\n\nKita ukur dengan **presisi@5**: dari lima foto teratas, berapa yang benar-benar cocok dengan kalimatnya. Rata-rata lima benih:\n\n| Kalimat pencarian | Presisi@5 |\n|---|---|\n| 32 kombinasi yang dilatih | 99,8% |\n| 8 kombinasi yang tak pernah dilihat | 100,0% |\n\nMencari terasa lebih mudah daripada menggolongkan. Di sini model cukup menemukan lima foto yang paling yakin, sedangkan zero-shot harus benar untuk setiap gambar, termasuk yang paling sulit.\n\nRuang yang sama juga memungkinkan pencarian **gambar dengan gambar**. Bandingkan vektor sebuah foto dengan vektor foto lain, lalu kamu menemukan stiker yang mirip tanpa menulis sepatah kata pun."
+    },
+    {
+      "title": "Kantong kata: ketika warna tertukar",
+      "description": "Sekarang setiap foto berisi **dua** stiker, misalnya lingkaran merah dan segitiga biru. Ujiannya: apakah model memilih \"lingkaran merah dan segitiga biru\" daripada \"lingkaran biru dan segitiga merah\"? Kedua kalimat memakai kata yang sama persis, hanya pasangannya yang tertukar.\n\nHasil pada 500 foto uji:\n\n| Encoder teks | Memilih kalimat benar |\n|---|---|\n| kantong kata, loss CLIP | 0%: selalu seri |\n| GRU yang membaca urutan, loss CLIP | 99,8% |\n| GRU, loss CLIP + kalimat tertukar | 100,0% |\n\nEncoder kantong kata tak sekadar lemah, ia **tak mampu**. Kedua kalimat berisi kata yang sama, jadi rata-ratanya sama, dan selisih kemiripannya paling jauh 0,00000018, sisa pembulatan komputer. GRU membaca kata berurutan, sehingga tahu \"merah\" menempel pada \"lingkaran\".\n\nYuksekgonul dkk. (2022) menemukan bahwa model sungguhan seperti CLIP berperilaku seperti kantong kata, walau encoder teksnya Transformer yang bisa membaca urutan. Di tolok ukur ARO buatan mereka, beberapa model tak lebih baik dari menebak. BLIP bahkan memilih \"the grass is eating the horse\" dengan peluang 81%. Penyebabnya data dan tujuan latihan: mencari foto di data web biasanya bisa dimenangkan tanpa memperhatikan urutan, jadi model tak terdorong mempelajarinya.\n\nPerbaikan mereka, NegCLIP, menambahkan kalimat tertukar sebagai jawaban salah:\n\n```python\ndef loss_negclip(gambar: torch.Tensor, teks: torch.Tensor, negatif: torch.Tensor, skala_log: torch.Tensor) -> torch.Tensor:\n    \"\"\"Seperti loss_clip, ditambah satu keterangan tertukar per gambar (NegCLIP).\"\"\"\n    skala = skala_log.exp().clamp(max=100)\n    logit = gambar @ torch.cat([teks, negatif]).T * skala  # (n, 2n)\n    label = torch.arange(len(gambar))\n    arah_teks = F.cross_entropy((gambar @ teks.T * skala).T, label)  # negatif tak punya gambar pasangan\n    return (F.cross_entropy(logit, label) + arah_teks) / 2\n```\n\nHasilnya, VG-Attribution naik dari 62% ke 71%, dan COCO-Order dari 46% ke 86%."
+    },
+    {
+      "title": "Menyambung mata ke model bahasa",
+      "description": "Dua encoder pandai mencari dan menggolongkan, tetapi tak bisa **menjawab**. Untuk pertanyaan seperti \"berapa stiker merah di foto ini?\", gambar harus dibaca oleh model bahasa yang bisa menulis.\n\n::media[tiga-jembatan]\n\n**LLaVA** (Liu dkk., 2023) memakai cara paling sederhana. Encoder CLIP ViT-L/14 memotong gambar 224 × 224 menjadi 16 × 16 = 256 tambalan. Satu lapisan linear, `W`, mengubah setiap tambalan menjadi vektor seukuran vektor kata. Model bahasa lalu membaca 256 \"kata\" gambar itu bersama kata-kata pertanyaan. Latihannya dua tahap. Di tahap pertama, dengan 595 ribu pasangan gambar dan keterangan, **hanya `W`** yang dilatih. Di tahap kedua, `W` dan model bahasanya dilatih dengan 158 ribu contoh instruksi tentang gambar.\n\n**Flamingo** (Alayrac dkk., 2022) memilih jalan lain. Model bahasanya dibekukan, lalu lapisan baru disisipkan di antara lapisan-lapisannya:\n\n```python\nclass AtensiSilangBergerbang(nn.Module):\n    \"\"\"Flamingo: teks bertanya (query), gambar menjawab (key dan value), dan gerbang mulai tertutup.\"\"\"\n\n    def __init__(self, d: int, kepala: int = 4) -> None:\n        super().__init__()\n        self.atensi = nn.MultiheadAttention(d, kepala, batch_first=True)\n        self.alfa = nn.Parameter(torch.zeros(1))  # tanh(0) = 0: model bahasa mula-mula tak berubah\n\n    def forward(self, teks: torch.Tensor, visual: torch.Tensor) -> torch.Tensor:\n        dilihat: torch.Tensor = self.atensi(query=teks, key=visual, value=visual)[0]\n        return teks + torch.tanh(self.alfa) * dilihat  # gerbang x yang dilihat dari gambar\n```\n\nTeks bertanya (*query*), gambar menjawab (*key* dan *value*). Gerbangnya, `tanh(alfa)`, dimulai dari nol, sehingga di awal latihan model bahasanya persis seperti semula. Uji kami memastikan keluarannya sama persis dengan masukan, tetapi gradien `alfa` tidak nol, jadi gerbangnya bisa belajar membuka. Gambar juga diringkas lebih dulu menjadi **64 token** oleh *Perceiver Resampler*, berapa pun ukurannya."
+    },
+    {
+      "title": "Gambar dan PDF dalam satu pertanyaan untuk Claude",
+      "description": "Kembali ke lemari arsip. Kamu punya katalog PDF hasil pindaian dan dua foto sampul. Pertanyaanmu: \"Foto mana yang sampulnya ada di katalog?\" Claude bisa menerima ketiganya dalam satu pesan:\n\n```python\ndef tanya_arsip(client: anthropic.Anthropic, katalog: Path, foto: list[Path], pertanyaan: str) -> str | None:\n    isi: list[dict[str, object]] = [{\"type\": \"document\", \"source\": {  # PDF lebih dulu\n        \"type\": \"base64\", \"media_type\": \"application/pdf\", \"data\": b64(katalog)}}]\n    for i, f in enumerate(foto, start=1):\n        isi.append({\"type\": \"text\", \"text\": f\"Gambar {i}:\"})  # label supaya bisa dirujuk\n        isi.append({\"type\": \"image\", \"source\": {\"type\": \"base64\", \"media_type\": \"image/png\", \"data\": b64(f)}})\n    isi.append({\"type\": \"text\", \"text\": pertanyaan})  # pertanyaan paling akhir\n    respons = client.messages.create(\n        model=\"claude-opus-5-5\",\n        max_tokens=1024,\n        messages=[{\"role\": \"user\", \"content\": isi}],  # type: ignore[typeddict-item]\n    )\n    if respons.stop_reason != \"end_turn\":\n        return None\n    return \"\".join(b.text for b in respons.content if b.type == \"text\")\n```\n\nTiga kebiasaan baik di kode ini datang dari dokumentasi Claude: PDF ditaruh **sebelum** teks, setiap foto diberi label \"Gambar 1:\", \"Gambar 2:\" supaya bisa dirujuk, dan jawaban hanya dipercaya bila `stop_reason` bernilai `end_turn`.\n\nBagaimana Claude membaca PDF? Menurut dokumentasinya, setiap halaman diubah menjadi **gambar**, dan teksnya juga diambil lalu diberikan bersama gambar halaman itu. Karena itu Claude bisa membaca tabel, grafik, dan foto di dalam katalog. Biayanya pun dua: teks biasanya 1.500–3.000 token per halaman, ditambah biaya gambar setiap halaman.\n\nBatas yang perlu diingat:\n\n- satu permintaan paling besar 32 MB;\n- paling banyak 600 halaman PDF, atau 100 bila jendela konteks permintaannya di bawah 1 juta token;\n- PDF tak boleh dikunci kata sandi.\n\nKode ini diuji dengan SDK `anthropic` asli dan server tiruan, tanpa biaya."
+    },
+    {
+      "title": "Suara menjadi gambar",
+      "description": "Rekaman pengumuman di lemari arsip adalah modalitas ketiga. Mikrofon menghasilkan deretan getaran: model Whisper (Radford dkk., 2022) mengubah semua suara ke **16.000 angka per detik**. Deretan sepanjang itu sulit dibaca langsung. Triknya adalah mengubah suara menjadi gambar.\n\n```python\ndef spektrogram(suara: torch.Tensor) -> torch.Tensor:\n    \"\"\"(sampel,) -> (frekuensi, waktu): seberapa kuat setiap nada di setiap potongan 25 ms.\"\"\"\n    s = torch.stft(suara, n_fft=JENDELA, hop_length=LANGKAH, window=torch.hann_window(JENDELA), return_complex=True)\n    return torch.log10(s.abs() ** 2 + 1e-10)  # skala log, seperti telinga\n```\n\nSuara dipotong menjadi jendela 25 milidetik yang bergeser setiap 10 milidetik, persis seperti di makalah Whisper. Untuk setiap potongan, kita hitung seberapa kuat setiap nada. Hasilnya **spektrogram**: sumbu datar adalah waktu, sumbu tegak adalah nada.\n\n::media[spektrogram-bel]\n\nBunyi bel buatan kita, \"ding\" 880 Hz lalu \"dong\" 660 Hz ditambah siulan yang naik, terlihat sebagai garis-garis terang. Satu detik suara menjadi kisi 201 × 101, dan 30 detik menjadi 201 × 3.001. Begitu suara menjadi gambar, semua alat dari Computer Vision dan Transformer bisa dipakai.\n\nWhisper memakai versi yang disebut spektrogram log-Mel, dengan 80 pita nada, dan membaca rekaman per potongan 30 detik. Ia dilatih dengan **680.000 jam** rekaman berlabel. Sebanyak 117.000 jam di antaranya mencakup 96 bahasa selain Inggris, dan 125.000 jam berisi terjemahan ke bahasa Inggris. Tugasnya ditulis sebagai token khusus, seperti `<|transcribe|>` atau `<|translate|>`, sehingga satu model bisa menyalin, menerjemahkan, dan mengenali bahasa."
+    },
+    {
+      "title": "Membuat gambar dari derau: difusi",
+      "description": "Sejauh ini kita membuat model yang **memahami** gambar. Bagaimana dengan model yang membuat gambar dari kalimat? Banyak di antaranya memakai **difusi**. Gagasannya mudah dibayangkan sebagai foto yang perlahan tertutup kabut. Kalau model bisa belajar mengusir sedikit kabut, ulangi ratusan kali, dan dari kabut murni muncul gambar baru.\n\nProses menambah kabut tidak perlu dilatih. Ia hanya rumus:\n\n```python\ndef jadwal(T: int = 1000, awal: float = 1e-4, akhir: float = 0.02) -> torch.Tensor:\n    beta = torch.linspace(awal, akhir, T)  # derau yang ditambahkan di setiap langkah, seperti di makalah DDPM\n    return torch.cumprod(1 - beta, dim=0)  # alfa-bar: berapa banyak gambar asli yang tersisa\n\n\ndef beri_derau(x0: torch.Tensor, t: int, alfa_bar: torch.Tensor, g: torch.Generator) -> tuple[torch.Tensor, torch.Tensor]:\n    \"\"\"Lompat langsung ke langkah t tanpa mengulang t kali.\"\"\"\n    derau = torch.randn(x0.shape, generator=g)\n    return alfa_bar[t].sqrt() * x0 + (1 - alfa_bar[t]).sqrt() * derau, derau  # model belajar menebak `derau`\n```\n\nAngkanya mengikuti makalah DDPM (Ho dkk., 2020): 1.000 langkah, dengan derau per langkah naik dari 0,0001 sampai 0,02. Sesudah langkah ke-1.000, bobot gambar asli tinggal 0,0064. Yang tersisa praktis derau murni.\n\n::media[difusi-derau]\n\nJaringannya dilatih untuk satu tugas: diberi gambar berkabut dan nomor langkahnya, tebak `derau` yang ditambahkan. Untuk membuat gambar, mulai dari derau acak lalu buang tebakan derau sedikit demi sedikit.\n\nDari mana kalimatnya masuk? *Latent diffusion* (Rombach dkk., 2021) menjalankan difusi di ruang yang dipadatkan, bukan di piksel langsung, supaya lebih hemat. Kalimatnya dimasukkan lewat **atensi silang**, cara yang sama dengan yang kamu lihat di Flamingo.\n\n::media[video-difusi]"
+    },
+    {
+      "title": "Mengukur, dan mengenali batasnya",
+      "description": "Model multimodal bisa **berhalusinasi**: menyebut benda yang tak ada di gambar. POPE (Li dkk., 2023) mengukurnya dengan pertanyaan ya atau tidak, misalnya \"Is there a knife in the image?\", dengan jawaban ya dan tidak sama banyak. Hasilnya di data MSCOCO:\n\n| Pertanyaan diambil dari | LLaVA: akurasi | LLaVA: menjawab \"ya\" | InstructBLIP: akurasi |\n|---|---|---|---|\n| benda acak | 54,43% | 95,37% | 88,73% |\n| benda yang sering muncul | 52,43% | 97,37% | 81,37% |\n| benda yang sering muncul bersama | 50,77% | 99,10% | 74,37% |\n\nLLaVA versi awal hampir selalu menjawab \"ya\", jadi akurasinya dekat 50%, seperti melempar koin. Semua model makin sering salah bila benda yang ditanyakan sering muncul bersama benda yang memang ada. Ini sama dengan pelajaran presisi dan recall di topik NLP: satu angka saja bisa menipu, jadi lihat juga berapa kali model menjawab \"ya\".\n\nUntuk soal yang lebih sulit, MMMU (Yue dkk., 2023) berisi 11.500 soal tingkat kuliah dari 30 mata kuliah. Saat makalah itu terbit, GPT-4V hanya benar 56%. Dari 150 kesalahannya, 35% karena salah melihat, 29% karena kurang pengetahuan, dan 26% karena salah menalar.\n\nMakalah CLIP juga jujur soal batasnya. CLIP hanya 88% benar pada angka tulisan tangan MNIST, kalah dari regresi logistik sederhana pada piksel mentah. Ia juga lemah menghitung benda. Uji biasnya lebih mengkhawatirkan: 4,9% foto wajah digolongkan ke kelas bukan manusia, dan foto laki-laki lebih sering masuk ke kelas terkait kejahatan, 16,5% dibandingkan 9,8%. Menambahkan kelas \"child\" mengurangi kesalahan itu dengan drastis. Daftar kelas yang kamu tulis ikut menentukan perilaku model.\n\nUntuk keputusan yang menyangkut orang, hasil model multimodal tetap perlu diperiksa manusia."
+    }
+  ],
+  "tools": [
+    {
+      "slug": "pytorch",
+      "name": "PyTorch",
+      "summary": "Pustaka deep learning sumber terbuka untuk Python: tensor yang bisa berjalan di GPU, autograd yang menghitung gradien secara otomatis, serta modul lapisan, fungsi loss, dan optimizer.",
+      "homepage": "https://github.com/pytorch/pytorch",
+      "note": "Dipakai di langkah 2 sampai 8, 10, dan 11 untuk kedua encoder, loss kontrastif, atensi silang, spektrogram, dan difusi. Contoh diuji dengan versi 2.14.1 di CPU."
+    },
+    {
+      "slug": "anthropic-python-sdk",
+      "name": "Anthropic Python SDK",
+      "summary": "SDK resmi untuk Messages API Claude di Python: tipe untuk definisi tool, blok tool_use dan tool_result, serta Tool Runner (beta) yang memutar putaran agen sendiri.",
+      "homepage": "https://github.com/anthropics/anthropic-sdk-python",
+      "note": "Dipakai di langkah 9 untuk mengirim PDF dan gambar dalam satu pesan, dan di proyek kedua. Contoh diuji dengan versi 1.12.1."
+    }
+  ],
+  "projects": [
+    {
+      "title": "Mesin pencari arsip foto buatanmu",
+      "brief": "Kembangkan arsip stiker dari halaman ini menjadi mesin pencari yang lebih menantang.\n\n- Tambahkan satu atribut baru, misalnya posisi (kiri atau kanan) atau bentuk kelima, lalu simpan beberapa kombinasi yang tak pernah dilatih.\n- Latih dua encoder dengan loss kontrastif, satu dengan encoder kantong kata dan satu dengan GRU.\n- Buat antarmuka sederhana: ketik kalimat, lalu tampilkan lima gambar teratas.\n\n**Kamu selesai bila:**\n\n1. setiap batch latihanmu hanya berisi kombinasi yang berbeda, dan kamu bisa menjelaskan kenapa;\n2. tabelmu memuat akurasi zero-shot dan presisi@5 untuk kombinasi yang dilatih dan yang tak pernah dilihat, dari setidaknya lima benih acak;\n3. kamu menunjukkan satu pasangan kalimat yang tak bisa dibedakan oleh encoder kantong kata, dan membuktikan selisih kemiripannya nol;\n4. kamu membaca gambar-gambar yang salah ditebak dan menuliskan polanya, misalnya bentuk kecil atau warna yang mirip."
+    },
+    {
+      "title": "Asisten katalog yang jujur",
+      "brief": "Bangun asisten yang menjawab pertanyaan tentang katalog PDF dan foto sampul dengan Claude, lalu ukur seberapa sering ia mengarang.\n\n- Siapkan sebuah katalog PDF beberapa halaman, misalnya daftar buku buatanmu sendiri dengan gambar sampul, dan sepuluh foto: sebagian ada di katalog, sebagian tidak.\n- Tulis 40 pertanyaan ya atau tidak ala POPE, misalnya \"Apakah ada buku bersampul merah di Gambar 3?\", dengan jawaban ya dan tidak sama banyak.\n\n**Kamu selesai bila:**\n\n1. PDF selalu dikirim sebelum teks, dan setiap foto diberi label \"Gambar 1:\", \"Gambar 2:\", dan seterusnya;\n2. kamu melaporkan akurasi, presisi, recall, dan persentase jawaban \"ya\";\n3. setidaknya sepertiga pertanyaan \"tidak\" menanyakan benda yang sering muncul bersama benda yang memang ada, dan kamu membandingkan hasilnya dengan pertanyaan acak;\n4. kamu menghitung biaya dari `usage` respons dan membandingkannya dengan perkiraan 1.500–3.000 token teks per halaman;\n5. jawaban dengan `stop_reason` selain `end_turn` tidak dipakai."
+    }
+  ],
+  "resources": [
+    {
+      "type": "OfficialDocs",
+      "title": "Vision — dokumentasi resmi Claude",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "PDF support — dokumentasi resmi Claude",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/pdf-support"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "CS231n: Deep Learning for Computer Vision — Stanford",
+      "url": "https://cs231n.stanford.edu/"
+    },
+    {
+      "type": "Paper",
+      "title": "Learning Transferable Visual Models From Natural Language Supervision (CLIP) — Radford dkk., 2021",
+      "url": "https://arxiv.org/abs/2103.00020"
+    },
+    {
+      "type": "Paper",
+      "title": "When and Why Vision-Language Models Behave like Bags-of-Words, and What to Do About It? — Yuksekgonul dkk., 2022",
+      "url": "https://arxiv.org/abs/2210.01936"
+    },
+    {
+      "type": "Paper",
+      "title": "Visual Instruction Tuning (LLaVA) — Liu dkk., 2023",
+      "url": "https://arxiv.org/abs/2304.08485"
+    },
+    {
+      "type": "Paper",
+      "title": "Flamingo: a Visual Language Model for Few-Shot Learning — Alayrac dkk., 2022",
+      "url": "https://arxiv.org/abs/2204.14198"
+    },
+    {
+      "type": "Paper",
+      "title": "Robust Speech Recognition via Large-Scale Weak Supervision (Whisper) — Radford dkk., 2022",
+      "url": "https://arxiv.org/abs/2212.04356"
+    },
+    {
+      "type": "Paper",
+      "title": "Denoising Diffusion Probabilistic Models — Ho dkk., 2020",
+      "url": "https://arxiv.org/abs/2006.11239"
+    },
+    {
+      "type": "Paper",
+      "title": "High-Resolution Image Synthesis with Latent Diffusion Models — Rombach dkk., 2021",
+      "url": "https://arxiv.org/abs/2112.10752"
+    },
+    {
+      "type": "Paper",
+      "title": "Evaluating Object Hallucination in Large Vision-Language Models (POPE) — Li dkk., 2023",
+      "url": "https://arxiv.org/abs/2305.10355"
+    },
+    {
+      "type": "Paper",
+      "title": "MMMU: A Massive Multi-discipline Multimodal Understanding and Reasoning Benchmark — Yue dkk., 2023",
+      "url": "https://arxiv.org/abs/2311.16502"
+    },
+    {
+      "type": "Video",
+      "title": "How AI 'Understands' Images (CLIP) — Computerphile",
+      "url": "https://www.youtube.com/watch?v=KcSXcpluDe4"
+    },
+    {
+      "type": "Video",
+      "title": "But how do AI images and videos actually work? — 3Blue1Brown dan Welch Labs",
+      "url": "https://www.youtube.com/watch?v=iv-5mZ_9CPY"
+    },
+    {
+      "type": "Video",
+      "title": "Lecture 16: Vision and Language — Stanford CS231N, Spring 2025",
+      "url": "https://www.youtube.com/watch?v=mQOK0Mfyrkk"
+    },
+    {
+      "type": "Repository",
+      "title": "CLIP — kode dan model dari OpenAI",
+      "url": "https://github.com/openai/CLIP"
+    },
+    {
+      "type": "Repository",
+      "title": "OpenCLIP — implementasi CLIP sumber terbuka",
+      "url": "https://github.com/mlfoundations/open_clip"
+    },
+    {
+      "type": "Repository",
+      "title": "LLaVA — kode, data, dan model",
+      "url": "https://github.com/haotian-liu/LLaVA"
+    },
+    {
+      "type": "Repository",
+      "title": "Whisper — kode dan model dari OpenAI",
+      "url": "https://github.com/openai/whisper"
+    }
+  ],
+  "requires": [
+    "computer-vision",
+    "natural-language-processing"
+  ]
+}

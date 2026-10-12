@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" role="img" aria-labelledby="judul desk">
+  <title id="judul">Tiga cara menyambung mata dan bahasa</title>
+  <desc id="desk">Tiga cara menyambungkan penglihatan dengan bahasa. Pertama, dua encoder ala CLIP: gambar dan teks dikodekan terpisah lalu dibandingkan dengan kemiripan kosinus; cocok untuk mencari dan menggolongkan. Kedua, proyeksi ala LLaVA: encoder CLIP ViT-L/14 memotong gambar 224 kali 224 menjadi 256 tambalan, satu lapisan linear W mengubah setiap tambalan menjadi token, dan token gambar dibaca model bahasa bersama token teks. Ketiga, atensi silang bergerbang ala Flamingo: Perceiver Resampler meringkas gambar menjadi 64 token, lalu lapisan atensi silang yang disisipkan di antara lapisan model bahasa yang dibekukan membaca token itu; gerbang tanh mulai dari nol.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="640" height="520" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Tiga cara menyambung mata dan bahasa</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Dari yang paling sederhana ke yang paling dalam.</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="32" y="100" width="576" height="112" rx="12" fill="#3987e5" fill-opacity="0.08" stroke="#3987e5" stroke-width="1.5"/>
+    <text x="48.0" y="126.0" fill="#eef2ff" font-size="15" font-weight="700">1. Dua encoder (CLIP, 2021)</text>
+    <text x="48.0" y="150.0" fill="#c3cce6" font-size="13">gambar → encoder gambar → vektor</text>
+    <text x="48.0" y="170.0" fill="#c3cce6" font-size="13">teks → encoder teks → vektor; kedua vektor dibandingkan dengan kosinus</text>
+    <text x="48.0" y="196.0" fill="#98a3c4" font-size="12">untuk mencari dan menggolongkan; tak bisa menulis jawaban</text>
+    <rect x="32" y="228" width="576" height="120" rx="12" fill="#a78bfa" fill-opacity="0.08" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="48.0" y="254.0" fill="#eef2ff" font-size="15" font-weight="700">2. Proyeksi ke model bahasa (LLaVA, 2023)</text>
+    <text x="48.0" y="278.0" fill="#c3cce6" font-size="13">gambar 224 × 224 → CLIP ViT-L/14 → 256 tambalan → W → 256 token</text>
+    <text x="48.0" y="298.0" fill="#c3cce6" font-size="13">[256 token gambar] + [token pertanyaan] → model bahasa → jawaban</text>
+    <text x="48.0" y="324.0" fill="#98a3c4" font-size="12">tahap 1: hanya W yang dilatih; tahap 2: W dan model bahasa</text>
+    <rect x="32" y="364" width="576" height="128" rx="12" fill="#34d399" fill-opacity="0.08" stroke="#34d399" stroke-width="1.5"/>
+    <text x="48.0" y="390.0" fill="#eef2ff" font-size="15" font-weight="700">3. Atensi silang bergerbang (Flamingo, 2022)</text>
+    <text x="48.0" y="414.0" fill="#c3cce6" font-size="13">gambar → encoder → Perceiver Resampler → 64 token</text>
+    <text x="48.0" y="434.0" fill="#c3cce6" font-size="13">lapisan baru di sela lapisan model bahasa yang dibekukan:</text>
+    <text x="48.0" y="454.0" fill="#c3cce6" font-size="13">teks + tanh(α) × atensi(teks → gambar), dengan α mulai dari 0</text>
+    <text x="48.0" y="478.0" fill="#98a3c4" font-size="12">di awal latihan, model bahasanya persis seperti semula</text>
+  </g>
+</svg>
