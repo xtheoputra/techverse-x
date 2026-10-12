@@ -4,6 +4,58 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-12 — Sesi 26 (Lanjutan): #113 dan #114 dipasang ke produksi; gambar Multimodal 404 karena build web yang lebih tua menang
+
+Permintaan pemilik: *"lanjut progress"*. Pemilik sudah me-merge **#113** (07:13:33 UTC) dan **#114** (07:13:58), berselang 25 detik. Kedua build API dilewati (*Canceled by Ignored Build Step*), jadi citra API yang tayang tetap `e262bb1`.
+
+### *Pasang isi*
+
+Saya bertanya lagi, dan pemilik menjawab **"Ya, jalankan keduanya"**. Dua jalan `isi.yml` dari `main`, `sha=e262bb1`, tanpa ganti, berurutan:
+
+- `computer-vision` (38217682397): `sisi computer-vision butuh deep-learning`, lalu `selesai`;
+- `multimodal-ai` (38217763552): dua sisi (CV dan NLP), lalu `selesai`.
+
+Produksi diukur sesudahnya:
+
+- API `multimodal-ai` 200, status `draf`, ringkasan sama dengan berkas, `requires = [computer-vision, natural-language-processing]`, dan 7 media.
+- Relasinya tampil dari dua arah: `deep-learning.requiredBy = [computer-vision, natural-language-processing]`, dan CV serta NLP sama-sama `requiredBy = [multimodal-ai]`.
+- Halaman web `/teknologi/multimodal-ai` 200, dengan ke-12 judul langkah, 10 blok kode, dan 2 bingkai video.
+
+### 🔴 Kelima gambar Multimodal 404 di produksi
+
+`/media/multimodal-ai/*.svg` menjawab **404** untuk kelima berkas. Dengan parameter kueri baru pun hasilnya `X-Matched-Path: /404`, jadi ini bukan sisa cache. Pada saat yang sama, `/media/natural-language-processing/alur-teks.svg` menjawab 200.
+
+**Sebabnya:** proyek web **selalu** dibangun, karena skrip pengabai build hanya melewati proyek API. Karena itu kedua merge masing-masing melahirkan deployment web produksi:
+
+| Commit | Isi | Deployment GitHub dibuat |
+|---|---|---|
+| `bfdf7a9` (#114, lebih baru) | dengan gambar Multimodal | 07:14:29 |
+| `d4442b1` (#113, lebih tua) | tanpa gambar Multimodal | 07:16:31 |
+
+Build yang lebih tua selesai belakangan, dan dialah yang kini melayani domain produksi.
+
+Teks halaman tetap benar karena datang dari API. Yang hilang hanya berkas statis di `apps/web/public`.
+
+⚠️ URL deployment-nya dilindungi (302 ke login), dan Vercel CLI tak terpasang. Jadi "domain menunjuk ke `d4442b1`" adalah kesimpulan dari isinya, bukan dari dasbor: build yang tayang tak punya berkas yang hanya ada sejak `bfdf7a9`.
+
+**Jalan keluar, tanpa menyentuh dasbor:** merge PR berikutnya ke `main` (PR catatan ini cukup) memicu build web produksi baru dari kepala `main`. Jalan lain: *Promote* deployment `bfdf7a9` di dasbor Vercel. Sesudahnya, ukur ulang kelima SVG.
+
+💡 *Dua PR yang menambah berkas web sebaiknya di-merge dengan jeda sampai build web yang pertama selesai, atau keadaannya diukur sesudah merge terakhir.*
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** 17 bidang dan **12 topik `draf`**. Citra API `e262bb1`, dan `main` = `bfdf7a9`. Gambar Multimodal **404** sampai ada build web produksi baru.
+
+**PR terbuka:** hanya PR catatan ini (`docs/SESSION-LOG.md`). Merge-nya sekaligus memicu build web yang memperbaiki 404 itu.
+
+**Sesudah merge:** ukur `https://techverse-x-web.vercel.app/media/multimodal-ai/{ruang-bersama,matriks-kemiripan,tiga-jembatan,spektrogram-bel,difusi-derau}.svg`, yang harus 200, lalu jalankan pemindai ADR-024 di produksi.
+
+**Belum diverifikasi (tanpa Chrome):** bingkai video di origin https untuk #102, #104–#107, #109, #110, dan #114, serta luberan 390 px.
+
+**Berikutnya, saya:** topik **ML klasik**.
+
+---
+
 ## 2026-10-12 — Sesi 26: NLP dipasang ke produksi, sisi Computer Vision → Deep Learning, dan topik kelima AI & Machine Learning, Multimodal AI
 
 Permintaan pemilik: *"lanjutkan progress"*. Keadaan diukur dulu. Pohon kerja bersih, #112 sudah di-merge, tak ada PR terbuka, dan `/api/v1/technologies/natural-language-processing` masih **404**.
@@ -73,7 +125,7 @@ Diagram dirender lewat sharp dan saya lihat sendiri. Ada empat cacat, dan semuan
 
 Blob yang ter-commit 0 CR.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan sesudah bagian pertama Sesi 26 (digantikan oleh 🏁 Lanjutan, di atas)
 
 **Produksi:** 17 bidang dan **11 topik `draf`** (NLP masuk hari ini). Citra API `e262bb1`, dan `main` = `7160eb0`.
 
