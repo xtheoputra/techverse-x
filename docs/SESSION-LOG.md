@@ -4,6 +4,149 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-12 — Sesi 26 (Lanjutan): #113 dan #114 dipasang ke produksi; gambar Multimodal 404 karena build web yang lebih tua menang
+
+Permintaan pemilik: *"lanjut progress"*. Pemilik sudah me-merge **#113** (07:13:33 UTC) dan **#114** (07:13:58), berselang 25 detik. Kedua build API dilewati (*Canceled by Ignored Build Step*), jadi citra API yang tayang tetap `e262bb1`.
+
+### *Pasang isi*
+
+Saya bertanya lagi, dan pemilik menjawab **"Ya, jalankan keduanya"**. Dua jalan `isi.yml` dari `main`, `sha=e262bb1`, tanpa ganti, berurutan:
+
+- `computer-vision` (38217682397): `sisi computer-vision butuh deep-learning`, lalu `selesai`;
+- `multimodal-ai` (38217763552): dua sisi (CV dan NLP), lalu `selesai`.
+
+Produksi diukur sesudahnya:
+
+- API `multimodal-ai` 200, status `draf`, ringkasan sama dengan berkas, `requires = [computer-vision, natural-language-processing]`, dan 7 media.
+- Relasinya tampil dari dua arah: `deep-learning.requiredBy = [computer-vision, natural-language-processing]`, dan CV serta NLP sama-sama `requiredBy = [multimodal-ai]`.
+- Halaman web `/teknologi/multimodal-ai` 200, dengan ke-12 judul langkah, 10 blok kode, dan 2 bingkai video.
+
+### 🔴 Kelima gambar Multimodal 404 di produksi
+
+`/media/multimodal-ai/*.svg` menjawab **404** untuk kelima berkas. Dengan parameter kueri baru pun hasilnya `X-Matched-Path: /404`, jadi ini bukan sisa cache. Pada saat yang sama, `/media/natural-language-processing/alur-teks.svg` menjawab 200.
+
+**Sebabnya:** proyek web **selalu** dibangun, karena skrip pengabai build hanya melewati proyek API. Karena itu kedua merge masing-masing melahirkan deployment web produksi:
+
+| Commit | Isi | Deployment GitHub dibuat |
+|---|---|---|
+| `bfdf7a9` (#114, lebih baru) | dengan gambar Multimodal | 07:14:29 |
+| `d4442b1` (#113, lebih tua) | tanpa gambar Multimodal | 07:16:31 |
+
+Build yang lebih tua selesai belakangan, dan dialah yang kini melayani domain produksi.
+
+Teks halaman tetap benar karena datang dari API. Yang hilang hanya berkas statis di `apps/web/public`.
+
+⚠️ URL deployment-nya dilindungi (302 ke login), dan Vercel CLI tak terpasang. Jadi "domain menunjuk ke `d4442b1`" adalah kesimpulan dari isinya, bukan dari dasbor: build yang tayang tak punya berkas yang hanya ada sejak `bfdf7a9`.
+
+**Jalan keluar, tanpa menyentuh dasbor:** merge PR berikutnya ke `main` (PR catatan ini cukup) memicu build web produksi baru dari kepala `main`. Jalan lain: *Promote* deployment `bfdf7a9` di dasbor Vercel. Sesudahnya, ukur ulang kelima SVG.
+
+💡 *Dua PR yang menambah berkas web sebaiknya di-merge dengan jeda sampai build web yang pertama selesai, atau keadaannya diukur sesudah merge terakhir.*
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** 17 bidang dan **12 topik `draf`**. Citra API `e262bb1`, dan `main` = `bfdf7a9`. Gambar Multimodal **404** sampai ada build web produksi baru.
+
+**PR terbuka:** hanya PR catatan ini (`docs/SESSION-LOG.md`). Merge-nya sekaligus memicu build web yang memperbaiki 404 itu.
+
+**Sesudah merge:** ukur `https://techverse-x-web.vercel.app/media/multimodal-ai/{ruang-bersama,matriks-kemiripan,tiga-jembatan,spektrogram-bel,difusi-derau}.svg`, yang harus 200, lalu jalankan pemindai ADR-024 di produksi.
+
+**Belum diverifikasi (tanpa Chrome):** bingkai video di origin https untuk #102, #104–#107, #109, #110, dan #114, serta luberan 390 px.
+
+**Berikutnya, saya:** topik **ML klasik**.
+
+---
+
+## 2026-10-12 — Sesi 26: NLP dipasang ke produksi, sisi Computer Vision → Deep Learning, dan topik kelima AI & Machine Learning, Multimodal AI
+
+Permintaan pemilik: *"lanjutkan progress"*. Keadaan diukur dulu. Pohon kerja bersih, #112 sudah di-merge, tak ada PR terbuka, dan `/api/v1/technologies/natural-language-processing` masih **404**.
+
+### *Pasang isi* NLP
+
+- Saya bertanya lewat pertanyaan pilihan, dan pemilik menjawab **"Ya, jalankan"**.
+- Run `38199400770` (`natural-language-processing`, tanpa ganti, `sha=e262bb1`) **success**: `sisi natural-language-processing butuh deep-learning`, lalu `selesai … sama dengan berkas`.
+- Produksi diukur sesudahnya:
+  - API 200, status `draf`, ringkasan sama dengan berkas, `requires = [deep-learning]`, dan 5 media.
+  - Halaman 200, dengan ke-12 judul langkah, 2 bingkai video, dan 3 gambar (semuanya 200), serta "Pelajari lebih dulu: Deep Learning".
+
+### Sisi Knowledge Graph — [PR #113](https://github.com/xtheoputra/techverse-x/pull/113)
+
+🔴 **Catatan 🏁 kemarin hanya separuh benar.** Ia meminta LLM **dan** CV diberi `requires: deep-learning`. Halaman LLM sendiri menulis *"Tak perlu latar belakang machine learning"*, tak pernah menyebut Deep Learning, dan Sesi 25 (Lanjutan 3) sengaja mengosongkan `requires`-nya karena LLM topik fondasi. Jadi hanya Computer Vision yang diberi sisi; teksnya memang menyuruh pembaca mulai dari Deep Learning.
+
+📏 **Jalur produksi ditiru persis** di basis data sekali pakai dengan API Release:
+
+1. Deep Learning dan CV versi `main` dipasang.
+2. Berkas baru dipasang **tanpa** `--ganti` → `sisi computer-vision butuh deep-learning`, lalu `selesai`.
+3. `--ganti` dua kali sesudahnya → nol tulisan.
+
+Jadi catatan kemarin juga keliru soal caranya: **menambah sisi tak butuh `--ganti`**. Yang membutuhkannya hanya membuang sisi.
+
+`gerbang-isi` HIJAU dan `verify` hijau. CI #113 dan #114 hijau semua.
+
+### Multimodal AI — [PR #114](https://github.com/xtheoputra/techverse-x/pull/114)
+
+Cabang `fase-1/isi-multimodal-ai` dari `origin/main`. Ceritanya lemari arsip perpustakaan: foto stiker berwarna tanpa label, katalog PDF, dan rekaman suara. Isinya 12 langkah (3.450 kata), 5 diagram SVG (3 dari keluaran kode), 2 video, 19 sumber, dan 2 proyek mini. `requires: computer-vision, natural-language-processing`.
+
+**Sumber primer dibaca saat itu:** sembilan makalah dari PDF-nya (CLIP, ARO, LLaVA, Flamingo, Whisper, DDPM, Latent Diffusion, POPE, MMMU), dokumentasi Claude *PDF support*, *Vision*, dan *Features overview* dalam format `.md`, serta oEmbed dan `playableInEmbed` kedua video. Kuliah CS231N 2025 *Vision and Language* tak bisa disematkan (401), jadi hanya menjadi tautan. Semua 20 URL unik 200.
+
+**Percobaan sendiri**, lima benih, 482 detik di CPU:
+
+| Yang diukur | Hasil |
+|---|---|
+| zero-shot, 32 kombinasi dilatih | 99,6% (99,2–99,9%) |
+| zero-shot, 8 kombinasi tak pernah dilihat | 91,0% (85,0–95,5%) |
+| templat vs label polos, kombinasi baru | −6,0 sampai +10,5 poin: **tak konsisten** |
+| salah tebak kombinasi baru | 90, dengan 88 keliru bentuk; 78 wajik merah → lingkaran merah |
+| presisi@5 pencarian (dilatih / baru) | 99,8% / 100% |
+| kalimat tertukar: kantong kata / GRU / GRU + NegCLIP | 0 menang 0 kalah (selisih ≤ 1,8 × 10⁻⁷) / 99,8% / 100% |
+
+⚖️ **Yang sengaja tidak diklaim:** GRU sudah 99,8% tanpa negatif sulit, walau batch-nya tak pernah memuat kembaran tertukar. Percobaan ini hanya membuktikan bagian arsitektur. Bagian data, yaitu kenapa CLIP sungguhan berperilaku seperti kantong kata, dikutip dari ARO.
+
+🐞 **Klaim yang diperketat sebelum commit:**
+
+- "Kesalahan paling sering pada wajik merah kecil, warnanya benar" semula hanya diukur di satu benih. Kini dihitung di kelima benih (`salah_tebak.json`), dan benihnya terbukti sama dengan `hasil.json`.
+- "Skala Mel seperti pendengaran manusia" dibuang, karena tak ada di makalah Whisper.
+
+Diagram dirender lewat sharp dan saya lihat sendiri. Ada empat cacat, dan semuanya diperbaiki:
+
+- spektrogram punya garis tegak dari bunyi "klik" saat nada berganti mendadak, jadi bunyi belnya diberi peralihan 20 ms;
+- lingkaran menabrak subjudul;
+- label jauh dari garisnya;
+- spasi ganda hilang di SVG.
+
+**Diverifikasi:**
+
+- `uji_mm.py` **43 ok**;
+- `cek_isi.py` **28 ok** (10 blok kode = potongan persis berkas uji, setiap angka = `hasil.json`);
+- `mypy --strict` pada 8 berkas kode halaman;
+- `.\run.ps1 isi` sah (12 topik), dan `gerbang-isi` **HIJAU**;
+- halaman lokal (API Release :5096 + `next start` :3401, basis data sekali pakai `techversex_mm`): 200, dengan 10 blok kode, 6 tabel, 5 gambar, dan 2 video;
+- pemindai ADR-024: **31 halaman, 0 kena**;
+- `verify` hijau (65 detik).
+
+Blob yang ter-commit 0 CR.
+
+### Keadaan sesudah bagian pertama Sesi 26 (digantikan oleh 🏁 Lanjutan, di atas)
+
+**Produksi:** 17 bidang dan **11 topik `draf`** (NLP masuk hari ini). Citra API `e262bb1`, dan `main` = `7160eb0`.
+
+**PR terbuka, semuanya berbasis `main`, tanpa migrasi, dan bebas urutan:**
+
+| PR | Isi | Sesudah merge |
+|---|---|---|
+| [#113](https://github.com/xtheoputra/techverse-x/pull/113) | CV `requires: deep-learning` | *Pasang isi* `computer-vision` **tanpa ganti**, `sha=e262bb1` |
+| [#114](https://github.com/xtheoputra/techverse-x/pull/114) | Multimodal AI | *Pasang isi* `multimodal-ai` **tanpa ganti**, `sha=e262bb1` |
+| PR catatan ini | `docs/SESSION-LOG.md` saja | — |
+
+**Izin *Pasang isi* hari ini hanya untuk NLP.** Untuk #113 dan #114, tanyakan lagi sesudah merge, atau pemilik menjalankannya sendiri. `sha` tetap `e262bb1` selama tak ada merge yang menyentuh jalur API.
+
+**Belum diverifikasi (tanpa Chrome):** bingkai video di origin https untuk #102, #104–#107, #109, #110, dan #114, serta luberan 390 px untuk topik-topik itu.
+
+**Lingkungan:** venv uji `%TEMP%\tv-evals` kini juga memuat `uji-mm` (berkas uji Multimodal) dan `%TEMP%\mm-sumber` (PDF makalah). Server :3401, :5096, dan :5098 yang saya nyalakan sudah dihentikan setelah PID dan baris perintahnya dicocokkan. Basis data `techversex_sisi` dan `techversex_mm` sudah dibuang. Docker dinyalakan untuk gerbang, lalu dimatikan lagi bersama WSL.
+
+**Berikutnya, saya:** topik keenam AI & Machine Learning. Urutan ADR-010 yang tersisa: ML klasik dan Reinforcement Learning. Saya akan mulai dari **ML klasik**, karena ia fondasi yang belum ada (regresi, pohon keputusan, validasi silang). NLP dan Deep Learning sudah memakai sebagiannya tanpa halaman sendiri.
+
+---
+
 ## 2026-10-09 — Sesi 25 (penutup): pemilik me-merge #110 dan #111, lalu menutup sesi
 
 Permintaan pemilik: *"sudah saya merge, simpan commit dan push dulu, akan saya akhiri sesi hari ini"*.
@@ -22,7 +165,7 @@ Permintaan pemilik: *"sudah saya merge, simpan commit dan push dulu, akan saya a
 
 Sepuluh topik kini tayang di produksi. NLP tampil sesudah *Pasang isi* dijalankan.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan akhir Sesi 25 (digantikan oleh 🏁 Sesi 26, di atas)
 
 **Produksi:** 17 bidang dan **10 topik `draf`**. Citra API yang tayang `e262bb1`, dan `main` = `59bcfee`.
 
