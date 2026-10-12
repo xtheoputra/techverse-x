@@ -4,6 +4,82 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-12 — Sesi 26 (Lanjutan 2): gambar Multimodal pulih; topik keenam AI & Machine Learning, Machine Learning Klasik
+
+Permintaan pemilik: *"lanjutkan"*.
+
+### Produksi
+
+Pemilik me-merge **#115** pukul 07:56:56 UTC. Build web produksinya dibuat dari kepala `main` (`7f1b6a8`), dan kelima `/media/multimodal-ai/*.svg` kini **200**. Dugaan di Lanjutan terbukti: build yang tayang sebelumnya memang tak memuat gambar itu.
+
+Pemindai ADR-024 dijalankan **langsung di produksi** (hanya GET): 31 halaman, 29 di antaranya `/teknologi/*`, **0 kena**, setiap halaman 200. Build API dilewati, jadi citra API tetap `e262bb1`.
+
+### Machine Learning Klasik — [PR #116](https://github.com/xtheoputra/techverse-x/pull/116)
+
+Cabang `fase-1/isi-machine-learning-klasik` dari `origin/main`. Ceritanya: perpustakaan ingin mengirim pengingat hanya kepada peminjam yang kemungkinan terlambat. Isinya 12 langkah (3.107 kata), 5 diagram SVG (3 dari keluaran kode), 2 video StatQuest, 18 sumber, dan 2 proyek mini. `requires: []`, karena ini topik fondasi.
+
+**Sumber primer dibaca saat itu:**
+
+- panduan scikit-learn **dari sumber `.rst` di tag `1.9.1`** (situsnya sangat lambat; ini juga versi yang diuji);
+- makalah Grinsztajn dkk. 2022, Kapoor & Narayanan 2022, dan XGBoost, dibaca dari PDF-nya;
+- TabPFN, *Nature* 2025, dibaca dari halaman artikelnya.
+
+Semua 19 URL unik 200. Saat pertama diukur, ke-19 URL itu tampak `000`, tetapi itu kesalahan alat ukur saya: daftar URL ditulis Python dengan CRLF, dan `while read` melewatkan baris terakhir.
+
+**Percobaan sendiri** (data dengan aturan tersembunyi yang diketahui, 28 detik):
+
+| Yang diukur | Hasil |
+|---|---|
+| tebakan paling malas | akurasi 74,1%, akurasi seimbang 50,0% |
+| pohon kedalaman 2 | pertanyaan pertamanya `jarak_km <= 10.0`, persis lompatan yang ditanam |
+| overfitting | latih → 100%; uji memuncak 83,0% (kedalaman 6) lalu 78,2% |
+| validasi silang | kedalaman 5 (81,7% ± 0,9), uji sekali 82,8%; satu pemisahan saja 79,3–83,8% |
+| kebocoran | kolom denda → 100%; contoh label acak dari panduan scikit-learn terulang **persis** 0,76 vs 0,5 |
+| ensembel | regresi logistik hampir menyamai gradient boosting (75,6 vs 77,2 akurasi seimbang CV; selisihnya di bawah simpangan baku) |
+| k-means | ARI 0,12 tanpa skala → 0,82 dengan skala; silhouette memilih k = 3 |
+| ekstrapolasi 10 buku | pohon mentok 9,2 hari; aturan asli 12,3 |
+
+🐞 **Tiga klaim diperbaiki sebelum commit:**
+
+- **"Proxy variables" Kapoor & Narayanan sempat dipakai untuk soal keadilan.** Di makalah itu, *proxy* adalah wakil untuk label, yaitu kebocoran. Kutipannya dihapus.
+- **17 bidang dan 329 makalah** kini ditulis sebagai survei atas laporan-laporan sebelumnya.
+- **Batas k-means** kini "cembung dan sama ke segala arah", sesuai dokumentasi.
+
+**Diverifikasi:**
+
+- `uji_mlk.py` **39 ok**;
+- `cek_isi.py` **34 ok** (13 blok kode = potongan persis berkas uji);
+- `mypy --strict` pada 4 berkas kode halaman, dengan `warn_return_any` dimatikan karena scikit-learn tak bertipe;
+- `.\run.ps1 isi` sah (13 topik), dan `gerbang-isi` **HIJAU**;
+- halaman lokal 200, dengan 13 blok kode, 7 tabel, 5 gambar, dan 2 video;
+- pemindai ADR-024 **0 kena**;
+- `verify` hijau (74 detik).
+
+Blob ter-commit 0 CR. CI #116 hijau semua.
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** 17 bidang dan **12 topik `draf`**. Semua gambar 200. Citra API `e262bb1`, dan `main` = `7f1b6a8`.
+
+**PR terbuka:**
+
+| PR | Isi | Sesudah merge |
+|---|---|---|
+| [#116](https://github.com/xtheoputra/techverse-x/pull/116) | Machine Learning Klasik | *Pasang isi* `machine-learning-klasik` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan kelima SVG |
+| PR catatan ini | `docs/SESSION-LOG.md` saja | — |
+
+⚠️ **Urutan merge: #116 dulu, lalu PR catatan ini, beri jeda sampai build web #116 selesai.** Kalau PR catatan di-merge lebih dulu dan build-nya selesai belakangan, gambar Machine Learning Klasik akan 404 seperti Multimodal kemarin. Bila 404 tetap terjadi, merge berikutnya ke `main`, atau *Promote* deployment terbaru, memperbaikinya.
+
+**Izin *Pasang isi* sesi ini hanya untuk NLP, CV, dan Multimodal.** Untuk #116, tanyakan lagi sesudah merge.
+
+**Belum diverifikasi (tanpa Chrome):** bingkai video di origin https untuk #102, #104–#107, #109, #110, #114, dan #116, serta luberan 390 px.
+
+**Lingkungan:** venv uji `%TEMP%\tv-evals` kini memuat `uji-mlk`; PDF dan sumber `.rst` ada di `%TEMP%\mlk-sumber`. Server :3401 dan :5096 sudah dihentikan setelah PID dan baris perintahnya dicocokkan, dan basis data `techversex_mlk` sudah dibuang. Docker dinyalakan untuk gerbang, lalu dimatikan lagi bersama WSL.
+
+**Berikutnya, saya:** topik terakhir AI & Machine Learning menurut ADR-010, **Reinforcement Learning**.
+
+---
+
 ## 2026-10-12 — Sesi 26 (Lanjutan): #113 dan #114 dipasang ke produksi; gambar Multimodal 404 karena build web yang lebih tua menang
 
 Permintaan pemilik: *"lanjut progress"*. Pemilik sudah me-merge **#113** (07:13:33 UTC) dan **#114** (07:13:58), berselang 25 detik. Kedua build API dilewati (*Canceled by Ignored Build Step*), jadi citra API yang tayang tetap `e262bb1`.
@@ -42,7 +118,7 @@ Teks halaman tetap benar karena datang dari API. Yang hilang hanya berkas statis
 
 💡 *Dua PR yang menambah berkas web sebaiknya di-merge dengan jeda sampai build web yang pertama selesai, atau keadaannya diukur sesudah merge terakhir.*
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan sesudah Lanjutan (digantikan oleh 🏁 Lanjutan 2, di atas)
 
 **Produksi:** 17 bidang dan **12 topik `draf`**. Citra API `e262bb1`, dan `main` = `bfdf7a9`. Gambar Multimodal **404** sampai ada build web produksi baru.
 
