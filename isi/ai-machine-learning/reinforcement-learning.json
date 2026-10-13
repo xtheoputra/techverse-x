@@ -1,0 +1,272 @@
+{
+  "slug": "reinforcement-learning",
+  "name": "Reinforcement Learning",
+  "fieldSlug": "ai-machine-learning",
+  "summary": "Reinforcement learning (RL, pembelajaran penguatan) adalah cara mengajari komputer lewat coba-coba. Sebuah agen bertindak di suatu lingkungan, menerima hadiah atau hukuman berupa angka, lalu perlahan menemukan cara bertindak yang mengumpulkan hadiah terbanyak dalam jangka panjang. Tak ada yang memberinya jawaban benar; ia hanya tahu akibat dari tindakannya. Halaman ini mengikuti robot pengantar buku di lorong perpustakaan yang punya tangga terbuka: dari robot yang berjalan acak, iterasi nilai, Q-learning dan SARSA, hadiah yang bisa diakali, sampai jaringan saraf yang menyeimbangkan tiang dengan REINFORCE dan PPO. Penutupnya adalah RL di balik model bahasa: RLHF, Constitutional AI, DPO, dan hadiah yang diperiksa aturan.",
+  "overview": "## Robot kecil di lorong perpustakaan\n\nPerpustakaan kita punya pegawai baru: robot kecil yang mengantar buku dari meja pengembalian ke rak. Lorongnya sederhana, empat baris kali dua belas kolom. Masalahnya, di sepanjang sisi bawah lorong ada mulut tangga turun. Kalau robot melangkah ke sana, bukunya jatuh dan ia harus kembali ke meja.\n\nKita tak memberi robot itu peta, dan tak menulis aturan \"belok di sini, lurus di sana\". Kita hanya memberinya tiga kabar: setiap langkah bernilai **−1** karena waktu pustakawan berharga, jatuh ke tangga bernilai **−100**, dan perjalanan selesai saat buku sampai di rak. Selebihnya ia harus mencari tahu sendiri. Pertanyaan halaman ini: bagaimana robot itu bisa belajar?\n\n::media[lingkaran-agen]\n\nItulah inti **reinforcement learning**. Ada **agen** (si robot) yang mengamati **keadaan** lingkungannya, memilih **aksi**, lalu menerima **hadiah** (*reward*) dan keadaan baru. Putaran itu berulang terus. Buku Sutton & Barto, rujukan utama bidang ini, merumuskan tujuannya sebagai *reward hypothesis*: semua yang kita maksud dengan tujuan bisa dipandang sebagai upaya memaksimalkan jumlah hadiah yang diharapkan dalam jangka panjang.\n\n## Apa bedanya dengan machine learning yang lain?\n\nDi pembelajaran terawasi (*supervised learning*), model belajar dari contoh yang sudah diberi jawaban benar: foto ini kucing, surel itu spam. Di RL, tak ada yang memberi tahu aksi mana yang benar. Agen hanya menerima angka hadiah, dan angka itu sering datang terlambat. Langkah yang membuat buku jatuh mungkin baru terasa akibatnya belasan langkah kemudian.\n\nDokumentasi Stable-Baselines3 menunjuk satu perbedaan lagi yang sering terlupa. Data RL **dikumpulkan oleh agen itu sendiri**. Agen yang buruk mengumpulkan pengalaman yang buruk, dan dari pengalaman buruk ia sulit membaik. Itu sebabnya hasil RL bisa berbeda jauh hanya karena *seed* acaknya berbeda, dan kita akan melihatnya sendiri di langkah 11.\n\n## Peta perjalanan\n\n| Bagian | Pertanyaan | Langkah |\n|---|---|---|\n| Dasar | Apa itu agen, hadiah, return, dan eksplorasi? | 1–5 |\n| Perencanaan | Kalau peta diketahui, bagaimana menghitung jalan terbaik? | 6 |\n| Belajar dari pengalaman | Bagaimana kalau peta tak diketahui? | 7–8 |\n| Desain hadiah | Kenapa robot bisa mengakali hadiah? | 9 |\n| Jaringan saraf | Bagaimana kalau keadaannya tak bisa ditabelkan? | 10–12 |\n| Model bahasa | Bagaimana RL membentuk asisten AI? | 13 |\n\nSemua contoh di halaman ini sudah dijalankan. Lingkungan lorong ditulis dengan Gymnasium, dan aturannya ternyata sama persis dengan lingkungan klasik *CliffWalking* dari buku Sutton & Barto. Jadi angka-angkanya bisa kamu bandingkan dengan buku itu.\n\n## Di mana RL bekerja, dan di mana ia masih sulit\n\nRL melahirkan beberapa hasil paling terkenal di AI. Pada 2013, DeepMind melatih satu jaringan yang belajar bermain game Atari langsung dari piksel layar. Versi 2015-nya memainkan 49 game dengan algoritme, arsitektur, dan setelan yang sama, dan mencapai tingkat yang sebanding dengan penguji game profesional. RL juga melatih robot berkaki di simulasi lalu memindahkannya ke dunia nyata, seperti robot ANYmal dari ETH Zürich di video berikut.\n\n::media[video-anymal]\n\nNamun dokumentasi Stable-Baselines3 juga jujur soal batasnya. Algoritme RL tanpa model umumnya **boros sampel**: kadang butuh jutaan interaksi untuk mempelajari sesuatu yang berguna. Karena itu sebagian besar keberhasilannya terjadi di game atau simulasi, tempat mencoba jutaan kali itu murah. Merancang hadiah yang tepat juga butuh keahlian dan beberapa kali percobaan, dan pelatihannya bisa tidak stabil.\n\n## Kuliah untuk menemani\n\nKalau kamu suka belajar dari kuliah, seri RL David Silver di kanal Google DeepMind masih menjadi pengantar yang banyak dipakai. Kuliahnya direkam tahun 2015, jadi ia belum membahas PPO atau RL untuk model bahasa. Namun dasar yang diajarkannya, seperti MDP, nilai, dan *policy*, tetap sama dengan yang kita pakai di sini.\n\n::media[video-silver]",
+  "media": [
+    {
+      "key": "lingkaran-agen",
+      "kind": "Image",
+      "url": "/media/reinforcement-learning/lingkaran-agen.svg",
+      "alt": "Putaran agen dan lingkungan. Robot pengantar buku (agen) mengirim aksi, misalnya kanan, ke lorong perpustakaan (lingkungan). Lorong membalas dengan keadaan baru, misalnya sel 25, dan hadiah, misalnya −1. Putaran ini berulang sampai buku sampai di rak.",
+      "caption": "Setiap langkah: agen memilih aksi, lingkungan menjawab dengan keadaan baru dan hadiah.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "bandit",
+      "kind": "Image",
+      "url": "/media/reinforcement-learning/bandit.svg",
+      "alt": "Grafik persentase memilih mesin terbaik selama 1000 tarikan, rata-rata 2000 soal. Garis ε = 0,1 naik paling cepat ke sekitar 80%. Garis ε = 0,01 naik pelan ke sekitar 61%. Garis serakah (ε = 0) mendatar di sekitar 36%.",
+      "caption": "Persentase memilih mesin terbaik, dirata-ratakan per 20 tarikan, dari percobaan di langkah ini.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "jalur-dua",
+      "kind": "Image",
+      "url": "/media/reinforcement-learning/jalur-dua.svg",
+      "alt": "Peta lorong 4 kali 12 sel. Meja di pojok kiri bawah, rak di pojok kanan bawah, dan sepuluh sel tangga di antaranya. Jalur Q-learning naik satu sel lalu menyusuri baris tepat di atas tangga (13 langkah). Jalur SARSA naik sampai baris paling atas, menyeberang, lalu turun ke rak (17 langkah).",
+      "caption": "Jalan terbaik menurut tabel Q sesudah 500 episode. Jalur SARSA ini muncul di 37 dari 50 percobaan.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "kurva-td",
+      "kind": "Image",
+      "url": "/media/reinforcement-learning/kurva-td.svg",
+      "alt": "Grafik hadiah per episode selama 500 episode latihan, rata-rata 50 seed. Kedua garis naik cepat dari sekitar minus 100 lebih. Garis SARSA mendatar di sekitar minus 25, sedangkan garis Q-learning lebih rendah, di sekitar minus 50, karena sesekali jatuh ke tangga.",
+      "caption": "Hadiah per episode saat masih menjelajah (ε = 0,1), dirata-ratakan per 10 episode.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "rlhf",
+      "kind": "Image",
+      "url": "/media/reinforcement-learning/rlhf.svg",
+      "alt": "Tiga tahap RLHF dari makalah InstructGPT. Tahap 1: contoh jawaban dari manusia melatih model SFT. Tahap 2: manusia memilih jawaban yang lebih baik, dan pilihan itu melatih model hadiah. Tahap 3: PPO memperbarui model memakai skor dari model hadiah, dengan denda KL terhadap model SFT.",
+      "caption": "Tiga tahap RLHF menurut makalah InstructGPT. DPO menggantikan tahap 2 dan 3 dengan satu loss klasifikasi.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "video-anymal",
+      "kind": "Video",
+      "videoId": "aTDkYFZFWug",
+      "alt": "Learning Agile and Dynamic Motor Skills for Legged Robots",
+      "caption": "Robot berkaki ANYmal yang kebijakannya dilatih di simulasi, lalu dijalankan di dunia nyata (4 menit, Januari 2019). Video ini dirujuk dokumentasi Stable-Baselines3 sebagai contoh latihan di simulasi.",
+      "sourceName": "Robotic Systems Lab, ETH Zürich, di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=aTDkYFZFWug",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-silver",
+      "kind": "Video",
+      "videoId": "2pWv7GOvuf0",
+      "alt": "RL Course by David Silver - Lecture 1: Introduction to Reinforcement Learning",
+      "caption": "Kuliah pertama dari sepuluh: agen, hadiah, keadaan, dan kebijakan (88 menit, direkam 2015, sebelum PPO dan RLHF).",
+      "sourceName": "Google DeepMind di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=2pWv7GOvuf0",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    }
+  ],
+  "prerequisite": {
+    "title": "Yang perlu kamu kenal dulu: Python, NumPy, peluang, dan sedikit PyTorch",
+    "description": "Sebelum mulai, pastikan hal-hal ini sudah akrab bagimu:\n\n- **Python 3.10 atau lebih baru** dan **NumPy**: larik, `argmax`, dan bilangan acak dengan `np.random.default_rng`.\n- **Peluang dan rata-rata**: \"rata-rata hadiah yang diharapkan\" adalah ide yang muncul di hampir setiap langkah.\n- **Dasar PyTorch** untuk langkah 11 dan 12: `nn.Sequential`, optimizer, dan `loss.backward()`. Semua itu dibahas di topik Deep Learning.\n\nPasang pustakanya dengan `pip install gymnasium stable-baselines3 torch`. Semua contoh berjalan di CPU biasa. Yang paling lama adalah PPO, sekitar satu menit, dan tak ada yang memanggil API berbayar."
+  },
+  "roadmap": [
+    {
+      "title": "Agen, lingkungan, dan hadiah",
+      "description": "Mari kita beri nama pada setiap bagian cerita robot kita. Setiap istilah ini akan muncul terus sampai langkah terakhir.\n\n| Istilah | Di lorong perpustakaan |\n|---|---|\n| **Agen** | robot pengantar buku |\n| **Lingkungan** | lorong, tangga, dan rak |\n| **Keadaan** (*state*) | sel tempat robot berada, nomor 0 sampai 47 |\n| **Aksi** | atas, kanan, bawah, kiri |\n| **Hadiah** (*reward*) | −1 tiap langkah, −100 bila jatuh ke tangga |\n| **Episode** | satu perjalanan dari meja sampai rak |\n| **Kebijakan** (*policy*) | aturan yang memilih aksi di setiap keadaan |\n\nYang dicari RL adalah **kebijakan**. Kebijakan yang baik tak sekadar mengejar hadiah langkah ini; ia mengejar jumlah hadiah sepanjang episode.\n\nSutton & Barto memberi nasihat yang akan menyelamatkan kita di langkah 9. Hadiah adalah cara kita memberi tahu agen **apa** yang kita inginkan, bukan **bagaimana** mencapainya. Contoh mereka: agen catur sebaiknya diberi hadiah hanya karena menang, bukan karena memakan bidak lawan. Kalau memakan bidak juga diberi hadiah, agen bisa belajar memakan bidak sambil kalah.\n\n> [!CATATAN]\n> Hadiah negatif di setiap langkah bukan hukuman yang kejam. Itu cara paling sederhana untuk berkata \"cepatlah\": semakin pendek perjalanan, semakin sedikit −1 yang terkumpul."
+    },
+    {
+      "title": "Membangun lorong dengan Gymnasium",
+      "description": "**Gymnasium** adalah pustaka standar untuk lingkungan RL. Setiap lingkungannya punya dua fungsi utama: `reset()` untuk memulai episode, dan `step(aksi)` untuk melangkah. Inilah inti lorong kita. Di bagian `__init__`, ruang keadaannya ditulis sebagai `Discrete(48)` dan ruang aksinya `Discrete(4)`.\n\n```python\n    def step(self, action: np.int64) -> tuple[np.int64, float, bool, bool, dict[str, Any]]:\n        db, dk = GERAK[int(action)]\n        baris = min(max(self.posisi[0] + db, 0), BARIS - 1)\n        kolom = min(max(self.posisi[1] + dk, 0), KOLOM - 1)\n        if di_tangga(baris, kolom):\n            self.posisi = MULAI  # buku jatuh, robot kembali ke meja\n            return self._amati(), -100.0, False, False, {\"jatuh\": True}\n        self.posisi = (baris, kolom)\n        sampai = self.posisi == RAK\n        return self._amati(), -1.0, sampai, False, {\"jatuh\": False}\n```\n\n`step` mengembalikan lima hal: keadaan baru, hadiah, `terminated`, `truncated`, dan `info`. Dua tanda di tengah sering tertukar, padahal maknanya berbeda.\n\n- **`terminated`**: episode berakhir karena **ceritanya** selesai. Di sini, buku sampai di rak.\n- **`truncated`**: episode **dipotong dari luar**, biasanya karena batas waktu. Robot belum sampai, tetapi kita berhenti menunggu.\n\nBatas waktu itu kita pasang saat mendaftarkan lingkungan:\n\n```python\ngym.register(\n    id=\"LorongPerpustakaan-v0\",\n    entry_point=\"lorong:LorongPerpustakaan\",\n    max_episode_steps=200,\n)\n```\n\nDengan `max_episode_steps=200`, Gymnasium membungkus lorong dengan `TimeLimit`. Kami menguji robot yang terus menabrak dinding kiri. Pada langkah ke-200 ia menerima `terminated=False` dan `truncated=True`. Perbedaan ini penting, karena dokumentasi Stable-Baselines3 meminta batas waktu ditangani terpisah dari akhir cerita.\n\n> [!TIPS]\n> Panggil `check_env` dari `gymnasium.utils.env_checker` setiap kali kamu menulis lingkungan sendiri. Ia menangkap banyak kesalahan bentuk sebelum algoritmemu sempat bingung."
+    },
+    {
+      "title": "Robot acak sebagai patokan",
+      "description": "Sebelum robot belajar apa pun, mari lihat hasil terburuk yang masuk akal: robot yang memilih arah secara acak. Putaran agen-lingkungan dalam kode terlihat seperti ini.\n\n```python\n    while not selesai:\n        aksi = env.action_space.sample()\n        obs, hadiah, terminated, truncated, info = env.step(aksi)\n        total += float(hadiah)\n        jatuh += int(info[\"jatuh\"])\n        selesai = terminated or truncated\n```\n\nHasil dari 1000 episode cukup menyedihkan:\n\n| Ukuran | Robot acak |\n|---|---|\n| episode yang sampai di rak sebelum langkah ke-200 | 16 dari 1000 |\n| rata-rata hadiah per episode | −2115,2 |\n| rata-rata jatuh ke tangga | 19,4 kali |\n\nAngka ini bukan untuk ditertawakan. Ia adalah **patokan**. Setiap algoritme di halaman ini harus mengalahkannya dengan jelas, dan kalau suatu hari algoritmemu tak jauh lebih baik dari robot acak, kemungkinan besar ada yang salah di kodenya, bukan di dunianya.\n\nPerhatikan juga bahwa `env.action_space.sample()` dan `reset(seed=...)` diberi *seed*. Hasil RL sangat bergantung pada keacakan, jadi percobaan yang tak bisa diulang sulit diperiksa."
+    },
+    {
+      "title": "Return dan diskon: hadiah hari ini atau nanti?",
+      "description": "Agen tak mengejar satu hadiah, tetapi jumlahnya. Jumlah hadiah dari suatu saat sampai akhir episode disebut **return**, ditulis G. Untuk lorong kita, jalan 13 langkah tanpa jatuh memberi G = −13.\n\nSering kali hadiah yang jauh di depan dibuat sedikit lebih kecil nilainya. Caranya dengan **faktor diskon** γ (gamma), angka antara 0 dan 1:\n\n```text\nG = R1 + γ·R2 + γ²·R3 + γ³·R4 + ...\n```\n\nDengan γ = 0,9, hadiah yang datang 10 langkah lagi hanya bernilai 0,9¹⁰ ≈ 0,349 kali hadiah yang sama hari ini. Dengan γ = 0,99, nilainya masih 0,904. Sutton & Barto menyebut agen dengan γ = 0 **rabun jauh**: ia hanya peduli hadiah berikutnya. Makin dekat γ ke 1, makin jauh agen memandang ke depan.\n\n| Jalur | Return tanpa diskon | Return dengan γ = 0,9 |\n|---|---|---|\n| 13 langkah | −13 | −7,46 |\n| 17 langkah | −17 | −8,33 |\n\nKenapa perlu diskon? Untuk tugas yang tak pernah selesai, misalnya robot yang bekerja terus-menerus, jumlah hadiah tanpa diskon bisa tak terhingga. Diskon membuatnya tetap terbatas. Lorong kita selalu berakhir, jadi di langkah 6 sampai 8 kita memakai γ = 1.\n\nReturn juga punya sifat yang akan menjadi tulang punggung semua algoritme berikutnya: **G hari ini = hadiah langkah ini + γ × G mulai langkah berikutnya.**"
+    },
+    {
+      "title": "Eksplorasi atau eksploitasi: masalah mesin slot",
+      "description": "Sebelum kembali ke lorong, ada satu dilema yang perlu kita pahami dulu. Bayangkan sepuluh mesin slot (*bandit*) yang rata-rata hadiahnya berbeda dan tak kamu ketahui. Kamu boleh menarik 1000 kali. Apakah kamu terus menarik mesin yang sejauh ini terbaik (**eksploitasi**), atau sesekali mencoba mesin lain, siapa tahu ada yang lebih baik (**eksplorasi**)?\n\nCara paling sederhana adalah **epsilon-greedy**: dengan peluang ε, pilih mesin secara acak; selebihnya pilih yang taksirannya tertinggi. Kami mengulang percobaan buku Sutton & Barto: 2000 soal, masing-masing 1000 tarikan.\n\n```python\n        serakah = taksiran.argmax(axis=1)\n        acak = rng.integers(0, 10, size=soal)\n        jelajah = rng.random(soal) < epsilon\n        aksi = np.where(jelajah, acak, serakah)\n        hadiah = rng.normal(q_benar[baris, aksi], 1.0)\n        hitungan[baris, aksi] += 1\n        # rata-rata sampel, ditulis sebagai pembaruan bertahap\n        taksiran[baris, aksi] += (hadiah - taksiran[baris, aksi]) / hitungan[baris, aksi]\n```\n\n| ε | hadiah rata-rata, 100 tarikan terakhir | memilih mesin terbaik |\n|---|---|---|\n| 0 (serakah) | 1,04 | 36% |\n| 0,01 | 1,32 | 61% |\n| 0,1 | 1,37 | 80% |\n\nHadiah terbaik yang mungkin rata-rata 1,53. Agen serakah cepat puas dan sering terjebak di mesin yang biasa saja, sama seperti di buku, yang mencatat ia hanya menemukan mesin terbaik di sekitar sepertiga soal. ε = 0,1 belajar paling cepat. Namun kalau tarikannya diperpanjang sampai 10.000, ε = 0,01 menyalip, 1,50 lawan 1,38, karena ia lebih jarang membuang tarikan untuk coba-coba.\n\n::media[bandit]"
+    },
+    {
+      "title": "Kalau peta diketahui: persamaan Bellman dan iterasi nilai",
+      "description": "Andaikan kita tahu persis aturan lorong. Lingkungan seperti ini disebut **proses keputusan Markov** (MDP): keadaan berikutnya hanya bergantung pada keadaan dan aksi sekarang, bukan pada sejarah. **Nilai** sebuah keadaan, V(s), adalah return yang bisa diharapkan dari sana. Sifat return di langkah 4 memberi **persamaan Bellman**: nilai sebuah sel sama dengan hadiah langkah terbaik dari sel itu, ditambah nilai sel tujuan langkah tersebut.\n\n**Iterasi nilai** mengubah persamaan itu menjadi resep: mulai dari V = 0 di semua sel, lalu perbarui setiap sel berulang-ulang sampai tak ada lagi yang berubah. Karena lorong kita deterministik, \"peta\"-nya cukup kita tanyakan ke lingkungan:\n\n```python\ndef model(s: int, a: int) -> tuple[int, float]:\n    \"\"\"Lorong kita deterministik: taruh robot di s, lalu tanya lingkungannya.\"\"\"\n    env.posisi = divmod(s, KOLOM)\n    s_baru, hadiah, *_ = env.step(np.int64(a))\n    return int(s_baru), hadiah\n```\n\nLalu, untuk setiap sel, pilih aksi yang memberi nilai terbesar:\n\n```python\n            lama = V[s]\n            V[s] = max(h + gamma * V[s2] for s2, h in (model(s, a) for a in range(4)))\n            delta = max(delta, abs(lama - V[s]))\n```\n\n```text\nselesai dalam 15 putaran; nilai di meja pengembalian = -13\n> > > > > > > > > > > v\n> > > > > > > > > > > v\n> > > > > > > > > > > v\n^ # # # # # # # # # # R\n```\n\nDalam 15 putaran, nilai di meja pengembalian menjadi −13: jalan terbaik butuh 13 langkah. Arah panahnya: naik satu sel, menyusuri baris tepat di atas tangga, lalu turun ke rak (R). Ini jawaban yang benar, dan kita akan memakainya sebagai kunci untuk memeriksa algoritme berikutnya.\n\nMasalahnya, di dunia nyata kita jarang punya peta seperti ini."
+    },
+    {
+      "title": "Q-learning: belajar tanpa peta",
+      "description": "Sekarang robot tak tahu aturan lorong. Ia hanya bisa berjalan, melihat akibatnya, dan mengingat. Yang diingat **Q-learning** adalah tabel Q(s, a): taksiran return kalau di sel s ia mengambil aksi a, lalu sesudahnya bertindak sebaik mungkin.\n\nSetiap kali melangkah, robot membandingkan taksiran lamanya dengan yang baru saja ia alami: hadiah yang diterima ditambah taksiran terbaik dari sel berikutnya. Selisih keduanya disebut **galat TD** (*temporal difference*), dan tabel digeser sedikit ke arahnya. Seberapa jauh digeser ditentukan oleh **laju belajar** α.\n\n```python\n            s2, r, terminated, truncated, info = env.step(a)\n            a2 = pilih(Q, s2, epsilon, rng)\n            if terminated:\n                lanjut = 0.0  # rak adalah akhir; tak ada masa depan\n            elif metode == \"q-learning\":\n                lanjut = Q[s2].max()  # anggap langkah berikutnya selalu yang terbaik\n            else:\n                lanjut = Q[s2, a2]  # SARSA: pakai langkah yang benar-benar akan diambil\n            Q[s, a] += alpha * (float(r) + gamma * lanjut - Q[s, a])\n```\n\nBaris terakhir itu adalah persamaan Q-learning dari Watkins (1989), persis seperti di buku Sutton & Barto. Bagian `else` untuk SARSA kita bahas di langkah berikutnya. Aksinya dipilih dengan epsilon-greedy dari langkah 5.\n\nKami melatih robot 500 episode dengan α = 0,5 dan ε = 0,1, diulang dengan 50 *seed*. Di **50 dari 50** percobaan, jalan terbaik menurut tabel Q sama dengan kunci dari iterasi nilai: 13 langkah menyusuri tepi tangga. Robot menemukan jalan terbaik tanpa pernah melihat peta.\n\n> [!CATATAN]\n> Untuk keadaan akhir (buku sampai di rak), tak ada masa depan, jadi `lanjut = 0`. Untuk episode yang dipotong batas waktu, masa depannya tetap ada, jadi taksirannya tetap dipakai. Inilah kenapa `terminated` dan `truncated` dibedakan."
+    },
+    {
+      "title": "SARSA vs Q-learning di tepi tangga",
+      "description": "Ada kejutan kecil. Jalan terbaik Q-learning memang 13 langkah, tetapi selama berlatih ia tetap mengambil aksi acak 10% dari waktunya. Kalau aksi acak itu kebetulan \"bawah\" saat ia menyusuri tepi tangga, bukunya jatuh.\n\n**SARSA** hanya berbeda satu baris (lihat kode di langkah 7). Q-learning menghitung masa depan seolah langkah berikutnya selalu yang terbaik (`Q[s2].max()`). SARSA memakai aksi yang **benar-benar** akan diambil, termasuk aksi acaknya (`Q[s2, a2]`). Karena itu SARSA \"tahu\" bahwa dirinya kadang ceroboh, dan ia menjauh dari tangga.\n\n| Saat masih berlatih (ε = 0,1), 100 episode terakhir | Q-learning | SARSA |\n|---|---|---|\n| hadiah rata-rata per episode | −48,6 | −25,4 |\n| jatuh ke tangga per episode | 0,32 | 0,04 |\n\n::media[jalur-dua]\n\n::media[kurva-td]\n\nAngka ini sama dengan contoh *Cliff Walking* di buku Sutton & Barto. Q-learning mempelajari nilai jalur terbaik, sedangkan SARSA mempelajari jalur yang aman **bagi dirinya yang masih suka coba-coba**. Di 37 dari 50 percobaan, jalan terbaik SARSA naik sampai baris paling atas (17 langkah), dan di 3 percobaan 19 langkah. Di 10 sisanya, taksirannya masih bergoyang karena α tetap 0,5, sehingga jalan serakahnya mondar-mandir di antara dua sel. Buku itu mencatat bahwa bila ε diturunkan perlahan, keduanya akan menuju jalur terbaik.\n\nIstilahnya: SARSA belajar **on-policy** (tentang kebijakan yang sedang dijalankan), Q-learning belajar **off-policy** (tentang kebijakan terbaik, sambil menjalankan kebijakan lain). Mana yang lebih cocok? Kalau jatuh saat berlatih itu mahal, seperti robot sungguhan, SARSA lebih bijak."
+    },
+    {
+      "title": "Hadiah yang diakali",
+      "description": "Pustakawan tak sabar menunggu robot belajar. \"Beri saja bonus +3 setiap kali robot makin dekat ke rak,\" usulnya. Kedengarannya membantu. Kami menghitung kebijakan terbaik untuk hadiah baru itu, dengan γ = 0,95, lalu menjalankannya di lorong asli.\n\n```python\ndef bonus_naif(s: int, s2: int) -> float:\n    return 3.0 if jarak(s2) < jarak(s) else 0.0  # \"+3 setiap kali makin dekat ke rak\"\n\n\ndef bonus_potensial(s: int, s2: int) -> float:\n    def phi(x: int) -> float:\n        return 0.0 if x == RAK_S else -3.0 * jarak(x)\n\n    return GAMMA * phi(s2) - phi(s)  # selisih \"potensial\": bonus pergi = denda pulang\n```\n\nHasilnya: tanpa bonus, robot sampai dalam 13 langkah. Dengan **bonus naif**, robot berjalan ke sel tepat di atas rak, lalu naik-turun di situ sampai batas 200 langkah habis, dan **tak pernah menaruh bukunya**. Mundur selangkah rugi 1; maju lagi mendapat bonus 3 dikurangi 1, jadi untung 2. Setiap bolak-balik menambah 1. Bagi robot, mondar-mandir selamanya lebih menguntungkan daripada menyelesaikan tugas.\n\nDeepMind menyebut gejala ini ***specification gaming***: perilaku yang memenuhi bunyi tujuan, tetapi tidak mencapai maksudnya. Kesalahannya ada di spesifikasi kita, bukan di algoritmenya. Ng, Harada, dan Russell (1999) mencatat kasus yang mirip: agen sepeda yang diberi hadiah setiap kali mendekati tujuan malah belajar berputar-putar di dekat titik awal.\n\nMakalah yang sama memberi obatnya. Bonus yang aman berbentuk **selisih potensial**, F = γ·Φ(s') − Φ(s). Setiap bonus untuk mendekat dibayar kembali sebagai denda saat menjauh, sehingga putaran tak lagi menguntungkan. Dengan `bonus_potensial`, robot kembali menempuh 13 langkah.\n\n> [!PERINGATAN]\n> Makin pintar algoritmenya, makin pandai ia menemukan celah di hadiahmu. Selalu periksa perilakunya, bukan hanya angka hadiahnya."
+    },
+    {
+      "title": "Dari tabel ke jaringan saraf: DQN",
+      "description": "Tabel Q kita hanya punya 48 × 4 kotak. Sekarang bayangkan **CartPole**: kereta kecil yang harus menjaga tiang tetap tegak. Keadaannya empat bilangan pecahan, yaitu posisi kereta, kecepatannya, sudut tiang, dan kecepatan sudutnya. Kombinasinya tak terhingga, jadi tak ada tabel yang muat. Di Gymnasium, `CartPole-v1` memberi +1 untuk setiap langkah tiang masih berdiri, dipotong pada langkah ke-500, dan dianggap terpecahkan bila rata-ratanya mencapai 475.\n\nJalan keluarnya: ganti tabel dengan **jaringan saraf** yang menerima keadaan dan mengeluarkan satu nilai Q untuk setiap aksi. Itulah **Deep Q-Network** (DQN) dari DeepMind. Makalah 2013-nya memakai jaringan konvolusi yang membaca piksel layar Atari. Dari tujuh game, ia mengungguli semua metode sebelumnya di enam, dan melampaui pemain ahli manusia di tiga. Versi *Nature* 2015 memainkan 49 game dengan algoritme, arsitektur, dan setelan yang sama.\n\nMenyambung Q-learning dengan jaringan saraf ternyata tak semudah mengganti tabel. Dokumentasi Stable-Baselines3 menyebut trik penstabilnya:\n\n- **Replay buffer**: pengalaman disimpan, lalu dilatih ulang dalam potongan acak. Langkah yang berurutan sangat mirip satu sama lain, dan pengacakan memutus kemiripan itu.\n- **Jaringan target**: salinan jaringan yang diperbarui jarang-jarang. Ia dipakai untuk menghitung \"jawaban\" Q-learning supaya sasarannya tak ikut bergeser setiap langkah.\n- **Pemotongan gradien**, supaya satu pembaruan besar tak merusak semuanya.\n\nDi Stable-Baselines3, DQN hanya untuk aksi diskret, seperti kiri dan kanan. Ia termasuk yang paling hemat sampel karena *replay buffer*-nya, tetapi biasanya lebih lambat menurut jam dinding."
+    },
+    {
+      "title": "Policy gradient: REINFORCE",
+      "description": "Ada cara lain yang lebih langsung: lupakan nilai Q, dan latih **kebijakannya** saja. Jaringan kecil menerima keadaan CartPole dan mengeluarkan peluang untuk \"dorong kiri\" dan \"dorong kanan\", lalu aksinya diundi dari peluang itu.\n\n```python\n            logit = kebijakan(torch.as_tensor(obs, dtype=torch.float32))\n            dist = torch.distributions.Categorical(logits=logit)\n            aksi = dist.sample()\n            log_peluang.append(dist.log_prob(aksi))\n```\n\nSesudah satu episode selesai, **REINFORCE** (Williams, 1992) menaikkan peluang setiap aksi yang diambil, sebanding dengan return yang datang sesudahnya. Kata Sutton & Barto, aksi yang membawa return tinggi menjadi lebih mungkin diulang.\n\n```python\n        # return G_t dari belakang ke depan, dengan diskon 0.99\n        G, returns = 0.0, []\n        for r in reversed(hadiah):\n            G = r + 0.99 * G\n            returns.append(G)\n        g = torch.tensor(returns[::-1])\n        g = (g - g.mean()) / (g.std() + 1e-8)  # pembanding: return di atas rata-rata episode ini\n        rugi = -(torch.stack(log_peluang) * g).sum()\n        optim.zero_grad()\n        rugi.backward()\n        optim.step()\n```\n\nReturn dinormalkan dengan rata-rata episodenya sendiri. Ini **pembanding** (*baseline*): aksi yang returnnya di atas rata-rata didorong naik, yang di bawah rata-rata didorong turun.\n\nInilah pelajaran terpenting langkah ini. Kode yang sama kami jalankan dengan lima *seed*, dan kami catat kapan rata-rata 20 episode terakhirnya mencapai 475:\n\n| Seed | 0 | 1 | 2 | 3 | 4 |\n|---|---|---|---|---|---|\n| Episode | 192 | 910 | 180 | belum, sampai 1000 | 259 |\n\nKodenya sama, hanya keacakannya yang berbeda, tetapi hasilnya dari 180 episode sampai tak berhasil. Itu sebabnya dokumentasi Stable-Baselines3 menyarankan selalu menjalankan beberapa *seed* sebelum menyimpulkan apa pun."
+    },
+    {
+      "title": "PPO dengan Stable-Baselines3",
+      "description": "REINFORCE sering goyah karena satu pembaruan yang terlalu besar bisa merusak kebijakan yang sudah bagus. **PPO** (*Proximal Policy Optimization*, Schulman dkk., 2017) menjaganya. PPO mengukur seberapa jauh peluang sebuah aksi berubah dibanding kebijakan lama, lalu **memotong** rasio itu di rentang [1 − ε, 1 + ε], dengan ε = 0,2 di makalahnya. Dengan begitu, kebijakan baru tak lari terlalu jauh dalam satu pembaruan. Makalahnya juga menyebut PPO jauh lebih sederhana diterapkan daripada pendahulunya, TRPO.\n\nKita tak perlu menulis PPO sendiri. **Stable-Baselines3** menyediakan implementasi yang andal di atas PyTorch:\n\n```python\n    env_latih = gym.make(\"CartPole-v1\")\n    model = PPO(\"MlpPolicy\", env_latih, seed=seed, verbose=0)\n    mulai = time.perf_counter()\n    model.learn(total_timesteps=langkah)\n    detik = time.perf_counter() - mulai\n\n    env_uji = Monitor(gym.make(\"CartPole-v1\"))  # lingkungan terpisah, tanpa eksplorasi\n    env_uji.reset(seed=1000 + seed)  # episode uji yang bisa diulang\n    rata, simpangan = evaluate_policy(model, env_uji, n_eval_episodes=20, deterministic=True)\n```\n\nPerhatikan dua kebiasaan baik yang dianjurkan dokumentasinya. Pertama, nilai agen di **lingkungan uji yang terpisah**, dibungkus `Monitor`. Kedua, pakai `deterministic=True` untuk kebijakan yang biasanya stokastik.\n\n| Anggaran latihan | Seed 0 | Seed 1 | Seed 2 |\n|---|---|---|---|\n| 10.000 langkah | 438,4 | 451,3 | 321,4 |\n| 50.000 langkah | 500,0 | 500,0 | 500,0 |\n\nAngkanya rata-rata skor 20 episode uji. Dengan 50.000 langkah, ketiga *seed* menyeimbangkan tiang sampai batas 500 di setiap episode uji, masing-masing dalam kurang dari satu menit di CPU. Dengan 10.000 langkah, belum ada yang mencapai 475, dan jarak antar-seed lebar, dari 321,4 sampai 451,3. Ringkasan nasihat di dokumentasi Stable-Baselines3 memang menyebutnya: untuk hasil yang lebih baik, tambah anggaran latihannya."
+    },
+    {
+      "title": "RL untuk model bahasa: RLHF, DPO, dan hadiah yang bisa diperiksa",
+      "description": "Model bahasa yang hanya dilatih menebak kata berikutnya belum tentu membantu. Makalah InstructGPT (2022) membentuknya dalam tiga tahap: **SFT** (latih dengan contoh jawaban dari manusia), **model hadiah** (latih model yang menebak jawaban mana yang lebih disukai manusia), lalu **PPO** dengan model hadiah itu sebagai pemberi hadiah. Inilah **RLHF**. Jawaban InstructGPT 1,3 miliar parameter lebih disukai penilai daripada GPT-3 175 miliar. Supaya model tak mengakali model hadiahnya, ada denda KL per token terhadap model SFT.\n\n::media[rlhf]\n\n- **Constitutional AI** (Anthropic, 2022) mengganti label \"berbahaya\" dari manusia dengan sekumpulan prinsip. Sebuah model menilai mana dari dua jawaban yang lebih baik, dan penilaian itu melatih pemberi hadiah: **RL dari umpan balik AI** (RLAIF).\n- **DPO** (2023) tak melatih model hadiah terpisah dan tak memakai RL. Preferensi dilatih langsung dengan *loss* klasifikasi sederhana.\n- **GRPO** (DeepSeekMath, 2024) membuang jaringan nilai PPO. Untuk setiap soal, beberapa jawaban diambil, dan **keunggulan** tiap jawaban adalah hadiahnya dibandingkan rata-rata kelompoknya.\n\nDeepSeek-R1 memakai GRPO dengan **hadiah berbasis aturan**, yaitu ketepatan jawaban ditambah format. Mereka sengaja tak memakai model hadiah saraf untuk penalaran karena rentan diakali. Bentuk kecilnya:\n\n```python\ndef hadiah(teks: str) -> float:\n    kotak = re.search(r\"\\\\boxed\\{([^}]*)\\}\", teks)\n    benar = 1.0 if kotak and kotak.group(1).strip() == KUNCI else 0.0\n    rapi = 1.0 if re.search(r\"<think>.+</think>\", teks) else 0.0\n    return benar + rapi  # hadiah ketepatan + hadiah format, bobotnya sama\n```\n\n```python\nr = np.array([hadiah(j) for j in jawaban])\nkeunggulan = (r - r.mean()) / r.std()\n```\n\n```text\nhadiah 2  keunggulan +0.90\nhadiah 1  keunggulan -0.30\nhadiah 0  keunggulan -1.51\nhadiah 2  keunggulan +0.90\n```\n\nJawaban ketiga sebenarnya benar, tetapi tak memakai format yang diminta, jadi hadiahnya 0. Aturan juga spesifikasi, persis seperti di langkah 9."
+    }
+  ],
+  "tools": [
+    {
+      "slug": "gymnasium",
+      "name": "Gymnasium",
+      "summary": "Pustaka sumber terbuka dari Farama Foundation berisi API standar untuk lingkungan reinforcement learning satu agen (reset dan step) serta lingkungan siap pakai seperti CartPole, MountainCar, dan CliffWalking.",
+      "homepage": "https://github.com/Farama-Foundation/Gymnasium",
+      "note": "Dipakai di langkah 2 sampai 9 untuk lorong perpustakaan, dan di langkah 10 sampai 12 untuk CartPole. Contoh diuji dengan versi 1.4.0."
+    },
+    {
+      "slug": "stable-baselines3",
+      "name": "Stable-Baselines3",
+      "summary": "Kumpulan implementasi algoritma reinforcement learning yang andal di atas PyTorch, seperti PPO, DQN, A2C, SAC, dan TD3, dengan antarmuka yang seragam serta alat bantu evaluasi.",
+      "homepage": "https://github.com/DLR-RM/stable-baselines3",
+      "note": "Dipakai di langkah 12 untuk melatih dan menilai PPO di CartPole. Contoh diuji dengan versi 2.9.0."
+    },
+    {
+      "slug": "pytorch",
+      "name": "PyTorch",
+      "summary": "Pustaka deep learning sumber terbuka untuk Python: tensor yang bisa berjalan di GPU, autograd yang menghitung gradien secara otomatis, serta modul lapisan, fungsi loss, dan optimizer.",
+      "homepage": "https://github.com/pytorch/pytorch",
+      "note": "Dipakai di langkah 11 untuk jaringan kebijakan REINFORCE, dan di bawah Stable-Baselines3 di langkah 12. Contoh diuji dengan versi 2.14.1 di CPU."
+    },
+    {
+      "slug": "numpy",
+      "name": "NumPy",
+      "summary": "Pustaka sumber terbuka untuk komputasi numerik di Python: larik berdimensi banyak, perkalian matriks, dan fungsi matematika yang cepat.",
+      "homepage": "https://github.com/numpy/numpy",
+      "note": "Dipakai di langkah 5 sampai 9 untuk mesin slot, iterasi nilai, dan tabel Q, serta di langkah 13 untuk keunggulan kelompok."
+    }
+  ],
+  "projects": [
+    {
+      "title": "Gudang licin: robotmu sendiri, dengan kunci jawaban",
+      "brief": "Buat lingkungan Gymnasium sendiri: gudang berukuran minimal 6 × 6 dengan rak tujuan, beberapa lubang atau tangga, dan **lantai licin**. Di lantai licin, aksi robot kadang meleset ke arah samping, misalnya dengan peluang 20%.\n\n- Tulis `reset` dan `step`, bedakan `terminated` dari `truncated`, lalu lolos `check_env`.\n- Hitung **kunci jawaban** dengan iterasi nilai. Karena lantainya licin, setiap aksi kini punya beberapa kemungkinan hasil, jadi jumlahkan semuanya sesuai peluangnya.\n- Latih Q-learning dan SARSA, masing-masing dengan minimal 20 *seed*.\n- Coba turunkan ε perlahan selama latihan, lalu bandingkan dengan ε tetap.\n\n**Kamu selesai bila:**\n\n1. robot acakmu tercatat sebagai patokan: berapa persen episode yang sampai, dan rata-rata hadiahnya;\n2. iterasi nilai menghasilkan peta panah kebijakan terbaik, dan kamu bisa menjelaskan kenapa jalurnya menjauhi lubang lebih lebar daripada di lantai kering;\n3. grafikmu menunjukkan hadiah per episode Q-learning dan SARSA (rata-rata semua seed) selama latihan;\n4. tabelmu mencatat berapa seed yang jalan serakahnya sama dengan kunci jawaban, untuk ε tetap dan ε yang diturunkan;\n5. kamu menulis satu paragraf: algoritme mana yang akan kamu pakai untuk robot sungguhan, dan kenapa."
+    },
+    {
+      "title": "Mendaki MountainCar dengan jujur",
+      "brief": "`MountainCar-v0` di Gymnasium adalah mobil di dasar lembah yang mesinnya terlalu lemah untuk langsung mendaki. Ia harus berayun maju-mundur dulu. Setiap langkah bernilai −1, episode berakhir saat mobil mencapai bendera di posisi 0,5, dan dipotong pada langkah ke-200. Karena hadiahnya hampir selalu −1, agen jarang mendapat petunjuk. Inilah tempat yang menggoda untuk menambah bonus.\n\n- Latih PPO atau DQN dari Stable-Baselines3 dengan hadiah asli. Catat apakah agen pernah mencapai bendera.\n- Tambahkan **bonus naif**, misalnya hadiah untuk posisi yang makin ke kanan, lalu cari tahu apakah agen mengakalinya.\n- Tambahkan bonus berbentuk **selisih potensial** dari langkah 9, misalnya Φ = tinggi mobil atau energinya, dan bandingkan.\n- Nilai semua versi dengan **hadiah asli** di lingkungan uji yang terpisah, minimal 5 seed per versi.\n\n**Kamu selesai bila:**\n\n1. tabelmu membandingkan ketiga versi, berisi rata-rata dan simpangan baku skor uji dengan hadiah asli dari semua seed;\n2. kamu menunjukkan satu contoh perilaku aneh dari bonus naif, atau menjelaskan dengan angka kenapa tidak muncul;\n3. setidaknya satu versi mencapai rata-rata −110 atau lebih baik, ambang `reward_threshold` di Gymnasium, atau kamu menjelaskan apa yang sudah dicoba dan kenapa belum berhasil;\n4. kode bonusmu terpisah dari lingkungan, misalnya dengan *wrapper* Gymnasium, sehingga lingkungan aslinya tetap utuh."
+    }
+  ],
+  "resources": [
+    {
+      "type": "OfficialDocs",
+      "title": "Reinforcement Learning: An Introduction (edisi kedua) — Sutton & Barto, buku gratis",
+      "url": "http://incompleteideas.net/book/the-book-2nd.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Basic Usage — dokumentasi Gymnasium",
+      "url": "https://gymnasium.farama.org/introduction/basic_usage/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Create a Custom Environment — dokumentasi Gymnasium",
+      "url": "https://gymnasium.farama.org/introduction/create_custom_env/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Cliff Walking — dokumentasi Gymnasium",
+      "url": "https://gymnasium.farama.org/environments/toy_text/cliff_walking/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Reinforcement Learning Tips and Tricks — dokumentasi Stable-Baselines3",
+      "url": "https://stable-baselines3.readthedocs.io/en/master/guide/rl_tips.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "PPO — dokumentasi Stable-Baselines3",
+      "url": "https://stable-baselines3.readthedocs.io/en/master/modules/ppo.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Specification gaming: the flip side of AI ingenuity — Google DeepMind (2020)",
+      "url": "https://deepmind.google/discover/blog/specification-gaming-the-flip-side-of-ai-ingenuity/"
+    },
+    {
+      "type": "Paper",
+      "title": "Policy invariance under reward transformations — Ng, Harada, Russell (ICML 1999)",
+      "url": "https://ai.stanford.edu/~ang/papers/shaping-icml99.pdf"
+    },
+    {
+      "type": "Paper",
+      "title": "Playing Atari with Deep Reinforcement Learning — Mnih dkk. (2013)",
+      "url": "https://arxiv.org/abs/1312.5602"
+    },
+    {
+      "type": "Paper",
+      "title": "Human-level control through deep reinforcement learning — Mnih dkk., Nature (2015)",
+      "url": "https://www.nature.com/articles/nature14236"
+    },
+    {
+      "type": "Paper",
+      "title": "Proximal Policy Optimization Algorithms — Schulman dkk. (2017)",
+      "url": "https://arxiv.org/abs/1707.06347"
+    },
+    {
+      "type": "Paper",
+      "title": "Training language models to follow instructions with human feedback — Ouyang dkk. (2022)",
+      "url": "https://arxiv.org/abs/2203.02155"
+    },
+    {
+      "type": "Paper",
+      "title": "Constitutional AI: Harmlessness from AI Feedback — Bai dkk., Anthropic (2022)",
+      "url": "https://arxiv.org/abs/2212.08073"
+    },
+    {
+      "type": "Paper",
+      "title": "Direct Preference Optimization — Rafailov dkk. (2023)",
+      "url": "https://arxiv.org/abs/2305.18290"
+    },
+    {
+      "type": "Paper",
+      "title": "DeepSeekMath: Pushing the Limits of Mathematical Reasoning (memperkenalkan GRPO) — Shao dkk. (2024)",
+      "url": "https://arxiv.org/abs/2402.03300"
+    },
+    {
+      "type": "Paper",
+      "title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning (2025)",
+      "url": "https://arxiv.org/abs/2501.12948"
+    },
+    {
+      "type": "Paper",
+      "title": "Stable-Baselines3: Reliable Reinforcement Learning Implementations — Raffin dkk., JMLR (2021)",
+      "url": "https://jmlr.org/papers/v22/20-1364.html"
+    },
+    {
+      "type": "Repository",
+      "title": "Farama-Foundation/Gymnasium",
+      "url": "https://github.com/Farama-Foundation/Gymnasium"
+    },
+    {
+      "type": "Repository",
+      "title": "DLR-RM/stable-baselines3",
+      "url": "https://github.com/DLR-RM/stable-baselines3"
+    },
+    {
+      "type": "Video",
+      "title": "RL Course by David Silver — Lecture 1: Introduction to Reinforcement Learning",
+      "url": "https://www.youtube.com/watch?v=2pWv7GOvuf0"
+    }
+  ],
+  "requires": [
+    "deep-learning"
+  ]
+}
