@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520" role="img" aria-labelledby="judul desk">
+  <title id="judul">Tiga tahap RLHF</title>
+  <desc id="desk">Tahap 1: contoh jawaban dari manusia melatih model SFT. Tahap 2: manusia memilih jawaban yang lebih baik, dan pilihan itu melatih model hadiah. Tahap 3: PPO memperbarui model memakai skor dari model hadiah, dengan denda KL terhadap model SFT. DPO menggantikan tahap 2 dan 3 dengan satu loss klasifikasi.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="640" height="520" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Tiga tahap RLHF</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Menurut makalah InstructGPT (Ouyang dkk., 2022).</text>
+  <rect x="40" y="110" width="560" height="88" rx="14" fill="#10162b" stroke="#3987e5" stroke-width="2"/>
+  <circle cx="82" cy="154" r="22" fill="#3987e5"/>
+  <text x="82.0" y="160.0" fill="#070a16" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="20" text-anchor="middle" font-weight="700">1</text>
+  <text x="122.0" y="144.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="18" text-anchor="start" font-weight="700">SFT</text>
+  <text x="122.0" y="168.0" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" text-anchor="start">Manusia menulis contoh jawaban.</text>
+  <text x="122.0" y="188.0" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" text-anchor="start">Model dilatih menirunya.</text>
+  <path d="M320 200 V218" stroke="#98a3c4" stroke-width="2" marker-end="url(#panah)"/>
+  <rect x="40" y="222" width="560" height="88" rx="14" fill="#10162b" stroke="#199e70" stroke-width="2"/>
+  <circle cx="82" cy="266" r="22" fill="#199e70"/>
+  <text x="82.0" y="272.0" fill="#070a16" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="20" text-anchor="middle" font-weight="700">2</text>
+  <text x="122.0" y="256.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="18" text-anchor="start" font-weight="700">Model hadiah</text>
+  <text x="122.0" y="280.0" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" text-anchor="start">Manusia memilih: jawaban A atau B?</text>
+  <text x="122.0" y="300.0" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" text-anchor="start">Model hadiah belajar menebak pilihan itu.</text>
+  <path d="M320 312 V330" stroke="#98a3c4" stroke-width="2" marker-end="url(#panah)"/>
+  <rect x="40" y="334" width="560" height="88" rx="14" fill="#10162b" stroke="#d95926" stroke-width="2"/>
+  <circle cx="82" cy="378" r="22" fill="#d95926"/>
+  <text x="82.0" y="384.0" fill="#070a16" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="20" text-anchor="middle" font-weight="700">3</text>
+  <text x="122.0" y="368.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="18" text-anchor="start" font-weight="700">PPO</text>
+  <text x="122.0" y="392.0" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" text-anchor="start">Model menjawab, model hadiah memberi skor.</text>
+  <text x="122.0" y="412.0" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" text-anchor="start">Denda KL menjaga agar tak jauh dari SFT.</text>
+  <rect x="40" y="446" width="560" height="50" rx="12" fill="none" stroke="#9b6bdf" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="60.0" y="476.0" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" text-anchor="start">DPO: tahap 2 dan 3 diganti satu loss klasifikasi, langsung dari pasangan preferensi.</text>
+</svg>
