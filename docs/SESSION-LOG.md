@@ -4,6 +4,91 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-13 — Sesi 27: topik ketujuh AI & Machine Learning, Reinforcement Learning
+
+Permintaan pemilik: *"lanjutkan progress"*.
+
+### Keadaan awal
+
+Pohon kerja bersih. Sejak #115 belum ada merge, jadi produksi masih sama dengan 🏁 kemarin: `main` = `7f1b6a8`, citra API `e262bb1`, dan `/health/ready` 200. #116 dan #117 masih menunggu pemilik.
+
+Folder sementara sesi lalu ternyata sudah terhapus, termasuk venv `%TEMP%\tv-evals`, sumber `%TEMP%\mlk-sumber`, dan scratchpad-nya. Jadi venv uji dibuat ulang di `%TEMP%\tv-rl`.
+
+### Reinforcement Learning — [PR #118](https://github.com/xtheoputra/techverse-x/pull/118)
+
+Cabang `fase-1/isi-reinforcement-learning` dari `origin/main`, tidak ditumpuk di atas #116. Ceritanya tentang robot pengantar buku di lorong perpustakaan yang sisi bawahnya tangga terbuka. Aturan lorong itu ternyata sama persis dengan `CliffWalking-v1`, jadi angka-angkanya bisa dibandingkan dengan buku Sutton & Barto.
+
+Isinya 13 langkah (3.985 kata), 5 diagram SVG (3 dari keluaran kode), 2 video, 20 sumber, dan 2 proyek mini. `requires: [deep-learning]`. Topik ini sengaja tidak menunjuk ke `machine-learning-klasik`, karena #116 belum ada di `main`. Alat baru di katalog: `gymnasium` dan `stable-baselines3`.
+
+**Sumber primer dibaca saat itu:**
+
+- buku Sutton & Barto (PDF);
+- dokumentasi Gymnasium dari tag `v1.4.0`. Versi ini rilis 2026-10-05, lebih baru dari ingatan model;
+- dokumentasi Stable-Baselines3 dari tag `v2.9.0`;
+- makalah DQN, PPO, InstructGPT, Constitutional AI, DPO, DeepSeekMath, dan DeepSeek-R1, dibaca dari PDF-nya;
+- makalah Ng dkk. 1999. Teksnya rusak bila diekstrak dengan pypdf, jadi halaman 1–4 dirender dengan PyMuPDF dan dibaca sebagai gambar.
+
+**Percobaan sendiri**, dengan angka yang tak bisa ditebak sebelumnya:
+
+| Yang diukur | Hasil |
+|---|---|
+| robot acak | 16 dari 1000 episode sampai; hadiah −2115,2 |
+| bandit | angka buku terulang: serakah 1,04 / 36%, ε 0,1 → 80% |
+| Q-learning vs SARSA, 50 seed | −48,6 vs −25,4 per episode; jatuh 0,32 vs 0,04 |
+| bonus "+3 tiap mendekat" | robot mondar-mandir satu sel di atas rak sampai 200 langkah; bonus potensial memulihkan jalur 13 langkah |
+| REINFORCE, 5 seed | 192, 910, 180, gagal dalam 1000, 259 episode |
+| PPO 50.000 langkah | 500,0 di ketiga seed |
+
+🐞 **Empat dugaan saya dibantah ukuran sebelum commit:**
+
+- **PPO 10.000 langkah.** Saya menulis "belum mencapai 475 di ketiganya". Ukuran pertama membantahnya (480,6), dan ukuran kedua memberi angka lain lagi, karena lingkungan ujinya belum diberi seed. Sesudah seed dipasang, hasilnya bisa diulang persis: 438,4 / 451,3 / 321,4.
+- **Jalur SARSA.** Ternyata bukan 50 dari 50 seed yang berakhir di jalur aman, melainkan 37. Tiga seed menempuh 19 langkah, dan 10 seed mondar-mandir karena α tetap 0,5.
+- **Bonus +2 tidak memicu putaran**, karena bolak-baliknya bernilai 0. Demo memakai +3.
+- **Pemindai ADR-024** menangkap kata "menyusulnya" di teks halaman.
+
+**Diverifikasi:**
+
+- `uji_rl.py` **35 ok** (497 detik);
+- `cek_isi.py` **84 ok** (13 blok kode = potongan harfiah berkas uji, semua URL 200, oEmbed);
+- `mypy --strict` pada 9 berkas;
+- `.\run.ps1 isi` sah, dan `gerbang-isi` **HIJAU**;
+- halaman lokal 200, dengan 16 blok kode, 8 tabel, 5 gambar, dan 2 video;
+- pemindai ADR-024 **0 kena** di 32 halaman;
+- `verify` hijau (82 detik).
+
+Blob ter-commit 0 CR. CI #118 hijau semua; build API dilewati (*Ignored Build Step*).
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+**Produksi:** tak berubah sejak kemarin. Ada 17 bidang dan 12 topik `draf`, `main` = `7f1b6a8`, dan citra API `e262bb1`.
+
+**PR terbuka:**
+
+| PR | Isi | Sesudah merge |
+|---|---|---|
+| [#116](https://github.com/xtheoputra/techverse-x/pull/116) | Machine Learning Klasik | *Pasang isi* `machine-learning-klasik` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan kelima SVG |
+| [#118](https://github.com/xtheoputra/techverse-x/pull/118) | Reinforcement Learning | *Pasang isi* `reinforcement-learning` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan kelima SVG |
+| [#117](https://github.com/xtheoputra/techverse-x/pull/117) | catatan Sesi 26 (Lanjutan 2) dan Sesi 27, `docs/SESSION-LOG.md` saja | — |
+
+⚠️ **Urutan merge: #116, lalu #118, lalu #117. Beri jeda di setiap langkah sampai build web sebelumnya selesai.** Ketiganya menambah atau mengubah berkas web, dan merge yang berdekatan pernah membuat build lama menang sehingga gambar baru 404. Bila 404 tetap terjadi, merge berikutnya atau *Promote* deployment terbaru memperbaikinya. #116 dan #118 tidak saling bergantung.
+
+**Izin *Pasang isi*** belum diberikan untuk #116 maupun #118. Saya akan bertanya sesudah merge.
+
+**Belum diverifikasi (tanpa Chrome):** bingkai video di origin https untuk #102, #104–#107, #109, #110, #114, #116, dan #118, serta luberan 390 px.
+
+**Lingkungan:**
+
+- venv uji `%TEMP%\tv-rl`: gymnasium 1.4.0, stable-baselines3 2.9.0, torch 2.14.1+cpu, dan pymupdf;
+- PDF dan dokumentasi sumber di `%TEMP%\rl-sumber`;
+- kode uji dan generator di scratchpad sesi ini (bisa hilang seperti kemarin);
+- API :5096 dan web :3401 sudah dihentikan setelah PID dan baris perintahnya dicocokkan;
+- basis data `techversex_rl` sudah dibuang;
+- Docker Desktop dan WSL dimatikan lagi.
+
+**Berikutnya:** ketujuh topik AI & Machine Learning di ADR-010 kini punya PR isi. Setelah #116 dan #118 di-merge dan dipasang, bidang ini lengkap. Langkah selanjutnya saya tanyakan dulu ke pemilik: bidang berikutnya, atau pembacaan dan *tinjau* topik yang sudah ada.
+
+---
+
 ## 2026-10-12 — Sesi 26 (Lanjutan 2): gambar Multimodal pulih; topik keenam AI & Machine Learning, Machine Learning Klasik
 
 Permintaan pemilik: *"lanjutkan"*.
@@ -57,7 +142,7 @@ Semua 19 URL unik 200. Saat pertama diukur, ke-19 URL itu tampak `000`, tetapi i
 
 Blob ter-commit 0 CR. CI #116 hijau semua.
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan akhir Sesi 26 (digantikan oleh 🏁 Sesi 27, di atas)
 
 Pemilik menutup sesi: *"simpan, commit dan push, saya akhiri sesi hari ini"*. Pohon kerja bersih dan nol stash. Kelima cabang sesi ini sudah di-push dan sama dengan `origin`. Port 3401, 5096, 5098, dan 5099 kosong, dan Docker mati. Belum ada yang di-merge sejak #115.
 
