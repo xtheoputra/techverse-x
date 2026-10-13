@@ -1,0 +1,242 @@
+{
+  "slug": "machine-learning-klasik",
+  "name": "Machine Learning Klasik",
+  "fieldSlug": "ai-machine-learning",
+  "summary": "Machine learning klasik adalah cara mengajari komputer menebak dari data berbentuk tabel: baris demi baris contoh, kolom demi kolom keterangan. Regresi linear, regresi logistik, pohon keputusan, hutan acak, gradient boosting, dan k-means masih menjadi alat utama untuk data seperti ini, dari risiko kredit sampai stok gudang. Di halaman ini kamu belajar lewat perpustakaan yang ingin mengirim pengingat kepada peminjam yang kemungkinan terlambat mengembalikan buku. Kamu memulai dari tebakan paling malas, membangun model satu per satu, melihat pohon yang menghafal, memakai validasi silang, menangkap kebocoran data yang membuat model tampak sempurna, menyetel model tanpa menipu diri, dan mengelompokkan anggota tanpa label. Semua contoh memakai scikit-learn dan berjalan dalam hitungan detik di laptop biasa.",
+  "overview": "## Pengingat yang datang tepat waktu\n\nSetiap pekan, puluhan buku di perpustakaan kita kembali terlambat. Pustakawan punya ide: kirim pesan pengingat dua hari sebelum batas pinjam, tetapi hanya kepada peminjam yang kemungkinan besar akan terlambat. Kalau semua orang dikirimi pesan, pengingat itu cepat diabaikan.\n\nBahan yang ada hanyalah **tabel** catatan peminjaman: batas pinjam, jumlah buku, jarak rumah, riwayat keterlambatan, dan beberapa kolom lain. Setiap baris berakhir dengan jawaban yang kita tahu sesudahnya: terlambat atau tidak. Belajar dari tabel seperti ini untuk menebak baris yang belum punya jawaban adalah pekerjaan **machine learning klasik**.\n\n::media[alur-kerja]\n\n## Peta perjalanan\n\n| Bagian | Pertanyaan yang dijawab | Langkah |\n|---|---|---|\n| Fondasi | apa yang dipelajari dari tabel, dan seberapa bagus tebakan paling malas | 1–2 |\n| Model pertama | garis lurus, peluang, dan pohon keputusan | 3–5 |\n| Menilai dengan jujur | overfitting, validasi silang, dan kebocoran data | 6–8 |\n| Model yang lebih kuat | hutan acak, boosting, dan cara menyetelnya | 9–10 |\n| Tanpa label, dan batasnya | mengelompokkan anggota, serta kapan model tabel menyesatkan | 11–12 |\n\n## Hubungannya dengan topik lain\n\nHalaman ini adalah fondasi bidang AI & Machine Learning. Gagasan data latih, validasi, dan uji muncul lagi di topik **Deep Learning**, regresi logistik dipakai di topik **NLP**, dan k-means sejalan dengan gagasan ruang vektor di topik **Multimodal AI**.\n\n> [!CATATAN]\n> Data peminjaman di halaman ini dibuat sendiri dengan kode, dengan aturan tersembunyi yang kita ketahui. Karena aturannya diketahui, kita bisa memeriksa apakah setiap model menemukan hal yang benar. Angka-angkanya berasal dari kode yang dijalankan dengan scikit-learn 1.9.1.",
+  "media": [
+    {
+      "key": "alur-kerja",
+      "kind": "Image",
+      "url": "/media/machine-learning-klasik/alur-kerja.svg",
+      "alt": "Alur kerja: tabel 4000 pinjaman dipisah menjadi 3000 baris latih dan 1000 baris uji. Di data latih, validasi silang lima lipatan memilih model. Model terpilih dilatih ulang di seluruh data latih, lalu diuji satu kali di data uji yang sebelumnya tak disentuh.",
+      "caption": "Data uji disimpan sampai akhir dan hanya dipakai sekali.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "pohon-dua",
+      "kind": "Image",
+      "url": "/media/machine-learning-klasik/pohon-dua.svg",
+      "alt": "Pohon keputusan kedalaman 2. Akar: apakah jarak_km paling jauh 10. Bila ya, pertanyaan berikutnya jelang_libur; kedua daunnya ditebak tepat waktu (4,5% dan 24,1% telat). Bila tidak, pertanyaan berikutnya batas pinjam 7 hari; bila ya, 734 pinjaman dengan 59,0% telat, satu-satunya daun yang ditebak telat; bila tidak, 816 pinjaman dengan 27,8% telat.",
+      "caption": "Dipelajari dari 3.000 pinjaman latih dengan DecisionTreeClassifier(max_depth=2).",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "kurva-kedalaman",
+      "kind": "Image",
+      "url": "/media/machine-learning-klasik/kurva-kedalaman.svg",
+      "alt": "Grafik akurasi terhadap kedalaman pohon 1 sampai 20. Akurasi latih naik terus sampai 100%. Akurasi uji naik sampai 83,0% di kedalaman 6, lalu turun ke 78,2% di kedalaman 20.",
+      "caption": "Jarak yang melebar di kanan adalah overfitting.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "validasi-silang",
+      "kind": "Image",
+      "url": "/media/machine-learning-klasik/validasi-silang.svg",
+      "alt": "Lima baris putaran. Data latih dibagi lima bagian; di setiap putaran satu bagian berbeda menjadi data validasi dan empat lainnya menjadi data latih. Data uji di kanan tak ikut di putaran mana pun.",
+      "caption": "Setiap baris data menjadi validasi tepat satu kali.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "kmeans-skala",
+      "kind": "Image",
+      "url": "/media/machine-learning-klasik/kmeans-skala.svg",
+      "alt": "Dua diagram sebar 600 anggota, kunjungan per bulan terhadap buku per kunjungan, diwarnai menurut kelompok k-means. Tanpa penskalaan, warna bercampur dan ARI 0,12. Dengan StandardScaler, tiga gumpalan terpisah rapi dan ARI 0,82.",
+      "caption": "Kolom denda dalam rupiah menenggelamkan kolom lain bila tak diskalakan.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "video-pohon",
+      "kind": "Video",
+      "videoId": "_L39rN6gz7Y",
+      "alt": "Decision and Classification Trees, Clearly Explained!!!",
+      "caption": "Cara pohon keputusan memilih pertanyaan, termasuk ketidakmurnian Gini (18 menit, April 2021).",
+      "sourceName": "StatQuest with Josh Starmer di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=_L39rN6gz7Y",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-validasi",
+      "kind": "Video",
+      "videoId": "fSytzGwwBVw",
+      "alt": "Machine Learning Fundamentals: Cross Validation",
+      "caption": "Validasi silang dijelaskan dengan gambar sederhana (6 menit, April 2018).",
+      "sourceName": "StatQuest with Josh Starmer di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=fSytzGwwBVw",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    }
+  ],
+  "prerequisite": {
+    "title": "Yang perlu kamu kenal dulu: Python, NumPy, dan sedikit statistik",
+    "description": "Sebelum mulai, pastikan hal-hal ini sudah akrab bagimu:\n\n- **Python 3.10 atau lebih baru** dan **NumPy**: larik dua dimensi, mengambil kolom dengan `X[:, 0]`, dan perkalian matriks.\n- **Statistik dasar**: rata-rata, simpangan baku, dan peluang sebagai angka 0 sampai 1.\n- **Gagasan fungsi**: masukan masuk, keluaran keluar. Model machine learning hanyalah fungsi yang aturannya dipelajari dari contoh.\n\nPasang pustakanya dengan `pip install scikit-learn numpy`. Semua contoh berjalan dalam hitungan detik, dan tak ada yang memanggil API berbayar."
+  },
+  "roadmap": [
+    {
+      "title": "Belajar dari tabel",
+      "description": "Bayangkan buku catatan peminjaman. Setiap baris adalah satu pinjaman, dan setiap kolom adalah satu keterangan. Dalam bahasa machine learning, kolom keterangan disebut **fitur**, dan kolom jawaban disebut **label**.\n\n| Fitur | Isi |\n|---|---|\n| `durasi` | batas pinjam, 7 atau 14 hari |\n| `jumlah_buku` | 1 sampai 5 buku |\n| `jarak_km` | jarak rumah ke perpustakaan |\n| `terlambat_dulu` | berapa kali pernah terlambat |\n| `bulan_anggota` | sudah berapa bulan menjadi anggota |\n| `jelang_libur` | dipinjam menjelang libur panjang |\n\nData kita berisi 4.000 pinjaman buatan, dan 25,9% di antaranya terlambat. Aturan tersembunyi yang membuatnya sengaja kita tulis sendiri, supaya nanti kita bisa memeriksa apakah model menemukan aturan itu:\n\n```python\n    hari = (0.75 * durasi + 0.5 * jumlah + 1.0 * dulu - 0.03 * bulan\n            + 3.0 * (jarak > 10)  # rumah jauh: lompatan, bukan garis lurus\n            + 2.0 * libur - 2.5 + rng.normal(0, 1.5, n))\n```\n\nPerhatikan baris `jarak > 10`. Rumah yang lebih jauh dari 10 km menambah 3 hari sekaligus. Itu sebuah **lompatan**, bukan garis lurus, dan beberapa model akan kesulitan menangkapnya.\n\nBila label diketahui, kita belajar dengan **terawasi** (*supervised*). Bila tidak, kita hanya bisa mencari pola, misalnya kelompok, dan itu disebut **tak terawasi** (*unsupervised*). Kedua jenisnya ada di halaman ini.\n\nKenapa tidak langsung memakai deep learning? Grinsztajn dkk. (2022) menguji 45 kumpulan data tabel berukuran sedang, sekitar 10.000 baris, dan mendapati model berbasis pohon seperti XGBoost dan hutan acak tetap unggul."
+    },
+    {
+      "title": "Mulai dari tebakan paling malas",
+      "description": "Sebelum membangun model apa pun, tanyakan dulu: seberapa bagus tebakan yang tak berpikir sama sekali? Dokumentasi scikit-learn menyebut perbandingan ini *sanity check*, pemeriksaan kewarasan.\n\n```python\ndef tebakan_dasar(X_latih: np.ndarray, y_latih: np.ndarray, X_uji: np.ndarray) -> np.ndarray:\n    dasar = DummyClassifier(strategy=\"most_frequent\")  # selalu menebak kelas terbanyak\n    return dasar.fit(X_latih, y_latih).predict(X_uji)\n```\n\n`DummyClassifier` dengan `most_frequent` selalu menebak \"tepat waktu\", karena itulah kelas terbanyak. Hasilnya di 1.000 pinjaman uji:\n\n| Ukuran | Tebakan paling malas |\n|---|---|\n| akurasi | **74,1%** |\n| akurasi seimbang | **50,0%** |\n\nAkurasi 74,1% terdengar lumayan, padahal model ini tak pernah menemukan satu pun peminjam yang terlambat. Ia hanya menang karena tiga perempat pinjaman memang tepat waktu.\n\nKarena itu kita memakai ukuran kedua, **akurasi seimbang** (*balanced accuracy*): rata-rata recall setiap kelas.\n\n```python\ndef nilai(y_benar: np.ndarray, y_tebak: np.ndarray) -> dict[str, float]:\n    return {\"akurasi\": accuracy_score(y_benar, y_tebak),\n            \"akurasi_seimbang\": balanced_accuracy_score(y_benar, y_tebak)}  # rata-rata recall per kelas\n```\n\nRecall kelas \"terlambat\" di sini 0%, recall kelas \"tepat waktu\" 100%, jadi rata-ratanya 50%, seperti melempar koin. Mulai sekarang, setiap model harus mengalahkan angka ini. Kalau tidak, model itu tak berguna, serumit apa pun bentuknya."
+    },
+    {
+      "title": "Regresi linear: garis lurus terbaik",
+      "description": "Mari mulai dari pertanyaan berupa angka: **berapa hari** buku akan dipegang? Menebak angka disebut **regresi**. Model paling sederhana menganggap setiap fitur menambah atau mengurangi jumlah hari dengan bobot tetap, lalu semuanya dijumlahkan.\n\nBobot terbaik dicari dengan **kuadrat terkecil**: bobot yang membuat jumlah kuadrat selisih tebakan dan kenyataan sekecil mungkin.\n\n```python\ndef garis_terbaik(X: np.ndarray, y: np.ndarray) -> np.ndarray:\n    \"\"\"Kuadrat terkecil: cari w yang membuat jumlah (y - prediksi)^2 sekecil mungkin.\"\"\"\n    A = np.column_stack([np.ones(len(X)), X])  # kolom angka 1 untuk titik potong\n    w, *_ = np.linalg.lstsq(A, y, rcond=None)\n    return w  # w[0] = titik potong, w[1:] = satu bobot per fitur\n```\n\nHasilnya sama persis dengan `LinearRegression` milik scikit-learn. Bandingkan dengan aturan tersembunyi kita:\n\n| Fitur | Aturan asli | Bobot yang ditemukan |\n|---|---|---|\n| `durasi` | 0,75 | 0,75 |\n| `jumlah_buku` | 0,5 | 0,48 |\n| `terlambat_dulu` | 1,0 | 0,96 |\n| `bulan_anggota` | −0,03 | −0,032 |\n| `jelang_libur` | 2,0 | 1,95 |\n| `jarak_km` | lompatan 3 hari di 10 km | 0,22 per km |\n\nUntuk lima fitur pertama, regresi linear menemukan aturannya dengan sangat dekat. Yang menarik adalah `jarak_km`. Garis lurus tak bisa melompat, jadi ia mengganti lompatan 3 hari dengan kemiringan 0,22 hari per km. Model ini salah untuk rumah berjarak 9 dan 11 km, yang sebenarnya berbeda 3 hari.\n\nDi data uji, R² bernilai 0,80, artinya model menjelaskan sekitar 80% variasi jumlah hari. Rata-rata meleset 1,31 hari. Sisanya sebagian besar adalah keacakan yang memang kita taruh di data."
+    },
+    {
+      "title": "Regresi logistik: dari angka ke peluang",
+      "description": "Pustakawan sebenarnya tak butuh jumlah hari. Ia butuh jawaban \"kirim pengingat atau tidak\". Untuk jawaban ya atau tidak, kita memakai **regresi logistik**. Ia menjumlahkan fitur berbobot seperti regresi linear, lalu memeras hasilnya ke rentang 0 sampai 1 sehingga bisa dibaca sebagai **peluang**.\n\n```python\ndef regresi_logistik() -> Pipeline:\n    return make_pipeline(StandardScaler(), LogisticRegression())  # skala dulu, lalu model\n```\n\n`make_pipeline` merangkai dua langkah. `StandardScaler` membuat setiap kolom berskala sama, karena jarak dalam kilometer dan lama keanggotaan dalam bulan punya rentang yang sangat berbeda. Pipeline juga menjamin skala itu hanya dipelajari dari data latih, dan alasannya kamu lihat di langkah 8.\n\nModel ini memberi peluang terlambat untuk setiap pinjaman, misalnya 0,25, 0,006, dan 0,73. Secara bawaan, `predict` memakai ambang 0,5. Tetapi ambang adalah **keputusan bisnis**, bukan bagian dari model:\n\n| Ambang | Pinjaman yang diberi pengingat | Akurasi | Akurasi seimbang |\n|---|---|---|---|\n| 0,3 | 32,3% | 83,2% | 82,1% |\n| 0,5 | 20,3% | 85,4% | 77,5% |\n| 0,7 | 11,5% | 82,0% | 67,5% |\n\nAmbang rendah menangkap lebih banyak peminjam yang terlambat, tetapi mengirim lebih banyak pesan. Bila pengingat murah dan keterlambatan mahal, ambang 0,3 bisa lebih masuk akal walau akurasinya turun. Pilih ambang dari biaya kesalahan, bukan dari kebiasaan."
+    },
+    {
+      "title": "Pohon keputusan: aturan jika-maka",
+      "description": "Regresi linear tak bisa melompat. **Pohon keputusan** bisa, karena cara kerjanya mirip permainan dua puluh pertanyaan. Di setiap simpul, ia memilih satu pertanyaan ya atau tidak yang paling baik memisahkan pinjaman terlambat dari yang tepat waktu.\n\n```python\ndef pohon_dangkal(X_latih: np.ndarray, y_latih: np.ndarray) -> str:\n    pohon = DecisionTreeClassifier(max_depth=2, random_state=0).fit(X_latih, y_latih)  # paling banyak dua pertanyaan\n    return export_text(pohon, feature_names=list(FITUR), decimals=1)  # aturan jika-maka yang bisa dibaca\n```\n\n::media[pohon-dua]\n\nPertanyaan pertama yang dipilih pohon adalah `jarak_km <= 10.0`, persis lompatan dalam aturan tersembunyi kita. Tak ada yang memberitahunya. Pohon menemukannya sendiri karena pemisahan di titik itulah yang paling menurunkan ketidakmurnian kelompok. Di cabang yang jauh, pertanyaan berikutnya adalah batas pinjam 7 atau 14 hari.\n\nDokumentasi scikit-learn mencatat kelebihan pohon: mudah dipahami, bisa digambar, dan hampir tak butuh penyiapan data, termasuk penskalaan. Dokumentasi yang sama juga mencatat kekurangannya. Pohon mudah terlalu rumit, bisa berubah total karena perubahan kecil pada data, dan tebakannya berupa tangga, sehingga buruk untuk nilai di luar rentang latihannya.\n\nPohon kedalaman 2 ini mencapai akurasi seimbang 70,6%. Itu lebih rendah dari regresi logistik, karena dua pertanyaan belum cukup. Jadi, mengapa tidak membuat pohon yang jauh lebih dalam?\n\n::media[video-pohon]"
+    },
+    {
+      "title": "Overfitting: pohon yang menghafal",
+      "description": "Mari coba kedalaman 1 sampai 20, lalu ukur akurasi di data latih dan data uji:\n\n```python\ndef kurva_kedalaman(X_latih: np.ndarray, y_latih: np.ndarray, X_uji: np.ndarray, y_uji: np.ndarray,\n                    kedalaman: range) -> list[tuple[int, float, float]]:\n    hasil = []\n    for d in kedalaman:\n        pohon = DecisionTreeClassifier(max_depth=d, random_state=0).fit(X_latih, y_latih)\n        hasil.append((d, pohon.score(X_latih, y_latih), pohon.score(X_uji, y_uji)))  # akurasi latih vs uji\n    return hasil\n```\n\n::media[kurva-kedalaman]\n\nDua garis itu bercerita banyak. Di data latih, akurasi naik terus sampai **100%** di kedalaman 19: pohon itu benar untuk setiap pinjaman yang pernah dilihatnya. Di data uji, akurasi memuncak di **83,0%** pada kedalaman 6, lalu turun ke 78,2% di kedalaman 20.\n\nInilah **overfitting**. Pohon yang terlalu dalam tak lagi mempelajari aturan, tetapi menghafal keacakan. Ingat, aturan tersembunyi kita mengandung `rng.normal(0, 1.5, n)`, keacakan yang memang tak bisa ditebak. Pohon sedalam 20 tetap membuat cabang untuk setiap kebetulan itu.\n\nPelajaran terpentingnya: **akurasi latih tak mengatakan apa pun tentang data baru**. Pohon sempurna di data latih adalah tanda bahaya, bukan prestasi. Penawarnya adalah kesederhanaan: batasi kedalaman, minta jumlah contoh minimum di setiap daun, atau gabungkan banyak pohon seperti di langkah 9.\n\nTapi di sini ada jebakan baru. Kedalaman 6 kita pilih dengan melihat data uji. Begitu data uji ikut menentukan pilihan, angkanya tak lagi jujur. Langkah berikutnya memperbaikinya."
+    },
+    {
+      "title": "Validasi silang: memilih tanpa mengintip",
+      "description": "Data uji harus disimpan sampai akhir. Lalu bagaimana memilih kedalaman pohon? Jawabannya **validasi silang**: data latih dipecah menjadi beberapa bagian, dan setiap bagian bergiliran menjadi data validasi.\n\n::media[validasi-silang]\n\n```python\ndef pilih_kedalaman(X_latih: np.ndarray, y_latih: np.ndarray, kedalaman: range) -> dict[int, np.ndarray]:\n    \"\"\"Validasi silang 5 lipatan HANYA di data latih; data uji tetap tak tersentuh.\"\"\"\n    return {d: cross_val_score(DecisionTreeClassifier(max_depth=d, random_state=0), X_latih, y_latih, cv=5)\n            for d in kedalaman}\n```\n\nDokumentasi scikit-learn menjelaskan dua hal penting. Pertama, data uji tetap harus disisihkan untuk penilaian akhir. Kedua, bila `cv` berupa angka dan modelnya penggolong, scikit-learn memakai `StratifiedKFold`, yang menjaga perbandingan kelas di setiap lipatan tetap sama.\n\nValidasi silang memilih kedalaman **5**, dengan akurasi rata-rata 81,7% dan simpangan baku 0,9 poin di antara lima lipatan. Baru sesudah itu data uji dibuka satu kali: 82,8%.\n\nKenapa tak cukup satu kali pemisahan? Kami memisahkan data latih yang sama sepuluh kali dengan benih acak berbeda, lalu menguji pohon kedalaman 5. Hasilnya bervariasi dari 79,3% sampai 83,8%, hanya karena keberuntungan pembagian. Rata-rata lima lipatan jauh lebih stabil.\n\nSatu peringatan: bila data berurutan menurut waktu, jangan mengacak. Gunakan `TimeSeriesSplit`, supaya model tak pernah belajar dari masa depan.\n\n::media[video-validasi]"
+    },
+    {
+      "title": "Kebocoran data: model yang terlalu sempurna",
+      "description": "Seorang petugas menawarkan kolom baru yang menurutnya sangat membantu: **denda** setiap pinjaman.\n\n```python\ndef tambah_denda(X: np.ndarray, hari: np.ndarray) -> np.ndarray:\n    denda = 1000 * np.ceil(np.maximum(0, hari - X[:, 0]))  # Rp1.000 per hari lewat batas\n    return np.column_stack([X, denda])  # ⚠️ denda baru diketahui SESUDAH buku kembali\n```\n\nDengan kolom itu, pohon kedalaman 2 mencapai akurasi **100%**. Pertanyaan pertamanya: `denda <= 500`. Model ini sempurna sekaligus tak berguna: denda baru diketahui **sesudah** buku kembali, padahal pengingat dikirim sebelumnya. Inilah **kebocoran data**: menurut dokumentasi scikit-learn, informasi yang tak tersedia saat menebak ikut dipakai membangun model.\n\nKebocoran juga bisa jauh lebih halus. Contoh dari panduan scikit-learn ini memakai 200 baris berisi 10.000 kolom angka acak dan label acak, jadi tak ada yang bisa dipelajari.\n\n```python\ndef seleksi_salah(X: np.ndarray, y: np.ndarray) -> float:\n    X_terpilih = SelectKBest(k=25).fit_transform(X, y)  # SALAH: memilih kolom dengan melihat SEMUA label\n    X_latih, X_uji, y_latih, y_uji = train_test_split(X_terpilih, y, random_state=42)\n    model = HistGradientBoostingClassifier(random_state=1).fit(X_latih, y_latih)\n    return accuracy_score(y_uji, model.predict(X_uji))\n```\n\nHasilnya akurasi **0,76**, padahal labelnya acak. `SelectKBest` memilih 25 kolom dengan melihat seluruh label, termasuk label data uji. Bila data dipisah dulu dan pemilihan kolom dimasukkan ke pipeline, akurasinya kembali ke 0,5, seperti melempar koin. Aturannya sederhana: jangan pernah memanggil `fit` pada data uji.\n\nIni bukan soal latihan saja. Kapoor dan Narayanan (2022) mengumpulkan laporan kesalahan semacam ini dari 17 bidang ilmu, yang bersama-sama memengaruhi 329 makalah, lalu memetakannya menjadi 8 jenis kebocoran. Dalam kasus prediksi perang saudara, model rumit yang diklaim jauh lebih unggul ternyata tak lebih baik dari regresi logistik setelah kebocorannya diperbaiki."
+    },
+    {
+      "title": "Hutan acak dan gradient boosting",
+      "description": "Satu pohon mudah menghafal dan mudah goyah. Bagaimana kalau kita menanam banyak pohon?\n\n```python\ndef tiga_model() -> dict[str, object]:\n    return {\n        \"pohon tunggal (kedalaman 5)\": DecisionTreeClassifier(max_depth=5, random_state=0),\n        \"hutan acak\": RandomForestClassifier(n_estimators=300, random_state=0),  # rata-rata 300 pohon\n        \"gradient boosting\": HistGradientBoostingClassifier(random_state=0),  # pohon demi pohon memperbaiki galat\n    }\n```\n\n**Hutan acak** (Breiman, 2001) melatih setiap pohon pada sampel acak dari data latih, dan di setiap simpul hanya melihat sebagian fitur secara acak. Menurut dokumentasi scikit-learn, dua sumber keacakan itu membuat kesalahan antarpohon tak saling terkait, sehingga sebagian kesalahan saling meniadakan saat dirata-ratakan.\n\n**Gradient boosting** bekerja berurutan: setiap pohon baru dilatih untuk memperbaiki kesalahan pohon-pohon sebelumnya. `HistGradientBoostingClassifier` terinspirasi LightGBM dan, menurut dokumentasinya, bisa jauh lebih cepat untuk data puluhan ribu baris lebih, serta langsung menerima nilai yang hilang. Pustaka sejenis, XGBoost, dipakai di 17 dari 29 solusi juara Kaggle yang diterbitkan pada 2015, menurut makalahnya.\n\nHasil di data kita (akurasi seimbang):\n\n| Model | Validasi silang 5 lipatan | Data uji |\n|---|---|---|\n| regresi logistik | 75,6% ± 2,0 | 77,5% |\n| pohon tunggal (kedalaman 5) | 73,8% ± 2,6 | 75,3% |\n| hutan acak | 75,6% ± 1,6 | 76,4% |\n| gradient boosting | 77,2% ± 1,6 | 77,8% |\n\nGradient boosting memang di puncak, tetapi perhatikan regresi logistik. Selisih keduanya lebih kecil dari simpangan baku antarlipatan. Masuk akal, karena aturan kita hampir seluruhnya garis lurus, dengan satu lompatan. Model rumit baru jelas menang bila datanya memang rumit.\n\nJadi selalu bandingkan dengan model sederhana. Ia lebih cepat, lebih mudah dijelaskan, dan sering kali hampir sama bagusnya."
+    },
+    {
+      "title": "Menyetel tanpa menipu diri sendiri",
+      "description": "Setiap model punya tombol yang tak dipelajari dari data, yang disebut **hyperparameter**. Contohnya laju belajar dan jumlah daun di gradient boosting. Untuk menyetelnya, kita mencoba beberapa kombinasi dan menilai setiap kombinasi dengan validasi silang:\n\n```python\ndef setel(X_latih: np.ndarray, y_latih: np.ndarray) -> GridSearchCV:\n    kisi = {\"learning_rate\": [0.03, 0.1, 0.3], \"max_leaf_nodes\": [7, 15, 31]}\n    cari = GridSearchCV(HistGradientBoostingClassifier(random_state=0), kisi, cv=5, scoring=\"balanced_accuracy\")\n    return cari.fit(X_latih, y_latih)  # memilih dengan validasi silang, lalu melatih ulang di seluruh data latih\n```\n\nAda 9 kombinasi, masing-masing dinilai dengan 5 lipatan, jadi model dilatih 45 kali, lalu sekali lagi dengan pengaturan terbaik di seluruh data latih. `GridSearchCV` memilih `learning_rate=0.1` dan `max_leaf_nodes=7`, dengan akurasi seimbang validasi silang 78,4%.\n\nBaru sesudah semua pilihan selesai, data uji dibuka **satu kali**: akurasi 85,7% dan akurasi seimbang 79,0%.\n\nTiga kebiasaan yang menjaga angka ini tetap jujur:\n\n- **Data uji tak pernah ikut memilih.** Bila kamu melihat hasil uji lalu kembali mengubah pengaturan, data uji itu sudah menjadi data latih.\n- **Penyiapan data masuk ke pipeline.** Dengan begitu, penskalaan dan pemilihan fitur dipelajari ulang di setiap lipatan.\n- **Laporkan sebarannya, bukan hanya angka terbaik.** Dari banyak kombinasi, satu bisa saja unggul karena kebetulan.\n\nKombinasi yang dicoba di sini sengaja sedikit. Untuk ruang yang lebih besar, `RandomizedSearchCV` mencoba kombinasi acak dengan jumlah percobaan yang kamu tentukan."
+    },
+    {
+      "title": "Tanpa label: mengelompokkan anggota",
+      "description": "Pertanyaan berbeda datang dari kepala perpustakaan: \"Anggota kita sebenarnya ada berapa macam?\" Kali ini tak ada label. Yang ada hanya kebiasaan setiap anggota: kunjungan per bulan, buku per kunjungan, dan denda setahun dalam rupiah.\n\n**K-means** mencari *k* titik pusat, lalu menempatkan setiap anggota di kelompok dengan pusat terdekat. Pusat-pusat itu digeser berulang kali sampai jumlah kuadrat jarak setiap anggota ke pusatnya, yang disebut *inertia*, sekecil mungkin.\n\n```python\ndef kelompokkan(X: np.ndarray, k: int, skala: bool) -> np.ndarray:\n    if skala:\n        X = StandardScaler().fit_transform(X)  # setiap kolom: rata-rata 0, simpangan baku 1\n    return KMeans(n_clusters=k, n_init=10, random_state=0).fit_predict(X)\n```\n\nPerhatikan argumen `skala`. Dengan k = 3:\n\n::media[kmeans-skala]\n\nTanpa penskalaan, kecocokan dengan tiga kelompok asli hanya 0,12 (ARI, *adjusted Rand index*: 1 berarti sama persis, 0 berarti seperti acak). Sebabnya, kolom denda punya simpangan baku sekitar 10.174 rupiah, sedangkan kunjungan hanya 4,2. Jarak antaranggota hampir seluruhnya ditentukan denda. Sesudah setiap kolom diskalakan, ARI naik ke **0,82**.\n\nBagaimana memilih *k* tanpa label? Salah satu cara adalah **skor silhouette**, yang mengukur seberapa dekat setiap titik ke kelompoknya sendiri dibandingkan ke kelompok tetangga. Skornya tertinggi di k = 3 (0,46), sesuai jumlah kelompok sebenarnya.\n\nDokumentasi scikit-learn juga mencatat batasnya: inertia mengandaikan kelompok berbentuk cembung dan sama ke segala arah. Untuk kelompok yang memanjang atau berbentuk tak beraturan, hasil k-means buruk."
+    },
+    {
+      "title": "Batas machine learning klasik",
+      "description": "Model kita sudah cukup bagus, tetapi ada beberapa hal yang tak bisa ia lakukan.\n\n**Pohon tak bisa melampaui yang pernah dilihatnya.** Data latih kita paling banyak berisi 5 buku per pinjaman. Bagaimana bila seseorang meminjam 10? Untuk pinjaman 14 hari dari rumah berjarak 5 km:\n\n| Jumlah buku | Aturan asli | Regresi linear | Pohon (kedalaman 6) |\n|---|---|---|---|\n| 5 | 9,8 hari | 10,2 | 9,2 |\n| 8 | 11,3 hari | 11,6 | 9,2 |\n| 10 | 12,3 hari | 12,6 | 9,2 |\n\nTebakan pohon mentok di nilai daun terakhirnya, sedangkan garis lurus terus memanjang. Ini sesuai catatan dokumentasi scikit-learn bahwa pohon buruk untuk ekstrapolasi.\n\n**Dunia berubah, model tidak.** Bila perpustakaan membuka cabang baru di pinggir kota, sebaran jarak rumah berubah, dan model yang dilatih dengan data lama bisa meleset tanpa peringatan. Ukur ulang secara berkala dengan data terbaru.\n\n**Fitur bisa menjadi wakil hal yang tak pantas.** Jarak rumah bisa berkaitan dengan lingkungan tempat tinggal atau kemampuan ekonomi, sehingga model diam-diam memperlakukan kelompok orang secara berbeda. Model ini pantas dipakai untuk mengirim pengingat yang ramah, tetapi tidak untuk menolak pinjaman atau menghukum orang.\n\n**Bidang ini masih bergerak.** Hollmann dkk. (2025) di jurnal Nature memperkenalkan TabPFN, model fondasi untuk data tabel. Menurut makalah itu, TabPFN mengungguli semua metode sebelumnya pada data hingga 10.000 baris, dan dalam 2,8 detik ia mengalahkan gabungan model terkuat yang disetel selama 4 jam. Untuk data kecil, pembanding terbaikmu mungkin bukan lagi gradient boosting. Ujilah di datamu sendiri dengan cara yang sama jujurnya."
+    }
+  ],
+  "tools": [
+    {
+      "slug": "scikit-learn",
+      "name": "scikit-learn",
+      "summary": "Pustaka machine learning sumber terbuka untuk Python: model klasik seperti regresi logistik, pengolahan fitur seperti TF-IDF, pemisahan data, dan metrik evaluasi.",
+      "homepage": "https://github.com/scikit-learn/scikit-learn",
+      "note": "Dipakai di seluruh halaman: model, pipeline, validasi silang, GridSearchCV, dan k-means. Contoh diuji dengan versi 1.9.1."
+    },
+    {
+      "slug": "numpy",
+      "name": "NumPy",
+      "summary": "Pustaka sumber terbuka untuk komputasi numerik di Python: larik berdimensi banyak, perkalian matriks, dan fungsi matematika yang cepat.",
+      "homepage": "https://github.com/numpy/numpy",
+      "note": "Dipakai untuk membuat data peminjaman dan menghitung kuadrat terkecil di langkah 3."
+    }
+  ],
+  "projects": [
+    {
+      "title": "Prediksi keterlambatan yang jujur",
+      "brief": "Bangun model prediksi keterlambatan dari data peminjaman di halaman ini, atau dari data tabel publik yang kamu pilih sendiri.\n\n- Pisahkan data uji sejak awal dan simpan berkasnya terpisah.\n- Bandingkan tebakan paling malas, regresi logistik, hutan acak, dan gradient boosting dengan validasi silang 5 lipatan di data latih.\n- Setel satu model dengan `GridSearchCV`, lalu buka data uji satu kali.\n\n**Kamu selesai bila:**\n\n1. tabelmu memuat akurasi dan akurasi seimbang untuk setiap model, dengan simpangan baku antarlipatan;\n2. semua penyiapan data, termasuk penskalaan dan pengisian nilai kosong, berada di dalam pipeline;\n3. kamu memilih ambang pengingat dari perkiraan biaya: harga satu pesan dibandingkan kerugian satu buku terlambat;\n4. kamu menuliskan satu fitur yang sengaja tidak kamu pakai karena baru diketahui sesudah kejadian."
+    },
+    {
+      "title": "Berburu kebocoran",
+      "brief": "Ambil satu buku catatan (*notebook*) machine learning publik untuk data tabel, misalnya dari kompetisi atau tutorial, lalu periksa apakah angkanya bisa dipercaya.\n\n- Pakai daftar 8 jenis kebocoran dari Kapoor dan Narayanan (2022) sebagai daftar periksa.\n- Ulangi hasil notebook itu, lalu perbaiki setiap kebocoran yang kamu temukan dan ukur ulang.\n\n**Kamu selesai bila:**\n\n1. kamu menuliskan, untuk setiap jenis kebocoran, apakah ia terjadi, tidak terjadi, atau tak bisa diperiksa, beserta alasannya;\n2. bila ada kebocoran, kamu menunjukkan angka sebelum dan sesudah perbaikan dengan cara evaluasi yang sama;\n3. kamu memeriksa duplikat antara data latih dan uji, serta urutan waktu bila datanya berwaktu;\n4. kamu membandingkan hasil akhirnya dengan tebakan paling malas dan dengan regresi logistik."
+    }
+  ],
+  "resources": [
+    {
+      "type": "OfficialDocs",
+      "title": "Common pitfalls and recommended practices — panduan scikit-learn",
+      "url": "https://scikit-learn.org/stable/common_pitfalls.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Cross-validation: evaluating estimator performance — panduan scikit-learn",
+      "url": "https://scikit-learn.org/stable/modules/cross_validation.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Decision Trees — panduan scikit-learn",
+      "url": "https://scikit-learn.org/stable/modules/tree.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Ensembles: gradient boosting, random forests, bagging — panduan scikit-learn",
+      "url": "https://scikit-learn.org/stable/modules/ensemble.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Clustering — panduan scikit-learn",
+      "url": "https://scikit-learn.org/stable/modules/clustering.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "An Introduction to Statistical Learning — James, Witten, Hastie, Tibshirani, dan Taylor",
+      "url": "https://www.statlearning.com/"
+    },
+    {
+      "type": "Paper",
+      "title": "Why do tree-based models still outperform deep learning on tabular data? — Grinsztajn dkk., 2022",
+      "url": "https://arxiv.org/abs/2207.08815"
+    },
+    {
+      "type": "Paper",
+      "title": "Leakage and the Reproducibility Crisis in ML-based Science — Kapoor dan Narayanan, 2022",
+      "url": "https://arxiv.org/abs/2207.07048"
+    },
+    {
+      "type": "Paper",
+      "title": "XGBoost: A Scalable Tree Boosting System — Chen dan Guestrin, 2016",
+      "url": "https://arxiv.org/abs/1603.02754"
+    },
+    {
+      "type": "Paper",
+      "title": "Random Forests — Breiman, 2001",
+      "url": "https://link.springer.com/article/10.1023/A:1010933404324"
+    },
+    {
+      "type": "Paper",
+      "title": "Accurate predictions on small data with a tabular foundation model (TabPFN) — Hollmann dkk., 2025",
+      "url": "https://www.nature.com/articles/s41586-024-08328-6"
+    },
+    {
+      "type": "Video",
+      "title": "Decision and Classification Trees, Clearly Explained — StatQuest",
+      "url": "https://www.youtube.com/watch?v=_L39rN6gz7Y"
+    },
+    {
+      "type": "Video",
+      "title": "Machine Learning Fundamentals: Cross Validation — StatQuest",
+      "url": "https://www.youtube.com/watch?v=fSytzGwwBVw"
+    },
+    {
+      "type": "Video",
+      "title": "Machine Learning Fundamentals: Bias and Variance — StatQuest",
+      "url": "https://www.youtube.com/watch?v=EuBBz3bI-aA"
+    },
+    {
+      "type": "Repository",
+      "title": "scikit-learn — kode sumber",
+      "url": "https://github.com/scikit-learn/scikit-learn"
+    },
+    {
+      "type": "Repository",
+      "title": "XGBoost — kode sumber",
+      "url": "https://github.com/dmlc/xgboost"
+    },
+    {
+      "type": "Repository",
+      "title": "LightGBM — kode sumber",
+      "url": "https://github.com/lightgbm-org/LightGBM"
+    },
+    {
+      "type": "Repository",
+      "title": "TabPFN — kode sumber",
+      "url": "https://github.com/PriorLabs/TabPFN"
+    }
+  ],
+  "requires": []
+}

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 330" role="img" aria-labelledby="judul desk">
+  <title id="judul">Alur kerja yang jujur</title>
+  <desc id="desk">Alur kerja dari kiri ke kanan. Tabel 4000 peminjaman dipisah menjadi 3000 baris latih dan 1000 baris uji. Data uji disimpan dan tak disentuh. Di data latih, validasi silang lima lipatan dipakai untuk memilih model dan pengaturannya. Model terpilih dilatih ulang di seluruh data latih, lalu diuji satu kali saja di data uji.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="640" height="330" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Alur kerja yang jujur</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Data uji disimpan sampai akhir, dan hanya dipakai sekali.</text>
+  <g font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif">
+    <rect x="32.0" y="110.0" width="120.0" height="120.0" rx="10" fill="#3987e5" fill-opacity="0.08" stroke="#3987e5" stroke-width="1.5"/>
+    <text x="92.0" y="140.0" fill="#eef2ff" font-size="14" font-weight="700" text-anchor="middle">tabel</text>
+    <text x="92.0" y="162.0" fill="#c3cce6" font-size="12" text-anchor="middle">4.000 baris</text>
+    <text x="92.0" y="180.0" fill="#98a3c4" font-size="12" text-anchor="middle">6 fitur + label</text>
+    <path d="M152 170 H190" fill="none" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <rect x="194.0" y="100.0" width="190.0" height="80.0" rx="10" fill="#a78bfa" fill-opacity="0.08" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="289.0" y="126.0" fill="#eef2ff" font-size="14" font-weight="700" text-anchor="middle">latih: 3.000</text>
+    <text x="289.0" y="148.0" fill="#c3cce6" font-size="12" text-anchor="middle">validasi silang 5 lipatan</text>
+    <text x="289.0" y="166.0" fill="#98a3c4" font-size="12" text-anchor="middle">untuk memilih model</text>
+    <rect x="194.0" y="196.0" width="190.0" height="60.0" rx="10" fill="#f59e0b" fill-opacity="0.08" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="289.0" y="222.0" fill="#eef2ff" font-size="14" font-weight="700" text-anchor="middle">uji: 1.000</text>
+    <text x="289.0" y="242.0" fill="#98a3c4" font-size="12" text-anchor="middle">disimpan, tak disentuh</text>
+    <path d="M384 140 H422" fill="none" stroke="#98a3c4" stroke-width="1.5" marker-end="url(#panah)"/>
+    <rect x="426.0" y="100.0" width="182.0" height="80.0" rx="10" fill="#34d399" fill-opacity="0.08" stroke="#34d399" stroke-width="1.5"/>
+    <text x="517.0" y="126.0" fill="#eef2ff" font-size="14" font-weight="700" text-anchor="middle">model terpilih</text>
+    <text x="517.0" y="148.0" fill="#c3cce6" font-size="12" text-anchor="middle">dilatih ulang di</text>
+    <text x="517.0" y="166.0" fill="#c3cce6" font-size="12" text-anchor="middle">seluruh data latih</text>
+    <path d="M517 180 V226 H388" fill="none" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#panah)"/>
+    <text x="500.0" y="216.0" fill="#f59e0b" font-size="12" font-weight="700" text-anchor="middle">uji SEKALI</text>
+    <text x="32.0" y="300.0" fill="#98a3c4" font-size="12">Kalau data uji dipakai untuk memilih, angkanya tak lagi jujur: itu sudah ikut melatih.</text>
+  </g>
+</svg>
