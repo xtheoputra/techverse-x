@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" role="img" aria-labelledby="judul desk">
+  <title id="judul">Build ulang sesudah satu baris kode berubah</title>
+  <desc id="desk">Grafik batang. Dockerfile dengan COPY seluruh folder dulu: median 31,4 detik, karena pip install dijalankan ulang. Dockerfile yang menyalin dependensi dulu: median 2,5 detik, karena pip install diambil dari cache. Titik kecil menandai setiap percobaan.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="640" height="320" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Build ulang sesudah satu baris kode berubah</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Tiga percobaan masing-masing; batang = median.</text>
+  <path d="M190.0 112 V246" stroke="#2a3354" stroke-width="1"/>
+  <text x="190.0" y="264" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle">0 s</text>
+  <path d="M290.0 112 V246" stroke="#2a3354" stroke-width="1"/>
+  <text x="290.0" y="264" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle">10 s</text>
+  <path d="M390.0 112 V246" stroke="#2a3354" stroke-width="1"/>
+  <text x="390.0" y="264" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle">20 s</text>
+  <path d="M490.0 112 V246" stroke="#2a3354" stroke-width="1"/>
+  <text x="490.0" y="264" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle">30 s</text>
+  <path d="M590.0 112 V246" stroke="#2a3354" stroke-width="1"/>
+  <text x="590.0" y="264" fill="#98a3c4" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle">40 s</text>
+  <text x="176" y="144" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" font-weight="600" text-anchor="end">COPY . . dulu</text>
+  <text x="176" y="162" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="end">pip dijalankan ulang</text>
+  <rect x="190" y="128" width="314.0" height="40" rx="6" fill="#f59e0b" fill-opacity="0.85"/>
+  <circle cx="504.0" cy="148" r="3" fill="#070a16" stroke="#eef2ff" stroke-width="1"/>
+  <circle cx="503.0" cy="148" r="3" fill="#070a16" stroke="#eef2ff" stroke-width="1"/>
+  <circle cx="512.0" cy="148" r="3" fill="#070a16" stroke="#eef2ff" stroke-width="1"/>
+  <text x="524.0" y="154" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="700">31,4 s</text>
+  <text x="176" y="212" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" font-weight="600" text-anchor="end">dependensi dulu</text>
+  <text x="176" y="230" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="end">pip dari cache</text>
+  <rect x="190" y="196" width="25.0" height="40" rx="6" fill="#34d399" fill-opacity="0.85"/>
+  <circle cx="215.0" cy="216" r="3" fill="#070a16" stroke="#eef2ff" stroke-width="1"/>
+  <circle cx="214.0" cy="216" r="3" fill="#070a16" stroke="#eef2ff" stroke-width="1"/>
+  <circle cx="221.0" cy="216" r="3" fill="#070a16" stroke="#eef2ff" stroke-width="1"/>
+  <text x="233.0" y="222" fill="#eef2ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" font-weight="700">2,5 s</text>
+  <text x="32" y="298" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12">Python 3.14, FastAPI, uvicorn, psycopg[c]; Docker Engine 29.1.5 di Docker Desktop.</text>
+</svg>

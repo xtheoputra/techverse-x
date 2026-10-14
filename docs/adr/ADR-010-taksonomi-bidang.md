@@ -200,3 +200,35 @@ Sesuai permintaan, ketiganya di **bawah XR** (urutan tampil 15–17). Akibatnya 
 ### Dibangun
 
 `FieldCatalog` (17 entri, `ExpectedCount = 17`), migrasi **`TigaBidangDeepTech`** (hanya `InsertData`; `Down` menghapus tiga baris itu), tiga ikon, dan tes katalog. **Migrasi ini data saja, tanpa perubahan skema**, dan API membaca bidang dari basis data saat berjalan (bukan dari `FieldCatalog`, yang hanya dipakai saat membangun model dan di tes) — jadi API baru yang tayang **sebelum** migrasi dijalankan tetap sehat; ketiga kartu baru muncul begitu *Migrasi produksi* dijalankan. Tak ada jendela `migrate → api` yang rusak, tidak seperti yang akan dihadapi Tahap 3b ([ADR-028](ADR-028-antarmuka-futuristik-dan-isi-kaya.md)).
+
+## Pembaruan 2026-10-14 — tujuh topik Cloud & Infrastructure, disusun per konsep
+
+Tabel di atas memberi Cloud & Infrastructure **7 topik** tanpa merincinya. Satu-satunya daftar yang ada adalah KERANGKA 2.3: *Docker, Kubernetes, AWS, Azure, GCP, DevOps, Platform Engineering*. Daftar itu artefak taksonomi lama (bagian Keputusan di atas menyatakan angka "41" tak berlaku lagi), dan ia memecah tiga hyperscaler menjadi tiga topik.
+
+Pemecahan per vendor punya dua masalah:
+
+- **Isinya berulang.** IAM, mesin virtual, penyimpanan objek, jaringan, dan tagihan ada di ketiganya. Tiga topik akan mengajarkan konsep yang sama tiga kali dengan nama layanan berbeda.
+- **Contohnya tak bisa dijalankan.** Aturan isi ([ADR-012](ADR-012-template-halaman.md) §5) dan kebiasaan sejak topik A2A menuntut contoh kode dijalankan. Akun ketiga vendor menuntut kartu, sedangkan proyek ini nol biaya ([ADR-026](ADR-026-nol-biaya-gratis-mandiri.md)).
+
+Pemilik ditanya lewat pertanyaan pilihan dan **memilih susunan per konsep**:
+
+| # | Topik | Slug | Prasyarat |
+|---|---|---|---|
+| 1 | Kontainer & Docker | `kontainer-dan-docker` | — |
+| 2 | Kubernetes | `kubernetes` | 1 |
+| 3 | Cloud hyperscaler: AWS, Azure, GCP (konsep bersama dan tabel padanan) | `cloud-hyperscaler` | — |
+| 4 | Jaringan cloud: VPC, subnet, NAT, load balancer, DNS | `jaringan-cloud` | 3 |
+| 5 | Infrastructure as Code: OpenTofu/Terraform | `infrastructure-as-code` | 3 |
+| 6 | DevOps & CI/CD | `devops-dan-ci-cd` | — |
+| 7 | Platform Engineering | `platform-engineering` | 2, 6 |
+
+Slug topik 2–7 adalah usulan dan baru pasti di PR isinya masing-masing. Prasyarat ditulis sebagai sisi `requires` saat topiknya dibuat, tidak lebih dulu, karena pemasang menolak sisi ke topik yang belum punya berkas.
+
+**Yang tetap:**
+
+- **Janji kartu bidang terpenuhi.** Ringkasannya, *"Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering"*, semuanya punya topik. Jadi ringkasan bidang di basis data tak perlu diubah.
+- **Angka resmi tak berubah:** tetap 7 topik, jadi 42 topik prioritas 1 dan target Bulan 4 di [RENCANA-V1](../RENCANA-V1.md) tetap.
+
+**Dua topik baru menggantikan dua topik vendor.** *Jaringan cloud* bertemu kekuatan jaringan pemilik, alasan yang sama dengan IoT ditaruh di prioritas 1 (bagian Konsekuensi di atas). *Infrastructure as Code* adalah cara hyperscaler dipakai sungguhan. Contohnya bisa dijalankan tanpa akun, dengan OpenTofu dan penyedia lokal atau emulator.
+
+**Batas verifikasi untuk topik 3 sampai 5:** perilaku layanan cloud yang tak bisa dijalankan tanpa akun dikutip dari dokumentasi resminya dan ditulis sebagai kutipan, bukan sebagai hasil ukur. Itu pola yang sama dengan perilaku model di topik AI.

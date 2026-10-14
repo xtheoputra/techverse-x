@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-labelledby="judul desk">
+  <title id="judul">Siapa yang boleh mengetuk?</title>
+  <desc id="desk">Diagram laptop yang menjalankan dua kontainer katalog. Kontainer pertama dipublikasikan di 127.0.0.1:8100 dan hanya bisa dicapai dari laptop itu sendiri; perangkat lain di LAN ditolak. Kontainer kedua dipublikasikan di 0.0.0.0:8200 dan bisa dicapai perangkat lain di LAN.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="640" height="400" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Siapa yang boleh mengetuk?</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Dua kontainer katalog yang sama, dua cara membuka port.</text>
+  <rect x="32" y="104" width="400" height="260" rx="14" fill="#3987e5" fill-opacity="0.04" stroke="#2a3354" stroke-width="1.5"/>
+  <text x="48" y="128" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700">laptop</text>
+  <rect x="56" y="150" width="120" height="50" rx="8" fill="#c3cce6" fill-opacity="0.04" stroke="#c3cce6" stroke-width="1.5"/>
+  <text x="116.0" y="173.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">browser</text>
+  <text x="116.0" y="189.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">di laptop ini</text>
+  <rect x="256" y="146" width="164" height="58" rx="8" fill="#34d399" fill-opacity="0.08" stroke="#34d399" stroke-width="1.5"/>
+  <text x="338.0" y="173.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle">perpus-katalog</text>
+  <text x="338.0" y="189.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">:8000 di dalam</text>
+  <rect x="256" y="266" width="164" height="58" rx="8" fill="#f59e0b" fill-opacity="0.08" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="338.0" y="293.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle">perpus-katalog-terbuka</text>
+  <text x="338.0" y="309.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">:8000 di dalam</text>
+  <text x="342" y="226" fill="#34d399" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle">-p 127.0.0.1:8100:8000</text>
+  <text x="342" y="346" fill="#f59e0b" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" text-anchor="middle">-p 8200:8000</text>
+  <path d="M176 168 H252" stroke="#34d399" stroke-width="1.5" marker-end="url(#panah)"/>
+  <path d="M150 200 L254 286" stroke="#34d399" stroke-width="1.5" marker-end="url(#panah)"/>
+  <text x="190" y="160" fill="#c3cce6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11">200</text>
+  <text x="178" y="258" fill="#c3cce6" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11">200</text>
+  <rect x="486" y="200" width="122" height="66" rx="8" fill="#c3cce6" fill-opacity="0.04" stroke="#c3cce6" stroke-width="1.5"/>
+  <text x="547.0" y="231.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">perangkat lain</text>
+  <text x="547.0" y="247.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">di LAN yang sama</text>
+  <path d="M484 222 L436 188" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="452" y="206" fill="#f87171" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="18" font-weight="700" text-anchor="middle">×</text>
+  <text x="540" y="190" fill="#f87171" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">8100 ditolak</text>
+  <path d="M484 250 L424 290" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#panah)"/>
+  <text x="540" y="300" fill="#f59e0b" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">8200 menjawab 200</text>
+  <text x="32" y="388" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12">Tanpa alamat di depannya, -p membuka port di semua antarmuka (0.0.0.0 dan [::]).</text>
+</svg>
