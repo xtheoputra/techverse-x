@@ -4,6 +4,61 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-14 — Sesi 28: Machine Learning Klasik dan Reinforcement Learning dipasang; ketujuh topik AI & Machine Learning kini tayang
+
+Permintaan pemilik: *"lanjutkan semua progress proyek ini"*.
+
+### Keadaan awal
+
+Pohon kerja bersih, di cabang catatan #117. Yang belum tercatat di 🏁 kemarin: pemilik sudah me-merge **#116** (2026-10-13 04:50:53 UTC) lalu **#118** (04:56:10), berselang lima menit, sesuai urutan yang diminta. `main` kini `402ff80`. #117 masih terbuka.
+
+Kedua build API dilewati (*Canceled by Ignored Build Step*), jadi citra API yang tayang tetap `e262bb1`. Kedua build web selesai.
+
+Kali ini build lama **tidak** menang. Kesepuluh SVG baru (`/media/machine-learning-klasik/*` dan `/media/reinforcement-learning/*`) menjawab **200** `image/svg+xml`, dan gambar Multimodal tetap 200. Ada satu kesalahan alat ukur saya sendiri: putaran pertama memberi 308 untuk semuanya, karena URL-nya saya rangkai dengan garis miring ganda (`//media/…`). Vercel mengalihkannya ke jalur tunggal, dan ukuran ulang memberi 200.
+
+Yang masih kurang hanya isinya: API dan halaman kedua topik **404**, karena *Pasang isi* belum dijalankan.
+
+### *Pasang isi*
+
+Saya bertanya lewat pertanyaan pilihan, dan pemilik menjawab **"Ya, jalankan keduanya"**. Dua jalan `isi.yml` dari `main`, `sha=e262bb1`, tanpa ganti, berurutan:
+
+- `machine-learning-klasik` ([38540673381](https://github.com/xtheoputra/techverse-x/actions/runs/38540673381)): `dibuat`, 7 media, `draf kelima bagian terisi`, lalu `selesai … sama dengan berkas`;
+- `reinforcement-learning` ([38540814722](https://github.com/xtheoputra/techverse-x/actions/runs/38540814722)): `dibuat`, alat baru `gymnasium` dan `stable-baselines3`, 7 media, `sisi reinforcement-learning butuh deep-learning`, lalu `selesai`.
+
+### Produksi diukur sesudahnya
+
+| Yang diukur | Machine Learning Klasik | Reinforcement Learning |
+|---|---|---|
+| API | 200, `Draft`, ringkasan = berkas, `missingSections` kosong | sama |
+| `requires` | `[]` | `[deep-learning]` |
+| langkah / alat / proyek / sumber / media | 13 / 2 / 2 / 18 / 7 | 14 / 4 / 2 / 20 / 7 |
+| halaman web | 200; 12 dari 12 judul langkah | 200; 13 dari 13 judul langkah |
+| blok kode / tabel / gambar / video | 13 / 7 / 5 / 2 | 16 / 8 / 5 / 2 |
+
+Jumlah langkah di API selalu satu lebih banyak dari berkas, karena langkah 0 (*prasyarat*) ikut dihitung. Angka halaman sama persis dengan yang diukur lokal di Sesi 26 dan 27.
+
+Relasinya juga tampil dari dua arah. `deep-learning.requiredBy` kini `[computer-vision, natural-language-processing, reinforcement-learning]`, halaman Deep Learning menautkan ke Reinforcement Learning, dan halaman RL menulis *"Pelajari lebih dulu: Deep Learning"*. Halaman bidang `/teknologi/ai-machine-learning` menautkan ketujuh topiknya. Daftar API kini `totalItems` **14**.
+
+Pemindai ADR-024 dijalankan **langsung di produksi** (hanya GET, skripnya sama persis dengan `main`): **33 halaman, 31 di antaranya `/teknologi/*`** (17 bidang + 14 topik), 45 ringkasan alat di 14 halaman topik, **0 kena**, setiap halaman 200.
+
+### Bidang berikutnya: Cloud & Infrastructure, disusun per konsep
+
+Saya bertanya lewat pertanyaan pilihan, dan pemilik memilih **Cloud & Infrastructure**, yang memang dijadwalkan RENCANA-V1 untuk Bulan 4.
+
+ADR-010 menetapkan bidang ini 7 topik tanpa merincinya. Daftar lama KERANGKA 2.3 memecah AWS, Azure, dan GCP menjadi tiga topik. Isinya akan banyak berulang, dan contohnya tak bisa dijalankan tanpa akun berkartu. Jadi saya menawarkan susunan per konsep, dan **pemilik memilihnya**:
+
+1. Kontainer & Docker
+2. Kubernetes (butuh 1)
+3. Cloud hyperscaler: AWS, Azure, GCP (konsep bersama dan tabel padanan)
+4. Jaringan cloud: VPC, subnet, NAT, load balancer, DNS (butuh 3)
+5. Infrastructure as Code: OpenTofu/Terraform (butuh 3)
+6. DevOps & CI/CD
+7. Platform Engineering (butuh 2 dan 6)
+
+Janji di kartu bidang (*"Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering"*) tetap terpenuhi. Keputusan ini dicatat sebagai Pembaruan ADR-010 di PR topik pertamanya.
+
+---
+
 ## 2026-10-13 — Sesi 27: topik ketujuh AI & Machine Learning, Reinforcement Learning
 
 Permintaan pemilik: *"lanjutkan progress"*.
