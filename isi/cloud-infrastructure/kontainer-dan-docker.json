@@ -133,7 +133,7 @@
       "name": "Docker Compose",
       "summary": "Alat untuk mendefinisikan dan menjalankan aplikasi multi-kontainer dari satu berkas YAML, lengkap dengan jaringan, volume, dan urutan mulai.",
       "homepage": "https://github.com/docker/compose",
-      "note": "Dipakai di langkah 10 dan 11 untuk katalog dan PostgreSQL."
+      "note": "Dipakai di langkah 10 dan 11 untuk katalog dan PostgreSQL. Contoh diuji dengan Docker Compose 5.0.1."
     },
     {
       "slug": "docker-desktop",
