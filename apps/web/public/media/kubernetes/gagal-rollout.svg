@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 360" role="img" aria-labelledby="judul desk">
+  <title id="judul">Permintaan gagal selama satu rolling update</title>
+  <desc id="desk">Grafik titik tiga baris. Sumbu mendatar: jumlah permintaan gagal dari 600 selama satu rolling update. tanpa probe: 7, 1, 2, 8, 5. readiness probe: 10, 9, 7, 6, 8. readiness + preStop 5 s: 0, 1, 0, 0, 0.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="720" height="360" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Permintaan gagal selama satu rolling update</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">600 permintaan per putaran, 5 putaran untuk tiap konfigurasi. Titik = satu putaran.</text>
+  <line x1="230.0" y1="110" x2="230.0" y2="300" stroke="#2a3354" stroke-width="1"/>
+  <text x="230.0" y="322" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">0</text>
+  <line x1="305.0" y1="110" x2="305.0" y2="300" stroke="#2a3354" stroke-width="1"/>
+  <text x="305.0" y="322" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">2</text>
+  <line x1="380.0" y1="110" x2="380.0" y2="300" stroke="#2a3354" stroke-width="1"/>
+  <text x="380.0" y="322" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">4</text>
+  <line x1="455.0" y1="110" x2="455.0" y2="300" stroke="#2a3354" stroke-width="1"/>
+  <text x="455.0" y="322" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">6</text>
+  <line x1="530.0" y1="110" x2="530.0" y2="300" stroke="#2a3354" stroke-width="1"/>
+  <text x="530.0" y="322" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">8</text>
+  <line x1="605.0" y1="110" x2="605.0" y2="300" stroke="#2a3354" stroke-width="1"/>
+  <text x="605.0" y="322" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">10</text>
+  <line x1="680.0" y1="110" x2="680.0" y2="300" stroke="#2a3354" stroke-width="1"/>
+  <text x="680.0" y="322" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">12</text>
+  <text x="455.0" y="346" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">permintaan gagal (dari 600)</text>
+  <text x="214" y="145" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="end">tanpa probe</text>
+  <circle cx="492.5" cy="140.0" r="5.5" fill="#f87171" fill-opacity="0.85"/>
+  <circle cx="267.5" cy="140.0" r="5.5" fill="#f87171" fill-opacity="0.85"/>
+  <circle cx="305.0" cy="140.0" r="5.5" fill="#f87171" fill-opacity="0.85"/>
+  <circle cx="530.0" cy="140.0" r="5.5" fill="#f87171" fill-opacity="0.85"/>
+  <circle cx="417.5" cy="140.0" r="5.5" fill="#f87171" fill-opacity="0.85"/>
+  <text x="214" y="215" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="end">readiness probe</text>
+  <circle cx="605.0" cy="210.0" r="5.5" fill="#f59e0b" fill-opacity="0.85"/>
+  <circle cx="567.5" cy="210.0" r="5.5" fill="#f59e0b" fill-opacity="0.85"/>
+  <circle cx="492.5" cy="210.0" r="5.5" fill="#f59e0b" fill-opacity="0.85"/>
+  <circle cx="455.0" cy="210.0" r="5.5" fill="#f59e0b" fill-opacity="0.85"/>
+  <circle cx="530.0" cy="210.0" r="5.5" fill="#f59e0b" fill-opacity="0.85"/>
+  <text x="214" y="285" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="14" font-weight="700" text-anchor="end">readiness + preStop 5 s</text>
+  <circle cx="230.0" cy="262.0" r="5.5" fill="#34d399" fill-opacity="0.85"/>
+  <circle cx="267.5" cy="280.0" r="5.5" fill="#34d399" fill-opacity="0.85"/>
+  <circle cx="230.0" cy="274.0" r="5.5" fill="#34d399" fill-opacity="0.85"/>
+  <circle cx="230.0" cy="286.0" r="5.5" fill="#34d399" fill-opacity="0.85"/>
+  <circle cx="230.0" cy="298.0" r="5.5" fill="#34d399" fill-opacity="0.85"/>
+</svg>

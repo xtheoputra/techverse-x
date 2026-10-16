@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 500" role="img" aria-labelledby="judul desk">
+  <title id="judul">Satu cluster Kubernetes</title>
+  <desc id="desk">Di kiri atas, kamu mengetik kubectl yang berbicara dengan kube-apiserver. Kotak control plane berisi kube-apiserver di tengah, etcd tempat semua objek disimpan, kube-scheduler yang memilih node, dan kube-controller-manager yang menjalankan loop pengendali. Di bawahnya dua kotak worker node, masing-masing berisi kubelet, kube-proxy, runtime kontainer, dan beberapa Pod. Panah menunjukkan bahwa semua komponen hanya berbicara lewat kube-apiserver.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="760" height="500" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Satu cluster Kubernetes</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Control plane memutuskan; node menjalankan.</text>
+  <rect x="32" y="104" width="120" height="52" rx="8" fill="#34d399" fill-opacity="0.12" stroke="#34d399" stroke-width="1.5"/>
+  <text x="92.0" y="128.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">kamu</text>
+  <text x="92.0" y="144.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">kubectl apply</text>
+  <rect x="190" y="96" width="538" height="168" rx="14" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="206" y="118" fill="#a78bfa" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">control plane</text>
+  <rect x="380" y="128" width="176" height="52" rx="8" fill="#a78bfa" fill-opacity="0.16" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="468.0" y="152.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">kube-apiserver</text>
+  <text x="468.0" y="168.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">pintu tunggal ke cluster</text>
+  <rect x="212" y="196" width="150" height="52" rx="8" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="287.0" y="220.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">etcd</text>
+  <text x="287.0" y="236.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">penyimpan semua objek</text>
+  <rect x="380" y="196" width="150" height="52" rx="8" fill="#3987e5" fill-opacity="0.1" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="455.0" y="220.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">kube-scheduler</text>
+  <text x="455.0" y="236.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">memilih node</text>
+  <rect x="548" y="196" width="166" height="52" rx="8" fill="#3987e5" fill-opacity="0.1" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="631.0" y="220.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">controller-manager</text>
+  <text x="631.0" y="236.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">loop pengendali</text>
+  <line x1="152" y1="142" x2="378" y2="150" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <line x1="287" y1="194" x2="410" y2="182" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)" marker-start="url(#panah)"/>
+  <line x1="455" y1="194" x2="460" y2="182" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <line x1="620" y1="194" x2="520" y2="182" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <rect x="70" y="300" width="280" height="172" rx="14" fill="none" stroke="#2a3354" stroke-width="1.5"/>
+  <text x="86" y="322" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">worker node · perpus-worker</text>
+  <rect x="86" y="334" width="120" height="44" rx="8" fill="#3987e5" fill-opacity="0.1" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="146.0" y="354.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">kubelet</text>
+  <text x="146.0" y="370.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">menjaga Pod</text>
+  <rect x="214" y="334" width="120" height="44" rx="8" fill="#3987e5" fill-opacity="0.1" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="274.0" y="354.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">kube-proxy</text>
+  <text x="274.0" y="370.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">aturan Service</text>
+  <rect x="86" y="388" width="248" height="30" rx="8" fill="#98a3c4" fill-opacity="0.06" stroke="#98a3c4" stroke-width="1.5"/>
+  <text x="210.0" y="407.2" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle">runtime kontainer (containerd)</text>
+  <rect x="86" y="428" width="76" height="32" rx="8" fill="#34d399" fill-opacity="0.14" stroke="#34d399" stroke-width="1.5"/>
+  <text x="124.0" y="448.2" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Pod</text>
+  <rect x="170" y="428" width="76" height="32" rx="8" fill="#34d399" fill-opacity="0.14" stroke="#34d399" stroke-width="1.5"/>
+  <text x="208.0" y="448.2" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Pod</text>
+  <line x1="320" y1="300" x2="320" y2="266" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <rect x="410" y="300" width="280" height="172" rx="14" fill="none" stroke="#2a3354" stroke-width="1.5"/>
+  <text x="426" y="322" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">worker node · perpus-worker2</text>
+  <rect x="426" y="334" width="120" height="44" rx="8" fill="#3987e5" fill-opacity="0.1" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="486.0" y="354.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">kubelet</text>
+  <text x="486.0" y="370.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">menjaga Pod</text>
+  <rect x="554" y="334" width="120" height="44" rx="8" fill="#3987e5" fill-opacity="0.1" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="614.0" y="354.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">kube-proxy</text>
+  <text x="614.0" y="370.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">aturan Service</text>
+  <rect x="426" y="388" width="248" height="30" rx="8" fill="#98a3c4" fill-opacity="0.06" stroke="#98a3c4" stroke-width="1.5"/>
+  <text x="550.0" y="407.2" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle">runtime kontainer (containerd)</text>
+  <rect x="426" y="428" width="76" height="32" rx="8" fill="#34d399" fill-opacity="0.14" stroke="#34d399" stroke-width="1.5"/>
+  <text x="464.0" y="448.2" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Pod</text>
+  <rect x="510" y="428" width="76" height="32" rx="8" fill="#34d399" fill-opacity="0.14" stroke="#34d399" stroke-width="1.5"/>
+  <text x="548.0" y="448.2" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Pod</text>
+  <rect x="594" y="428" width="76" height="32" rx="8" fill="#34d399" fill-opacity="0.14" stroke="#34d399" stroke-width="1.5"/>
+  <text x="632.0" y="448.2" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Pod</text>
+  <line x1="660" y1="300" x2="660" y2="266" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <text x="490" y="288" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">kubelet melapor dan menerima tugas lewat kube-apiserver</text>
+</svg>

@@ -1,0 +1,270 @@
+{
+  "slug": "kubernetes",
+  "name": "Kubernetes",
+  "fieldSlug": "cloud-infrastructure",
+  "summary": "Kubernetes adalah sistem sumber terbuka untuk menjalankan kontainer di banyak mesin sekaligus. Kamu menuliskan keadaan yang kamu inginkan, misalnya tiga salinan katalog yang selalu siap melayani, lalu Kubernetes terus bekerja agar keadaan nyata sama dengan tulisan itu: mengganti Pod yang mati, membagi permintaan, dan menambah salinan saat ramai. Di halaman ini kamu membangun cluster kecil di laptop dengan kind, lalu memindahkan aplikasi katalog perpustakaan beserta PostgreSQL ke sana langkah demi langkah: Pod, Deployment, Service, StatefulSet, ConfigMap dan Secret, probe, rolling update tanpa permintaan gagal, batas sumber daya, Gateway API, autoscaling, RBAC, sampai apa yang terjadi saat satu node mati. Semua contoh sudah dijalankan dan tidak membutuhkan akun berbayar.",
+  "overview": "## Satu server sudah tidak cukup\n\nKatalog perpustakaan kita kini dipakai tiga cabang. Relawan yang dulu membungkusnya dengan Docker Compose menghadapi masalah baru. Server satu-satunya pernah mati tengah malam, dan katalog ikut padam sampai pagi. Setiap pembaruan berarti beberapa detik katalog tak bisa dibuka. Pada hari pertama tahun ajaran, antrean peminjam membuat aplikasinya kewalahan.\n\nKetiga masalah itu punya akar yang sama. Ada seseorang yang harus terus mengawasi: menyalakan ulang yang mati, memindahkan ke mesin lain, dan menambah salinan saat ramai. **Kubernetes** mengambil alih pekerjaan mengawasi itu.\n\n## Keadaan yang diinginkan, bukan daftar perintah\n\nDokumentasi Kubernetes memakai perumpamaan termostat. Kamu menyetel suhu yang diinginkan, termostat membandingkannya dengan suhu ruangan, lalu menyalakan atau mematikan pendingin sampai keduanya sama. Kamu tidak memberi perintah \"nyalakan pendingin lima menit\".\n\nKubernetes bekerja persis begitu. Kamu menulis **keadaan yang diinginkan** dalam berkas YAML: \"tiga salinan katalog, citra versi 2, masing-masing boleh memakai 256 MiB memori\". Sekumpulan **pengendali** (*controller*) lalu terus membandingkan tulisan itu dengan keadaan nyata dan memperbaiki selisihnya. Dokumentasinya bahkan menyebut Kubernetes *\"not a mere orchestration system\"*. Ia tidak menjalankan alur \"lakukan A, lalu B, lalu C\". Yang ada adalah proses-proses kendali kecil yang terus mendorong keadaan nyata ke arah keadaan yang diinginkan.\n\nGagasan ini lahir dari pengalaman Google. Burns, Grant, Oppenheimer, Brewer, dan Wilkes menulis di ACM Queue (2016) bahwa Google sudah lebih dari sepuluh tahun menjalankan kontainer dengan tiga sistem berturut-turut: Borg, Omega, lalu Kubernetes. Pelajaran yang mereka bawa ke Kubernetes adalah *reconciliation loop*: bandingkan keadaan yang diinginkan dengan yang teramati, lalu bertindak untuk menyamakannya. Karena setiap tindakan berangkat dari pengamatan, pengendali yang mati lalu hidup lagi cukup melanjutkan dari keadaan yang ia lihat.\n\n::media[arsitektur]\n\n## Siapa mengerjakan apa\n\nSebuah **cluster** terdiri atas **control plane** dan beberapa **node** pekerja.\n\n- **kube-apiserver** adalah pintu tunggal. `kubectl`, pengendali, dan node semuanya berbicara lewat dia.\n- **etcd** menyimpan semua objek, termasuk keadaan yang kamu inginkan.\n- **kube-scheduler** memilih node untuk Pod yang belum punya tempat.\n- **kube-controller-manager** menjalankan loop-loop pengendali, misalnya yang menjaga jumlah salinan.\n- Di setiap node, **kubelet** memastikan kontainer Pod berjalan, dan **kube-proxy** memasang aturan jaringan untuk Service.\n\n## Aplikasi yang akan kita pindahkan\n\nIni katalog dari topik Kontainer & Docker, dengan beberapa tambahan kecil untuk kehidupan di cluster: jawaban yang menyebut versi dan nama Pod, pesan sapaan dari variabel lingkungan, alamat `/sehat` dan `/siap` untuk probe, serta `/rekap` yang sengaja berat untuk uji autoscaling.\n\n```python\n\"\"\"Katalog perpustakaan, versi yang siap dijalankan banyak salinan.\"\"\"\nimport os\nimport socket\nfrom collections.abc import AsyncIterator\nfrom contextlib import asynccontextmanager\n\nimport psycopg\nfrom fastapi import FastAPI, Response\n\nVERSI = \"1\"\nALAMAT_DB = os.environ.get(\"DATABASE_URL\", \"\")\nPESAN = os.environ.get(\"PESAN\", \"Halo dari katalog perpustakaan\")\n\n\n@asynccontextmanager\nasync def saat_mulai(app: FastAPI) -> AsyncIterator[None]:\n    if ALAMAT_DB:  # sapa basis data sekali saat mulai; gagal cepat bila belum siap\n        with psycopg.connect(ALAMAT_DB, connect_timeout=3) as conn:\n            conn.execute(\"SELECT 1\")\n    yield\n\n\napp = FastAPI(lifespan=saat_mulai)\n\n\n@app.get(\"/\")\ndef sapa() -> dict[str, str]:\n    return {\"pesan\": PESAN, \"versi\": VERSI, \"pod\": socket.gethostname()}\n\n\n@app.get(\"/buku\")\ndef daftar_buku() -> list[dict[str, str]]:\n    with psycopg.connect(ALAMAT_DB, connect_timeout=3) as conn:\n        baris = conn.execute(\"SELECT judul, penulis FROM buku ORDER BY judul\").fetchall()\n    return [{\"judul\": judul, \"penulis\": penulis} for judul, penulis in baris]\n\n\n@app.get(\"/sehat\")\ndef sehat() -> dict[str, str]:\n    return {\"status\": \"hidup\"}  # liveness: prosesnya masih menjawab\n\n\n@app.get(\"/siap\")\ndef siap(response: Response) -> dict[str, str]:\n    try:  # readiness: bisakah aku melayani permintaan sungguhan sekarang?\n        with psycopg.connect(ALAMAT_DB, connect_timeout=2) as conn:\n            conn.execute(\"SELECT 1\")\n    except psycopg.OperationalError:\n        response.status_code = 503\n        return {\"status\": \"basis data tak terjangkau\"}\n    return {\"status\": \"siap\"}\n\n\n@app.get(\"/rekap\")\ndef rekap() -> dict[str, int]:\n    return {\"jumlah\": sum(i * i for i in range(300_000))}  # pekerjaan berat CPU untuk uji skala\n```\n\nDockerfile-nya sama dengan versi multi-stage di topik sebelumnya. Citra berjalan sebagai pengguna `10001`, bukan root.\n\n## Peta perjalanan\n\n| Bagian | Pertanyaan yang dijawab | Langkah |\n|---|---|---|\n| Dasar | apa itu cluster, Pod, Deployment, dan Service | 1–6 |\n| Aplikasi sungguhan | basis data, konfigurasi, rahasia, dan kesehatan | 7–9 |\n| Hidup di produksi | pembaruan mulus, batas sumber daya, pintu masuk, dan autoscaling | 10–13 |\n| Aman dan tahan banting | hak akses, node mati, dan kapan tak butuh Kubernetes | 14–15 |\n\n## Kapan Kubernetes bukan jawabannya\n\nKubernetes menyelesaikan masalah banyak mesin dengan menambah banyak bagian yang harus kamu pahami. Untuk satu aplikasi kecil di satu server, Docker Compose sering lebih masuk akal: lebih sedikit yang bisa rusak dan lebih sedikit yang harus dipelajari. Dokumentasinya juga jujur soal batasnya. Kubernetes tidak membangun kode dari sumbernya, tidak menyediakan basis data atau antrean pesan sebagai layanan bawaan, dan tidak memaksakan satu cara memantau atau mencatat log. Semua itu tetap urusanmu.\n\nIa mulai sepadan saat kamu punya beberapa mesin, beberapa layanan, atau kebutuhan pembaruan tanpa jeda. Kebutuhan itulah yang dicoba satu per satu di halaman ini.\n\n::media[video-cloud-native]\n\n> [!CATATAN]\n> Semua perintah di halaman ini benar-benar dijalankan di Windows 11 dengan Docker Desktop (backend WSL 2), kind v0.33.0, Kubernetes v1.37.0, dan kubectl v1.37.1. Semua angka berasal dari keluarannya. Di Linux dan macOS perintahnya sama, tetapi langkah 12 hanya diuji di Windows; README cloud-provider-kind menjelaskan perbedaan tiap sistem. Angka waktu di komputermu akan sedikit berbeda, tetapi polanya akan sama.",
+  "media": [
+    {
+      "key": "arsitektur",
+      "kind": "Image",
+      "url": "/media/kubernetes/arsitektur.svg",
+      "alt": "Diagram cluster: kubectl berbicara dengan kube-apiserver di control plane, yang terhubung ke etcd, kube-scheduler, dan controller-manager. Di bawahnya dua worker node berisi kubelet, kube-proxy, runtime kontainer, dan beberapa Pod.",
+      "caption": "Semua komponen berbicara lewat kube-apiserver; etcd menyimpan keadaan yang diinginkan.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "gagal-rollout",
+      "kind": "Image",
+      "url": "/media/kubernetes/gagal-rollout.svg",
+      "alt": "Grafik titik permintaan gagal selama rolling update. Tanpa probe: 7, 1, 2, 8, dan 5. Readiness probe: 10, 9, 7, 6, dan 8. Readiness dan preStop: 0, 1, 0, 0, dan 0.",
+      "caption": "Setiap titik adalah satu `rollout restart` dengan 600 permintaan; 5 putaran per konfigurasi.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "hpa",
+      "kind": "Image",
+      "url": "/media/kubernetes/hpa.svg",
+      "alt": "Grafik garis jumlah Pod dan pemakaian CPU. Pod naik dari 3 ke 10 segera setelah beban datang, bertahan selama beban, lalu turun ke 3 pada detik 593.",
+      "caption": "Naik cepat, turun pelan: jendela stabilisasi turun bawaan adalah 300 detik.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "node-mati",
+      "kind": "Image",
+      "url": "/media/kubernetes/node-mati.svg",
+      "alt": "Garis waktu node mati: NotReady pada detik 52, pengganti siap pada detik 355, dan Gateway menjawab 200 sepanjang waktu.",
+      "caption": "Toleransi bawaan 300 detik membuat Kubernetes menunggu sebelum memindahkan Pod.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "video-cloud-native",
+      "kind": "Video",
+      "videoId": "XNZvGHlpJ_4",
+      "alt": "The Absolute Beginner's Guide To Cloud Native - Kyle Penfound, Dagger & Cortney Nickerson, Kubeshop",
+      "caption": "Pengantar cloud native untuk pemula dari CNCF (25 menit, April 2025), video yang juga dipajang di beranda kubernetes.io.",
+      "sourceName": "CNCF di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=XNZvGHlpJ_4",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-cloud-provider-kind",
+      "kind": "Video",
+      "videoId": "U6_-y24rJnI",
+      "alt": "Keep Calm and Load Balance on KIND - Antonio Ojea & Benjamin Elder, Google",
+      "caption": "Antonio Ojea dan Benjamin Elder (Google) menjelaskan cloud-provider-kind dan load balancer di kind, KubeCon EU 2024 (33 menit). Dukungan Gateway API baru ditambahkan pada 2025, sesudah video ini.",
+      "sourceName": "CNCF di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=U6_-y24rJnI",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    }
+  ],
+  "prerequisite": {
+    "title": "Yang perlu kamu siapkan: Docker, kind, dan kubectl",
+    "description": "Halaman ini melanjutkan topik **Kontainer & Docker**. Kamu sebaiknya sudah nyaman membangun citra, menjalankan kontainer, dan membaca berkas Compose.\n\nSiapkan tiga alat:\n\n- **Docker** (Docker Engine di Linux, atau Docker Desktop di Windows dan macOS) untuk membangun citra dan menjalankan node kind.\n- **kind** (*Kubernetes in Docker*) untuk membuat cluster sungguhan yang setiap node-nya adalah kontainer Docker. Unduh berkasnya dari halaman rilis GitHub dan cocokkan checksum-nya.\n- **kubectl**, alat baris perintah untuk berbicara dengan cluster. Versinya sebaiknya sama atau berselisih satu versi minor dengan cluster.\n\nPeriksa pemasangannya:\n\n```bash\nkind version\nkubectl version --client\n```\n\nSaat diukur di tengah percobaan, ketiga node cluster di halaman ini memakai sekitar 1,6 GiB memori. Tak ada layanan berbayar dan tak perlu akun."
+  },
+  "roadmap": [
+    {
+      "title": "Cluster pertamamu dengan kind",
+      "description": "Kita buat cluster berisi satu control plane dan dua worker. Tulis konfigurasinya:\n\n```yaml\nkind: Cluster\napiVersion: kind.x-k8s.io/v1alpha4\nname: perpus\nnodes:\n- role: control-plane\n- role: worker\n- role: worker\n```\n\nLalu nyalakan. Citra node dikunci dengan digest, seperti saran catatan rilis kind:\n\n```bash\nkind create cluster --config kind.yaml --image kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5\n```\n\nDalam 37 detik cluster berdiri. Beri waktu beberapa detik lagi sampai jaringan antar-Pod siap, lalu lihat node-nya:\n\n```bash\nkubectl get nodes\n```\n\n```text\nNAME                   STATUS   ROLES           AGE   VERSION\nperpus-control-plane   Ready    control-plane   28s   v1.37.0\nperpus-worker          Ready    <none>          15s   v1.37.0\nperpus-worker2         Ready    <none>          15s   v1.37.0\n```\n\nKomponen control plane ternyata juga berjalan sebagai Pod di namespace `kube-system`. Di sana kamu akan menemukan `etcd`, `kube-apiserver`, `kube-scheduler`, `kube-controller-manager`, `coredns` untuk DNS, dan satu `kube-proxy` per node.\n\nTerakhir, buat **namespace** (ruang nama) sendiri supaya semua milik katalog terkumpul di satu tempat:\n\n```bash\nkubectl create namespace perpus\nkubectl config set-context --current --namespace=perpus\n```"
+    },
+    {
+      "title": "Membawa citra katalog ke cluster",
+      "description": "Node kind tidak bisa melihat citra di Docker lokalmu. Biasanya citra didorong ke registry lalu ditarik node. Untuk latihan, kind punya jalan pintas: salin citra langsung ke setiap node.\n\n```bash\ndocker build -t perpus/katalog:1 .\nkind load docker-image perpus/katalog:1 --name perpus\n```\n\nAda satu aturan yang perlu kamu ingat. Bila `imagePullPolicy` tidak ditulis dan tag citranya bukan `:latest`, Kubernetes memakai `IfNotPresent`: citra yang sudah ada di node dipakai tanpa menarik ulang. Itu sebabnya kita memakai tag `1`, bukan `latest`. Dengan `latest`, kebijakannya menjadi `Always`, node mencoba menarik dari Docker Hub, dan gagal karena citra itu tidak ada di sana."
+    },
+    {
+      "title": "Pod: rumah kecil untuk kontainer",
+      "description": "Unit terkecil di Kubernetes bukan kontainer, melainkan **Pod**: satu kontainer atau lebih yang berbagi alamat jaringan dan volume. Dokumentasinya menyebut Pod sebagai \"logical host\". Paling sering, satu Pod berisi satu kontainer.\n\n```yaml\napiVersion: v1\nkind: Pod\nmetadata:\n  name: katalog-coba\n  labels:\n    app: katalog\nspec:\n  containers:\n  - name: katalog\n    image: perpus/katalog:1\n    ports:\n    - containerPort: 8000\n```\n\n```bash\nkubectl apply -f pod.yaml\nkubectl get pod katalog-coba -o wide\n```\n\n```text\nNAME           READY   STATUS    RESTARTS   AGE   IP           NODE            NOMINATED NODE   READINESS GATES\nkatalog-coba   1/1     Running   0          1s    10.244.1.2   perpus-worker   <none>           <none>\n```\n\nPod mendapat alamat IP sendiri di jaringan cluster, yang tidak bisa dijangkau langsung dari laptopmu. Untuk mengintip, teruskan port lewat kubectl di terminal kedua:\n\n```bash\nkubectl port-forward pod/katalog-coba 8100:8000\ncurl http://127.0.0.1:8100/\n```\n\n```text\n{\"pesan\":\"Halo dari katalog perpustakaan\",\"versi\":\"1\",\"pod\":\"katalog-coba\"}\n```\n\nSekarang hapus Pod-nya:\n\n```bash\nkubectl delete pod katalog-coba\nkubectl get pods\n```\n\n```text\nNo resources found in perpus namespace.\n```\n\nPod itu hilang dan tidak ada yang menggantinya. Dokumentasi menyebut Pod sebagai entitas yang *ephemeral, disposable*. Karena itu kamu hampir tak pernah membuat Pod sendirian. Yang kamu buat adalah sesuatu yang menjaga Pod."
+    },
+    {
+      "title": "Deployment: tiga salinan yang dijaga",
+      "description": "**Deployment** adalah keadaan yang diinginkan untuk aplikasi tanpa data: \"selalu ada tiga Pod dari templat ini\".\n\n```yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: katalog\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: katalog\n  template:\n    metadata:\n      labels:\n        app: katalog\n    spec:\n      containers:\n      - name: katalog\n        image: perpus/katalog:1\n        ports:\n        - containerPort: 8000\n```\n\nSimpan sebagai `deployment.yaml`. Berkas ini akan kita kembangkan sampai langkah 11.\n\n```bash\nkubectl apply -f deployment.yaml\nkubectl rollout status deployment/katalog\n```\n\nDeployment tidak membuat Pod sendiri. Ia membuat **ReplicaSet**, dan ReplicaSet-lah yang menjaga jumlah Pod. Pod-nya mengenali \"keluarganya\" lewat **label** `app: katalog` yang dicocokkan `selector`.\n\nSekarang uji penjaganya. Hapus satu Pod; ganti `<nama-pod>` dengan salah satu nama dari `kubectl get pods`:\n\n```bash\nkubectl delete pod <nama-pod>\nkubectl get pods -l app=katalog\n```\n\nPengganti sudah siap 0,9 detik setelah perintah hapus. Tak ada yang menyuruh. Pengendali ReplicaSet melihat ada dua Pod padahal yang diinginkan tiga, lalu membuat satu lagi. Itulah *reconciliation loop* dari Overview, dan kamu baru saja melihatnya bekerja."
+    },
+    {
+      "title": "Service: satu nama untuk banyak Pod",
+      "description": "Pod datang dan pergi, dan setiap Pod baru mendapat alamat IP baru. Lalu bagaimana basis data, atau pengunjung, menemukan katalog? Lewat **Service**: nama dan alamat tetap yang membagi permintaan ke semua Pod berlabel cocok.\n\n```yaml\napiVersion: v1\nkind: Service\nmetadata:\n  name: katalog\nspec:\n  selector:\n    app: katalog\n  ports:\n  - port: 80\n    targetPort: 8000\n```\n\nKita coba dari dalam cluster. Jalankan Pod kecil berisi curl sebagai \"tamu\", lalu kirim 300 permintaan ke nama `katalog`:\n\n```bash\nkubectl apply -f service.yaml\nkubectl run tamu --image=curlimages/curl:8.23.0 --command -- sleep infinity\nkubectl exec tamu -- sh -c 'for i in $(seq 300); do curl -s http://katalog/; echo; done' | grep -o '\"pod\":\"[^\"]*\"' | sort | uniq -c\n```\n\n```text\n     97 \"pod\":\"katalog-d4ddf8b67-jmmjg\"\n     97 \"pod\":\"katalog-d4ddf8b67-js5ct\"\n    106 \"pod\":\"katalog-d4ddf8b67-pchxl\"\n```\n\nKetiga Pod kebagian kira-kira sama banyak. Nama pendek `katalog` bisa dipakai karena berkas `/etc/resolv.conf` di setiap Pod memuat `search perpus.svc.cluster.local`. Nama lengkapnya `katalog.perpus.svc.cluster.local`.\n\n> [!PERINGATAN]\n> `kubectl port-forward` ke Service **tidak** membagi beban. Dokumentasinya menulis bahwa bila ada beberapa Pod yang cocok, *\"a pod will be selected automatically\"*. Pada uji ini, 30 dari 30 permintaan lewat `port-forward service/katalog` jatuh ke Pod yang sama. Jadi jangan menguji pembagian beban dengan cara itu."
+    },
+    {
+      "title": "Label: memisahkan Pod yang sakit tanpa mematikannya",
+      "description": "Label bukan sekadar nama. Service dan ReplicaSet sama-sama memilih Pod lewat label, dan hal ini membuka trik yang diceritakan Burns dkk.: bila satu Pod berperilaku aneh, **cabut labelnya**. Pod itu keluar dari Service, sehingga tak menerima tamu lagi. Ia juga keluar dari ReplicaSet, yang langsung membuat pengganti. Sementara itu Pod lamanya tetap hidup untuk kamu periksa.\n\n```bash\nkubectl label pod <nama-pod> app-\nkubectl get pods -L app\n```\n\n```text\nNAME                      READY   STATUS    RESTARTS   AGE   APP\nkatalog-d4ddf8b67-hm4nr   1/1     Running   0          5s    katalog\nkatalog-d4ddf8b67-jmmjg   1/1     Running   0          36s   \nkatalog-d4ddf8b67-js5ct   1/1     Running   0          19s   katalog\nkatalog-d4ddf8b67-pchxl   1/1     Running   0          36s   katalog\ntamu                      1/1     Running   0          18s\n```\n\nSekarang ada empat Pod. Tiga berlabel `app=katalog`, dan satu kolom `APP`-nya kosong. Kirim lagi 300 permintaan, dan semuanya jatuh ke tiga Pod berlabel. Pod yang dikarantina tidak menerima satu pun, tetapi statusnya tetap `Running`.\n\nSetelah selesai memeriksa, buang Pod karantina itu:\n\n```bash\nkubectl delete pod <nama-pod>\n```"
+    },
+    {
+      "title": "PostgreSQL dengan StatefulSet dan volume",
+      "description": "Basis data berbeda dari katalog. Ia butuh nama yang tetap dan disk yang ikut ke mana pun ia pergi. Untuk itu ada **StatefulSet**, yang menurut dokumentasinya memberi *\"stable, unique network identifiers\"* dan *\"stable, persistent storage\"*. Bagian terpentingnya:\n\n```yaml\n  volumeClaimTemplates:\n  - metadata:\n      name: data\n    spec:\n      accessModes: [\"ReadWriteOnce\"]\n      resources:\n        requests:\n          storage: 1Gi\n```\n\n`volumeClaimTemplates` membuat satu **PersistentVolumeClaim** (permintaan disk) per Pod. Sandi basis data datang dari Secret, dan isi awal tabelnya dari `init.sql` dalam ConfigMap:\n\n```bash\nkubectl create secret generic db-katalog --from-literal=sandi=contoh-sandi-latihan\nkubectl create configmap db-awal --from-file=init.sql\nkubectl apply -f db.yaml\nkubectl rollout status statefulset/db\nkubectl get pvc\n```\n\n```text\nNAME        STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE\ndata-db-0   Bound    pvc-b02de265-c148-406b-935f-9e8a5f8f8599   1Gi        RWO            standard       <unset>                 32s\n```\n\nUji ketahanannya. Tambah satu buku, hapus Pod-nya, lalu hitung lagi:\n\n```bash\nkubectl exec db-0 -- psql -U katalog -d katalog -c \"INSERT INTO buku VALUES ('Cantik Itu Luka', 'Eka Kurniawan')\"\nkubectl delete pod db-0\nkubectl exec db-0 -- psql -U katalog -d katalog -tAc \"SELECT count(*) FROM buku\"\n```\n\n```text\n4\n```\n\nPod pengganti bernama sama, `db-0`, dan masih memegang keempat buku. Ia juga kembali ke node yang sama (perpus-worker), karena disk dari penyedia penyimpanan lokal kind terikat pada node itu."
+    },
+    {
+      "title": "ConfigMap dan Secret: pengaturan di luar citra",
+      "description": "Citra yang sama sebaiknya bisa dipakai di mana saja, jadi pengaturan dan rahasia disimpan di luar citra. **ConfigMap** untuk yang biasa, **Secret** untuk yang sensitif:\n\n```bash\nkubectl create configmap katalog-config --from-literal=pesan=\"Selamat datang di katalog Perpustakaan Kampung\"\nkubectl create secret generic katalog-rahasia --from-literal=alamat-db=postgresql://katalog:contoh-sandi-latihan@db:5432/katalog\n```\n\nLalu tambahkan bagian `env` ini di bawah `ports` dalam `deployment.yaml` dan terapkan ulang:\n\n```yaml\n        env:\n        - name: PESAN\n          valueFrom:\n            configMapKeyRef:\n              name: katalog-config\n              key: pesan\n        - name: DATABASE_URL\n          valueFrom:\n            secretKeyRef:\n              name: katalog-rahasia\n              key: alamat-db\n```\n\nKatalog kini menyapa dengan pesan dari ConfigMap dan membaca buku dari PostgreSQL. Tapi lihat isi Secret-nya:\n\n```bash\nkubectl get secret katalog-rahasia -o jsonpath='{.data.alamat-db}'\nkubectl get secret katalog-rahasia -o jsonpath='{.data.alamat-db}' | base64 -d\n```\n\n```text\ncG9zdGdyZXNxbDovL2thdGFsb2c6Y29udG9oLXNhbmRpLWxhdGloYW5AZGI6NTQzMi9rYXRhbG9n\npostgresql://katalog:contoh-sandi-latihan@db:5432/katalog\n```\n\nItu base64, bukan enkripsi: siapa pun yang boleh membaca Secret bisa membukanya. Dokumentasi menulis bahwa Secret secara bawaan *\"stored unencrypted\"* di etcd, dan menyarankan enkripsi saat diam serta RBAC yang ketat (langkah 14).\n\nSatu jebakan lagi. Ganti pesannya:\n\n```bash\nkubectl create configmap katalog-config --from-literal=pesan=\"Katalog tutup sementara untuk inventaris\" --dry-run=client -o yaml | kubectl replace -f -\n```\n\nSatu menit kemudian katalog masih menyapa dengan pesan lama. Dokumentasinya jelas: ConfigMap yang dipakai sebagai variabel lingkungan *\"are not updated automatically and require a pod restart\"*. Mulai ulang Pod-nya:\n\n```bash\nkubectl rollout restart deployment/katalog\n```"
+    },
+    {
+      "title": "Probe: mana yang hidup, mana yang siap",
+      "description": "Tanpa probe, Kubernetes menganggap kontainer siap begitu ia menyala, padahal aplikasinya belum tentu sudah bisa menjawab. Dalam 5 kali `rollout restart` sambil 600 permintaan dikirim, Deployment tanpa probe menggagalkan 7, 1, 2, 8, dan 5 permintaan.\n\nTambahkan dua **probe** di bawah `env`:\n\n```yaml\n        readinessProbe:\n          httpGet:\n            path: /siap\n            port: 8000\n          periodSeconds: 2\n        livenessProbe:\n          httpGet:\n            path: /sehat\n            port: 8000\n          periodSeconds: 5\n```\n\n- **readinessProbe** bertanya \"bisakah kamu melayani sekarang?\". Bila gagal, Pod dikeluarkan dari Service tetapi tidak dimatikan. `/siap` memeriksa PostgreSQL.\n- **livenessProbe** bertanya \"masih hidupkah kamu?\". Bila gagal berulang, kontainernya dimatikan dan dinyalakan ulang. `/sehat` cukup memeriksa bahwa proses menjawab.\n\nMatikan basis data sebentar:\n\n```bash\nkubectl scale statefulset db --replicas=0\nkubectl get pods -l app=katalog\n```\n\n```text\nNAME                       READY   STATUS    RESTARTS   AGE\nkatalog-7b496b998c-8kx9b   0/1     Running   0          36s\nkatalog-7b496b998c-ptb9q   0/1     Running   0          39s\nkatalog-7b496b998c-z565w   0/1     Running   0          42s\n```\n\nKetiga Pod menjadi `0/1`, tetapi `RESTARTS` tetap 0. Memulai ulang tak akan menolong bila masalahnya di basis data. Begitu `db` dinyalakan lagi, ketiganya siap kembali dalam 3,4 detik.\n\nSebaliknya, liveness probe ke alamat yang salah membuat kontainer dibunuh berulang kali dengan pesan *\"failed liveness probe, will be restarted\"*. Aplikasi yang langsung keluar karena alamat basis datanya salah berakhir di `CrashLoopBackOff`. Jedanya naik 10, 20, 40 detik, dan seterusnya, sampai paling lama 300 detik."
+    },
+    {
+      "title": "Rolling update dan jeda sebelum berhenti",
+      "description": "Dengan readiness probe saja, masih ada 10, 9, 7, 6, dan 8 permintaan gagal dalam 5 putaran, tidak lebih baik daripada tanpa probe. Masalahnya di Pod lama yang berhenti: menurut dokumentasi, kubelet mulai mematikan Pod *\"at the same time\"* dengan control plane mengeluarkannya dari Service. Sesaat, tamu masih dikirim ke Pod yang sudah menutup pintu.\n\nSalah satu obatnya: beri jeda sebelum sinyal berhenti. Tambahkan di bawah probe:\n\n```yaml\n        lifecycle:\n          preStop:\n            sleep:\n              seconds: 5   # beri waktu Service berhenti mengirim tamu ke Pod ini\n```\n\nHasilnya, 4 dari 5 putaran bersih tanpa satu pun kegagalan (0, 1, 0, 0, dan 0). Jeda ini memperkecil celahnya, tetapi tidak menjaminnya tertutup; jeda yang lebih panjang memberi Service lebih banyak waktu untuk berhenti mengirim tamu.\n\n::media[gagal-rollout]\n\nKirim versi baru: ubah `VERSI = \"1\"` menjadi `\"2\"` di `app.py`, ganti `image:` menjadi `perpus/katalog:2`, lalu:\n\n```bash\ndocker build -t perpus/katalog:2 .\nkind load docker-image perpus/katalog:2 --name perpus\nkubectl apply -f deployment.yaml\n```\n\nSelama pembaruan itu, 600 dari 600 permintaan menjawab 200. Lalu coba versi yang tidak ada:\n\n```bash\nkubectl set image deployment/katalog katalog=perpus/katalog:3\nkubectl get pods -l app=katalog\n```\n\n```text\nNAME                       READY   STATUS         RESTARTS   AGE\nkatalog-55b784d68f-hrt24   0/1     ErrImagePull   0          60s\nkatalog-9b5bf8c56-crzvd    1/1     Running        0          96s\nkatalog-9b5bf8c56-mnkmw    1/1     Running        0          92s\nkatalog-9b5bf8c56-nbqmc    1/1     Running        0          89s\n```\n\nPod baru macet di `ErrImagePull` (lalu `ImagePullBackOff`), sedangkan tiga Pod lama tetap melayani: 600 dari 600 permintaan menjawab 200. Dengan tiga salinan, `maxUnavailable` bawaan 25% dibulatkan ke bawah menjadi 0, jadi tak satu Pod lama pun dimatikan. Kembalikan dengan `kubectl rollout undo deployment/katalog`."
+    },
+    {
+      "title": "Sumber daya dan keamanan",
+      "description": "Ada kejutan yang ditemukan saat menguji. Citra kita ditulis `USER 10001:10001`, dan di Docker prosesnya memang bergrup 10001. Di cluster ini:\n\n```bash\nkubectl exec deploy/katalog -- id\n```\n\n```text\nuid=10001 gid=0(root) groups=0(root)\n```\n\nGrup utamanya `0`, grup root. Dokumentasi menyebut bahwa bila `runAsGroup` tidak diisi, grup utamanya `root(0)`. Jadi tuliskan identitasnya secara eksplisit, sekaligus **requests** dan **limits**:\n\n```yaml\n        resources:\n          requests:\n            cpu: 100m\n            memory: 128Mi\n          limits:\n            memory: 256Mi\n        securityContext:\n          runAsUser: 10001\n          runAsGroup: 10001\n          runAsNonRoot: true\n          allowPrivilegeEscalation: false\n          readOnlyRootFilesystem: true\n          capabilities:\n            drop: [\"ALL\"]\n```\n\nSesudah diterapkan, `id` menjawab `uid=10001 gid=10001 groups=10001`, dan menulis ke `/app` ditolak dengan *Read-only file system*.\n\n**Requests** dipakai scheduler untuk memilih node, sedangkan **limits** adalah batas yang ditegakkan kernel. Pod `boros` yang terus menelan memori dengan limit 64 MiB dihentikan pada blok ke-61:\n\n```bash\nkubectl apply -f pod-boros.yaml\nkubectl get pod boros -o jsonpath='{.status.containerStatuses[0].state.terminated.reason} {.status.containerStatuses[0].state.terminated.exitCode}'\n```\n\n```text\nOOMKilled 137\n```\n\nPod yang meminta 64 GiB tak pernah berjalan dan tetap `Pending`:\n\n```text\n0/3 nodes are available: 1 node(s) had untolerated taint(s), 2 Insufficient memory. preemption: 0/3 nodes are available: 3 Preemption is not helpful for scheduling.\n```\n\nPemakaian nyata tidak dihitung. Scheduler menolak karena jumlah *requests* melampaui kapasitas node."
+    },
+    {
+      "title": "Gateway API: pintu masuk dari luar",
+      "description": "Service `katalog` hanya bisa dijangkau dari dalam cluster. Untuk pengunjung dari luar, Kubernetes dulu memakai Ingress. Kini dokumentasinya menulis: *\"The Kubernetes project recommends using Gateway instead of Ingress. The Ingress API has been frozen.\"* Ingress tidak akan dihapus, tetapi tidak dikembangkan lagi.\n\n**Gateway API** memisahkan peran. **GatewayClass** adalah jenis pintu yang disediakan pengelola infrastruktur. **Gateway** adalah pintunya. **HTTPRoute** adalah aturan milik pengembang aplikasi yang mengarahkan permintaan ke Service.\n\nGateway butuh pengendali. Untuk kind ada **cloud-provider-kind**, yang di Windows dan macOS paling mudah dijalankan sebagai kontainer:\n\n```bash\ndocker run -d --name perpus-cpk --network kind -v /var/run/docker.sock:/var/run/docker.sock registry.k8s.io/cloud-provider-kind/cloud-controller-manager:v0.12.0 --enable-lb-port-mapping\n```\n\nBerkas `gateway.yaml` berisi Gateway bernama `gerbang` dengan kelas `cloud-provider-kind`, lalu HTTPRoute ini:\n\n```yaml\nkind: HTTPRoute\nmetadata:\n  name: katalog\nspec:\n  parentRefs:\n  - name: gerbang\n  hostnames:\n  - katalog.perpus.test\n  rules:\n  - matches:\n    - path:\n        type: PathPrefix\n        value: /\n    backendRefs:\n    - name: katalog\n      port: 80\n```\n\n```bash\nkubectl apply -f gateway.yaml\ndocker ps --filter label=io.x-k8s.cloud-provider-kind.cluster=perpus --format \"{{.Names}} {{.Ports}}\"\ncurl -H \"Host: katalog.perpus.test\" http://127.0.0.1:<port>/\n```\n\n```text\n{\"pesan\":\"Katalog tutup sementara untuk inventaris\",\"versi\":\"2\",\"pod\":\"katalog-594d4d7f98-qsdf8\"}\n```\n\nGanti `<port>` dengan port yang dipetakan ke `80/tcp`. Permintaan dengan Host lain dijawab 404, karena tak ada rute yang cocok.\n\n::media[video-cloud-provider-kind]\n\n> [!PERINGATAN]\n> Port Gateway ini dibuka di `0.0.0.0`, sehingga bisa dijangkau dari jaringan lokalmu. Hentikan kontainernya setelah selesai berlatih."
+    },
+    {
+      "title": "Autoscaling: menambah salinan saat ramai",
+      "description": "**HorizontalPodAutoscaler** (HPA) mengubah jumlah salinan menurut pemakaian. Ia butuh angka CPU dari **metrics-server**. README-nya mensyaratkan sertifikat kubelet ditandatangani CA cluster, atau pemeriksaan itu dimatikan dengan `--kubelet-insecure-tls`, bendera yang ia sebut hanya untuk pengujian. Untuk cluster latihan, kita pakai yang kedua:\n\n```bash\ncurl -sSLo metrics-server.yaml https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.9.0/components.yaml\nkubectl apply -f metrics-server.yaml\nkubectl patch -n kube-system deployment metrics-server --type=json -p '[{\"op\":\"add\",\"path\":\"/spec/template/spec/containers/0/args/-\",\"value\":\"--kubelet-insecure-tls\"}]'\nkubectl apply -f hpa.yaml\n```\n\n```yaml\n  minReplicas: 3\n  maxReplicas: 10\n  metrics:\n  - type: Resource\n    resource:\n      name: cpu\n      target:\n        type: Utilization\n        averageUtilization: 50\n```\n\nRumusnya dari dokumentasi: `desiredReplicas = ceil(currentReplicas × currentMetricValue / desiredMetricValue)`. Persentasenya dihitung terhadap *requests*, yaitu 100m CPU per Pod. Kirim delapan pengunjung serentak ke `/rekap` selama 240 detik:\n\n```bash\nkubectl exec tamu -- sh -c 'for n in $(seq 8); do (end=$(($(date +%s) + 240)); while [ $(date +%s) -lt $end ]; do curl -s -o /dev/null http://katalog/rekap; done) & done; wait'\n```\n\n::media[hpa]\n\nPemakaian melonjak ke 758% dari *request*, dan HPA menaikkan jumlah Pod dari 3 sampai batas 10. Bahkan dengan sepuluh Pod, pemakaiannya masih sekitar 392%. Batas `maxReplicas` itulah yang membatasi, jadi pilih angkanya dengan sadar.\n\nBeban berhenti pada detik 246. Angka CPU yang dilihat HPA baru turun pada detik 287, karena metrics-server mengumpulkan angka secara berkala. Pod juga tidak langsung berkurang: baru pada detik 593 jumlahnya kembali ke 3, sekitar 306 detik kemudian. Itu jendela stabilisasi turun bawaan, 300 detik, yang mencegah jumlah Pod naik-turun karena lonjakan sesaat."
+    },
+    {
+      "title": "Namespace dan RBAC: hak secukupnya",
+      "description": "Bayangkan relawan baru yang bertugas memantau katalog. Ia perlu melihat Pod dan log, tetapi tidak perlu menghapus apa pun dan tidak boleh membaca Secret. **RBAC** (*role-based access control*) menuliskan hal itu:\n\n```yaml\nkind: Role\nmetadata:\n  name: baca-pod\nrules:\n- apiGroups: [\"\"]\n  resources: [\"pods\", \"pods/log\"]\n  verbs: [\"get\", \"list\", \"watch\"]\n```\n\n**Role** berlaku di satu namespace, dan **RoleBinding** memberikannya kepada sebuah **ServiceAccount** bernama `pemantau`. Uji tanpa perlu masuk sebagai dia:\n\n```bash\nkubectl apply -f rbac.yaml\nkubectl auth can-i list pods --as=system:serviceaccount:perpus:pemantau\nkubectl auth can-i delete pods --as=system:serviceaccount:perpus:pemantau\nkubectl auth can-i get secrets --as=system:serviceaccount:perpus:pemantau\nkubectl auth can-i list pods -n kube-system --as=system:serviceaccount:perpus:pemantau\n```\n\n```text\nyes\nno\nno\nno\n```\n\nIa boleh melihat Pod, tetapi tidak boleh menghapusnya, tidak boleh membaca Secret, dan tidak boleh melihat namespace `kube-system`. Tak ada hak yang diberikan kecuali yang ditulis. Untuk Secret dari langkah 8, itulah pelindung yang sesungguhnya."
+    },
+    {
+      "title": "Saat node mati, dan kapan kamu tak butuh Kubernetes",
+      "description": "Uji terakhir: matikan satu worker. Pilih worker yang memuat Pod katalog tetapi **bukan** `db-0`. Basis data kita hanya satu salinan, dan disknya terikat ke node-nya (langkah 7), jadi mematikan node itu berarti mematikan katalog juga. Di sini yang dimatikan `perpus-worker2`. Di kind, node hanyalah kontainer:\n\n```bash\ndocker stop <nama-node>\nkubectl get nodes\n```\n\n::media[node-mati]\n\nNode ditandai `NotReady` setelah 52 detik, dan sejak itu Pod di sana tidak menerima tamu lagi. Sebelum itu, Kubernetes belum tahu ada yang mati. Dari 7 permintaan yang dikirim lewat Gateway sebelum detik 52, 6 gagal, karena Service masih mengarahkan tamu ke dua Pod di node yang sudah mati. Pod penggantinya baru siap pada detik 355. Dokumentasi menjelaskan sebabnya: setiap Pod otomatis diberi toleransi `tolerationSeconds=300` terhadap node yang tak siap atau tak terjangkau. Kubernetes menunggu lima menit, karena bisa jadi node itu hanya putus sebentar. Selama menunggu, katalog tetap menjawab 200 dari satu Pod yang tersisa.\n\nNyalakan lagi node-nya dengan `docker start perpus-worker2`. Pod katalog **tidak** pindah kembali ke sana: setengah menit setelah node itu siap lagi, ketiganya masih berjalan di perpus-worker.\n\nPelajarannya: Kubernetes bukan sulap. Ia menjalankan aturan yang bisa dibaca, dengan jeda yang bisa diatur. Bila aplikasimu kecil dan satu server cukup, Docker Compose lebih sederhana. Bila kamu butuh beberapa mesin, pembaruan tanpa jeda, dan pemulihan otomatis, kamu kini tahu cara kerjanya dari dalam.\n\nBersihkan semuanya:\n\n```bash\nkind delete cluster --name perpus\n```"
+    }
+  ],
+  "tools": [
+    {
+      "slug": "kubectl",
+      "name": "kubectl",
+      "summary": "Alat baris perintah resmi Kubernetes untuk berbicara dengan kube-apiserver: menerapkan berkas YAML, melihat objek dan log, meneruskan port, serta memeriksa hak akses.",
+      "homepage": "https://kubernetes.io/docs/reference/kubectl/",
+      "note": "Dipakai di seluruh halaman. Contoh diuji dengan kubectl v1.37.1."
+    },
+    {
+      "slug": "kind",
+      "name": "kind",
+      "summary": "Kubernetes in Docker: membuat cluster Kubernetes sungguhan yang setiap node-nya adalah kontainer Docker, untuk belajar, menguji, dan CI.",
+      "homepage": "https://kind.sigs.k8s.io/",
+      "note": "Cluster tiga node di halaman ini dibuat dengan kind v0.33.0 dan citra node Kubernetes v1.37.0."
+    },
+    {
+      "slug": "cloud-provider-kind",
+      "name": "cloud-provider-kind",
+      "summary": "Pengendali untuk cluster kind yang menyediakan Service LoadBalancer dan implementasi Gateway API berbasis Envoy.",
+      "homepage": "https://github.com/kubernetes-sigs/cloud-provider-kind",
+      "note": "Dipakai di langkah 12, dijalankan sebagai kontainer v0.12.0."
+    },
+    {
+      "slug": "docker-engine",
+      "name": "Docker Engine",
+      "summary": "Mesin kontainer sumber terbuka (Apache 2.0) beserta CLI docker: membangun citra dengan BuildKit, menjalankan kontainer, serta mengatur jaringan dan volume.",
+      "homepage": "https://docs.docker.com/engine/",
+      "note": "Membangun citra katalog dan menjalankan node kind. Contoh diuji dengan Docker Engine 29.1.5."
+    }
+  ],
+  "projects": [
+    {
+      "title": "Pindahkan aplikasimu sendiri ke kind",
+      "brief": "Pilih satu aplikasi web yang pernah kamu bungkus dengan Docker, lalu jalankan di cluster kind tiga node.\n\n- Tulis Deployment dengan tiga salinan, readiness probe yang memeriksa ketergantungan sungguhan, liveness probe yang hanya memeriksa proses, dan jeda `preStop`.\n- Tambahkan `resources.requests`, `resources.limits`, dan `securityContext` dengan `runAsUser`, `runAsGroup`, `runAsNonRoot`, serta `readOnlyRootFilesystem`.\n- Simpan pengaturan di ConfigMap dan rahasia di Secret, bukan di citra.\n\n**Kamu selesai bila:**\n\n1. `kubectl get pods` menunjukkan tiga Pod `1/1 Running` yang tersebar di dua worker;\n2. 600 permintaan yang dikirim dari Pod lain selama `kubectl rollout restart` semuanya menjawab 200, setidaknya dalam tiga putaran berturut-turut;\n3. `kubectl exec deploy/<nama> -- id` tidak menunjukkan `uid=0` maupun `gid=0`;\n4. kamu bisa menjelaskan, dengan keluaran `kubectl get events`, apa yang terjadi saat basis datanya kamu matikan sebentar."
+    },
+    {
+      "title": "Uji ketahanan: kegagalan yang disengaja",
+      "brief": "Rancang tiga kegagalan, lalu catat dengan jam apa yang dilakukan Kubernetes.\n\n- Hapus satu Pod dan ukur berapa detik sampai penggantinya siap.\n- Kirim citra yang tidak ada lewat `kubectl set image`, lalu pastikan pengunjung tidak merasakannya.\n- Matikan satu worker kind dengan `docker stop` dan amati kapan Pod penggantinya muncul.\n\nLalu ubah satu pengaturan dan ulangi percobaan ketiga. Misalnya, tambahkan toleransi `node.kubernetes.io/unreachable` dengan `tolerationSeconds: 30` di templat Pod.\n\n**Kamu selesai bila:**\n\n1. kamu punya tabel waktu untuk ketiga kegagalan, diukur dari keluaran perintah, bukan perkiraan;\n2. permintaan ke Service tetap menjawab 200 selama kegagalan kedua;\n3. percobaan ketiga dengan toleransi 30 detik memunculkan pengganti jauh lebih cepat, dan kamu bisa menjelaskan risikonya bila jaringan hanya putus sebentar;\n4. semua sumber daya latihan sudah dibersihkan dengan `kind delete cluster`."
+    }
+  ],
+  "resources": [
+    {
+      "type": "OfficialDocs",
+      "title": "Overview — dokumentasi Kubernetes",
+      "url": "https://kubernetes.io/docs/concepts/overview/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Kubernetes Components",
+      "url": "https://kubernetes.io/docs/concepts/overview/components/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Controllers",
+      "url": "https://kubernetes.io/docs/concepts/architecture/controller/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Pods",
+      "url": "https://kubernetes.io/docs/concepts/workloads/pods/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Deployments",
+      "url": "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Service",
+      "url": "https://kubernetes.io/docs/concepts/services-networking/service/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "StatefulSets",
+      "url": "https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "ConfigMaps",
+      "url": "https://kubernetes.io/docs/concepts/configuration/configmap/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Secrets",
+      "url": "https://kubernetes.io/docs/concepts/configuration/secret/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Configure Liveness, Readiness and Startup Probes",
+      "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Pod Lifecycle (termasuk alur penghentian Pod)",
+      "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Resource Management for Pods and Containers",
+      "url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Configure a Security Context for a Pod or Container",
+      "url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Gateway API",
+      "url": "https://kubernetes.io/docs/concepts/services-networking/gateway/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Horizontal Pod Autoscaling",
+      "url": "https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Using RBAC Authorization",
+      "url": "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Taints and Tolerations",
+      "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "kind Quick Start",
+      "url": "https://kind.sigs.k8s.io/docs/user/quick-start/"
+    },
+    {
+      "type": "Repository",
+      "title": "cloud-provider-kind",
+      "url": "https://github.com/kubernetes-sigs/cloud-provider-kind"
+    },
+    {
+      "type": "Paper",
+      "title": "Burns dkk. 2016 — Borg, Omega, and Kubernetes (ACM Queue)",
+      "url": "https://research.google/pubs/borg-omega-and-kubernetes/"
+    }
+  ],
+  "requires": []
+}
