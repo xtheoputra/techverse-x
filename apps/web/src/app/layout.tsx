@@ -77,6 +77,7 @@ export default function RootLayout({
               Explore · Learn · Build · Innovate
             </p>
           </div>
+                  <p class="mt-6 text-xs text-muted-foreground/70">A product by <a href="https://xtheo-labs.vercel.app" class="underline hover:text-foreground">xTheo Labs</a>.</p>
         </footer>
       </body>
     </html>
