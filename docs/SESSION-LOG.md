@@ -4,6 +4,337 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-16 — Sesi 29: catatan #119 yang tertinggal; topik kedua Cloud & Infrastructure, Kubernetes
+
+Permintaan pemilik: *"lanjutkan progress"*.
+
+### Keadaan awal
+
+Pohon kerja bersih, di cabang #119. Sesi 28 terhenti tepat sesudah #119 dibuka: tak ada catatan untuk #119 dan tak ada 🏁. Bagian #119 kini ditambahkan ke Sesi 28 di bawah.
+
+Belum ada merge sejak #118, jadi `main` tetap `402ff80`. #117 dan #119 masih terbuka; keduanya `MERGEABLE` dan CI #119 hijau semua. Produksi: `/teknologi/cloud-infrastructure` dan `/teknologi/reinforcement-learning` 200, sedangkan `/teknologi/kontainer-dan-docker` 404, karena #119 belum di-merge dan dipasang.
+
+Di tengah sesi pemilik mengingatkan: *"jangan buka browser otomatis di pc, karena akan random terbukanya, jika perlu anda test saja secara umum tanpa membuka browser"*. Tak ada browser yang dibuka sepanjang sesi. Semua uji memakai `curl`, `kubectl`, skrip, dan render `sharp`.
+
+### Kubernetes — [PR #120](https://github.com/xtheoputra/techverse-x/pull/120)
+
+Cabang `fase-1/isi-kubernetes` dari `origin/main`, tidak ditumpuk di atas #119. Ceritanya melanjutkan katalog perpustakaan dari #119. Kini katalog dipakai tiga cabang, servernya pernah mati tengah malam, dan setiap pembaruan memadamkannya beberapa detik. Pembaca memindahkannya ke cluster **kind** tiga node.
+
+Isinya 15 langkah (3.923 kata), 4 diagram SVG (3 dari keluaran percobaan), 2 video CNCF, 20 sumber, dan 2 proyek mini. `requires: []` untuk sementara, karena `kontainer-dan-docker` baru ada di #119 dan `pasang.mjs` menolak sisi ke topik tanpa berkas. Polanya sama dengan #116 dan #118. Alat baru di katalog: `kubectl`, `kind`, dan `cloud-provider-kind`. `docker-engine` disalin persis dari #119.
+
+**Sumber primer dibaca saat itu:**
+
+- dokumentasi Kubernetes dari Markdown `kubernetes/website` di commit `109572a` (2026-10-15);
+- catatan rilis kind v0.33.0, yang meminta citra node v1.37.0 dikunci dengan digest;
+- README cloud-provider-kind v0.12.0 dan README metrics-server v0.9.0;
+- Burns dkk. 2016, *Borg, Omega, and Kubernetes*, dibaca dari PDF-nya.
+
+Versi dibaca dari sumbernya: Kubernetes stabil v1.37.1, Gateway API v1.6.3, dan `curlimages/curl:8.23.0`. Checksum kind dan kubectl cocok. Ingress kini *frozen*, dan proyek Kubernetes merekomendasikan Gateway API, jadi langkah pintu masuk memakai Gateway API.
+
+**Percobaan sendiri.** Harness dari cluster kosong memberi 59 ok dalam 2.348 detik. Angka yang paling mengajar:
+
+| Yang diukur | Hasil |
+|---|---|
+| permintaan gagal per `rollout restart` (600 permintaan, 5 putaran) | tanpa probe 7, 1, 2, 8, 5; readiness saja 10, 9, 7, 6, 8; readiness + `preStop` sleep 5 detik 0, 1, 0, 0, 0 |
+| citra `USER 10001:10001` tanpa `securityContext` | `gid=0(root)` di Kubernetes, padahal di Docker `gid=10001`; diperbaiki dengan `runAsGroup` |
+| HPA 3–10, target 50% | CPU 758%, 3 → 6 → 10; kembali ke 3 di detik 593, sekitar 300 detik setelah angka CPU turun |
+| worker mati (memuat 2 dari 3 Pod katalog) | `NotReady` setelah 52 detik; sebelum itu 6 dari 7 permintaan gagal; pengganti siap di detik 355 (`tolerationSeconds=300`) |
+| `port-forward service/…` | 30 dari 30 permintaan ke satu Pod |
+
+🐞 **Dugaan yang dibantah ukuran sebelum commit:**
+
+- **Readiness probe saja tidak memperbaiki rolling update.** Kegagalannya tidak lebih baik daripada tanpa probe. Sumbernya ada di Pod lama yang berhenti, sesuai alur penghentian Pod di dokumentasi.
+- **`preStop` tidak menjamin nol.** Hasilnya 12 dari 13 putaran bersih di eksplorasi dan 4 dari 5 di putaran final. Judul langkah diubah dari "benar-benar mulus".
+- **Asersi "selalu 200 saat node mati" salah.** Permintaan gagal sampai node ditandai `NotReady`. Pada eksplorasi pertama, worker yang dimatikan juga memuat `db-0`. Harness kini memilih worker yang tidak memuat `db-0`.
+- **Status citra rusak** terekam sebagai `ErrImagePull`, bukan `ImagePullBackOff`. Teks kini mengikuti status yang terekam.
+- **Alat ukur saya sendiri:**
+  - `kind create` kembali sebelum node `Ready`.
+  - `kubectl run -i` kehilangan baris pertama keluaran.
+  - `kubectl get hpa --watch` tak ikut dihentikan dan menahan harness sekitar 10 menit.
+  - `curl.exe -o /dev/null` di Windows keluar 23.
+  - `KUBECONFIG` berjalur `/c/…` tak dikenali `kubectl.exe`, jadi harus `C:/…`.
+  - `kind create` sempat menulis konteks ke `~/.kube/config` pemilik. Konteks itu dipindah ke kubeconfig terpisah, dan `docker-desktop` dikembalikan sebagai konteks aktif.
+
+**Diverifikasi:**
+
+- `cek_isi.py` **207 ok**, termasuk 60 blok kode harfiah dan 26 URL 200, dengan bukti merah tepat 2 gagal;
+- `mypy --strict`;
+- `.\run.ps1 isi` sah dan `gerbang-isi` **HIJAU**, dua kali, yang terakhir pada berkas final;
+- halaman lokal 200: 15/15 judul langkah, 60 blok kode, 4 gambar, 2 video, dan `Draft` dengan `missingSections` kosong;
+- pemindai ADR-024 **0 kena** di 34 halaman;
+- `verify` hijau (111 detik);
+- gitleaks: 180 commit, *no leaks found*;
+- blob ter-commit 0 CR.
+
+### Keadaan sesudah bagian ini
+
+`main` tetap `402ff80`; belum ada yang di-merge sesi ini.
+
+| PR | Isi | Sesudah merge |
+|---|---|---|
+| [#119](https://github.com/xtheoputra/techverse-x/pull/119) | Kontainer & Docker | *Pasang isi* `kontainer-dan-docker` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan keempat SVG |
+| [#120](https://github.com/xtheoputra/techverse-x/pull/120) | Kubernetes | *Pasang isi* `kubernetes` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan keempat SVG |
+| [#117](https://github.com/xtheoputra/techverse-x/pull/117) | catatan Sesi 26 (Lanjutan 2) sampai Sesi 29, `docs/SESSION-LOG.md` saja | — |
+
+⚠️ **Urutan merge: #119, lalu #120, lalu #117.** Beri jeda di setiap langkah sampai build web sebelumnya selesai, karena #119 dan #120 sama-sama menambah berkas di `apps/web/public`. Sesudah #119 dan #120 masuk, PR kecil menambahkan `requires: [kontainer-dan-docker]` ke `kubernetes`.
+
+**Izin *Pasang isi*** belum diberikan untuk #119 maupun #120. Saya akan bertanya sesudah merge.
+
+**Belum diverifikasi (tanpa browser):** bingkai video di origin https untuk #119 dan #120, serta luberan 390 px. Langkah Gateway hanya diuji di Windows.
+
+**Lingkungan:**
+
+- kode uji, generator, dan hasil ada di `%TEMP%\tv-k8s`, berisi kind, kubectl, sumber yang dibaca, dan `kerja/` (bisa hilang antarhari);
+- cluster `perpus`, kontainer cloud-provider-kind, dan jaringan Docker `kind` yang dibuat hari ini sudah dihapus;
+- API :5096 dan web :3401 sudah dihentikan setelah PID dan baris perintahnya dicocokkan;
+- basis data `techversex_k8s` sudah dibuang;
+- Docker Desktop tetap menyala, dan kontainer proyek lain tidak disentuh.
+
+**Berikutnya** menurut ADR-010 (#119): topik ketiga Cloud & Infrastructure, *Cloud hyperscaler: AWS, Azure, GCP*. Contohnya sulit dijalankan tanpa akun berkartu, jadi cara mengujinya perlu dirancang dulu (emulator lokal, dokumentasi CLI, atau tabel padanan saja). Saya akan bertanya kepada pemilik sebelum mulai.
+
+---
+
+## 2026-10-14 — Sesi 28: Machine Learning Klasik dan Reinforcement Learning dipasang; ketujuh topik AI & Machine Learning kini tayang
+
+Permintaan pemilik: *"lanjutkan semua progress proyek ini"*.
+
+### Keadaan awal
+
+Pohon kerja bersih, di cabang catatan #117. Yang belum tercatat di 🏁 kemarin: pemilik sudah me-merge **#116** (2026-10-13 04:50:53 UTC) lalu **#118** (04:56:10), berselang lima menit, sesuai urutan yang diminta. `main` kini `402ff80`. #117 masih terbuka.
+
+Kedua build API dilewati (*Canceled by Ignored Build Step*), jadi citra API yang tayang tetap `e262bb1`. Kedua build web selesai.
+
+Kali ini build lama **tidak** menang. Kesepuluh SVG baru (`/media/machine-learning-klasik/*` dan `/media/reinforcement-learning/*`) menjawab **200** `image/svg+xml`, dan gambar Multimodal tetap 200. Ada satu kesalahan alat ukur saya sendiri: putaran pertama memberi 308 untuk semuanya, karena URL-nya saya rangkai dengan garis miring ganda (`//media/…`). Vercel mengalihkannya ke jalur tunggal, dan ukuran ulang memberi 200.
+
+Yang masih kurang hanya isinya: API dan halaman kedua topik **404**, karena *Pasang isi* belum dijalankan.
+
+### *Pasang isi*
+
+Saya bertanya lewat pertanyaan pilihan, dan pemilik menjawab **"Ya, jalankan keduanya"**. Dua jalan `isi.yml` dari `main`, `sha=e262bb1`, tanpa ganti, berurutan:
+
+- `machine-learning-klasik` ([38540673381](https://github.com/xtheoputra/techverse-x/actions/runs/38540673381)): `dibuat`, 7 media, `draf kelima bagian terisi`, lalu `selesai … sama dengan berkas`;
+- `reinforcement-learning` ([38540814722](https://github.com/xtheoputra/techverse-x/actions/runs/38540814722)): `dibuat`, alat baru `gymnasium` dan `stable-baselines3`, 7 media, `sisi reinforcement-learning butuh deep-learning`, lalu `selesai`.
+
+### Produksi diukur sesudahnya
+
+| Yang diukur | Machine Learning Klasik | Reinforcement Learning |
+|---|---|---|
+| API | 200, `Draft`, ringkasan = berkas, `missingSections` kosong | sama |
+| `requires` | `[]` | `[deep-learning]` |
+| langkah / alat / proyek / sumber / media | 13 / 2 / 2 / 18 / 7 | 14 / 4 / 2 / 20 / 7 |
+| halaman web | 200; 12 dari 12 judul langkah | 200; 13 dari 13 judul langkah |
+| blok kode / tabel / gambar / video | 13 / 7 / 5 / 2 | 16 / 8 / 5 / 2 |
+
+Jumlah langkah di API selalu satu lebih banyak dari berkas, karena langkah 0 (*prasyarat*) ikut dihitung. Angka halaman sama persis dengan yang diukur lokal di Sesi 26 dan 27.
+
+Relasinya juga tampil dari dua arah. `deep-learning.requiredBy` kini `[computer-vision, natural-language-processing, reinforcement-learning]`, halaman Deep Learning menautkan ke Reinforcement Learning, dan halaman RL menulis *"Pelajari lebih dulu: Deep Learning"*. Halaman bidang `/teknologi/ai-machine-learning` menautkan ketujuh topiknya. Daftar API kini `totalItems` **14**.
+
+Pemindai ADR-024 dijalankan **langsung di produksi** (hanya GET, skripnya sama persis dengan `main`): **33 halaman, 31 di antaranya `/teknologi/*`** (17 bidang + 14 topik), 45 ringkasan alat di 14 halaman topik, **0 kena**, setiap halaman 200.
+
+### Bidang berikutnya: Cloud & Infrastructure, disusun per konsep
+
+Saya bertanya lewat pertanyaan pilihan, dan pemilik memilih **Cloud & Infrastructure**, yang memang dijadwalkan RENCANA-V1 untuk Bulan 4.
+
+ADR-010 menetapkan bidang ini 7 topik tanpa merincinya. Daftar lama KERANGKA 2.3 memecah AWS, Azure, dan GCP menjadi tiga topik. Isinya akan banyak berulang, dan contohnya tak bisa dijalankan tanpa akun berkartu. Jadi saya menawarkan susunan per konsep, dan **pemilik memilihnya**:
+
+1. Kontainer & Docker
+2. Kubernetes (butuh 1)
+3. Cloud hyperscaler: AWS, Azure, GCP (konsep bersama dan tabel padanan)
+4. Jaringan cloud: VPC, subnet, NAT, load balancer, DNS (butuh 3)
+5. Infrastructure as Code: OpenTofu/Terraform (butuh 3)
+6. DevOps & CI/CD
+7. Platform Engineering (butuh 2 dan 6)
+
+Janji di kartu bidang (*"Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering"*) tetap terpenuhi. Keputusan ini dicatat sebagai Pembaruan ADR-010 di PR topik pertamanya.
+
+### Kontainer & Docker — [PR #119](https://github.com/xtheoputra/techverse-x/pull/119)
+
+*(Bagian ini ditulis di Sesi 29. Sesi 28 terhenti tepat sesudah PR dibuka, sebelum sempat mencatatnya. Isinya disusun dari commit `9714fda` dan `02c181b`, deskripsi PR, dan keluaran perintah di transkrip.)*
+
+Cabang `fase-1/isi-kontainer-docker` dari `origin/main`, tidak ditumpuk di atas #117. Ceritanya tentang seorang relawan perpustakaan yang aplikasi katalognya (FastAPI + PostgreSQL) "jalan di laptopku" tapi gagal di server. Pembaca membungkusnya langkah demi langkah, dari kontainer sebagai proses yang berbagi kernel sampai Compose, batas sumber daya, *capability*, dan digest.
+
+Isinya 14 langkah (3.968 kata), 4 diagram SVG (2 dari keluaran percobaan), 2 video resmi Docker, 20 sumber, dan 2 proyek mini. `requires: []`, dan folder barunya `isi/cloud-infrastructure/`. Alat baru di katalog: `docker-engine`, `docker-compose`, dan `docker-desktop`. PR ini juga membawa **Pembaruan ADR-010** berisi tujuh topik per konsep di atas.
+
+**Sumber primer dibaca saat itu:**
+
+- dokumentasi Docker dari sumber Markdown `docker/docs` di commit `9643ba0`;
+- README citra `postgres`, termasuk perubahan `PGDATA` sejak versi 18, dan `docker-entrypoint.sh`;
+- halaman instalasi psycopg 3, spesifikasi OCI Image v1.1.1, dan `namespaces(7)`;
+- Felter dkk. 2014 (IBM RC25482), dibaca dari PDF-nya.
+
+Versi diambil dari sumbernya, bukan dari ingatan. Docker Engine terbaru v29.9.0, tetapi contoh diuji dengan 29.1.5 dan Compose 5.0.1.
+
+**Percobaan sendiri:** median 633 ms untuk `docker run --rm alpine true`, build ulang 31,4 detik vs 2,5 detik bergantung urutan `COPY`, citra 1,68 GB → 248 MB lewat multi-stage, token `ARG` terlihat di `docker history`, dan Compose tanpa healthcheck gagal 3 dari 3 dari volume kosong. Satu dugaan sempat tak terbukti: `pg_isready` tanpa `-h` baru gagal (2 dari 2) sesudah skrip awal diperlambat dengan `pg_sleep(8)`. Halaman menulis hasil yang terukur itu saja.
+
+**Diverifikasi:** harness `uji_docker.py` **49 ok** (576 detik), `cek_isi.py` **156 ok** dengan bukti merah tepat 2 gagal, `mypy --strict`, `gerbang-isi` **HIJAU** dua kali (yang terakhir pada berkas final), halaman lokal 200 dengan 46 blok kode, 4 tabel, 4 gambar, dan 2 video, pemindai ADR-024 **0 kena** di 34 halaman, `verify` hijau, gitleaks *no leaks found*, dan blob 0 CR. CI #119 hijau semua.
+
+---
+
+## 2026-10-13 — Sesi 27: topik ketujuh AI & Machine Learning, Reinforcement Learning
+
+Permintaan pemilik: *"lanjutkan progress"*.
+
+### Keadaan awal
+
+Pohon kerja bersih. Sejak #115 belum ada merge, jadi produksi masih sama dengan 🏁 kemarin: `main` = `7f1b6a8`, citra API `e262bb1`, dan `/health/ready` 200. #116 dan #117 masih menunggu pemilik.
+
+Folder sementara sesi lalu ternyata sudah terhapus, termasuk venv `%TEMP%\tv-evals`, sumber `%TEMP%\mlk-sumber`, dan scratchpad-nya. Jadi venv uji dibuat ulang di `%TEMP%\tv-rl`.
+
+### Reinforcement Learning — [PR #118](https://github.com/xtheoputra/techverse-x/pull/118)
+
+Cabang `fase-1/isi-reinforcement-learning` dari `origin/main`, tidak ditumpuk di atas #116. Ceritanya tentang robot pengantar buku di lorong perpustakaan yang sisi bawahnya tangga terbuka. Aturan lorong itu ternyata sama persis dengan `CliffWalking-v1`, jadi angka-angkanya bisa dibandingkan dengan buku Sutton & Barto.
+
+Isinya 13 langkah (3.985 kata), 5 diagram SVG (3 dari keluaran kode), 2 video, 20 sumber, dan 2 proyek mini. `requires: [deep-learning]`. Topik ini sengaja tidak menunjuk ke `machine-learning-klasik`, karena #116 belum ada di `main`. Alat baru di katalog: `gymnasium` dan `stable-baselines3`.
+
+**Sumber primer dibaca saat itu:**
+
+- buku Sutton & Barto (PDF);
+- dokumentasi Gymnasium dari tag `v1.4.0`. Versi ini rilis 2026-10-05, lebih baru dari ingatan model;
+- dokumentasi Stable-Baselines3 dari tag `v2.9.0`;
+- makalah DQN, PPO, InstructGPT, Constitutional AI, DPO, DeepSeekMath, dan DeepSeek-R1, dibaca dari PDF-nya;
+- makalah Ng dkk. 1999. Teksnya rusak bila diekstrak dengan pypdf, jadi halaman 1–4 dirender dengan PyMuPDF dan dibaca sebagai gambar.
+
+**Percobaan sendiri**, dengan angka yang tak bisa ditebak sebelumnya:
+
+| Yang diukur | Hasil |
+|---|---|
+| robot acak | 16 dari 1000 episode sampai; hadiah −2115,2 |
+| bandit | angka buku terulang: serakah 1,04 / 36%, ε 0,1 → 80% |
+| Q-learning vs SARSA, 50 seed | −48,6 vs −25,4 per episode; jatuh 0,32 vs 0,04 |
+| bonus "+3 tiap mendekat" | robot mondar-mandir satu sel di atas rak sampai 200 langkah; bonus potensial memulihkan jalur 13 langkah |
+| REINFORCE, 5 seed | 192, 910, 180, gagal dalam 1000, 259 episode |
+| PPO 50.000 langkah | 500,0 di ketiga seed |
+
+🐞 **Empat dugaan saya dibantah ukuran sebelum commit:**
+
+- **PPO 10.000 langkah.** Saya menulis "belum mencapai 475 di ketiganya". Ukuran pertama membantahnya (480,6), dan ukuran kedua memberi angka lain lagi, karena lingkungan ujinya belum diberi seed. Sesudah seed dipasang, hasilnya bisa diulang persis: 438,4 / 451,3 / 321,4.
+- **Jalur SARSA.** Ternyata bukan 50 dari 50 seed yang berakhir di jalur aman, melainkan 37. Tiga seed menempuh 19 langkah, dan 10 seed mondar-mandir karena α tetap 0,5.
+- **Bonus +2 tidak memicu putaran**, karena bolak-baliknya bernilai 0. Demo memakai +3.
+- **Pemindai ADR-024** menangkap kata "menyusulnya" di teks halaman.
+
+**Diverifikasi:**
+
+- `uji_rl.py` **35 ok** (497 detik);
+- `cek_isi.py` **84 ok** (13 blok kode = potongan harfiah berkas uji, semua URL 200, oEmbed);
+- `mypy --strict` pada 9 berkas;
+- `.\run.ps1 isi` sah, dan `gerbang-isi` **HIJAU**;
+- halaman lokal 200, dengan 16 blok kode, 8 tabel, 5 gambar, dan 2 video;
+- pemindai ADR-024 **0 kena** di 32 halaman;
+- `verify` hijau (82 detik).
+
+Blob ter-commit 0 CR. CI #118 hijau semua; build API dilewati (*Ignored Build Step*).
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+Pemilik menutup sesi: *"simpan, commit dan push, saya akhiri dulu sesi hari ini"*. Pohon kerja bersih dan nol stash. Kedua cabang sesi ini (`fase-1/isi-reinforcement-learning` dan cabang catatan ini) sudah di-push dan sama dengan `origin`. Port 3401, 5096, 5098, dan 5099 kosong. Docker dan WSL mati. Belum ada yang di-merge sejak #115.
+
+**Produksi:** tak berubah sejak kemarin. Ada 17 bidang dan 12 topik `draf`, `main` = `7f1b6a8`, dan citra API `e262bb1`.
+
+**PR terbuka:**
+
+| PR | Isi | Sesudah merge |
+|---|---|---|
+| [#116](https://github.com/xtheoputra/techverse-x/pull/116) | Machine Learning Klasik | *Pasang isi* `machine-learning-klasik` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan kelima SVG |
+| [#118](https://github.com/xtheoputra/techverse-x/pull/118) | Reinforcement Learning | *Pasang isi* `reinforcement-learning` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan kelima SVG |
+| [#117](https://github.com/xtheoputra/techverse-x/pull/117) | catatan Sesi 26 (Lanjutan 2) dan Sesi 27, `docs/SESSION-LOG.md` saja | — |
+
+⚠️ **Urutan merge: #116, lalu #118, lalu #117. Beri jeda di setiap langkah sampai build web sebelumnya selesai.** Ketiganya menambah atau mengubah berkas web, dan merge yang berdekatan pernah membuat build lama menang sehingga gambar baru 404. Bila 404 tetap terjadi, merge berikutnya atau *Promote* deployment terbaru memperbaikinya. #116 dan #118 tidak saling bergantung.
+
+**Izin *Pasang isi*** belum diberikan untuk #116 maupun #118. Saya akan bertanya sesudah merge.
+
+**Belum diverifikasi (tanpa Chrome):** bingkai video di origin https untuk #102, #104–#107, #109, #110, #114, #116, dan #118, serta luberan 390 px.
+
+**Lingkungan:**
+
+- venv uji `%TEMP%\tv-rl`: gymnasium 1.4.0, stable-baselines3 2.9.0, torch 2.14.1+cpu, dan pymupdf;
+- PDF dan dokumentasi sumber di `%TEMP%\rl-sumber`;
+- kode uji dan generator di scratchpad sesi ini (bisa hilang seperti kemarin);
+- API :5096 dan web :3401 sudah dihentikan setelah PID dan baris perintahnya dicocokkan;
+- basis data `techversex_rl` sudah dibuang;
+- Docker Desktop dan WSL dimatikan lagi.
+
+**Berikutnya:** ketujuh topik AI & Machine Learning di ADR-010 kini punya PR isi. Setelah #116 dan #118 di-merge dan dipasang, bidang ini lengkap. Langkah selanjutnya saya tanyakan dulu ke pemilik: bidang berikutnya, atau pembacaan dan *tinjau* topik yang sudah ada.
+
+---
+
+## 2026-10-12 — Sesi 26 (Lanjutan 2): gambar Multimodal pulih; topik keenam AI & Machine Learning, Machine Learning Klasik
+
+Permintaan pemilik: *"lanjutkan"*.
+
+### Produksi
+
+Pemilik me-merge **#115** pukul 07:56:56 UTC. Build web produksinya dibuat dari kepala `main` (`7f1b6a8`), dan kelima `/media/multimodal-ai/*.svg` kini **200**. Dugaan di Lanjutan terbukti: build yang tayang sebelumnya memang tak memuat gambar itu.
+
+Pemindai ADR-024 dijalankan **langsung di produksi** (hanya GET): 31 halaman, 29 di antaranya `/teknologi/*`, **0 kena**, setiap halaman 200. Build API dilewati, jadi citra API tetap `e262bb1`.
+
+### Machine Learning Klasik — [PR #116](https://github.com/xtheoputra/techverse-x/pull/116)
+
+Cabang `fase-1/isi-machine-learning-klasik` dari `origin/main`. Ceritanya: perpustakaan ingin mengirim pengingat hanya kepada peminjam yang kemungkinan terlambat. Isinya 12 langkah (3.107 kata), 5 diagram SVG (3 dari keluaran kode), 2 video StatQuest, 18 sumber, dan 2 proyek mini. `requires: []`, karena ini topik fondasi.
+
+**Sumber primer dibaca saat itu:**
+
+- panduan scikit-learn **dari sumber `.rst` di tag `1.9.1`** (situsnya sangat lambat; ini juga versi yang diuji);
+- makalah Grinsztajn dkk. 2022, Kapoor & Narayanan 2022, dan XGBoost, dibaca dari PDF-nya;
+- TabPFN, *Nature* 2025, dibaca dari halaman artikelnya.
+
+Semua 19 URL unik 200. Saat pertama diukur, ke-19 URL itu tampak `000`, tetapi itu kesalahan alat ukur saya: daftar URL ditulis Python dengan CRLF, dan `while read` melewatkan baris terakhir.
+
+**Percobaan sendiri** (data dengan aturan tersembunyi yang diketahui, 28 detik):
+
+| Yang diukur | Hasil |
+|---|---|
+| tebakan paling malas | akurasi 74,1%, akurasi seimbang 50,0% |
+| pohon kedalaman 2 | pertanyaan pertamanya `jarak_km <= 10.0`, persis lompatan yang ditanam |
+| overfitting | latih → 100%; uji memuncak 83,0% (kedalaman 6) lalu 78,2% |
+| validasi silang | kedalaman 5 (81,7% ± 0,9), uji sekali 82,8%; satu pemisahan saja 79,3–83,8% |
+| kebocoran | kolom denda → 100%; contoh label acak dari panduan scikit-learn terulang **persis** 0,76 vs 0,5 |
+| ensembel | regresi logistik hampir menyamai gradient boosting (75,6 vs 77,2 akurasi seimbang CV; selisihnya di bawah simpangan baku) |
+| k-means | ARI 0,12 tanpa skala → 0,82 dengan skala; silhouette memilih k = 3 |
+| ekstrapolasi 10 buku | pohon mentok 9,2 hari; aturan asli 12,3 |
+
+🐞 **Tiga klaim diperbaiki sebelum commit:**
+
+- **"Proxy variables" Kapoor & Narayanan sempat dipakai untuk soal keadilan.** Di makalah itu, *proxy* adalah wakil untuk label, yaitu kebocoran. Kutipannya dihapus.
+- **17 bidang dan 329 makalah** kini ditulis sebagai survei atas laporan-laporan sebelumnya.
+- **Batas k-means** kini "cembung dan sama ke segala arah", sesuai dokumentasi.
+
+**Diverifikasi:**
+
+- `uji_mlk.py` **39 ok**;
+- `cek_isi.py` **34 ok** (13 blok kode = potongan persis berkas uji);
+- `mypy --strict` pada 4 berkas kode halaman, dengan `warn_return_any` dimatikan karena scikit-learn tak bertipe;
+- `.\run.ps1 isi` sah (13 topik), dan `gerbang-isi` **HIJAU**;
+- halaman lokal 200, dengan 13 blok kode, 7 tabel, 5 gambar, dan 2 video;
+- pemindai ADR-024 **0 kena**;
+- `verify` hijau (74 detik).
+
+Blob ter-commit 0 CR. CI #116 hijau semua.
+
+### Keadaan akhir Sesi 26 (digantikan oleh 🏁 Sesi 27, di atas)
+
+Pemilik menutup sesi: *"simpan, commit dan push, saya akhiri sesi hari ini"*. Pohon kerja bersih dan nol stash. Kelima cabang sesi ini sudah di-push dan sama dengan `origin`. Port 3401, 5096, 5098, dan 5099 kosong, dan Docker mati. Belum ada yang di-merge sejak #115.
+
+**Produksi:** 17 bidang dan **12 topik `draf`**. Semua gambar 200. Citra API `e262bb1`, dan `main` = `7f1b6a8`.
+
+**PR terbuka:**
+
+| PR | Isi | Sesudah merge |
+|---|---|---|
+| [#116](https://github.com/xtheoputra/techverse-x/pull/116) | Machine Learning Klasik | *Pasang isi* `machine-learning-klasik` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan kelima SVG |
+| PR catatan ini | `docs/SESSION-LOG.md` saja | — |
+
+⚠️ **Urutan merge: #116 dulu, lalu PR catatan ini, beri jeda sampai build web #116 selesai.** Kalau PR catatan di-merge lebih dulu dan build-nya selesai belakangan, gambar Machine Learning Klasik akan 404 seperti Multimodal kemarin. Bila 404 tetap terjadi, merge berikutnya ke `main`, atau *Promote* deployment terbaru, memperbaikinya.
+
+**Izin *Pasang isi* sesi ini hanya untuk NLP, CV, dan Multimodal.** Untuk #116, tanyakan lagi sesudah merge.
+
+**Belum diverifikasi (tanpa Chrome):** bingkai video di origin https untuk #102, #104–#107, #109, #110, #114, dan #116, serta luberan 390 px.
+
+**Lingkungan:** venv uji `%TEMP%\tv-evals` kini memuat `uji-mlk`; PDF dan sumber `.rst` ada di `%TEMP%\mlk-sumber`. Server :3401 dan :5096 sudah dihentikan setelah PID dan baris perintahnya dicocokkan, dan basis data `techversex_mlk` sudah dibuang. Docker dinyalakan untuk gerbang, lalu dimatikan lagi bersama WSL.
+
+**Berikutnya, saya:** topik terakhir AI & Machine Learning menurut ADR-010, **Reinforcement Learning**.
+
+---
+
 ## 2026-10-12 — Sesi 26 (Lanjutan): #113 dan #114 dipasang ke produksi; gambar Multimodal 404 karena build web yang lebih tua menang
 
 Permintaan pemilik: *"lanjut progress"*. Pemilik sudah me-merge **#113** (07:13:33 UTC) dan **#114** (07:13:58), berselang 25 detik. Kedua build API dilewati (*Canceled by Ignored Build Step*), jadi citra API yang tayang tetap `e262bb1`.
@@ -42,7 +373,7 @@ Teks halaman tetap benar karena datang dari API. Yang hilang hanya berkas statis
 
 💡 *Dua PR yang menambah berkas web sebaiknya di-merge dengan jeda sampai build web yang pertama selesai, atau keadaannya diukur sesudah merge terakhir.*
 
-### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+### Keadaan sesudah Lanjutan (digantikan oleh 🏁 Lanjutan 2, di atas)
 
 **Produksi:** 17 bidang dan **12 topik `draf`**. Citra API `e262bb1`, dan `main` = `bfdf7a9`. Gambar Multimodal **404** sampai ada build web produksi baru.
 
