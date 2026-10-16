@@ -30,6 +30,58 @@ PR catatan ini sengaja dipakai sebagai uji pertama sesudah koneksi pulih:
 
 Pemilik meminta lanjut ke topik ketiga Cloud & Infrastructure, *Cloud hyperscaler: AWS, Azure, GCP*, dengan usul yang saya ajukan: contoh dijalankan di **emulator lokal sumber terbuka** lewat CLI dan SDK resmi, dan halaman menyebut dengan jujur bahwa itu emulator.
 
+**Uji Vercel sesudah koneksi pulih: berhasil.** PR ini (#122) langsung mendapat `Vercel – techverse-x-web` dengan *Deployment has completed* dan `Vercel – techverse-x-api` yang dilewati *Ignored Build Step*, sama seperti #116 dan #118.
+
+### Cloud hyperscaler — [PR #123](https://github.com/xtheoputra/techverse-x/pull/123)
+
+Cabang `fase-1/isi-cloud-hyperscaler` dari `origin/main`. Ceritanya: relawan perpustakaan ingin cadangan di luar gedung, tautan unduh sementara, dan kabar "buku dikembalikan". Ketiganya dikerjakan dengan SDK resmi AWS, Azure, dan Google Cloud di emulator lokal.
+
+Isinya 14 langkah (3.113 kata), 3 diagram SVG, 2 video resmi (AWS dan Google Cloud Tech), 25 sumber, dan 2 proyek mini. `requires: []`. Alat baru di katalog: `moto`, `azurite`, `fake-gcs-server`, `pubsub-emulator`, dan `boto3`.
+
+**Pilihan emulator diukur, bukan diingat.** Repositori sumber terbuka **LocalStack ternyata diarsipkan**. Penggantinya butuh akun, sehingga melanggar aturan tanpa pendaftaran. Jadi yang dipakai adalah moto 5.2.4 (Apache 2.0) untuk S3, IAM, dan SQS; Azurite 3.37.0 (Microsoft, MIT); fake-gcs-server 1.56.1 (BSD); dan emulator Pub/Sub resmi dari `google-cloud-cli:589.0.0-emulators`.
+
+**Sumber primer:** dokumentasi resmi ketiga cloud, dibaca saat itu (AWS juga lewat versi `.md`-nya), README Azurite, dan dokumentasi moto 5.2.4.
+
+**Percobaan sendiri** (harness dari emulator kosong: **19 ok**, 53 detik):
+
+| Yang diukur | Hasil |
+|---|---|
+| SDK Azure terbaru vs Azurite 3.37.0 | ditolak (*API version 2026-10-06 is not supported*); perlu `--skipApiVersionCheck` |
+| satu cadangan ke tiga penyimpanan | MD5 sama dalam tiga bentuk (hex, byte, base64) |
+| bucket GCS diminta `asia-southeast2` | fake-gcs-server mencatat `US-CENTRAL1` |
+| IAM moto | penolakan bawaan, dan `Deny` eksplisit mengalahkan `Allow s3:*` |
+| SAS Azurite: tulis / rusak / kedaluwarsa | 403 / 403 / 403 |
+| **presigned URL moto: rusak / kedaluwarsa** | **200 / 200**; dengan IAM menyala malah 500 |
+| antrean ketiga cloud | `[1, 0, 1]`: pesan yang tak dihapus muncul lagi |
+
+🐞 **Dibantah ukuran atau sumber sebelum commit:**
+
+- Dugaan bahwa emulator menegakkan aturan keamanan ternyata salah untuk moto. Langkah 10 dan matriks "emulator vs dokumentasi" kini membahasnya.
+- Diagram hierarki sempat mengklaim tagihan Azure dihitung di *resource group*. Klaim itu dibuang.
+- "Lokasi bucket GCS tetap" dilunakkan, karena dokumentasinya menyebut relokasi.
+- Putaran pertama memakai emulator yang masih menyimpan sisa putaran sebelumnya, sehingga muncul bucket ganda dan SQS `[1, 1, 1]`. Harness kini selalu mulai dari kontainer baru.
+
+**Diverifikasi:**
+
+- `cek_isi.py` **109 ok**, termasuk 22 blok kode harfiah dan 30 URL 200, dengan bukti merah tepat 2 gagal;
+- `mypy --strict`;
+- `.\run.ps1 isi` sah (17 berkas) dan `gerbang-isi` **HIJAU**;
+- halaman lokal 200: 14/14 judul langkah, 22 blok kode, 6 tabel, 3 gambar, dan 2 video;
+- pemindai ADR-024 **0 kena** di 36 halaman;
+- `verify` hijau (210 detik);
+- gitleaks *no leaks found*;
+- blob 0 CR;
+- CI #123 hijau, **termasuk kedua pemeriksaan Vercel**.
+
+### Keadaan sesudah bagian ini
+
+- `main` = `3311b9d`. #122 (catatan ini) dan #123 (Cloud hyperscaler) terbuka.
+- **Urutan merge: #122, lalu #123**, dengan jeda sampai build web sebelumnya selesai.
+- Merge #122 adalah build web produksi pertama sejak 2026-10-13, jadi sesudahnya kedelapan SVG Kontainer & Docker dan Kubernetes harus diukur.
+- Sesudah #123: *Pasang isi* `cloud-hyperscaler` tanpa ganti, `sha=e262bb1`, lalu ukur ketiga SVG-nya.
+- **Lingkungan:** kode uji di `%TEMP%\tv-cloud`. Kontainer `perpus-*` sudah dihapus, API :5096 dan web :3401 sudah dihentikan setelah PID-nya dicocokkan, dan basis data `techversex_cloud` sudah dibuang.
+- **Berikutnya** menurut ADR-010: *Jaringan cloud* (`requires: cloud-hyperscaler`) atau *Infrastructure as Code* (OpenTofu).
+
 ---
 
 ## 2026-10-16 — Sesi 29 (Lanjutan): #119, #120, #117 di-merge dan dipasang; Vercel berhenti membangun sejak 2026-10-13
