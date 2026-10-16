@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" role="img" aria-labelledby="judul desk">
+  <title id="judul">Di mana tagihan dan izin menempel</title>
+  <desc id="desk">Tiga kolom pohon. AWS: organisasi, organizational unit, akun, sumber daya. Azure: management group, subscription, resource group, sumber daya. Google Cloud: organisasi, folder, proyek, sumber daya. Tingkat ketiga, yaitu akun AWS, resource group, dan proyek, adalah wadah tempat sumber daya dibuat dan izin diberikan.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="760" height="420" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Di mana tagihan dan izin menempel</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Tiga nama untuk tangga yang sama.</text>
+  <text x="140" y="118" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="16" font-weight="700" text-anchor="middle">AWS</text>
+  <rect x="40" y="136" width="200" height="46" rx="8" fill="#a78bfa" fill-opacity="0.1" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="140.0" y="163.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">organisasi</text>
+  <rect x="40" y="202" width="200" height="46" rx="8" fill="#3987e5" fill-opacity="0.1" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="140.0" y="229.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">organizational unit</text>
+  <line x1="140" y1="182" x2="140" y2="200" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <rect x="40" y="268" width="200" height="46" rx="8" fill="#34d399" fill-opacity="0.2" stroke="#34d399" stroke-width="1.5"/>
+  <text x="140.0" y="295.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">akun AWS</text>
+  <line x1="140" y1="248" x2="140" y2="266" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <rect x="40" y="334" width="200" height="46" rx="8" fill="#98a3c4" fill-opacity="0.1" stroke="#98a3c4" stroke-width="1.5"/>
+  <text x="140.0" y="361.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">bucket, antrean, VM</text>
+  <line x1="140" y1="314" x2="140" y2="332" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <text x="380" y="118" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="16" font-weight="700" text-anchor="middle">Azure</text>
+  <rect x="280" y="136" width="200" height="46" rx="8" fill="#a78bfa" fill-opacity="0.1" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="380.0" y="163.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">management group</text>
+  <rect x="280" y="202" width="200" height="46" rx="8" fill="#3987e5" fill-opacity="0.1" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="380.0" y="229.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">subscription</text>
+  <line x1="380" y1="182" x2="380" y2="200" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <rect x="280" y="268" width="200" height="46" rx="8" fill="#34d399" fill-opacity="0.2" stroke="#34d399" stroke-width="1.5"/>
+  <text x="380.0" y="295.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">resource group</text>
+  <line x1="380" y1="248" x2="380" y2="266" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <rect x="280" y="334" width="200" height="46" rx="8" fill="#98a3c4" fill-opacity="0.1" stroke="#98a3c4" stroke-width="1.5"/>
+  <text x="380.0" y="361.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">storage account, VM</text>
+  <line x1="380" y1="314" x2="380" y2="332" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <text x="620" y="118" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="16" font-weight="700" text-anchor="middle">Google Cloud</text>
+  <rect x="520" y="136" width="200" height="46" rx="8" fill="#a78bfa" fill-opacity="0.1" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="620.0" y="163.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">organisasi</text>
+  <rect x="520" y="202" width="200" height="46" rx="8" fill="#3987e5" fill-opacity="0.1" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="620.0" y="229.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">folder</text>
+  <line x1="620" y1="182" x2="620" y2="200" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <rect x="520" y="268" width="200" height="46" rx="8" fill="#34d399" fill-opacity="0.2" stroke="#34d399" stroke-width="1.5"/>
+  <text x="620.0" y="295.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">proyek</text>
+  <line x1="620" y1="248" x2="620" y2="266" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <rect x="520" y="334" width="200" height="46" rx="8" fill="#98a3c4" fill-opacity="0.1" stroke="#98a3c4" stroke-width="1.5"/>
+  <text x="620.0" y="361.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">bucket, topik, VM</text>
+  <line x1="620" y1="314" x2="620" y2="332" stroke="#98a3c4" stroke-width="1.6" marker-end="url(#panah)"/>
+  <text x="380" y="400" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="middle">tingkat ketiga (hijau): wadah tempat sumber daya dibuat dan izin diberikan</text>
+</svg>

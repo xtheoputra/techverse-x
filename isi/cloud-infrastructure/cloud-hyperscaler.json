@@ -1,0 +1,297 @@
+{
+  "slug": "cloud-hyperscaler",
+  "name": "Cloud hyperscaler: AWS, Azure, GCP",
+  "fieldSlug": "cloud-infrastructure",
+  "summary": "AWS, Microsoft Azure, dan Google Cloud adalah tiga penyedia cloud terbesar, yang sering disebut hyperscaler. Nama layanannya berbeda, tetapi gagasan di baliknya sama: region dan zona, akun atau proyek tempat tagihan dan izin menempel, identitas dan kebijakan akses, penyimpanan objek, tautan sementara, antrean pesan, serta pilihan komputasi dari mesin virtual sampai serverless. Di halaman ini kamu mempelajari gagasan bersama itu lewat satu pekerjaan yang sama untuk perpustakaan, dikerjakan tiga kali dengan SDK resmi ketiganya di emulator lokal. Kamu juga melihat sendiri di mana emulator berperilaku seperti cloud, dan di mana ia diam-diam berbeda. Tak perlu akun cloud, kartu, atau biaya.",
+  "overview": "## Cadangan di luar gedung\n\nKatalog perpustakaan kita kini berjalan di Kubernetes, tetapi semua datanya masih di satu ruangan. Bila ruangan itu kebanjiran, cadangannya ikut hilang. Relawan perpustakaan ingin tiga hal: menyimpan cadangan basis data di tempat lain, membagikan tautan unduh sementara kepada pengurus cabang, dan mengirim kabar \"buku dikembalikan\" ke sistem lain tanpa harus menunggu jawabannya.\n\nKetiga pekerjaan itu bisa dikerjakan di cloud mana pun. Yang membingungkan adalah namanya. AWS menyebut wadah berkasnya *bucket* di S3, Azure menyebutnya *container* di Blob Storage, dan Google Cloud menyebutnya *bucket* di Cloud Storage. Halaman ini mengajarkan gagasannya sekali, lalu menunjukkan namanya di ketiga tempat.\n\n## Kenapa tidak satu topik per vendor\n\nHampir semua yang perlu kamu pahami berlaku di ketiganya: siapa bertanggung jawab atas apa, di mana data tinggal, siapa boleh melakukan apa, dan berapa biayanya. Kalau gagasannya sudah kuat, berpindah cloud tinggal belajar nama dan detail. Dokumentasi resmi tetap menjadi rujukan akhir untuk setiap angka.\n\n## Belajar tanpa akun cloud\n\nContoh di halaman ini dijalankan di **emulator**, yaitu program di laptopmu yang meniru API layanan cloud. Kode Python-nya memakai SDK resmi yang sama dengan yang kamu pakai di cloud sungguhan, hanya diarahkan ke alamat lokal.\n\n| Layanan | Emulator | Pembuatnya |\n|---|---|---|\n| Amazon S3, IAM, SQS | moto 5.2.4 | proyek sumber terbuka (Apache 2.0) |\n| Azure Blob Storage, Queue Storage | Azurite 3.37.0 | Microsoft (MIT) |\n| Google Cloud Pub/Sub | emulator Pub/Sub di Google Cloud CLI | Google |\n| Google Cloud Storage | fake-gcs-server 1.56.1 | proyek sumber terbuka (BSD) |\n\nKenapa bukan LocalStack, yang dulu sering dipakai untuk AWS? Repositori sumber terbukanya kini diarsipkan. Penggantinya, LocalStack for AWS, menawarkan paket Hobby gratis untuk pemakaian nonkomersial, tetapi harus mendaftar akun. Halaman ini memilih alat yang bisa dipakai tanpa mendaftar.\n\nEmulator sangat berguna, tetapi bukan cloud. Di langkah 6, 9, dan 10 kamu akan menemukan sendiri tempat ia berbeda.\n\n## Peta perjalanan\n\n| Bagian | Pertanyaan yang dijawab | Langkah |\n|---|---|---|\n| Fondasi | siapa menjaga apa, di mana data tinggal, di mana tagihan menempel | 1–3 |\n| Tangan di keyboard | menyalakan tiga cloud di laptop dan menyimpan cadangan | 4–6 |\n| Izin | identitas, kebijakan, dan tautan sementara | 7–10 |\n| Sisanya | antrean, komputasi, biaya, dan peta padanan | 11–14 |\n\n::media[video-s3]\n\n> [!CATATAN]\n> Semua kode di halaman ini benar-benar dijalankan dengan SDK resmi (boto3 1.43.114, azure-storage-blob 12.31.0, azure-storage-queue 12.18.0, google-cloud-storage 3.17.1, google-cloud-pubsub 2.43.0) terhadap emulator di Docker, pada Windows 11 dengan Docker Desktop. Perilaku layanan cloud sungguhan yang tak bisa diuji tanpa akun ditulis sebagai kutipan dokumentasi resminya, bukan sebagai hasil ukur.",
+  "media": [
+    {
+      "key": "tanggung-jawab",
+      "kind": "Image",
+      "url": "/media/cloud-hyperscaler/tanggung-jawab.svg",
+      "alt": "Tiga pita tanggung jawab. Atas, selalu milik pelanggan: data, perangkat, akun, dan akses. Tengah, bergeser menurut layanan: sistem operasi, aplikasi yang dipasang, dan firewall mesin virtual. Bawah, milik penyedia: perangkat keras, perangkat lunak dasar, jaringan, dan gedung pusat data.",
+      "caption": "Ringkasan dari model tanggung jawab bersama AWS dan Azure; contoh pita tengah dari dokumentasi AWS.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "hierarki",
+      "kind": "Image",
+      "url": "/media/cloud-hyperscaler/hierarki.svg",
+      "alt": "Tiga kolom tangga. AWS: organisasi, organizational unit, akun AWS, sumber daya. Azure: management group, subscription, resource group, sumber daya. Google Cloud: organisasi, folder, proyek, sumber daya.",
+      "caption": "Tingkat ketiga adalah wadah tempat sumber daya dibuat dan izin diberikan.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "emulator-vs-cloud",
+      "kind": "Image",
+      "url": "/media/cloud-hyperscaler/emulator-vs-cloud.svg",
+      "alt": "Tabel hasil uji emulator dibandingkan dokumentasi. Berbeda: lokasi bucket GCS tercatat US-CENTRAL1, presigned URL moto rusak dan kedaluwarsa tetap 200 dan 200, presigned di moto dengan IAM 500. Sesuai: penolakan bawaan IAM, deny eksplisit, SAS Azurite 403, dan antrean yang mengirim ulang.",
+      "caption": "Hasil ukur di halaman ini. Emulator meniru bentuk API, tetapi tidak selalu menegakkan aturannya.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "video-s3",
+      "kind": "Video",
+      "videoId": "ecv-19sYL3w",
+      "alt": "Introduction to Amazon S3 | Amazon Web Services",
+      "caption": "Pengantar singkat Amazon S3 dari AWS (91 detik, November 2024), video yang dipajang di halaman produk S3.",
+      "sourceName": "Amazon Web Services di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=ecv-19sYL3w",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-pubsub",
+      "kind": "Video",
+      "videoId": "jLI-84UjZLE",
+      "alt": "Cloud Pub/Sub in a minute",
+      "caption": "Cloud Pub/Sub dalam satu menit, dari Google Cloud Tech (106 detik, Desember 2020), video yang dipajang di halaman produk Pub/Sub.",
+      "sourceName": "Google Cloud Tech di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=jLI-84UjZLE",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    }
+  ],
+  "prerequisite": {
+    "title": "Yang perlu kamu siapkan: Docker dan Python",
+    "description": "Kamu sebaiknya sudah nyaman menjalankan kontainer dengan Docker (topik **Kontainer & Docker**) dan membaca Python sederhana. Kubernetes tidak diperlukan.\n\nSiapkan Docker dan Python 3 (contoh di halaman ini diuji dengan Python 3.15), lalu pasang SDK resmi ketiga cloud di sebuah venv:\n\n```bash\npip install boto3==1.43.114 azure-storage-blob==12.31.0 azure-storage-queue==12.18.0 google-cloud-storage==3.17.1 google-cloud-pubsub==2.43.0\n```\n\nVersinya dikunci karena emulator kadang tertinggal dari SDK terbaru. Kamu akan melihat contohnya di langkah 4.\n\nTak perlu akun AWS, Azure, atau Google Cloud. Semua kunci akses di halaman ini palsu dan hanya diterima emulator."
+  },
+  "roadmap": [
+    {
+      "title": "Siapa menjaga apa: tanggung jawab bersama",
+      "description": "Menyewa ruang di cloud mirip menyewa kios di pasar. Pengelola pasar menjaga atap, listrik, dan pintu gerbang. Kunci laci dan barang dagangan tetap urusanmu.\n\nKetiga penyedia menuliskan pembagian itu secara resmi:\n\n- **AWS** menyebutnya *Shared Responsibility Model*. AWS bertanggung jawab atas *\"Security of the Cloud\"*, yaitu perangkat keras, perangkat lunak, jaringan, dan gedung yang menjalankan layanannya. Pelanggan bertanggung jawab atas *\"Security in the Cloud\"*, dan luasnya bergantung pada layanan. Di EC2, kamu mengurus sistem operasi tamu beserta tambalannya. Di S3, sistem operasinya diurus AWS.\n- **Azure** menulis bahwa apa pun jenis penerapannya, *\"you always retain\"* tanggung jawab atas data, perangkat yang mengakses layanan, akun pengguna, dan manajemen akses.\n- **Google Cloud** memakai istilah *shared fate*. Google ingin bekerja lebih dekat dengan pelanggan lewat panduan, kode infrastruktur yang aman, dan pilihan asuransi, tetapi persyaratan keamanan bisnismu tetap kamu yang paling tahu.\n\n::media[tanggung-jawab]\n\nArtinya untuk perpustakaan: cloud tidak akan mencegah relawan membuka cadangan basis data ke publik. Siapa boleh membaca apa adalah keputusanmu, dan itulah isi langkah 7 sampai 10."
+    },
+    {
+      "title": "Region dan zona: di mana datamu tinggal",
+      "description": "**Region** adalah wilayah geografis tempat pusat data penyedia berada, misalnya Jakarta. Di dalam region ada beberapa **zona** (*availability zone*): kelompok pusat data yang terpisah secara fisik. Dokumentasi Azure menjelaskan bahwa setiap zona punya daya, pendingin, dan jaringan sendiri, sehingga bila satu zona padam, zona lain tetap bekerja.\n\nKetiga penyedia punya region di Jakarta:\n\n| | AWS | Azure | Google Cloud |\n|---|---|---|---|\n| nama region | `ap-southeast-3` | Indonesia Central | `asia-southeast2` |\n| zona | 3 | 3 | `asia-southeast2-a`, `-b`, `-c` |\n\nSatu catatan khusus AWS: region Jakarta termasuk region yang harus diaktifkan dulu. Dokumentasinya menulis bahwa region yang diperkenalkan sesudah 20 Maret 2019 harus diaktifkan sebelum bisa dipakai.\n\nMemilih region adalah keputusan nyata. Dokumentasi API S3 menyebut tiga alasannya: *\"to optimize latency, minimize costs, or address regulatory requirements\"*. Satu zona saja juga belum tahan bencana: aplikasi yang ingin tetap hidup saat satu zona padam harus dijalankan di lebih dari satu zona."
+    },
+    {
+      "title": "Akun, langganan, dan proyek: di mana tagihan dan izin menempel",
+      "description": "Setiap sumber daya cloud, entah mesin virtual atau bucket, harus berada di dalam sebuah \"wadah administrasi\". Di tingkat-tingkat inilah izin diberikan dan tagihan dikumpulkan. Namanya berbeda di tiap cloud:\n\n| | AWS | Azure | Google Cloud |\n|---|---|---|---|\n| puncak | organisasi (AWS Organizations) | management group | organisasi |\n| pengelompokan | organizational unit (OU) | management group bertingkat | folder |\n| wadah kerja | akun AWS | subscription, lalu resource group | proyek |\n\nDokumentasi Azure menyebut empat tingkat cakupan pengelolaan: *management groups, subscriptions, resource groups, and resources*. Dokumentasi Google Cloud menyebut proyek sebagai *\"the fundamental organizing entity\"*. AWS Organizations membantu mengelola banyak akun secara terpusat, dan akun-akun itu bisa dikelompokkan ke dalam OU.\n\n::media[hierarki]\n\nKebiasaan yang baik berlaku di ketiganya: pisahkan percobaan dari produksi. Untuk perpustakaan, misalnya, `perpus-latihan` dan `perpus-produksi` menjadi dua akun, dua subscription, atau dua proyek. Dengan begitu, kesalahan di tempat latihan tidak menyentuh data sungguhan, dan tagihannya bisa dilihat terpisah."
+    },
+    {
+      "title": "Tiga cloud di laptopmu",
+      "description": "Nyalakan emulatornya. Semuanya hanya mendengar di alamat *loopback* `127.0.0.1`, jadi tak bisa dijangkau dari jaringan lain:\n\n```bash\ndocker run -d --name perpus-moto -p 127.0.0.1:5100:5000 motoserver/moto:5.2.4\ndocker run -d --name perpus-azurite -p 127.0.0.1:10000:10000 -p 127.0.0.1:10001:10001 mcr.microsoft.com/azure-storage/azurite:3.37.0 azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --skipApiVersionCheck\ndocker run -d --name perpus-gcs -p 127.0.0.1:4443:4443 fsouza/fake-gcs-server:1.56.1 -scheme http -port 4443 -external-url http://127.0.0.1:4443\ndocker run -d --name perpus-pubsub -p 127.0.0.1:8085:8085 gcr.io/google.com/cloudsdktool/google-cloud-cli:589.0.0-emulators gcloud beta emulators pubsub start --host-port=0.0.0.0:8085 --project=perpus-lokal\n```\n\nSDK diarahkan ke emulator dengan cara yang berbeda-beda. Di boto3 dengan `endpoint_url=\"http://127.0.0.1:5100\"`. Di SDK Azure dengan *connection string* `UseDevelopmentStorage=true`, nama pendek untuk akun pengembangan Azurite `devstoreaccount1`. Di Google Cloud dengan variabel lingkungan `STORAGE_EMULATOR_HOST` dan `PUBSUB_EMULATOR_HOST`.\n\nPerhatikan bendera `--skipApiVersionCheck` pada Azurite. Tanpa bendera itu, langkah berikutnya gagal:\n\n```text\nThe API version 2026-10-06 is not supported by Azurite\n```\n\nSDK Azure terbaru meminta versi API layanan `2026-10-06`, yang belum dikenal Azurite 3.37.0. README Azurite menyediakan bendera ini untuk melewati pemeriksaannya. Pelajarannya: emulator selalu sedikit tertinggal dari cloud dan SDK-nya. Kunci versi keduanya, dan catat pasangan yang terbukti cocok."
+    },
+    {
+      "title": "Satu cadangan, tiga penyimpanan objek",
+      "description": "**Penyimpanan objek** menyimpan berkas utuh beserta namanya, tanpa sistem berkas sungguhan. Ketiga cloud punya konsep yang sama, dan hanya namanya yang berbeda. Begini cadangan katalog disimpan ke S3:\n\n```python\ndef ke_s3() -> str:\n    s3 = boto3.client(\"s3\", endpoint_url=\"http://127.0.0.1:5100\", region_name=\"ap-southeast-3\",\n                      aws_access_key_id=\"contoh\", aws_secret_access_key=\"contoh\")\n    s3.create_bucket(Bucket=\"perpus-cadangan\",\n                     CreateBucketConfiguration={\"LocationConstraint\": \"ap-southeast-3\"})\n    s3.put_object(Bucket=\"perpus-cadangan\", Key=NAMA, Body=DATA)\n    return s3.head_object(Bucket=\"perpus-cadangan\", Key=NAMA)[\"ETag\"]\n```\n\nKe Azure Blob Storage dan ke Cloud Storage, bentuknya serupa:\n\n```python\n    akun = BlobServiceClient.from_connection_string(\"UseDevelopmentStorage=true\")\n    wadah = akun.create_container(\"perpus-cadangan\")\n    wadah.upload_blob(NAMA, DATA)\n```\n\n```python\n    klien = storage.Client(project=\"perpus-lokal\", credentials=AnonymousCredentials())\n    ember = klien.create_bucket(\"perpus-cadangan\", location=\"asia-southeast2\")\n    ember.blob(NAMA).upload_from_string(DATA)\n```\n\nJalankan:\n\n```bash\npython objek.py\n```\n\n```text\nMD5 berkas   045fe3fb916414a047504a8b7fc1cf77\nS3 ETag      \"045fe3fb916414a047504a8b7fc1cf77\"\nBlob MD5     045fe3fb916414a047504a8b7fc1cf77\nGCS md5Hash  BF/j+5FkFKBHUEqLf8HPdw== = 045fe3fb916414a047504a8b7fc1cf77\n```\n\nKetiganya menyimpan sidik jari MD5 yang sama, hanya dalam bentuk berbeda. S3 menaruhnya sebagai heksadesimal di `ETag`, Azure sebagai byte di `content_md5`, dan Google Cloud dalam base64. Jangan terlalu bergantung pada `ETag` S3: dokumentasinya menulis bahwa ETag *\"may or may not be an MD5 digest\"*, bergantung pada cara objek dibuat dan dienkripsi.\n\nGaris miring di `2026-10-16/katalog.sql` bukan folder sungguhan. Ia hanya bagian dari nama objek."
+    },
+    {
+      "title": "Region bukan hiasan, dan batas pertama emulator",
+      "description": "Di langkah 5, bucket S3 dibuat dengan `LocationConstraint` eksplisit. Kalau baris itu dihapus, sementara klien diarahkan ke region `ap-southeast-3`:\n\n```text\nIllegalLocationConstraintException: The unspecified location constraint is incompatible for the region specific endpoint this request was sent to.\n```\n\nEmulator meniru penolakan itu. Dokumentasi API CreateBucket menjelaskan kenapa baris itu penting: bila region tidak disebut, bucket dibuat di US East (N. Virginia), `us-east-1`. Tanpa disadari, cadangan perpustakaan bisa tinggal di benua lain. Jadi selalu tulis lokasinya secara eksplisit.\n\nSekarang lihat bucket Google Cloud yang tadi dibuat dengan `location=\"asia-southeast2\"`. fake-gcs-server mencatat lokasinya sebagai **`US-CENTRAL1`**. Emulator itu mengabaikan lokasi yang kita minta. Di Cloud Storage, lokasi bucket dipilih saat bucket dibuat dan menentukan di mana datanya disimpan. Memindahkannya belakangan butuh relokasi bucket atau penyalinan data. Di emulator ini, salah lokasi tidak akan pernah ketahuan.\n\nInilah batas pertama emulator yang kita temukan. Ia meniru bentuk API dengan baik, tetapi aturan di sekitarnya, seperti lokasi, izin, dan kuota, belum tentu ikut ditiru. Uji yang lolos di emulator membuktikan kodenya memanggil API dengan benar. Uji itu tidak membuktikan bahwa kebijakanmu di cloud sudah benar."
+    },
+    {
+      "title": "Identitas dan izin: semua ditolak sampai diizinkan",
+      "description": "Bayangkan relawan baru yang tugasnya hanya memeriksa bahwa cadangan ada dan bisa dibaca. Di AWS, izinnya ditulis sebagai **kebijakan IAM** (*Identity and Access Management*) berbentuk JSON:\n\n```python\nBACA = {\"Version\": \"2012-10-17\", \"Statement\": [\n    {\"Effect\": \"Allow\", \"Action\": [\"s3:GetObject\", \"s3:ListBucket\"], \"Resource\": [EMBER, EMBER + \"/*\"]}]}\n```\n\nDokumentasi IAM menulis aturan dasarnya: *\"By default, all requests are implicitly denied\"*, kecuali untuk pengguna root akun. Jadi yang tidak disebut otomatis ditolak.\n\nUntuk menguji izin, moto dijalankan sekali lagi dengan pemeriksaan IAM menyala. `INITIAL_NO_AUTH_ACTION_COUNT=8` berarti delapan panggilan pertama untuk persiapan belum diperiksa:\n\n```bash\ndocker run -d --name perpus-moto-iam -e INITIAL_NO_AUTH_ACTION_COUNT=8 -p 127.0.0.1:5101:5000 motoserver/moto:5.2.4\npython izin.py\n```\n\n```text\npemantau membaca cadangan                boleh\npemantau menulis berkas baru             AccessDenied\n```\n\nMembaca boleh, menulis ditolak. Tak ada aturan \"jangan menulis\" di kebijakannya. Penolakan itu datang dari aturan bawaan tadi.\n\nGagasan yang sama ada di cloud lain dengan nama berbeda. Di **Azure RBAC**, sebuah *role assignment* terdiri atas tiga unsur: *security principal*, *role definition*, dan *scope*. Di **Google Cloud IAM**, kamu memberi seorang *principal* sebuah *role*, yaitu kumpulan izin, pada sebuah sumber daya. Dokumentasi IAM AWS meringkas sikap yang sama untuk ketiganya: *apply least-privilege permissions*, beri hak secukupnya."
+    },
+    {
+      "title": "Deny selalu menang",
+      "description": "Lanjutkan percobaannya. Pemantau kini diberi kebijakan kedua yang mengizinkan semua aksi S3, tetapi menolak penghapusan secara tegas:\n\n```python\nTULIS_TAPI_JANGAN_HAPUS = {\"Version\": \"2012-10-17\", \"Statement\": [\n    {\"Effect\": \"Allow\", \"Action\": \"s3:*\", \"Resource\": \"*\"},\n    {\"Effect\": \"Deny\", \"Action\": \"s3:DeleteObject\", \"Resource\": EMBER + \"/*\"}]}\n```\n\n```text\npemantau menulis (sesudah izin tulis)    boleh\npemantau menghapus cadangan              AccessDenied\n```\n\nMenulis kini boleh. Menghapus tetap ditolak, walau `s3:*` mencakup `s3:DeleteObject`. Dokumentasi evaluasi kebijakan AWS menjelaskan alasannya: bila ditemukan satu saja *explicit deny* yang berlaku, keputusan akhirnya **Deny**. Pola ini berguna untuk pagar pengaman: beri izin yang lebar untuk bekerja, tetapi tutup rapat aksi yang tak boleh terjadi, seperti menghapus cadangan.\n\nAzure bekerja sedikit berbeda. Dokumentasinya menyebut Azure RBAC sebagai *additive model*, yaitu izin efektifmu adalah jumlah semua *role assignment*. Untuk menolak, Azure punya konsep terpisah, *deny assignment*, yang ikut diperiksa saat aksi dijalankan. Di ketiga cloud, uji izin dengan akun yang benar-benar punya hak terbatas, jangan dengan akun admin."
+    },
+    {
+      "title": "Tautan sementara: SAS, presigned URL, dan signed URL",
+      "description": "Pengurus cabang perlu mengunduh cadangan tanpa diberi akun. Ketiga cloud punya jawaban yang sama: **tautan bertanda tangan** yang memuat izin dan batas waktunya sendiri. Namanya *presigned URL* di S3, *shared access signature* (SAS) di Azure, dan *signed URL* di Cloud Storage.\n\nIni SAS hanya-baca yang kedaluwarsa dalam 5 detik:\n\n```python\nsas = generate_blob_sas(\"devstoreaccount1\", \"perpus-tautan\", \"katalog.sql\",\n                        account_key=akun.credential.account_key,\n                        permission=BlobSasPermissions(read=True),\n                        expiry=dt.datetime.now(dt.timezone.utc) + dt.timedelta(seconds=5))\n```\n\n```bash\npython tautan.py\n```\n\n```text\nSAS   baca                 200\nSAS   tulis (izin baca)    403\nSAS   tanda tangan diubah  403\nSAS   sesudah kedaluwarsa  403\n```\n\nAzurite menegakkan ketiga aturannya. Tautan baca tak bisa dipakai untuk menulis, tanda tangan yang diubah satu huruf ditolak, dan tautan yang lewat batas waktunya ditolak.\n\nBatas waktunya berbeda-beda. Presigned URL S3 dari SDK bisa berlaku *\"as high as 7 days\"*. Untuk signed URL Cloud Storage, nilai terpanjangnya 604800 detik (7 hari). Untuk Azure, Microsoft menyarankan *user delegation SAS*, yang diamankan dengan kredensial Microsoft Entra, bukan kunci akun. Seperti di contoh ini, pilih batas waktu sependek mungkin."
+    },
+    {
+      "title": "Saat emulator diam-diam berbohong",
+      "description": "Skrip yang sama juga membuat presigned URL S3 di moto, lalu mencobanya dengan cara yang sama:\n\n```text\nmoto  baca                 200\nmoto  tanda tangan diubah  200\nmoto  sesudah kedaluwarsa  200\n```\n\nSemuanya 200, termasuk tanda tangan yang sengaja dirusak dan tautan yang sudah kedaluwarsa. moto meniru bentuk presigned URL, tetapi tidak memeriksanya. Pada moto dengan pemeriksaan IAM menyala (langkah 7), presigned URL yang sama malah dijawab **500**, karena server mencari tanda tangan di header `Authorization`, padahal presigned URL membawanya di alamat.\n\nKode yang lolos di sini bisa gagal di S3 sungguhan. Lebih buruk lagi, kode yang keliru membuat tautan tanpa batas waktu juga akan tampak benar. Kesimpulannya:\n\n::media[emulator-vs-cloud]\n\n- Emulator cocok untuk menguji **alur kode**: memanggil API yang benar, dengan parameter yang benar, dan menangani jawabannya.\n- Emulator **tidak** cocok untuk membuktikan **keamanan**: izin, tanda tangan, kedaluwarsa, dan enkripsi. Hal-hal itu diuji di akun cloud sungguhan yang kosong dan terpisah, atau setidaknya dibandingkan dengan dokumentasi resminya.\n- Catat perbedaan yang kamu temukan. Dokumentasi emulator Pub/Sub sendiri jujur menulis *\"IAM operations are not supported\"*, dan README Azurite punya bagian khusus tentang perbedaan Azurite dengan Azure Storage."
+    },
+    {
+      "title": "Antrean pesan: kabar yang bisa datang dua kali",
+      "description": "Saat buku dikembalikan, katalog cukup menaruh pesan di **antrean**. Sistem lain, misalnya pengirim pengingat, mengambilnya kapan saja. Pesan yang sudah diambil disembunyikan sementara. Kalau pengambilnya tidak menghapus pesan itu (atau tidak mengirim *ack*) sebelum waktunya habis, pesan itu muncul lagi. Polanya sama di ketiga cloud:\n\n```python\n    hasil = []\n    for jeda in (0, 0, 6):  # ambil, ambil lagi, lalu tunggu melewati batas tak-terlihat\n        time.sleep(jeda)\n        hasil.append(len(q.receive_message(QueueUrl=url).get(\"Messages\", [])))\n```\n\n```bash\npython antrean.py\n```\n\n```text\nSQS            [1, 0, 1]\nQueue Storage  [1, 0, 1]\nPub/Sub        [1, 0, 1]\n```\n\nArtinya: diambil, tak terlihat lagi, lalu muncul kembali setelah batas waktunya. Di SQS dan Queue Storage batas itu disebut *visibility timeout*. Bawaan SQS 30 detik, dan paling lama 12 jam. Di Pub/Sub namanya *ack deadline*.\n\nKetiga dokumentasi juga sepakat soal satu hal penting. SQS menyebut *\"at-least-once delivery model\"*, Pub/Sub menulis *\"By default, Pub/Sub offers at-least-once delivery\"*, dan perbandingan resmi Azure mencantumkan *At-Least-Once* untuk Storage queues. Jadi pesan yang sama bisa datang dua kali. Buat pengolahnya aman diulang: catat ID pesan yang sudah diproses, atau pastikan memproses ulang tidak mengubah hasil.\n\n::media[video-pubsub]"
+    },
+    {
+      "title": "Pilihan komputasi: dari mesin virtual sampai serverless",
+      "description": "Untuk menjalankan kode, ketiga cloud menawarkan tangga yang sama. Semakin ke bawah, semakin sedikit yang kamu urus sendiri:\n\n| Kamu ingin | AWS | Azure | Google Cloud |\n|---|---|---|---|\n| mesin virtual utuh | Amazon EC2 | Azure Virtual Machines | Compute Engine |\n| cluster Kubernetes terkelola | Amazon EKS | Azure Kubernetes Service (AKS) | Google Kubernetes Engine (GKE) |\n| kode tanpa mengurus server | AWS Lambda | Azure Functions | Cloud Run |\n\nDokumentasinya menggambarkan tangga itu dengan jelas. Azure menulis bahwa mesin virtual dipilih saat kamu butuh *\"more control over the computing environment\"*. AWS Lambda disebut layanan *serverless* yang menjalankan kode *\"without provisioning or managing servers\"*. Cloud Run disebut *\"a fully managed application platform\"*.\n\nKarena EKS, AKS, dan GKE semuanya menjalankan Kubernetes, manifest katalog dari topik Kubernetes pada dasarnya bisa dibawa. Yang perlu disesuaikan adalah bagian yang menyentuh cloud, seperti kelas penyimpanan dan Gateway. Untuk pekerjaan kecil yang jarang berjalan, misalnya membuat cadangan setiap malam, serverless patut dipertimbangkan. Dokumentasi Lambda menyebut *\"You pay only for the resources used\"*, dan dokumentasi Cloud Run menulis bahwa pada penagihan per permintaan, instans yang tidak sedang memproses permintaan tidak ditagih."
+    },
+    {
+      "title": "Biaya: kredit gratis, bayar sesuai pakai, dan anggaran yang hanya memberi tahu",
+      "description": "Ketiga penyedia memakai model **bayar sesuai pakai** (*pay-as-you-go*), dan ketiganya menawarkan kredit atau layanan gratis untuk pemula. Per Oktober 2026, halaman resminya menulis:\n\n- **AWS:** akun Free Tier baru mendapat kredit 100 dolar AS, dan bisa mendapat sampai 100 dolar lagi, yaitu *\"up to $200 over 6 months\"*.\n- **Azure:** sebagian layanan gratis untuk 12 bulan pertama bagi pelanggan baru, dan sebagian lagi selalu gratis. Ada juga kredit 100 dolar untuk pelajar dengan email akademik, *\"No credit card required\"*.\n- **Google Cloud:** *Free Trial* memberi kredit 300 dolar untuk 90 hari, ditambah *Free Tier* dengan batas pemakaian bulanan.\n\nPenawaran seperti ini berubah dari waktu ke waktu, jadi selalu periksa halaman resminya sebelum mendaftar.\n\nSatu kesalahpahaman yang mahal: **anggaran tidak menghentikan pemakaian.** Dokumentasi Azure menulis bahwa saat ambang anggaran terlampaui, *\"Resources aren't affected, and your consumption isn't stopped\"*. Google Cloud memperingatkan bahwa anggaran yang hanya berisi peringatan *\"doesn't automatically cap\"* pemakaian. AWS Budgets juga mengirim peringatan untuk biaya aktual dan perkiraan.\n\nJadi pasang peringatan anggaran sejak hari pertama, matikan sumber daya latihan sesudah dipakai, dan jangan pernah menaruh kunci akses asli di kode."
+    },
+    {
+      "title": "Peta padanan, dan kapan satu cloud sudah cukup",
+      "description": "Ini ringkasan semua yang kita kerjakan, dalam tiga bahasa cloud:\n\n| Gagasan | AWS | Azure | Google Cloud |\n|---|---|---|---|\n| wilayah dan zona | Region, Availability Zone | Region, availability zone | Region, zone |\n| wadah tagihan dan izin | akun, Organizations | subscription, resource group | proyek, folder |\n| identitas dan izin | IAM (kebijakan JSON) | Azure RBAC (*role assignment*) | IAM (*allow policy*) |\n| penyimpanan objek | S3: bucket | Blob Storage: container | Cloud Storage: bucket |\n| tautan sementara | presigned URL | SAS | signed URL |\n| antrean pesan | SQS | Queue Storage | Pub/Sub |\n| anggaran | AWS Budgets | Cost Management budgets | Cloud Billing budgets |\n\nApakah perpustakaan perlu memakai ketiganya sekaligus? Hampir pasti tidak. Satu cloud yang dipahami dengan baik lebih aman daripada tiga cloud yang dipahami setengah-setengah. Setiap cloud tambahan berarti satu lagi sistem izin, satu lagi tagihan, dan satu lagi tempat kesalahan konfigurasi bisa bersembunyi.\n\nYang layak dijaga sejak awal adalah **kemudahan pindah**: simpan data dalam format terbuka, bungkus aplikasi dalam kontainer, dan tulis infrastruktur sebagai kode. Topik berikutnya membahas dua hal yang dibangun di atas fondasi ini: jaringan cloud, dan Infrastructure as Code.\n\nSetelah selesai, bersihkan emulatornya:\n\n```bash\ndocker rm -f perpus-moto perpus-moto-iam perpus-azurite perpus-gcs perpus-pubsub\n```"
+    }
+  ],
+  "tools": [
+    {
+      "slug": "moto",
+      "name": "moto",
+      "summary": "Pustaka dan server sumber terbuka (Apache 2.0) yang meniru API AWS seperti S3, IAM, dan SQS, untuk menguji kode tanpa akun AWS.",
+      "homepage": "https://github.com/getmoto/moto",
+      "note": "Dijalankan sebagai kontainer motoserver/moto:5.2.4, sekali biasa dan sekali dengan pemeriksaan IAM."
+    },
+    {
+      "slug": "azurite",
+      "name": "Azurite",
+      "summary": "Emulator resmi Microsoft (MIT) untuk Azure Blob, Queue, dan Table Storage, yang bisa diakses dengan SDK dan alat Azure biasa.",
+      "homepage": "https://github.com/Azure/Azurite",
+      "note": "Versi 3.37.0, dengan --skipApiVersionCheck karena SDK terbaru meminta versi API yang lebih baru."
+    },
+    {
+      "slug": "fake-gcs-server",
+      "name": "fake-gcs-server",
+      "summary": "Emulator sumber terbuka (BSD) untuk API Google Cloud Storage. Tidak dibuat oleh Google.",
+      "homepage": "https://github.com/fsouza/fake-gcs-server",
+      "note": "Versi 1.56.1. Mengabaikan lokasi bucket yang diminta (langkah 6)."
+    },
+    {
+      "slug": "pubsub-emulator",
+      "name": "Emulator Pub/Sub",
+      "summary": "Emulator resmi Google Cloud Pub/Sub dari Google Cloud CLI, untuk mengembangkan dan menguji aplikasi tanpa layanan produksi.",
+      "homepage": "https://cloud.google.com/pubsub/docs/emulator",
+      "note": "Dari citra google-cloud-cli:589.0.0-emulators. Tidak mendukung operasi IAM."
+    },
+    {
+      "slug": "boto3",
+      "name": "boto3",
+      "summary": "SDK resmi AWS untuk Python, untuk membuat dan mengelola layanan AWS dari kode.",
+      "homepage": "https://github.com/boto/boto3",
+      "note": "Versi 1.43.114."
+    },
+    {
+      "slug": "docker-engine",
+      "name": "Docker Engine",
+      "summary": "Mesin kontainer sumber terbuka (Apache 2.0) beserta CLI docker: membangun citra dengan BuildKit, menjalankan kontainer, serta mengatur jaringan dan volume.",
+      "homepage": "https://docs.docker.com/engine/",
+      "note": "Menjalankan keempat emulator. Contoh diuji dengan Docker Engine 29.1.5."
+    }
+  ],
+  "projects": [
+    {
+      "title": "Cadangan nyata ke emulator, dengan izin minimum",
+      "brief": "Buat skrip cadangan untuk aplikasi milikmu sendiri, misalnya hasil `pg_dump` dari basis data latihan, lalu simpan ke ketiga emulator di halaman ini.\n\n- Beri nama objek berdasarkan tanggal, dan simpan MD5-nya di metadata atau di nama berkas pendamping.\n- Buat kebijakan IAM di moto (dengan pemeriksaan IAM menyala) untuk pengguna yang hanya boleh membaca cadangan, dan satu lagi untuk proses cadangan yang hanya boleh menulis.\n- Buat SAS hanya-baca di Azurite yang berlaku 10 menit.\n\n**Kamu selesai bila:**\n\n1. skripmu menulis cadangan yang sama ke S3, Blob Storage, dan Cloud Storage, lalu memeriksa bahwa MD5 ketiganya sama dengan berkas aslinya;\n2. pengguna \"pembaca\" mendapat `AccessDenied` saat menulis, dan proses \"penulis\" mendapat `AccessDenied` saat menghapus;\n3. SAS-mu menjawab 200 untuk unduhan, 403 untuk unggahan, dan 403 setelah kedaluwarsa;\n4. kamu menuliskan, dengan contoh, satu hal yang lolos di emulator tetapi mungkin gagal di cloud sungguhan."
+    },
+    {
+      "title": "Pengolah antrean yang aman diulang",
+      "brief": "Tulis pengolah pesan \"buku dikembalikan\" yang aman walau pesan yang sama datang dua kali.\n\n- Kirim pesan ke SQS (moto), Queue Storage (Azurite), dan Pub/Sub (emulator), masing-masing dengan ID buku dan ID peminjaman.\n- Olah pesan dengan mencatat ID peminjaman yang sudah diproses, misalnya di SQLite.\n- Sengaja jangan menghapus atau mengirim *ack* untuk satu pesan, supaya ia muncul lagi setelah batas waktunya.\n\n**Kamu selesai bila:**\n\n1. pesan yang muncul dua kali hanya diproses sekali, dan pengolahmu mencatat bahwa ia melewatkan pesan ganda;\n2. kamu bisa menunjukkan dari keluaran program bahwa pesan memang muncul kembali setelah *visibility timeout* atau *ack deadline*;\n3. kamu menjelaskan dengan kalimatmu sendiri kenapa ketiga layanan menjanjikan *at-least-once*, bukan *exactly-once*, untuk mode bawaannya;\n4. semua kontainer emulator sudah dihapus."
+    }
+  ],
+  "resources": [
+    {
+      "type": "OfficialDocs",
+      "title": "AWS Shared Responsibility Model",
+      "url": "https://aws.amazon.com/compliance/shared-responsibility-model/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Shared responsibility in the cloud — Azure",
+      "url": "https://learn.microsoft.com/en-us/azure/security/fundamentals/shared-responsibility"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Shared responsibilities and shared fate on Google Cloud",
+      "url": "https://cloud.google.com/architecture/framework/security/shared-responsibility-shared-fate"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "AWS Regions",
+      "url": "https://docs.aws.amazon.com/global-infrastructure/latest/regions/aws-regions.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "What are availability zones? — Azure",
+      "url": "https://learn.microsoft.com/en-us/azure/reliability/availability-zones-overview"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Regions and zones — Compute Engine",
+      "url": "https://cloud.google.com/compute/docs/regions-zones"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "What is AWS Organizations?",
+      "url": "https://docs.aws.amazon.com/organizations/latest/userguide/orgs_introduction.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "What is Azure Resource Manager?",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/overview"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Resource hierarchy — Google Cloud",
+      "url": "https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Policy evaluation logic — AWS IAM",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Security best practices in IAM",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "What is Azure role-based access control (Azure RBAC)?",
+      "url": "https://learn.microsoft.com/en-us/azure/role-based-access-control/overview"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "IAM overview — Google Cloud",
+      "url": "https://cloud.google.com/iam/docs/overview"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "CreateBucket — Amazon S3 API Reference",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Sharing objects with presigned URLs — Amazon S3",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Grant limited access with shared access signatures (SAS) — Azure Storage",
+      "url": "https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Signed URLs — Cloud Storage",
+      "url": "https://cloud.google.com/storage/docs/access-control/signed-urls"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Amazon SQS visibility timeout",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Storage queues and Service Bus queues — compared and contrasted",
+      "url": "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-azure-and-service-bus-queues-compared-contrasted"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Testing apps locally with the Pub/Sub emulator",
+      "url": "https://cloud.google.com/pubsub/docs/emulator"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Create, edit, or delete budgets and budget alerts — Cloud Billing",
+      "url": "https://cloud.google.com/billing/docs/how-to/budgets"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Tutorial: Create and manage budgets — Azure Cost Management",
+      "url": "https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/tutorial-acm-create-budgets"
+    },
+    {
+      "type": "Repository",
+      "title": "moto — dokumentasi IAM-like Access Control",
+      "url": "https://github.com/getmoto/moto/blob/5.2.4/docs/docs/iam.rst"
+    },
+    {
+      "type": "Repository",
+      "title": "Azurite",
+      "url": "https://github.com/Azure/Azurite"
+    },
+    {
+      "type": "Repository",
+      "title": "fake-gcs-server",
+      "url": "https://github.com/fsouza/fake-gcs-server"
+    }
+  ],
+  "requires": []
+}
