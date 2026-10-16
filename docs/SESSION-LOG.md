@@ -4,6 +4,139 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-16 — Sesi 30: favicon = logo situs (#124); SVG Kontainer & Docker dan Kubernetes kini 200
+
+Permintaan pemilik: *"bisakah logo [di dasbor Vercel] disamakan dengan logo yang ada di websitenya?"*, lalu *"sudah saya merged 124"*, lalu *"lanjutkan progress proyek"*.
+
+### Favicon (#124)
+
+Dasbor Vercel mengambil ikon kartu proyek dari favicon situs produksi. Ternyata `apps/web/src/app/favicon.ico` **masih bawaan create-next-app** sejak skeleton Fase 1 (25.931 byte, segitiga Vercel), dan produksi memang mengirim file itu.
+
+[#124](https://github.com/xtheoputra/techverse-x/pull/124) menggantinya dengan `icon.svg`, `favicon.ico` (16/32/48), dan `apple-icon.png` (180). Ketiganya digambar dari `LogoMark` yang sama dengan kepala halaman, di atas warna latar situs `#04050b`. `next build` lulus, dan HTML hasil build menautkan ketiganya.
+
+Pemilik me-merge pukul 09:52:47 UTC. Deployment produksi `techverse-x-web` dari `f770cb7` selesai 09:53:09, dan `/favicon.ico` produksi kini **4.754 byte**. Dasbor Vercel belum berubah saat pemilik melihatnya, beberapa detik sesudah deploy. **Belum diverifikasi** (tanpa browser): kapan dasbor memperbarui ikonnya.
+
+### Build web #124 ikut membawa media yang tertinggal
+
+Build itu adalah build web produksi pertama sejak 2026-10-13 yang memuat `main` terbaru, jadi kedelapan SVG Kontainer & Docker dan Kubernetes kini **200 semua**; di 🏁 Sesi 29 mereka masih 404. Halaman `/teknologi/kontainer-dan-docker` dan `/teknologi/kubernetes` 200, dan `/health/ready` API 200.
+
+Jadi pemeriksaan sesudah merge #122 yang tertulis di 🏁 Sesi 29 sudah terpenuhi lebih dulu. #122 dan #123 tetap **MERGEABLE/CLEAN**, dan keduanya punya ketujuh pemeriksaan, termasuk `Vercel – techverse-x-web` dan `Vercel – techverse-x-api`.
+
+---
+
+## 2026-10-16 — Sesi 29 (Lanjutan 2): sisi Kubernetes → Kontainer & Docker tayang; penyebab Vercel: Git terputus
+
+Permintaan pemilik: *"121 sudah saya gabungkan"*, lalu *"memang gitnya terputus, sudah saya hubungkan lagi, 2. lanjutkan"*.
+
+### Sisi Knowledge Graph
+
+Pemilik me-merge **#121** pukul 07:19:23 UTC, dan `main` kini `3311b9d`. Lalu *Pasang isi* `kubernetes` dari `main`, `sha=e262bb1`, tanpa ganti ([38866530052](https://github.com/xtheoputra/techverse-x/actions/runs/38866530052)): `sisi kubernetes butuh kontainer-dan-docker`, lalu `selesai … sama dengan berkas`. Hasilnya sama persis dengan tiruan di basis data sekali pakai.
+
+API produksi mencatat `kubernetes.requires = [kontainer-dan-docker]` dan `kontainer-dan-docker.requiredBy = [kubernetes]`.
+
+### Vercel
+
+Sebelas menit setelah #121 di-merge, `3311b9d` masih tanpa status maupun deployment Vercel. Kedelapan SVG baru tetap 404.
+
+Pemilik memeriksa dasbornya: **koneksi Git proyek Vercel ternyata terputus**, dan sudah ia hubungkan lagi. Itu menjelaskan kenapa tak ada satu pun deployment sejak 2026-10-13 06:15 UTC, sementara *Vercel Preview Comments* tetap muncul. Aplikasi GitHub-nya masih terpasang, tetapi proyeknya tak lagi tertaut ke repo.
+
+PR catatan ini sengaja dipakai sebagai uji pertama sesudah koneksi pulih:
+
+- PR-nya harus mendapat pemeriksaan `Vercel – techverse-x-web` dan `Vercel – techverse-x-api` (yang API dilewati *Ignored Build Step*);
+- merge-nya harus menghasilkan deployment produksi web dari kepala `main`;
+- sesudah itu kedelapan SVG harus 200.
+
+### Bidang berikutnya
+
+Pemilik meminta lanjut ke topik ketiga Cloud & Infrastructure, *Cloud hyperscaler: AWS, Azure, GCP*, dengan usul yang saya ajukan: contoh dijalankan di **emulator lokal sumber terbuka** lewat CLI dan SDK resmi, dan halaman menyebut dengan jujur bahwa itu emulator.
+
+**Uji Vercel sesudah koneksi pulih: berhasil.** PR ini (#122) langsung mendapat `Vercel – techverse-x-web` dengan *Deployment has completed* dan `Vercel – techverse-x-api` yang dilewati *Ignored Build Step*, sama seperti #116 dan #118.
+
+### Cloud hyperscaler — [PR #123](https://github.com/xtheoputra/techverse-x/pull/123)
+
+Cabang `fase-1/isi-cloud-hyperscaler` dari `origin/main`. Ceritanya: relawan perpustakaan ingin cadangan di luar gedung, tautan unduh sementara, dan kabar "buku dikembalikan". Ketiganya dikerjakan dengan SDK resmi AWS, Azure, dan Google Cloud di emulator lokal.
+
+Isinya 14 langkah (3.113 kata), 3 diagram SVG, 2 video resmi (AWS dan Google Cloud Tech), 25 sumber, dan 2 proyek mini. `requires: []`. Alat baru di katalog: `moto`, `azurite`, `fake-gcs-server`, `pubsub-emulator`, dan `boto3`.
+
+**Pilihan emulator diukur, bukan diingat.** Repositori sumber terbuka **LocalStack ternyata diarsipkan**. Penggantinya butuh akun, sehingga melanggar aturan tanpa pendaftaran. Jadi yang dipakai adalah moto 5.2.4 (Apache 2.0) untuk S3, IAM, dan SQS; Azurite 3.37.0 (Microsoft, MIT); fake-gcs-server 1.56.1 (BSD); dan emulator Pub/Sub resmi dari `google-cloud-cli:589.0.0-emulators`.
+
+**Sumber primer:** dokumentasi resmi ketiga cloud, dibaca saat itu (AWS juga lewat versi `.md`-nya), README Azurite, dan dokumentasi moto 5.2.4.
+
+**Percobaan sendiri** (harness dari emulator kosong: **19 ok**, 53 detik):
+
+| Yang diukur | Hasil |
+|---|---|
+| SDK Azure terbaru vs Azurite 3.37.0 | ditolak (*API version 2026-10-06 is not supported*); perlu `--skipApiVersionCheck` |
+| satu cadangan ke tiga penyimpanan | MD5 sama dalam tiga bentuk (hex, byte, base64) |
+| bucket GCS diminta `asia-southeast2` | fake-gcs-server mencatat `US-CENTRAL1` |
+| IAM moto | penolakan bawaan, dan `Deny` eksplisit mengalahkan `Allow s3:*` |
+| SAS Azurite: tulis / rusak / kedaluwarsa | 403 / 403 / 403 |
+| **presigned URL moto: rusak / kedaluwarsa** | **200 / 200**; dengan IAM menyala malah 500 |
+| antrean ketiga cloud | `[1, 0, 1]`: pesan yang tak dihapus muncul lagi |
+
+🐞 **Dibantah ukuran atau sumber sebelum commit:**
+
+- Dugaan bahwa emulator menegakkan aturan keamanan ternyata salah untuk moto. Langkah 10 dan matriks "emulator vs dokumentasi" kini membahasnya.
+- Diagram hierarki sempat mengklaim tagihan Azure dihitung di *resource group*. Klaim itu dibuang.
+- "Lokasi bucket GCS tetap" dilunakkan, karena dokumentasinya menyebut relokasi.
+- Putaran pertama memakai emulator yang masih menyimpan sisa putaran sebelumnya, sehingga muncul bucket ganda dan SQS `[1, 1, 1]`. Harness kini selalu mulai dari kontainer baru.
+
+**Diverifikasi:**
+
+- `cek_isi.py` **109 ok**, termasuk 22 blok kode harfiah dan 30 URL 200, dengan bukti merah tepat 2 gagal;
+- `mypy --strict`;
+- `.\run.ps1 isi` sah (17 berkas) dan `gerbang-isi` **HIJAU**;
+- halaman lokal 200: 14/14 judul langkah, 22 blok kode, 6 tabel, 3 gambar, dan 2 video;
+- pemindai ADR-024 **0 kena** di 36 halaman;
+- `verify` hijau (210 detik);
+- gitleaks *no leaks found*;
+- blob 0 CR;
+- CI #123 hijau, **termasuk kedua pemeriksaan Vercel**.
+
+### Keadaan sesudah bagian ini
+
+- `main` = `3311b9d`. #122 (catatan ini) dan #123 (Cloud hyperscaler) terbuka.
+- **Urutan merge: #122, lalu #123**, dengan jeda sampai build web sebelumnya selesai.
+- Merge #122 adalah build web produksi pertama sejak 2026-10-13, jadi sesudahnya kedelapan SVG Kontainer & Docker dan Kubernetes harus diukur.
+- Sesudah #123: *Pasang isi* `cloud-hyperscaler` tanpa ganti, `sha=e262bb1`, lalu ukur ketiga SVG-nya.
+- **Lingkungan:** kode uji di `%TEMP%\tv-cloud`. Kontainer `perpus-*` sudah dihapus, API :5096 dan web :3401 sudah dihentikan setelah PID-nya dicocokkan, dan basis data `techversex_cloud` sudah dibuang.
+- **Berikutnya** menurut ADR-010: *Jaringan cloud* (`requires: cloud-hyperscaler`) atau *Infrastructure as Code* (OpenTofu).
+
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+Pemilik menutup sesi: *"simpan, commit dan push, saya akhiri dulu sesi hari ini"*. Pohon kerja bersih dan nol stash. Cabang `fase-1/isi-cloud-hyperscaler` (#123) dan cabang catatan ini (#122) sudah di-push dan sama dengan `origin`. Port 5096, 5099, dan 3401 kosong. Tak ada kontainer `perpus-*` maupun cluster kind yang tersisa. Docker Desktop tetap menyala, dengan kontainer proyek ini (`techversex-postgres`, `techversex-redis`) dan proyek lain yang tidak disentuh.
+
+**Produksi:**
+
+- 17 bidang dan 16 topik `draf`;
+- `main` = `3311b9d`, citra API `e262bb1`;
+- sisi `kubernetes → kontainer-dan-docker` sudah tayang;
+- kedelapan SVG Kontainer & Docker dan Kubernetes **masih 404** (`/media/kubernetes/hpa.svg` diukur 404 saat sesi ditutup), karena web produksi terakhir dibangun 2026-10-13.
+
+**PR terbuka:**
+
+| PR | Isi | Sesudah merge |
+|---|---|---|
+| [#122](https://github.com/xtheoputra/techverse-x/pull/122) | catatan Sesi 29 (Lanjutan 2), `docs/SESSION-LOG.md` saja | pastikan ada deployment produksi `techverse-x-web` dari kepala `main`, lalu ukur kedelapan SVG Kontainer & Docker dan Kubernetes (harus 200) |
+| [#123](https://github.com/xtheoputra/techverse-x/pull/123) | Cloud hyperscaler | *Pasang isi* `cloud-hyperscaler` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan ketiga SVG |
+
+⚠️ **Urutan merge: #122, lalu #123.** Beri jeda sampai build web #122 selesai. Kedua PR sudah mendapat pemeriksaan Vercel. Bila deployment produksi tak muncul sesudah merge, periksa lagi koneksi Git proyek Vercel.
+
+**Izin *Pasang isi*** untuk `cloud-hyperscaler` belum diberikan. Saya akan bertanya sesudah merge.
+
+**Belum diverifikasi (tanpa browser):** bingkai video di origin https untuk #119, #120, dan #123, serta luberan 390 px. Langkah Gateway Kubernetes hanya diuji di Windows. Perilaku cloud sungguhan di #123 dikutip dari dokumentasi, bukan diukur.
+
+**Lingkungan:**
+
+- `%TEMP%\tv-k8s`: kind, kubectl, kubeconfig terpisah, sumber, dan harness Kubernetes;
+- `%TEMP%\tv-cloud`: venv SDK cloud, sumber, dan harness Cloud hyperscaler;
+- keduanya bisa hilang antarhari;
+- citra emulator dan citra kind masih ada di Docker lokal.
+
+**Berikutnya:** topik keempat Cloud & Infrastructure. Pilihannya *Jaringan cloud* (`requires: cloud-hyperscaler`) atau *Infrastructure as Code* (OpenTofu). Saya akan bertanya dulu kepada pemilik.
+
+---
+
 ## 2026-10-16 — Sesi 29 (Lanjutan): #119, #120, #117 di-merge dan dipasang; Vercel berhenti membangun sejak 2026-10-13
 
 Permintaan pemilik: *"119 120 117 sudah di merged, lanjutkan"*.
