@@ -82,6 +82,39 @@ Isinya 14 langkah (3.113 kata), 3 diagram SVG, 2 video resmi (AWS dan Google Clo
 - **Lingkungan:** kode uji di `%TEMP%\tv-cloud`. Kontainer `perpus-*` sudah dihapus, API :5096 dan web :3401 sudah dihentikan setelah PID-nya dicocokkan, dan basis data `techversex_cloud` sudah dibuang.
 - **Berikutnya** menurut ADR-010: *Jaringan cloud* (`requires: cloud-hyperscaler`) atau *Infrastructure as Code* (OpenTofu).
 
+### 🏁 Keadaan akhir sesi — tempat sesi berikutnya mulai
+
+Pemilik menutup sesi: *"simpan, commit dan push, saya akhiri dulu sesi hari ini"*. Pohon kerja bersih dan nol stash. Cabang `fase-1/isi-cloud-hyperscaler` (#123) dan cabang catatan ini (#122) sudah di-push dan sama dengan `origin`. Port 5096, 5099, dan 3401 kosong. Tak ada kontainer `perpus-*` maupun cluster kind yang tersisa. Docker Desktop tetap menyala, dengan kontainer proyek ini (`techversex-postgres`, `techversex-redis`) dan proyek lain yang tidak disentuh.
+
+**Produksi:**
+
+- 17 bidang dan 16 topik `draf`;
+- `main` = `3311b9d`, citra API `e262bb1`;
+- sisi `kubernetes → kontainer-dan-docker` sudah tayang;
+- kedelapan SVG Kontainer & Docker dan Kubernetes **masih 404** (`/media/kubernetes/hpa.svg` diukur 404 saat sesi ditutup), karena web produksi terakhir dibangun 2026-10-13.
+
+**PR terbuka:**
+
+| PR | Isi | Sesudah merge |
+|---|---|---|
+| [#122](https://github.com/xtheoputra/techverse-x/pull/122) | catatan Sesi 29 (Lanjutan 2), `docs/SESSION-LOG.md` saja | pastikan ada deployment produksi `techverse-x-web` dari kepala `main`, lalu ukur kedelapan SVG Kontainer & Docker dan Kubernetes (harus 200) |
+| [#123](https://github.com/xtheoputra/techverse-x/pull/123) | Cloud hyperscaler | *Pasang isi* `cloud-hyperscaler` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan ketiga SVG |
+
+⚠️ **Urutan merge: #122, lalu #123.** Beri jeda sampai build web #122 selesai. Kedua PR sudah mendapat pemeriksaan Vercel. Bila deployment produksi tak muncul sesudah merge, periksa lagi koneksi Git proyek Vercel.
+
+**Izin *Pasang isi*** untuk `cloud-hyperscaler` belum diberikan. Saya akan bertanya sesudah merge.
+
+**Belum diverifikasi (tanpa browser):** bingkai video di origin https untuk #119, #120, dan #123, serta luberan 390 px. Langkah Gateway Kubernetes hanya diuji di Windows. Perilaku cloud sungguhan di #123 dikutip dari dokumentasi, bukan diukur.
+
+**Lingkungan:**
+
+- `%TEMP%\tv-k8s`: kind, kubectl, kubeconfig terpisah, sumber, dan harness Kubernetes;
+- `%TEMP%\tv-cloud`: venv SDK cloud, sumber, dan harness Cloud hyperscaler;
+- keduanya bisa hilang antarhari;
+- citra emulator dan citra kind masih ada di Docker lokal.
+
+**Berikutnya:** topik keempat Cloud & Infrastructure. Pilihannya *Jaringan cloud* (`requires: cloud-hyperscaler`) atau *Infrastructure as Code* (OpenTofu). Saya akan bertanya dulu kepada pemilik.
+
 ---
 
 ## 2026-10-16 — Sesi 29 (Lanjutan): #119, #120, #117 di-merge dan dipasang; Vercel berhenti membangun sejak 2026-10-13
