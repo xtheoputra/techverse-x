@@ -4,6 +4,18 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-16 — Sesi 29: catatan #119 yang tertinggal; topik kedua Cloud & Infrastructure, Kubernetes
+
+Permintaan pemilik: *"lanjutkan progress"*.
+
+### Keadaan awal
+
+Pohon kerja bersih, di cabang #119. Sesi 28 terhenti tepat sesudah #119 dibuka: tak ada catatan untuk #119 dan tak ada 🏁. Bagian #119 kini ditambahkan ke Sesi 28 di bawah.
+
+Belum ada merge sejak #118, jadi `main` tetap `402ff80`. #117 dan #119 masih terbuka; keduanya `MERGEABLE` dan CI #119 hijau semua. Produksi: `/teknologi/cloud-infrastructure` dan `/teknologi/reinforcement-learning` 200, sedangkan `/teknologi/kontainer-dan-docker` 404, karena #119 belum di-merge dan dipasang.
+
+---
+
 ## 2026-10-14 — Sesi 28: Machine Learning Klasik dan Reinforcement Learning dipasang; ketujuh topik AI & Machine Learning kini tayang
 
 Permintaan pemilik: *"lanjutkan semua progress proyek ini"*.
@@ -56,6 +68,27 @@ ADR-010 menetapkan bidang ini 7 topik tanpa merincinya. Daftar lama KERANGKA 2.3
 7. Platform Engineering (butuh 2 dan 6)
 
 Janji di kartu bidang (*"Docker, Kubernetes, tiga hyperscaler, DevOps, dan platform engineering"*) tetap terpenuhi. Keputusan ini dicatat sebagai Pembaruan ADR-010 di PR topik pertamanya.
+
+### Kontainer & Docker — [PR #119](https://github.com/xtheoputra/techverse-x/pull/119)
+
+*(Bagian ini ditulis di Sesi 29. Sesi 28 terhenti tepat sesudah PR dibuka, sebelum sempat mencatatnya. Isinya disusun dari commit `9714fda` dan `02c181b`, deskripsi PR, dan keluaran perintah di transkrip.)*
+
+Cabang `fase-1/isi-kontainer-docker` dari `origin/main`, tidak ditumpuk di atas #117. Ceritanya tentang seorang relawan perpustakaan yang aplikasi katalognya (FastAPI + PostgreSQL) "jalan di laptopku" tapi gagal di server. Pembaca membungkusnya langkah demi langkah, dari kontainer sebagai proses yang berbagi kernel sampai Compose, batas sumber daya, *capability*, dan digest.
+
+Isinya 14 langkah (3.968 kata), 4 diagram SVG (2 dari keluaran percobaan), 2 video resmi Docker, 20 sumber, dan 2 proyek mini. `requires: []`, dan folder barunya `isi/cloud-infrastructure/`. Alat baru di katalog: `docker-engine`, `docker-compose`, dan `docker-desktop`. PR ini juga membawa **Pembaruan ADR-010** berisi tujuh topik per konsep di atas.
+
+**Sumber primer dibaca saat itu:**
+
+- dokumentasi Docker dari sumber Markdown `docker/docs` di commit `9643ba0`;
+- README citra `postgres`, termasuk perubahan `PGDATA` sejak versi 18, dan `docker-entrypoint.sh`;
+- halaman instalasi psycopg 3, spesifikasi OCI Image v1.1.1, dan `namespaces(7)`;
+- Felter dkk. 2014 (IBM RC25482), dibaca dari PDF-nya.
+
+Versi diambil dari sumbernya, bukan dari ingatan. Docker Engine terbaru v29.9.0, tetapi contoh diuji dengan 29.1.5 dan Compose 5.0.1.
+
+**Percobaan sendiri:** median 633 ms untuk `docker run --rm alpine true`, build ulang 31,4 detik vs 2,5 detik bergantung urutan `COPY`, citra 1,68 GB → 248 MB lewat multi-stage, token `ARG` terlihat di `docker history`, dan Compose tanpa healthcheck gagal 3 dari 3 dari volume kosong. Satu dugaan sempat tak terbukti: `pg_isready` tanpa `-h` baru gagal (2 dari 2) sesudah skrip awal diperlambat dengan `pg_sleep(8)`. Halaman menulis hasil yang terukur itu saja.
+
+**Diverifikasi:** harness `uji_docker.py` **49 ok** (576 detik), `cek_isi.py` **156 ok** dengan bukti merah tepat 2 gagal, `mypy --strict`, `gerbang-isi` **HIJAU** dua kali (yang terakhir pada berkas final), halaman lokal 200 dengan 46 blok kode, 4 tabel, 4 gambar, dan 2 video, pemindai ADR-024 **0 kena** di 34 halaman, `verify` hijau, gitleaks *no leaks found*, dan blob 0 CR. CI #119 hijau semua.
 
 ---
 
