@@ -4,6 +4,34 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-16 — Sesi 29 (Lanjutan 2): sisi Kubernetes → Kontainer & Docker tayang; penyebab Vercel: Git terputus
+
+Permintaan pemilik: *"121 sudah saya gabungkan"*, lalu *"memang gitnya terputus, sudah saya hubungkan lagi, 2. lanjutkan"*.
+
+### Sisi Knowledge Graph
+
+Pemilik me-merge **#121** pukul 07:19:23 UTC, dan `main` kini `3311b9d`. Lalu *Pasang isi* `kubernetes` dari `main`, `sha=e262bb1`, tanpa ganti ([38866530052](https://github.com/xtheoputra/techverse-x/actions/runs/38866530052)): `sisi kubernetes butuh kontainer-dan-docker`, lalu `selesai … sama dengan berkas`. Hasilnya sama persis dengan tiruan di basis data sekali pakai.
+
+API produksi mencatat `kubernetes.requires = [kontainer-dan-docker]` dan `kontainer-dan-docker.requiredBy = [kubernetes]`.
+
+### Vercel
+
+Sebelas menit setelah #121 di-merge, `3311b9d` masih tanpa status maupun deployment Vercel. Kedelapan SVG baru tetap 404.
+
+Pemilik memeriksa dasbornya: **koneksi Git proyek Vercel ternyata terputus**, dan sudah ia hubungkan lagi. Itu menjelaskan kenapa tak ada satu pun deployment sejak 2026-10-13 06:15 UTC, sementara *Vercel Preview Comments* tetap muncul. Aplikasi GitHub-nya masih terpasang, tetapi proyeknya tak lagi tertaut ke repo.
+
+PR catatan ini sengaja dipakai sebagai uji pertama sesudah koneksi pulih:
+
+- PR-nya harus mendapat pemeriksaan `Vercel – techverse-x-web` dan `Vercel – techverse-x-api` (yang API dilewati *Ignored Build Step*);
+- merge-nya harus menghasilkan deployment produksi web dari kepala `main`;
+- sesudah itu kedelapan SVG harus 200.
+
+### Bidang berikutnya
+
+Pemilik meminta lanjut ke topik ketiga Cloud & Infrastructure, *Cloud hyperscaler: AWS, Azure, GCP*, dengan usul yang saya ajukan: contoh dijalankan di **emulator lokal sumber terbuka** lewat CLI dan SDK resmi, dan halaman menyebut dengan jujur bahwa itu emulator.
+
+---
+
 ## 2026-10-16 — Sesi 29 (Lanjutan): #119, #120, #117 di-merge dan dipasang; Vercel berhenti membangun sejak 2026-10-13
 
 Permintaan pemilik: *"119 120 117 sudah di merged, lanjutkan"*.
