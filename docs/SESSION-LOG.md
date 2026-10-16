@@ -14,6 +14,84 @@ Pohon kerja bersih, di cabang #119. Sesi 28 terhenti tepat sesudah #119 dibuka: 
 
 Belum ada merge sejak #118, jadi `main` tetap `402ff80`. #117 dan #119 masih terbuka; keduanya `MERGEABLE` dan CI #119 hijau semua. Produksi: `/teknologi/cloud-infrastructure` dan `/teknologi/reinforcement-learning` 200, sedangkan `/teknologi/kontainer-dan-docker` 404, karena #119 belum di-merge dan dipasang.
 
+Di tengah sesi pemilik mengingatkan: *"jangan buka browser otomatis di pc, karena akan random terbukanya, jika perlu anda test saja secara umum tanpa membuka browser"*. Tak ada browser yang dibuka sepanjang sesi. Semua uji memakai `curl`, `kubectl`, skrip, dan render `sharp`.
+
+### Kubernetes — [PR #120](https://github.com/xtheoputra/techverse-x/pull/120)
+
+Cabang `fase-1/isi-kubernetes` dari `origin/main`, tidak ditumpuk di atas #119. Ceritanya melanjutkan katalog perpustakaan dari #119. Kini katalog dipakai tiga cabang, servernya pernah mati tengah malam, dan setiap pembaruan memadamkannya beberapa detik. Pembaca memindahkannya ke cluster **kind** tiga node.
+
+Isinya 15 langkah (3.923 kata), 4 diagram SVG (3 dari keluaran percobaan), 2 video CNCF, 20 sumber, dan 2 proyek mini. `requires: []` untuk sementara, karena `kontainer-dan-docker` baru ada di #119 dan `pasang.mjs` menolak sisi ke topik tanpa berkas. Polanya sama dengan #116 dan #118. Alat baru di katalog: `kubectl`, `kind`, dan `cloud-provider-kind`. `docker-engine` disalin persis dari #119.
+
+**Sumber primer dibaca saat itu:**
+
+- dokumentasi Kubernetes dari Markdown `kubernetes/website` di commit `109572a` (2026-10-15);
+- catatan rilis kind v0.33.0, yang meminta citra node v1.37.0 dikunci dengan digest;
+- README cloud-provider-kind v0.12.0 dan README metrics-server v0.9.0;
+- Burns dkk. 2016, *Borg, Omega, and Kubernetes*, dibaca dari PDF-nya.
+
+Versi dibaca dari sumbernya: Kubernetes stabil v1.37.1, Gateway API v1.6.3, dan `curlimages/curl:8.23.0`. Checksum kind dan kubectl cocok. Ingress kini *frozen*, dan proyek Kubernetes merekomendasikan Gateway API, jadi langkah pintu masuk memakai Gateway API.
+
+**Percobaan sendiri.** Harness dari cluster kosong memberi 59 ok dalam 2.348 detik. Angka yang paling mengajar:
+
+| Yang diukur | Hasil |
+|---|---|
+| permintaan gagal per `rollout restart` (600 permintaan, 5 putaran) | tanpa probe 7, 1, 2, 8, 5; readiness saja 10, 9, 7, 6, 8; readiness + `preStop` sleep 5 detik 0, 1, 0, 0, 0 |
+| citra `USER 10001:10001` tanpa `securityContext` | `gid=0(root)` di Kubernetes, padahal di Docker `gid=10001`; diperbaiki dengan `runAsGroup` |
+| HPA 3–10, target 50% | CPU 758%, 3 → 6 → 10; kembali ke 3 di detik 593, sekitar 300 detik setelah angka CPU turun |
+| worker mati (memuat 2 dari 3 Pod katalog) | `NotReady` setelah 52 detik; sebelum itu 6 dari 7 permintaan gagal; pengganti siap di detik 355 (`tolerationSeconds=300`) |
+| `port-forward service/…` | 30 dari 30 permintaan ke satu Pod |
+
+🐞 **Dugaan yang dibantah ukuran sebelum commit:**
+
+- **Readiness probe saja tidak memperbaiki rolling update.** Kegagalannya tidak lebih baik daripada tanpa probe. Sumbernya ada di Pod lama yang berhenti, sesuai alur penghentian Pod di dokumentasi.
+- **`preStop` tidak menjamin nol.** Hasilnya 12 dari 13 putaran bersih di eksplorasi dan 4 dari 5 di putaran final. Judul langkah diubah dari "benar-benar mulus".
+- **Asersi "selalu 200 saat node mati" salah.** Permintaan gagal sampai node ditandai `NotReady`. Pada eksplorasi pertama, worker yang dimatikan juga memuat `db-0`. Harness kini memilih worker yang tidak memuat `db-0`.
+- **Status citra rusak** terekam sebagai `ErrImagePull`, bukan `ImagePullBackOff`. Teks kini mengikuti status yang terekam.
+- **Alat ukur saya sendiri:**
+  - `kind create` kembali sebelum node `Ready`.
+  - `kubectl run -i` kehilangan baris pertama keluaran.
+  - `kubectl get hpa --watch` tak ikut dihentikan dan menahan harness sekitar 10 menit.
+  - `curl.exe -o /dev/null` di Windows keluar 23.
+  - `KUBECONFIG` berjalur `/c/…` tak dikenali `kubectl.exe`, jadi harus `C:/…`.
+  - `kind create` sempat menulis konteks ke `~/.kube/config` pemilik. Konteks itu dipindah ke kubeconfig terpisah, dan `docker-desktop` dikembalikan sebagai konteks aktif.
+
+**Diverifikasi:**
+
+- `cek_isi.py` **207 ok**, termasuk 60 blok kode harfiah dan 26 URL 200, dengan bukti merah tepat 2 gagal;
+- `mypy --strict`;
+- `.\run.ps1 isi` sah dan `gerbang-isi` **HIJAU**, dua kali, yang terakhir pada berkas final;
+- halaman lokal 200: 15/15 judul langkah, 60 blok kode, 4 gambar, 2 video, dan `Draft` dengan `missingSections` kosong;
+- pemindai ADR-024 **0 kena** di 34 halaman;
+- `verify` hijau (111 detik);
+- gitleaks: 180 commit, *no leaks found*;
+- blob ter-commit 0 CR.
+
+### Keadaan sesudah bagian ini
+
+`main` tetap `402ff80`; belum ada yang di-merge sesi ini.
+
+| PR | Isi | Sesudah merge |
+|---|---|---|
+| [#119](https://github.com/xtheoputra/techverse-x/pull/119) | Kontainer & Docker | *Pasang isi* `kontainer-dan-docker` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan keempat SVG |
+| [#120](https://github.com/xtheoputra/techverse-x/pull/120) | Kubernetes | *Pasang isi* `kubernetes` **tanpa ganti**, `sha=e262bb1`; ukur API, halaman, dan keempat SVG |
+| [#117](https://github.com/xtheoputra/techverse-x/pull/117) | catatan Sesi 26 (Lanjutan 2) sampai Sesi 29, `docs/SESSION-LOG.md` saja | — |
+
+⚠️ **Urutan merge: #119, lalu #120, lalu #117.** Beri jeda di setiap langkah sampai build web sebelumnya selesai, karena #119 dan #120 sama-sama menambah berkas di `apps/web/public`. Sesudah #119 dan #120 masuk, PR kecil menambahkan `requires: [kontainer-dan-docker]` ke `kubernetes`.
+
+**Izin *Pasang isi*** belum diberikan untuk #119 maupun #120. Saya akan bertanya sesudah merge.
+
+**Belum diverifikasi (tanpa browser):** bingkai video di origin https untuk #119 dan #120, serta luberan 390 px. Langkah Gateway hanya diuji di Windows.
+
+**Lingkungan:**
+
+- kode uji, generator, dan hasil ada di `%TEMP%\tv-k8s`, berisi kind, kubectl, sumber yang dibaca, dan `kerja/` (bisa hilang antarhari);
+- cluster `perpus`, kontainer cloud-provider-kind, dan jaringan Docker `kind` yang dibuat hari ini sudah dihapus;
+- API :5096 dan web :3401 sudah dihentikan setelah PID dan baris perintahnya dicocokkan;
+- basis data `techversex_k8s` sudah dibuang;
+- Docker Desktop tetap menyala, dan kontainer proyek lain tidak disentuh.
+
+**Berikutnya** menurut ADR-010 (#119): topik ketiga Cloud & Infrastructure, *Cloud hyperscaler: AWS, Azure, GCP*. Contohnya sulit dijalankan tanpa akun berkartu, jadi cara mengujinya perlu dirancang dulu (emulator lokal, dokumentasi CLI, atau tabel padanan saja). Saya akan bertanya kepada pemilik sebelum mulai.
+
 ---
 
 ## 2026-10-14 — Sesi 28: Machine Learning Klasik dan Reinforcement Learning dipasang; ketujuh topik AI & Machine Learning kini tayang
