@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" role="img" aria-labelledby="judul desk">
+  <title id="judul">Siapa menjaga apa</title>
+  <desc id="desk">Dua pita bertumpuk. Pita bawah, tanggung jawab penyedia (AWS menyebutnya Security of the Cloud): perangkat keras, perangkat lunak dasar, jaringan, dan gedung pusat data. Pita atas, tanggung jawab pelanggan yang selalu tetap menurut Azure: data, perangkat yang mengakses, akun pengguna, dan manajemen akses. Di tengah, bagian yang bergeser menurut jenis layanan, dengan contoh dari AWS: di EC2 pelanggan mengurus sistem operasi tamu, aplikasi yang dipasang, dan security group; di S3 AWS yang mengurus sistem operasinya.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="720" height="400" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Siapa menjaga apa</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Penyedia menjaga cloud-nya; kamu menjaga apa yang kamu taruh di dalamnya.</text>
+  <text x="40" y="112" fill="#34d399" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">selalu tanggung jawabmu (Azure: "you always retain")</text>
+  <rect x="40" y="124" width="150" height="52" rx="8" fill="#34d399" fill-opacity="0.14" stroke="#34d399" stroke-width="1.5"/>
+  <text x="115.0" y="148.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">data</text>
+  <text x="115.0" y="164.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">klasifikasi, enkripsi</text>
+  <rect x="202" y="124" width="150" height="52" rx="8" fill="#34d399" fill-opacity="0.14" stroke="#34d399" stroke-width="1.5"/>
+  <text x="277.0" y="148.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">perangkat</text>
+  <text x="277.0" y="164.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">laptop, ponsel</text>
+  <rect x="364" y="124" width="150" height="52" rx="8" fill="#34d399" fill-opacity="0.14" stroke="#34d399" stroke-width="1.5"/>
+  <text x="439.0" y="148.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">akun</text>
+  <text x="439.0" y="164.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">membuat, mencabut</text>
+  <rect x="526" y="124" width="150" height="52" rx="8" fill="#34d399" fill-opacity="0.14" stroke="#34d399" stroke-width="1.5"/>
+  <text x="601.0" y="148.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">akses</text>
+  <text x="601.0" y="164.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">RBAC, MFA</text>
+  <text x="40" y="210" fill="#f59e0b" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">bergeser menurut jenis layanan</text>
+  <rect x="40" y="222" width="204" height="52" rx="8" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="142.0" y="246.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">sistem operasi</text>
+  <text x="142.0" y="262.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">EC2: kamu; S3: AWS</text>
+  <rect x="256" y="222" width="204" height="52" rx="8" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="358.0" y="246.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">aplikasi yang kamu pasang</text>
+  <text x="358.0" y="262.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">di mesin virtualmu</text>
+  <rect x="472" y="222" width="204" height="52" rx="8" fill="#f59e0b" fill-opacity="0.12" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="574.0" y="246.0" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">firewall mesin virtual</text>
+  <text x="574.0" y="262.0" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="middle">security group di EC2</text>
+  <text x="40" y="308" fill="#3987e5" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">tanggung jawab penyedia (AWS: "Security of the Cloud")</text>
+  <rect x="40" y="320" width="150" height="44" rx="8" fill="#3987e5" fill-opacity="0.12" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="115.0" y="346.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">perangkat keras</text>
+  <rect x="202" y="320" width="150" height="44" rx="8" fill="#3987e5" fill-opacity="0.12" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="277.0" y="346.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">perangkat lunak dasar</text>
+  <rect x="364" y="320" width="150" height="44" rx="8" fill="#3987e5" fill-opacity="0.12" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="439.0" y="346.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">jaringan</text>
+  <rect x="526" y="320" width="150" height="44" rx="8" fill="#3987e5" fill-opacity="0.12" stroke="#3987e5" stroke-width="1.5"/>
+  <text x="601.0" y="346.6" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="600" text-anchor="middle">gedung pusat data</text>
+</svg>

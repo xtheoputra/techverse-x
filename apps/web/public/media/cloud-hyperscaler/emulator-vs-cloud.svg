@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 426" role="img" aria-labelledby="judul desk">
+  <title id="judul">Emulator vs dokumentasi cloud</title>
+  <desc id="desk">Tabel tujuh baris hasil uji. lokasi bucket GCS diminta asia-southeast2: emulator tercatat US-CENTRAL1, dokumentasi lokasi dipilih saat dibuat. IAM: aksi tak diizinkan: emulator AccessDenied, dokumentasi ditolak secara bawaan. IAM: Allow s3:* + Deny DeleteObject: emulator hapus ditolak, dokumentasi explicit deny menang. SAS Azurite: tulis / rusak / kedaluwarsa: emulator 403 / 403 / 403, dokumentasi ditolak. presigned moto: rusak / kedaluwarsa: emulator 200 / 200, dokumentasi harus ditolak. presigned di moto dengan IAM menyala: emulator 500, dokumentasi harus diproses. antrean: pesan tak dihapus muncul lagi: emulator ya, di ketiganya, dokumentasi at-least-once.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="780" height="426" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">Emulator vs dokumentasi cloud</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Hijau: emulator berperilaku sesuai dokumentasi. Merah: berbeda.</text>
+  <text x="32" y="112" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="700" text-anchor="start">yang diuji</text>
+  <text x="400" y="112" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="700" text-anchor="start">hasil di emulator</text>
+  <text x="560" y="112" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="700" text-anchor="start">menurut dokumentasi</text>
+  <rect x="24" y="124" width="732" height="32" rx="6" fill="#f87171" fill-opacity="0.08" stroke="#f87171" stroke-opacity="0.5"/>
+  <text x="32" y="145" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">lokasi bucket GCS diminta asia-southeast2</text>
+  <text x="400" y="145" fill="#f87171" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">tercatat US-CENTRAL1</text>
+  <text x="560" y="145" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">lokasi dipilih saat dibuat</text>
+  <rect x="24" y="162" width="732" height="32" rx="6" fill="#34d399" fill-opacity="0.08" stroke="#34d399" stroke-opacity="0.5"/>
+  <text x="32" y="183" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">IAM: aksi tak diizinkan</text>
+  <text x="400" y="183" fill="#34d399" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">AccessDenied</text>
+  <text x="560" y="183" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">ditolak secara bawaan</text>
+  <rect x="24" y="200" width="732" height="32" rx="6" fill="#34d399" fill-opacity="0.08" stroke="#34d399" stroke-opacity="0.5"/>
+  <text x="32" y="221" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">IAM: Allow s3:* + Deny DeleteObject</text>
+  <text x="400" y="221" fill="#34d399" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">hapus ditolak</text>
+  <text x="560" y="221" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">explicit deny menang</text>
+  <rect x="24" y="238" width="732" height="32" rx="6" fill="#34d399" fill-opacity="0.08" stroke="#34d399" stroke-opacity="0.5"/>
+  <text x="32" y="259" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">SAS Azurite: tulis / rusak / kedaluwarsa</text>
+  <text x="400" y="259" fill="#34d399" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">403 / 403 / 403</text>
+  <text x="560" y="259" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">ditolak</text>
+  <rect x="24" y="276" width="732" height="32" rx="6" fill="#f87171" fill-opacity="0.08" stroke="#f87171" stroke-opacity="0.5"/>
+  <text x="32" y="297" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">presigned moto: rusak / kedaluwarsa</text>
+  <text x="400" y="297" fill="#f87171" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">200 / 200</text>
+  <text x="560" y="297" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">harus ditolak</text>
+  <rect x="24" y="314" width="732" height="32" rx="6" fill="#f87171" fill-opacity="0.08" stroke="#f87171" stroke-opacity="0.5"/>
+  <text x="32" y="335" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">presigned di moto dengan IAM menyala</text>
+  <text x="400" y="335" fill="#f87171" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">500</text>
+  <text x="560" y="335" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">harus diproses</text>
+  <rect x="24" y="352" width="732" height="32" rx="6" fill="#34d399" fill-opacity="0.08" stroke="#34d399" stroke-opacity="0.5"/>
+  <text x="32" y="373" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">antrean: pesan tak dihapus muncul lagi</text>
+  <text x="400" y="373" fill="#34d399" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" font-weight="700" text-anchor="start">ya, di ketiganya</text>
+  <text x="560" y="373" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="13" text-anchor="start">at-least-once</text>
+</svg>
