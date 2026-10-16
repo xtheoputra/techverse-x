@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" role="img" aria-labelledby="judul desk">
+  <title id="judul">HPA menambah dan mengurangi salinan katalog</title>
+  <desc id="desk">Grafik garis. Beban 8 pengunjung serentak berjalan dari detik 0 sampai sekitar detik 246. Jumlah Pod naik dari 3 hingga 10 pada detik 51 dan seterusnya, lalu kembali ke 3 pada detik 593, sekitar lima menit setelah beban berhenti.</desc>
+  <defs>
+    <marker id="panah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#98a3c4"/>
+    </marker>
+  </defs>
+  <rect width="760" height="400" rx="24" fill="#070a16"/>
+  <text x="32" y="48" fill="#eef2ff" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="23" font-weight="700">HPA menambah dan mengurangi salinan katalog</text>
+  <text x="32" y="76" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="15">Garis hijau: jumlah Pod. Garis kuning: rata-rata pemakaian CPU terhadap request (target 50%).</text>
+  <rect x="80.0" y="110" width="232.9" height="220" fill="#3987e5" fill-opacity="0.08"/>
+  <text x="196.46330275229357" y="128" fill="#3987e5" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">beban berjalan</text>
+  <line x1="80" y1="330.0" x2="700" y2="330.0" stroke="#2a3354" stroke-width="1"/>
+  <text x="70" y="334.0" fill="#34d399" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="end">0</text>
+  <line x1="80" y1="264.0" x2="700" y2="264.0" stroke="#2a3354" stroke-width="1"/>
+  <text x="70" y="268.0" fill="#34d399" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="end">3</text>
+  <line x1="80" y1="198.0" x2="700" y2="198.0" stroke="#2a3354" stroke-width="1"/>
+  <text x="70" y="202.0" fill="#34d399" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="end">6</text>
+  <line x1="80" y1="110.0" x2="700" y2="110.0" stroke="#2a3354" stroke-width="1"/>
+  <text x="70" y="114.0" fill="#34d399" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="end">10</text>
+  <text x="710" y="334.0" fill="#f59e0b" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="start">0%</text>
+  <text x="710" y="279.0" fill="#f59e0b" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="start">200%</text>
+  <text x="710" y="224.0" fill="#f59e0b" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="start">400%</text>
+  <text x="710" y="169.0" fill="#f59e0b" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="start">600%</text>
+  <text x="710" y="114.0" fill="#f59e0b" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="start">800%</text>
+  <text x="80.0" y="350" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">0 s</text>
+  <text x="193.76146788990826" y="350" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">120 s</text>
+  <text x="307.5229357798165" y="350" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">240 s</text>
+  <text x="421.2844036697248" y="350" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">360 s</text>
+  <text x="535.045871559633" y="350" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">480 s</text>
+  <text x="648.8073394495412" y="350" fill="#98a3c4" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="middle">600 s</text>
+  <polyline points="80.0,328.9 89.5,328.9 99.9,328.9 109.4,229.6 118.9,229.6 128.3,121.6 138.8,173.8 148.3,173.8 157.7,216.4 168.2,223.8 177.6,223.8 187.1,223.6 196.6,221.4 207.0,221.9 216.5,221.9 226.0,222.5 235.5,223.8 245.0,223.8 255.4,222.2 264.9,221.4 274.3,221.4 283.8,220.0 294.3,222.5 303.7,222.5 313.2,223.0 322.7,223.3 332.2,223.3 342.6,289.6 352.1,328.1 361.6,328.1 371.0,328.9 381.5,328.6 390.9,328.6 400.4,328.6 409.9,328.9 419.4,328.9 429.8,328.9 439.3,328.9 448.8,328.9 458.3,328.9 468.7,328.9 478.2,328.9 487.6,328.9 497.1,328.9 506.6,328.9 516.1,328.9 526.5,328.9 536.0,328.9 545.5,328.9 555.0,328.6 564.4,328.9 573.9,328.9 584.3,328.9 593.8,328.9 603.3,328.9 612.8,328.9 622.3,328.9 631.7,328.9 642.2,328.9 651.7,328.9 661.1,328.9 670.6,328.9 681.0,328.9 690.5,328.9 700.0,328.6" fill="none" stroke="#f59e0b" stroke-width="2" stroke-opacity="0.8"/>
+  <polyline points="80.0,264.0 89.5,264.0 89.5,264.0 99.9,264.0 99.9,264.0 109.4,264.0 109.4,264.0 118.9,264.0 118.9,264.0 128.3,264.0 128.3,198.0 138.8,198.0 138.8,110.0 148.3,110.0 148.3,110.0 157.7,110.0 157.7,110.0 168.2,110.0 168.2,110.0 177.6,110.0 177.6,110.0 187.1,110.0 187.1,110.0 196.6,110.0 196.6,110.0 207.0,110.0 207.0,110.0 216.5,110.0 216.5,110.0 226.0,110.0 226.0,110.0 235.5,110.0 235.5,110.0 245.0,110.0 245.0,110.0 255.4,110.0 255.4,110.0 264.9,110.0 264.9,110.0 274.3,110.0 274.3,110.0 283.8,110.0 283.8,110.0 294.3,110.0 294.3,110.0 303.7,110.0 303.7,110.0 313.2,110.0 313.2,110.0 322.7,110.0 322.7,110.0 332.2,110.0 332.2,110.0 342.6,110.0 342.6,110.0 352.1,110.0 352.1,110.0 361.6,110.0 361.6,110.0 371.0,110.0 371.0,110.0 381.5,110.0 381.5,110.0 390.9,110.0 390.9,110.0 400.4,110.0 400.4,110.0 409.9,110.0 409.9,110.0 419.4,110.0 419.4,110.0 429.8,110.0 429.8,110.0 439.3,110.0 439.3,110.0 448.8,110.0 448.8,110.0 458.3,110.0 458.3,110.0 468.7,110.0 468.7,110.0 478.2,110.0 478.2,110.0 487.6,110.0 487.6,110.0 497.1,110.0 497.1,110.0 506.6,110.0 506.6,110.0 516.1,110.0 516.1,110.0 526.5,110.0 526.5,110.0 536.0,110.0 536.0,110.0 545.5,110.0 545.5,110.0 555.0,110.0 555.0,110.0 564.4,110.0 564.4,110.0 573.9,110.0 573.9,110.0 584.3,110.0 584.3,110.0 593.8,110.0 593.8,110.0 603.3,110.0 603.3,110.0 612.8,110.0 612.8,110.0 622.3,110.0 622.3,110.0 631.7,110.0 631.7,110.0 642.2,110.0 642.2,264.0 651.7,264.0 651.7,264.0 661.1,264.0 661.1,264.0 670.6,264.0 670.6,264.0 681.0,264.0 681.0,264.0 690.5,264.0 690.5,264.0 700.0,264.0 700.0,264.0" fill="none" stroke="#34d399" stroke-width="3"/>
+  <line x1="80.0" y1="316.2" x2="700" y2="316.2" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="696" y="310.25" fill="#f59e0b" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="11" text-anchor="end">target 50%</text>
+  <text x="70" y="98" fill="#34d399" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="700" text-anchor="end">Pod</text>
+  <text x="710" y="98" fill="#f59e0b" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" font-weight="700" text-anchor="start">CPU</text>
+  <text x="320.92660550458714" y="132.0" fill="#c3cce6" font-family="ui-sans-serif, system-ui, 'Segoe UI', sans-serif" font-size="12" text-anchor="start">beban berhenti (detik 246)</text>
+</svg>
