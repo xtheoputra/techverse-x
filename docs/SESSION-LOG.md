@@ -4,6 +4,60 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-16 — Sesi 29 (Lanjutan): #119, #120, #117 di-merge dan dipasang; Vercel berhenti membangun sejak 2026-10-13
+
+Permintaan pemilik: *"119 120 117 sudah di merged, lanjutkan"*.
+
+### Merge dan Vercel
+
+Pemilik me-merge sesuai urutan: **#119** pukul 06:25:44 UTC, **#120** 06:26:38, dan **#117** 06:27:33. `main` kini `4493027`.
+
+Jaraknya hanya sekitar satu menit, jadi produksi diukur dulu. Kedelapan SVG baru (`/media/kontainer-dan-docker/*` dan `/media/kubernetes/*`) menjawab **404**. Penyebabnya ternyata bukan build lama yang menang, karena **tidak ada build sama sekali**:
+
+- Vercel tak membuat deployment maupun status commit untuk apa pun sesudah `7d38264` (2026-10-13 06:15 UTC). Deployment terakhir bertanggal 2026-10-13, dan polling selama 10 menit sesudah merge tak memunculkan yang baru.
+- #116 dan #118 masih punya pemeriksaan `Vercel – techverse-x-web` dan `Vercel – techverse-x-api`. #119 dan #120 **tidak punya**. Hanya *Vercel Preview Comments* yang muncul, jadi aplikasi GitHub Vercel masih menerima kejadian, tetapi deployment-nya tak dibuat.
+- 🔴 **Ini terlewat oleh saya kemarin.** Di #120 dan di laporan Sesi 29, saya menulis "CI hijau semua" tanpa menyadari bahwa pemeriksaan Vercel-nya tidak ada. Mulai sekarang daftar pemeriksaan PR dibandingkan dengan PR isi sebelumnya, bukan hanya dilihat warnanya.
+
+Penyebabnya hanya bisa dilihat di dasbor Vercel, yang tak bisa saya akses. Saya bertanya lewat pertanyaan pilihan, dan pemilik menjawab **"Saya cek dasbor sendiri"**.
+
+### *Pasang isi*
+
+*Pasang isi* tidak bergantung pada Vercel, karena memakai citra API yang tayang dan berkas dari `main`. Pemilik menjawab **"Ya, pasang sekarang"**. Dua jalan `isi.yml` dari `main`, `sha=e262bb1`, tanpa ganti, berurutan:
+
+- `kontainer-dan-docker` ([38864319745](https://github.com/xtheoputra/techverse-x/actions/runs/38864319745)): `dibuat`, alat `docker-engine`, `docker-compose`, dan `docker-desktop`, 6 media, `draf kelima bagian terisi`, lalu `selesai … sama dengan berkas`;
+- `kubernetes` ([38864423465](https://github.com/xtheoputra/techverse-x/actions/runs/38864423465)): `dibuat`, alat `kubectl`, `kind`, dan `cloud-provider-kind`, 6 media, lalu `selesai`. `docker-engine` dipakai bersama dan tidak dibuat dua kali.
+
+### Produksi diukur sesudahnya
+
+| Yang diukur | Kontainer & Docker | Kubernetes |
+|---|---|---|
+| API | 200, `Draft`, `missingSections` kosong | sama |
+| langkah / alat / proyek / sumber / media | 15 / 3 / 2 / 20 / 6 | 16 / 4 / 2 / 20 / 6 |
+| halaman web | 200; 14 dari 14 judul langkah | 200; 15 dari 15 judul langkah |
+| blok kode / tabel / rujukan gambar / video | 46 / 4 / 4 / 2 | 60 / 1 / 4 / 2 |
+| berkas SVG | **404** (web belum dibangun ulang) | **404** |
+
+Angka halaman sama persis dengan yang diukur lokal di Sesi 28 dan 29. Halaman bidang `/teknologi/cloud-infrastructure` menautkan kedua topik, dan daftar API kini `totalItems` **16**. Pemindai ADR-024 di produksi (hanya GET): **35 halaman, 33 di antaranya `/teknologi/*`**, 52 ringkasan alat di 16 halaman topik, **0 kena**, setiap halaman 200.
+
+### Sisi `kubernetes → kontainer-dan-docker`
+
+Ini PR yang membawa catatan ini. Isinya hanya `requires: ["kontainer-dan-docker"]` di `kubernetes.json`, dan generator-nya ikut diubah sehingga keluarannya identik dengan berkas.
+
+- `.\run.ps1 isi` sah (16 berkas), dan `gerbang-isi` **HIJAU** dengan 16 topik.
+- **Jalur produksi ditiru** di basis data sekali pakai `techversex_sisi`. Pertama, semua topik dipasang dengan `kubernetes.json` versi `main` (tanpa sisi). Lalu versi PR ini dipasang **tanpa ganti**. Hasilnya `sisi kubernetes butuh kontainer-dan-docker` dan `selesai … sama dengan berkas`. API mencatat `requires [kontainer-dan-docker]` dan `requiredBy [kubernetes]`. API dihentikan setelah PID-nya dicocokkan, dan basis datanya dibuang.
+
+### Keadaan sesudah bagian ini
+
+- **Produksi:** 17 bidang dan 16 topik `draf`, `main` = `4493027`, citra API `e262bb1`. Kedelapan SVG baru 404 sampai web dibangun ulang.
+- **Menunggu pemilik:**
+  - hasil pemeriksaan dasbor Vercel (Deployments, Settings → Git, Usage);
+  - merge PR ini. Bila Vercel sudah pulih, merge ini sekaligus membangun ulang web, yang memperbaiki gambar 404;
+  - sesudah merge, *Pasang isi* `kubernetes` **tanpa ganti** untuk menambah sisinya, lalu ukur kedelapan SVG.
+- **Belum diverifikasi (tanpa browser):** bingkai video di origin https dan luberan 390 px.
+- **Berikutnya:** topik ketiga Cloud & Infrastructure, *Cloud hyperscaler*. Cara mengujinya tanpa akun berkartu akan saya tanyakan dulu.
+
+---
+
 ## 2026-10-16 — Sesi 29: catatan #119 yang tertinggal; topik kedua Cloud & Infrastructure, Kubernetes
 
 Permintaan pemilik: *"lanjutkan progress"*.
