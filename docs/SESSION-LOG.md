@@ -4,6 +4,26 @@ Urutan terbaru di atas. Berkas ini mencatat **apa yang terjadi dan kapan** — b
 
 ---
 
+## 2026-10-16 — Sesi 30: favicon = logo situs (#124); SVG Kontainer & Docker dan Kubernetes kini 200
+
+Permintaan pemilik: *"bisakah logo [di dasbor Vercel] disamakan dengan logo yang ada di websitenya?"*, lalu *"sudah saya merged 124"*, lalu *"lanjutkan progress proyek"*.
+
+### Favicon (#124)
+
+Dasbor Vercel mengambil ikon kartu proyek dari favicon situs produksi. Ternyata `apps/web/src/app/favicon.ico` **masih bawaan create-next-app** sejak skeleton Fase 1 (25.931 byte, segitiga Vercel), dan produksi memang mengirim file itu.
+
+[#124](https://github.com/xtheoputra/techverse-x/pull/124) menggantinya dengan `icon.svg`, `favicon.ico` (16/32/48), dan `apple-icon.png` (180). Ketiganya digambar dari `LogoMark` yang sama dengan kepala halaman, di atas warna latar situs `#04050b`. `next build` lulus, dan HTML hasil build menautkan ketiganya.
+
+Pemilik me-merge pukul 09:52:47 UTC. Deployment produksi `techverse-x-web` dari `f770cb7` selesai 09:53:09, dan `/favicon.ico` produksi kini **4.754 byte**. Dasbor Vercel belum berubah saat pemilik melihatnya, beberapa detik sesudah deploy. **Belum diverifikasi** (tanpa browser): kapan dasbor memperbarui ikonnya.
+
+### Build web #124 ikut membawa media yang tertinggal
+
+Build itu adalah build web produksi pertama sejak 2026-10-13 yang memuat `main` terbaru, jadi kedelapan SVG Kontainer & Docker dan Kubernetes kini **200 semua**; di 🏁 Sesi 29 mereka masih 404. Halaman `/teknologi/kontainer-dan-docker` dan `/teknologi/kubernetes` 200, dan `/health/ready` API 200.
+
+Jadi pemeriksaan sesudah merge #122 yang tertulis di 🏁 Sesi 29 sudah terpenuhi lebih dulu. #122 dan #123 tetap **MERGEABLE/CLEAN**, dan keduanya punya ketujuh pemeriksaan, termasuk `Vercel – techverse-x-web` dan `Vercel – techverse-x-api`.
+
+---
+
 ## 2026-10-16 — Sesi 29 (Lanjutan 2): sisi Kubernetes → Kontainer & Docker tayang; penyebab Vercel: Git terputus
 
 Permintaan pemilik: *"121 sudah saya gabungkan"*, lalu *"memang gitnya terputus, sudah saya hubungkan lagi, 2. lanjutkan"*.
