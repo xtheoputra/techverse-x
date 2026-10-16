@@ -1,0 +1,259 @@
+{
+  "slug": "kontainer-dan-docker",
+  "name": "Kontainer & Docker",
+  "fieldSlug": "cloud-infrastructure",
+  "summary": "Kontainer adalah cara membungkus aplikasi beserta semua yang ia butuhkan, dari versi Python sampai pustaka sistem, supaya ia berjalan sama di laptopmu, di laptop temanmu, dan di server. Docker adalah alat yang membuat cara ini dipakai luas, dan alat itulah yang kita pakai. Di halaman ini kamu membungkus aplikasi katalog perpustakaan kecil langkah demi langkah: memahami bahwa kontainer hanyalah proses yang diisolasi, menulis Dockerfile, memanfaatkan cache build, memangkas citra dari 1,68 GB menjadi 248 MB, menjaga rahasia agar tak tertinggal di citra, menyimpan data di volume, membuka port dengan aman, menjalankan aplikasi bersama PostgreSQL lewat Docker Compose, serta membatasi memori dan hak akses. Semua contoh sudah dijalankan dan tidak membutuhkan akun berbayar.",
+  "overview": "## \"Di laptopku jalan, kok\"\n\nSeorang relawan perpustakaan menulis aplikasi katalog kecil. Di laptopnya semua lancar. Begitu dipasang di server, aplikasinya gagal: Python di server versinya lebih tua, dan pustaka PostgreSQL yang dibutuhkan tidak terpasang. Temannya yang mencoba di Windows menemui masalah ketiga.\n\nMasalah seperti ini sangat umum. **Kontainer** menjawabnya dengan cara yang sederhana: jangan kirim aplikasinya saja, kirim juga lingkungannya. Versi Python, pustaka sistem, dependensi, dan kodenya dibungkus menjadi satu paket bernama **citra** (*image*), lalu paket itu dijalankan dengan cara yang sama di mana pun.\n\n::media[kontainer-vs-vm]\n\n## Aplikasi yang akan kita bungkus\n\nSepanjang halaman ini kita membungkus katalog perpustakaan berikut. Ia ditulis dengan FastAPI, punya dua alamat, dan menyapa basis data PostgreSQL saat mulai bila alamatnya diberikan:\n\n```python\n\"\"\"Katalog perpustakaan: aplikasi kecil yang kita masukkan ke kontainer.\"\"\"\nimport os\nimport platform\nimport socket\nfrom collections.abc import AsyncIterator\nfrom contextlib import asynccontextmanager\n\nimport psycopg\nfrom fastapi import FastAPI\n\nALAMAT_DB = os.environ.get(\"DATABASE_URL\", \"\")\n\n\n@asynccontextmanager\nasync def saat_mulai(app: FastAPI) -> AsyncIterator[None]:\n    if ALAMAT_DB:  # sapa basis data sekali saat mulai; gagal cepat bila belum siap\n        with psycopg.connect(ALAMAT_DB, connect_timeout=3) as conn:\n            conn.execute(\"SELECT 1\")\n    yield\n\n\napp = FastAPI(lifespan=saat_mulai)\n\n\n@app.get(\"/\")\ndef sapa() -> dict[str, str]:\n    return {\"pesan\": \"Halo dari katalog perpustakaan\",\n            \"python\": platform.python_version(),\n            \"host\": socket.gethostname()}\n\n\n@app.get(\"/buku\")\ndef daftar_buku() -> list[dict[str, str]]:\n    with psycopg.connect(ALAMAT_DB) as conn:\n        baris = conn.execute(\"SELECT judul, penulis FROM buku ORDER BY judul\").fetchall()\n    return [{\"judul\": judul, \"penulis\": penulis} for judul, penulis in baris]\n# revisi 1\n```\n\nDependensinya ditulis di `requirements.txt`. Versinya dikunci, supaya build hari ini dan bulan depan memasang hal yang sama:\n\n```text\nfastapi==0.143.0\nuvicorn==0.54.0\npsycopg[c]==3.3.6\n```\n\n`psycopg[c]` berarti modul C psycopg dikompilasi saat dipasang. Dokumentasi psycopg menyebut cara ini sebagai yang disarankan untuk produksi, dan pilihan ini akan membuat langkah 4 dan 6 lebih menarik.\n\n## Peta perjalanan\n\n| Bagian | Pertanyaan yang dijawab | Langkah |\n|---|---|---|\n| Dasar | apa sebenarnya kontainer, citra, dan lapisan | 1–2 |\n| Membangun citra | Dockerfile, cache, konteks build, ukuran, dan rahasia | 3–7 |\n| Aplikasi sungguhan | volume, jaringan, port, dan Docker Compose | 8–11 |\n| Aman dan siap dikirim | batas sumber daya, hak akses, tag, dan digest | 12–14 |\n\n## Kapan kontainer bukan jawabannya\n\nKontainer bukan mesin virtual yang lebih ringan. Ia proses yang berbagi kernel dengan komputernya, dan itu membawa tiga akibat:\n\n- **Isolasinya lebih tipis daripada mesin virtual.** Celah di kernel adalah celah untuk semua kontainer di komputer itu. Dokumentasi keamanan Docker menempatkan keamanan kernel sebagai hal pertama yang perlu ditinjau.\n- **Kontainer Linux butuh kernel Linux.** Di Windows dan macOS, Docker Desktop menjalankan mesin virtual Linux, dan semua kontainermu hidup di sana.\n- **Hampir tanpa beban, tapi ada jebakan.** Felter dkk. (IBM, 2014) mengukur kontainer setara atau lebih cepat daripada mesin virtual KVM di hampir semua uji. Mereka juga mencatat dua jebakan Docker: kinerja berkas di volume nyata lebih baik daripada berkas di lapisan citra, dan NAT Docker menambah beban untuk lalu lintas yang sangat padat paket.\n\nDocker Engine sendiri sumber terbuka (Apache 2.0). Docker Desktop punya lisensi lain: gratis untuk pemakaian pribadi, pendidikan, proyek sumber terbuka nonkomersial, dan usaha kecil (kurang dari 250 karyawan **dan** pendapatan di bawah 10 juta dolar AS per tahun). Organisasi yang lebih besar dan instansi pemerintah membutuhkan langganan berbayar.\n\n## Hubungannya dengan topik lain\n\nHalaman ini adalah fondasi bidang Cloud & Infrastructure. Satu kontainer di satu laptop mudah diurus. Ratusan kontainer di puluhan mesin membutuhkan pengatur, dan itulah topik **Kubernetes**. Citra yang kamu bangun di sini juga yang nanti dibangun otomatis oleh pipeline **DevOps & CI/CD** dan dijalankan di layanan **cloud hyperscaler**.\n\n::media[video-kontainer]\n\n> [!CATATAN]\n> Semua perintah di halaman ini benar-benar dijalankan di Windows 11 dengan Docker Desktop (backend WSL 2) dan Docker Engine 29.1.5, dan semua angka berasal dari keluarannya. Di Linux perintahnya sama. Angka waktu dan ukuran di komputermu akan sedikit berbeda, tetapi polanya akan sama.",
+  "media": [
+    {
+      "key": "kontainer-vs-vm",
+      "kind": "Image",
+      "url": "/media/kontainer-dan-docker/kontainer-vs-vm.svg",
+      "alt": "Dua tumpukan berdampingan. Kiri, mesin virtual: perangkat keras, hypervisor, lalu dua mesin tamu yang masing-masing membawa kernel, pustaka, dan aplikasi sendiri. Kanan, kontainer: perangkat keras, satu kernel bersama, Docker Engine, lalu dua kontainer yang hanya membawa pustaka dan aplikasi.",
+      "caption": "Mesin virtual membawa kernelnya sendiri; kontainer berbagi kernel komputernya.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "waktu-build",
+      "kind": "Image",
+      "url": "/media/kontainer-dan-docker/waktu-build.svg",
+      "alt": "Grafik batang waktu build ulang sesudah satu baris kode diubah, tiga percobaan masing-masing. Dockerfile dengan COPY seluruh folder dulu: median 31,4 detik karena pip install dijalankan ulang. Dockerfile yang menyalin dependensi dulu: median 2,5 detik karena pip install diambil dari cache.",
+      "caption": "Satu baris kode berubah; yang membedakan hanya urutan instruksi.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "ukuran-citra",
+      "kind": "Image",
+      "url": "/media/kontainer-dan-docker/ukuran-citra.svg",
+      "alt": "Grafik batang ukuran tiga citra katalog di disk. python:3.14 ditambah dependensi 1,68 GB. python:3.14-slim ditambah alat kompilasi 697 MB. Multi-stage 248 MB. Di samping setiap batang tertulis ukuran terkompresi yang diunduh: 430,4, 169,8, dan 58,3 MB.",
+      "caption": "Aplikasinya sama; yang berbeda adalah apa yang ikut dikirim.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "jaringan-port",
+      "kind": "Image",
+      "url": "/media/kontainer-dan-docker/jaringan-port.svg",
+      "alt": "Diagram laptop yang menjalankan dua kontainer katalog. Kontainer pertama dipublikasikan di 127.0.0.1:8100 dan hanya bisa dicapai dari laptop itu sendiri; perangkat lain di LAN ditolak. Kontainer kedua dipublikasikan di 0.0.0.0:8200 dan bisa dicapai perangkat lain di LAN.",
+      "caption": "Tanpa alamat di depannya, -p membuka port di semua antarmuka.",
+      "license": "Karya sendiri"
+    },
+    {
+      "key": "video-kontainer",
+      "kind": "Video",
+      "videoId": "W1kWqFkiu7k",
+      "alt": "What is a container? | Docker Concepts",
+      "caption": "Pengantar kontainer dari Docker, video yang juga disematkan di dokumentasi konsepnya (3 menit, Maret 2024).",
+      "sourceName": "Docker di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=W1kWqFkiu7k",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    },
+    {
+      "key": "video-lapisan",
+      "kind": "Video",
+      "videoId": "wJwqtAkmtQA",
+      "alt": "Docker concepts - Understanding image layers",
+      "caption": "Cara lapisan citra ditumpuk dan dipakai bersama, dari dokumentasi konsep Docker (2 menit, April 2024).",
+      "sourceName": "Docker di YouTube",
+      "sourceUrl": "https://www.youtube.com/watch?v=wJwqtAkmtQA",
+      "license": "Lisensi standar YouTube; disematkan lewat pemutar YouTube"
+    }
+  ],
+  "prerequisite": {
+    "title": "Yang perlu kamu siapkan: terminal, sedikit Python, dan Docker",
+    "description": "Sebelum mulai, pastikan hal-hal ini sudah akrab bagimu:\n\n- **Terminal**: berpindah folder, menjalankan perintah, dan membaca pesan galat.\n- **Alamat dan port**: `127.0.0.1` adalah alamat komputermu sendiri, dan port adalah \"pintu\" bernomor tempat sebuah program mendengar.\n- **Sedikit Python**: cukup untuk membaca aplikasi FastAPI pendek.\n\nLalu pasang Docker. Di Linux, pasang **Docker Engine**. Di Windows dan macOS, pasang **Docker Desktop**, yang membawa Docker Engine di dalam mesin virtual Linux kecil (di Windows biasanya lewat WSL 2). Perhatikan lisensinya: Docker Desktop gratis untuk pemakaian pribadi, pendidikan, dan usaha kecil, tetapi organisasi besar membutuhkan langganan.\n\nPeriksa pemasangannya:\n\n```bash\ndocker version\n```\n\nSemua contoh hanya mengunduh citra publik dari Docker Hub dan paket dari PyPI. Tak ada layanan berbayar dan tak perlu akun."
+  },
+  "roadmap": [
+    {
+      "title": "Kontainer hanyalah proses yang diisolasi",
+      "description": "**Mesin virtual** (VM) membawa sistem operasi lengkap, termasuk kernelnya sendiri. **Kontainer** tidak. Ia proses biasa yang berjalan di kernel komputermu, hanya diberi pandangan sendiri. Jalankan dua citra dari dua distro Linux yang berbeda:\n\n```bash\ndocker run --rm alpine:3.24 grep PRETTY_NAME /etc/os-release\ndocker run --rm python:3.14-slim grep PRETTY_NAME /etc/os-release\ndocker run --rm alpine:3.24 uname -r\ndocker run --rm python:3.14-slim uname -r\n```\n\n```text\nPRETTY_NAME=\"Alpine Linux v3.24\"\nPRETTY_NAME=\"Debian GNU/Linux 13 (trixie)\"\n6.6.87.2-microsoft-standard-WSL2\n6.6.87.2-microsoft-standard-WSL2\n```\n\nBerkasnya berbeda, yaitu Alpine dan Debian, tetapi kernelnya sama persis. Di laptop Windows tempat contoh ini dijalankan, kernel itu milik WSL 2, mesin virtual Linux yang dinyalakan Docker Desktop. Di Linux, kontainer langsung memakai kernel komputermu.\n\nPandangan sendiri itu dibuat fitur kernel bernama **namespace** (ruang nama). Ada ruang nama untuk nomor proses, jaringan, titik kait berkas, nama host, dan lainnya. Lihat apa yang terlihat oleh `ps` dari dalam:\n\n```bash\ndocker run --rm alpine:3.24 ps -o pid,comm\n```\n\n```text\nPID   COMMAND\n    1 ps\n```\n\nIa merasa menjadi proses nomor 1 dan sendirian di dunia. Batas memori dan CPU datang dari fitur kernel lain, **cgroups**, yang kita pakai di langkah 12.\n\nKarena tak ada sistem operasi yang perlu dinyalakan, kontainer mulai dengan cepat. Di sini satu `docker run` untuk perintah kosong selesai dalam median 633 ms, termasuk perjalanan bolak-balik CLI. Felter dkk. mencatat kontainer menyala dalam kurang dari 1 detik, sedangkan VM di perangkat keras mereka butuh 11 detik."
+    },
+    {
+      "title": "Citra, kontainer, dan lapisan tulis",
+      "description": "Kalau kontainer hanyalah proses, dari mana datangnya berkas-berkasnya? Dari **citra**: paket hanya-baca berisi semua berkas, pustaka, dan pengaturan yang dibutuhkan. Citra tersusun dari **lapisan** (*layer*). Setiap lapisan mencatat perubahan berkas, dan lapisan-lapisan itu ditumpuk menjadi satu pandangan. Saat kontainer dijalankan, Docker menambahkan satu lapisan tipis yang bisa ditulis di paling atas.\n\n::media[video-lapisan]\n\nBuktikan bahwa lapisan tulis itu milik satu kontainer saja:\n\n```bash\ndocker run --name perpus-coba alpine:3.24 sh -c \"echo 'pinjam: Laskar Pelangi' > /catatan.txt\"\ndocker diff perpus-coba\ndocker rm perpus-coba\ndocker run --rm alpine:3.24 cat /catatan.txt\n```\n\n```text\nA /catatan.txt\ncat: can't open '/catatan.txt': No such file or directory\n```\n\n`docker diff` menunjukkan satu berkas baru di lapisan tulis (`A` berarti *added*). Begitu kontainernya dihapus, lapisan itu ikut hilang, dan kontainer baru dari citra yang sama mulai bersih lagi.\n\nDokumentasi Docker menyebut sifat ini *ephemeral*: kontainer boleh dihentikan, dihapus, dan diganti kapan saja. Jadi jangan simpan data penting di dalam kontainer. Tempatnya di **volume**, yang kita pakai di langkah 8.\n\nFormat citra ini juga bukan milik Docker saja. Ia dibakukan oleh Open Container Initiative (OCI), sehingga citra yang kamu bangun dengan Docker bisa dijalankan *runtime* lain yang mengikuti standar yang sama."
+    },
+    {
+      "title": "Dockerfile pertama",
+      "description": "Saatnya membungkus katalog kita. Resepnya ditulis di **Dockerfile**, daftar instruksi yang dibaca dari atas ke bawah. Ini versi pertama, yang paling sering ditulis orang saat baru mulai:\n\n```dockerfile\n# syntax=docker/dockerfile:1\nFROM python:3.14\nWORKDIR /app\nCOPY . .\nRUN pip install --no-cache-dir -r requirements.txt\nCMD [\"uvicorn\", \"app:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\n`FROM` memilih citra dasar, yaitu Python 3.14 resmi. `WORKDIR` pindah ke folder `/app`. `COPY . .` menyalin seluruh folder proyek. `RUN` memasang dependensi saat build, dan `CMD` adalah perintah yang dijalankan saat kontainer mulai. Bangun, jalankan, lalu sapa:\n\n```bash\ndocker build -f Dockerfile.naif -t perpus/katalog:naif .\ndocker run -d --name perpus-katalog -p 127.0.0.1:8100:8000 perpus/katalog:naif\ncurl http://127.0.0.1:8100/\n```\n\n```text\n{\"pesan\":\"Halo dari katalog perpustakaan\",\"python\":\"3.14.8\",\"host\":\"bb267b48f60f\"}\n```\n\nPerhatikan `-p 127.0.0.1:8100:8000`. Angka kanan adalah port **di dalam** kontainer, tempat uvicorn mendengar. Angka kiri adalah port **di laptopmu**. Alamat `127.0.0.1` di depannya berarti hanya laptopmu sendiri yang boleh mengetuk; langkah 9 menunjukkan kenapa itu penting. Isi `host` adalah ID pendek kontainer, bukan nama laptopmu.\n\nKatalog berjalan dengan Python 3.14.8, apa pun versi Python di laptopmu. Tapi Dockerfile ini menyimpan beberapa masalah yang akan kita bongkar satu per satu: build ulangnya lambat, ia menyalin terlalu banyak, citranya gemuk, dan prosesnya berjalan sebagai `root`:\n\n```bash\ndocker exec perpus-katalog id\n```\n\n```text\nuid=0(root) gid=0(root) groups=0(root)\n```"
+    },
+    {
+      "title": "Urutan instruksi dan cache build",
+      "description": "Setiap instruksi di Dockerfile menjadi satu langkah build, dan Docker menyimpan hasilnya di **cache**. Saat kamu membangun ulang, Docker memeriksa langkah demi langkah. Bila instruksi dan berkas yang dipakainya sama, hasil lama dipakai lagi. Begitu satu langkah berubah, **semua langkah sesudahnya** dijalankan ulang, walaupun hasilnya akan sama.\n\nDi Dockerfile pertama, `COPY . .` datang sebelum `pip install`. Ubah satu baris saja di `app.py`, maka `COPY` berubah dan pip memasang ulang semuanya, termasuk mengompilasi modul C psycopg. Perbaikannya: salin daftar dependensi dulu, pasang, baru salin kodenya.\n\n```dockerfile\n# syntax=docker/dockerfile:1\nFROM python:3.14\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY app.py .\nCMD [\"uvicorn\", \"app:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\nKami mengubah satu baris di `app.py` lalu membangun ulang kedua versi, tiga kali:\n\n| Dockerfile | build ulang (median) | `pip install` |\n|---|---|---|\n| `COPY . .` dulu | 31,4 detik | dijalankan ulang |\n| dependensi dulu | 2,5 detik | diambil dari cache |\n\n::media[waktu-build]\n\nPrinsipnya ditulis di dokumentasi Docker: urutkan instruksi dari yang **jarang berubah** ke yang **sering berubah**.\n\nAda juga jebakan kebalikannya. Cache untuk `RUN` hanya melihat teks perintahnya, bukan hasilnya. Jadi `RUN apt-get update` yang sudah tersimpan tidak akan mengambil paket baru minggu depan. Untuk build yang benar-benar segar, pakai `docker build --pull --no-cache`."
+    },
+    {
+      "title": "Konteks build dan .dockerignore",
+      "description": "Titik `.` di akhir `docker build` adalah **konteks build**, yaitu folder yang boleh dibaca builder. Bayangkan di folder katalog kini ada dua tamu tak diundang: berkas `.env` berisi sandi basis data, dan cadangan basis data 80 MiB di folder `cadangan/`. Apa yang terjadi bila keduanya dibiarkan?\n\n| Dockerfile | konteks yang dikirim | `.env` ikut ke citra? |\n|---|---|---|\n| `COPY . .` | 83,91 MB | ya |\n| salin berkas tertentu | 1,16 kB | tidak |\n\n```bash\ndocker run --rm perpus/katalog:naif cat /app/.env\n```\n\n```text\nDATABASE_URL=postgresql://katalog:contoh-sandi-latihan@db:5432/katalog\n```\n\nSandinya ikut terbungkus, dan siapa pun yang menerima citra ini bisa membacanya. Citranya juga membengkak dari 1,68 GB menjadi 1,85 GB, karena cadangan itu ikut masuk.\n\nBaris kedua tabel mengejutkan. Dockerfile yang hanya menyalin `requirements.txt` dan `app.py` cuma mengirim 1,16 kB, kira-kira sebesar `app.py` dan `requirements.txt`, walaupun berkas 80 MiB itu baru dibuat. BuildKit, mesin build Docker, ternyata hanya mengirim berkas yang memang diminta `COPY`, setidaknya di versi yang kami pakai. Jadi biang masalahnya adalah `COPY . .`.\n\nTetap tulis `.dockerignore`, karena suatu hari seseorang akan menulis `COPY . .` lagi:\n\n```text\n# Jangan kirim ini ke builder\n.env\ncadangan/\n__pycache__/\ncompose*.yaml\n```\n\nDengan berkas ini, cadangan dan `.env` tak pernah sampai ke builder, dan perintah yang sama berakhir dengan `cat: /app/.env: No such file or directory`."
+    },
+    {
+      "title": "Citra yang ramping: multi-stage build",
+      "description": "Citra 1,68 GB untuk aplikasi 37 baris terasa berlebihan. Beratnya datang dari citra dasar `python:3.14` (1,63 GB), yang membawa kompiler C, header, dan ratusan alat pengembangan. Kompiler itu memang kita butuhkan untuk psycopg, tapi hanya saat **membangun**, bukan saat **menjalankan**.\n\n**Multi-stage build** memisahkan dapur dari meja saji. Tahap pertama memasak dengan peralatan lengkap, dan tahap kedua hanya menerima hidangannya:\n\n```dockerfile\n# syntax=docker/dockerfile:1\n\n# Tahap 1: dapur. Ada kompiler C dan header libpq untuk membangun psycopg.\nFROM python:3.14 AS bangun\nRUN python -m venv /opt/venv\nENV PATH=\"/opt/venv/bin:$PATH\"\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\n# Tahap 2: yang dikirim. Hanya Python ramping, libpq, dan hasil tahap 1.\nFROM python:3.14-slim AS jalan\nRUN apt-get update \\\n && apt-get install -y --no-install-recommends libpq5 \\\n && rm -rf /var/lib/apt/lists/*\nCOPY --from=bangun /opt/venv /opt/venv\nENV PATH=\"/opt/venv/bin:$PATH\"\nWORKDIR /app\nCOPY app.py .\nUSER 10001:10001\nEXPOSE 8000\nCMD [\"uvicorn\", \"app:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]\n```\n\n`COPY --from=bangun` mengambil folder `/opt/venv` yang sudah jadi. Kompilernya tertinggal di tahap pertama.\n\n| Citra | di disk | diunduh |\n|---|---|---|\n| `python:3.14` + dependensi | 1,68 GB | 430,4 MB |\n| `python:3.14-slim` + alat kompilasi | 697 MB | 169,8 MB |\n| multi-stage | 248 MB | 58,3 MB |\n\n::media[ukuran-citra]\n\nKetiganya memakai modul C psycopg (`psycopg.pq.__impl__` bernilai `c`), dan di citra terakhir tak ada `gcc`. Kolom \"di disk\" adalah ruang sesudah lapisan dibuka; kolom \"diunduh\" adalah yang benar-benar lewat jaringan saat `docker pull`."
+    },
+    {
+      "title": "Rahasia saat build",
+      "description": "Kadang build butuh rahasia, misalnya token untuk mengunduh katalog pusat dari server privat. Dokumentasi Docker tegas: argumen build dan variabel lingkungan tak cocok untuk rahasia, karena keduanya tertinggal di citra. Mari buktikan dengan token palsu.\n\n**Lewat `ARG`.** BuildKit sudah memperingatkan saat build (*SecretsUsedInArgOrEnv*), dan riwayat citranya membuka token itu:\n\n```dockerfile\n# syntax=docker/dockerfile:1\nFROM alpine:3.24\nARG TOKEN_KATALOG\nRUN test -n \"$TOKEN_KATALOG\" && echo \"unduh katalog pusat\"\n```\n\n```bash\ndocker history --no-trunc perpus/rahasia:arg\n```\n\n```text\nRUN |1 TOKEN_KATALOG=contoh-token-bukan-rahasia-7341 /bin/sh -c test -n \"$TOKEN_KATALOG\" && echo \"unduh katalog pusat\" # buildkit\nARG TOKEN_KATALOG=contoh-token-bukan-rahasia-7341\n```\n\n**Salin lalu hapus.** Berkasnya tak terlihat lagi dari dalam kontainer, tapi `docker save` mengekspor semua lapisan, dan `tmp/token.txt` masih utuh di lapisan `COPY`. Menghapus di lapisan berikutnya hanya menaruh penanda *whiteout* yang menyembunyikannya.\n\n```dockerfile\n# syntax=docker/dockerfile:1\nFROM alpine:3.24\nCOPY token.txt /tmp/token.txt\nRUN test -s /tmp/token.txt && echo \"unduh katalog pusat\" && rm /tmp/token.txt\n```\n\n**Mount rahasia.** Token tersedia sebagai berkas `/run/secrets/token_katalog` hanya selama satu instruksi `RUN`:\n\n```dockerfile\n# syntax=docker/dockerfile:1\nFROM alpine:3.24\nRUN --mount=type=secret,id=token_katalog \\\n    test -s /run/secrets/token_katalog && echo \"unduh katalog pusat\"\n```\n\n```bash\ndocker build --secret id=token_katalog,src=token.txt -f Dockerfile.aman -t perpus/rahasia:aman .\n```\n\nHasilnya: tak ada di `docker history`, dan tak ada di satu pun berkas hasil `docker save`."
+    },
+    {
+      "title": "Data yang bertahan: volume",
+      "description": "Kontainer boleh dibuang, data tidak. **Volume** adalah tempat penyimpanan yang dikelola Docker di luar lapisan tulis, sehingga isinya tetap ada walau kontainernya dihapus. Felter dkk. juga mengukur kinerja volume nyata lebih baik daripada berkas di lapisan citra.\n\nSatu jebakan dulu. Banyak tutorial memasang volume PostgreSQL di `/var/lib/postgresql/data`. Sejak PostgreSQL 18, citra resminya menaruh data di `/var/lib/postgresql/18/docker`, dan volumenya harus dipasang di `/var/lib/postgresql`. Ikuti tutorial lama, dan kontainernya menolak mulai:\n\n```bash\ndocker run --name perpus-db-lama -e POSTGRES_PASSWORD=contoh-sandi-latihan -v perpus-data-lama:/var/lib/postgresql/data postgres:18\n```\n\n```text\nError: in 18+, these Docker images are configured to store database data in a\n```\n\nPesan lengkapnya menyebut ada data di `/var/lib/postgresql/data (unused mount/volume)` dan menyarankan satu kait di `/var/lib/postgresql`. Dengan jalur yang benar:\n\n```bash\ndocker volume create perpus-data\ndocker run -d --name perpus-db -e POSTGRES_PASSWORD=contoh-sandi-latihan -v perpus-data:/var/lib/postgresql postgres:18\ndocker exec perpus-db psql -U postgres -c \"CREATE TABLE pinjam (judul text); INSERT INTO pinjam VALUES ('Bumi Manusia'), ('Laskar Pelangi');\"\ndocker rm -f perpus-db\ndocker run -d --name perpus-db -e POSTGRES_PASSWORD=contoh-sandi-latihan -v perpus-data:/var/lib/postgresql postgres:18\ndocker exec perpus-db psql -U postgres -tAc \"SELECT count(*) FROM pinjam\"\n```\n\n```text\n2\n```\n\nTunggu beberapa detik sesudah `docker run` sampai PostgreSQL siap, baru jalankan `psql`. Kontainer pertama sudah dihapus, tetapi kedua baris masih ada, karena datanya tinggal di volume `perpus-data`.\n\nSelain volume ada **bind mount**: folder dari komputermu yang dipasang ke kontainer. Ia cocok untuk berkas yang kamu sunting sendiri, seperti skrip awal basis data di langkah 10. Untuk data yang dihasilkan aplikasi, dokumentasi Docker menyarankan volume."
+    },
+    {
+      "title": "Jaringan dan port",
+      "description": "Kontainer di jaringan buatan sendiri bisa saling memanggil **dengan nama**. Kontainer di jaringan bawaan (`bridge`) tidak bisa:\n\n```bash\ndocker network create perpus-net\ndocker run -d --name perpus-rak --network perpus-net alpine:3.24 sleep 300\ndocker run --rm --network perpus-net alpine:3.24 getent hosts perpus-rak\ndocker run -d --name perpus-rak-lama alpine:3.24 sleep 300\ndocker run --rm alpine:3.24 getent hosts perpus-rak-lama\n```\n\n```text\n192.168.0.2       perpus-rak  perpus-rak\n```\n\nPencarian pertama menjawab alamat `perpus-rak`. Pencarian kedua pulang kosong dengan kode 2. Dokumentasi Docker menyebut jaringan buatan sendiri lebih unggul, juga karena hanya kontainer yang bergabung ke sana yang bisa saling bicara. Di jaringan bawaan, semua kontainer tanpa `--network` berkumpul jadi satu.\n\nSekarang port. Jalankan katalog dua kali, sekali dengan alamat dan sekali tanpa:\n\n```bash\ndocker run -d --name perpus-katalog -p 127.0.0.1:8100:8000 perpus/katalog:1\ndocker run -d --name perpus-katalog-terbuka -p 8200:8000 perpus/katalog:1\ndocker port perpus-katalog\ndocker port perpus-katalog-terbuka\n```\n\n```text\n8000/tcp -> 127.0.0.1:8100\n8000/tcp -> 0.0.0.0:8200\n8000/tcp -> [::]:8200\n```\n\nTanpa alamat, port dibuka di **semua antarmuka**. Dari alamat LAN laptop, port 8100 menolak sambungan, sedangkan port 8200 menjawab 200. Dokumentasi Docker memperingatkan bahwa membuka port tidak aman secara bawaan. Di Linux, lalu lintas ke port itu bahkan dialihkan sebelum sampai ke aturan ufw, sehingga firewall-mu tak sempat menahannya.\n\n::media[jaringan-port]\n\n> [!TIPS]\n> `perpus-net` di sini mendapat `192.168.0.0/20`, karena laptop ini sudah punya 15 jaringan Docker lain di blok 172.x. Docker memakai blok 172.17–172.31 lebih dulu, baru 192.168.0.0/16, rentang yang juga lazim dipakai router rumah dan kantor. Bila bentrok, dokumentasi Docker menyarankan mengatur `default-address-pools`."
+    },
+    {
+      "title": "Docker Compose: katalog dan basis data",
+      "description": "Menyalakan aplikasi dan basis data satu per satu dengan `docker run` cepat melelahkan. **Docker Compose** menuliskan semuanya di satu berkas:\n\n```yaml\nname: perpus\n\nservices:\n  db:\n    image: postgres:18\n    environment:\n      POSTGRES_USER: katalog\n      POSTGRES_PASSWORD: contoh-sandi-latihan  # hanya untuk latihan\n      POSTGRES_DB: katalog\n    volumes:\n      - data-katalog:/var/lib/postgresql\n      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -h 127.0.0.1 -U katalog -d katalog\"]\n      interval: 2s\n      timeout: 3s\n      retries: 15\n\n  web:\n    build: .\n    environment:\n      DATABASE_URL: postgresql://katalog:contoh-sandi-latihan@db:5432/katalog\n    ports:\n      - \"127.0.0.1:8100:8000\"\n    depends_on:\n      db:\n        condition: service_healthy\n\nvolumes:\n  data-katalog:\n```\n\nYang terjadi diam-diam di sini:\n\n- Compose membuat **satu jaringan** untuk proyek ini, jadi basis data cukup dipanggil dengan namanya, `db`.\n- `data-katalog` adalah **volume** bernama. Kaitnya di `/var/lib/postgresql`, jalur yang benar untuk PostgreSQL 18.\n- `./init.sql` adalah **bind mount**. Citra PostgreSQL menjalankan berkas di `/docker-entrypoint-initdb.d` sekali, saat basis data masih kosong.\n\nNyalakan, tambah satu buku, matikan, nyalakan lagi, lalu tanya katalognya:\n\n```bash\ndocker compose up -d\ndocker compose exec db psql -U katalog -d katalog -c \"INSERT INTO buku VALUES ('Cantik Itu Luka', 'Eka Kurniawan')\"\ndocker compose down\ndocker compose up -d\ncurl http://127.0.0.1:8100/buku\n```\n\n```text\n[{\"judul\":\"Bumi Manusia\",\"penulis\":\"Pramoedya Ananta Toer\"},{\"judul\":\"Cantik Itu Luka\",\"penulis\":\"Eka Kurniawan\"},{\"judul\":\"Laskar Pelangi\",\"penulis\":\"Andrea Hirata\"},{\"judul\":\"Ronggeng Dukuh Paruk\",\"penulis\":\"Ahmad Tohari\"}]\n```\n\nBuku keempat selamat, karena `down` membuang kontainer dan jaringan, tetapi tidak volume. `docker compose down -v` membuang volume juga, dan katalog kembali ke 3 buku dari `init.sql`."
+    },
+    {
+      "title": "Menunggu yang benar-benar siap",
+      "description": "Perhatikan `depends_on` dengan `condition: service_healthy` di langkah sebelumnya. Kenapa tidak cukup menulis `depends_on: - db` saja?\n\nKarena dokumentasi Compose menulis terus terang: Compose hanya menunggu kontainer **menyala**, bukan **siap**. PostgreSQL yang baru pertama kali menyala masih sibuk menyiapkan basis data sebelum mau menerima sambungan. Kami mencoba versi tanpa *healthcheck* (`compose.naif.yaml`) tiga kali dari volume kosong:\n\n```bash\ndocker compose -f compose.naif.yaml up -d\n```\n\n```text\npsycopg.OperationalError: connection failed: connection to server at \"192.168.0.2\", port 5432 failed: Connection refused\n```\n\nWeb gagal di 3 dari 3 percobaan dan berhenti dengan kode keluar 3. Dengan `healthcheck` dan `condition: service_healthy`, web baru dibuat sesudah basis data sehat, dan menjawab di 3 dari 3 percobaan, dengan median 3,6 detik sejak `up`.\n\n> [!PERINGATAN]\n> Contoh di dokumentasi Compose memeriksa dengan `pg_isready` tanpa `-h`. Perintah itu bertanya lewat soket Unix. Saat skrip awal berjalan, citra PostgreSQL memakai server sementara yang hanya mendengar di soket, tanpa TCP. Kami menambahkan `SELECT pg_sleep(8);` ke `init.sql`: dengan pemeriksaan soket, web gagal di 2 dari 2 percobaan; dengan `-h 127.0.0.1`, web menjawab di 2 dari 2 percobaan. Periksalah lewat jalan yang sama dengan yang dipakai aplikasimu.\n\nPelajarannya berlaku di luar Docker: \"proses berjalan\" belum tentu \"layanan siap\". Aplikasi yang baik juga mencoba lagi saat sambungannya gagal, bukan hanya mengandalkan urutan mulai."
+    },
+    {
+      "title": "Batas memori dan CPU",
+      "description": "Secara bawaan, kontainer boleh memakai memori dan CPU sebanyak yang diizinkan kernel. Dokumentasi Docker mengingatkan akibatnya: bila memori komputer habis, kernel mulai membunuh proses, dan yang terbunuh bisa proses apa saja. Batasi dengan cgroups lewat `--memory` dan `--cpus`.\n\nProgram berikut menimbun memori 1 MB demi 1 MB sambil menghitung:\n\n```bash\ndocker run --name perpus-boros --memory 64m --memory-swap 64m python:3.14-slim python -c \"b = []; [b.append(bytearray(10**6)) or print(len(b), flush=True) for _ in range(1000)]\"\ndocker inspect perpus-boros --format \"{{.State.ExitCode}} {{.State.OOMKilled}}\"\n```\n\n```text\n137 true\n```\n\nHitungan terakhirnya 61, jadi program itu tak pernah sampai 64 blok. Kernel menghentikannya, dan Docker mencatat kode keluar 137 serta `OOMKilled` bernilai `true`. Kenali pasangan ini, kode 137 dan `OOMKilled`, saat aplikasi tiba-tiba mati di server.\n\nKenapa ada `--memory-swap 64m`? Tanpa itu, kontainer boleh memakai swap sebanyak batas memorinya. Kami mencobanya: tanpa `--memory-swap`, program yang sama sampai hitungan 128, sekitar dua kali lipat. Dokumentasi Docker mengingatkan bahwa swap lebih lambat daripada memori.\n\nCPU dibatasi dengan cara serupa. Hitungan yang sama, tiga kali masing-masing:\n\n```bash\ndocker run --rm python:3.14-slim python -c \"import time; t = time.perf_counter(); sum(i * i for i in range(20_000_000)); print(round(time.perf_counter() - t, 2))\"\ndocker run --rm --cpus 0.5 python:3.14-slim python -c \"import time; t = time.perf_counter(); sum(i * i for i in range(20_000_000)); print(round(time.perf_counter() - t, 2))\"\n```\n\nTanpa batas, mediannya 0,95 detik. Dengan `--cpus 0.5`, 1,71 detik. Kontainer itu hanya mendapat separuh waktu satu inti CPU."
+    },
+    {
+      "title": "Hak akses: bukan root, capability, dan hanya-baca",
+      "description": "Proses di kontainer berjalan sebagai `root`, kecuali kamu memintanya lain. Root di kontainer memang dibatasi, tetapi bila sebuah folder komputermu dipasang ke dalamnya, Docker tidak membatasi hak kontainer atas folder itu. Bandingkan citra dasar dengan citra katalog kita yang memakai `USER 10001:10001`:\n\n```bash\ndocker run --rm python:3.14-slim sh -c \"id; grep CapEff /proc/self/status\"\ndocker run --rm perpus/katalog:1 sh -c \"id; grep CapEff /proc/self/status\"\n```\n\n```text\nuid=0(root) gid=0(root) groups=0(root)\nCapEff:\t00000000a80425fb\nuid=10001 gid=10001 groups=10001\nCapEff:\t0000000000000000\n```\n\n`CapEff` adalah himpunan **capability** yang sedang berlaku, ditulis heksadesimal dengan satu bit per capability. Capability adalah potongan-potongan hak root, seperti mengganti pemilik berkas atau membuka port di bawah 1024. Root bawaan Docker memegang 14 capability, sedangkan proses katalog kita tak memegang satu pun. Bandingkan dengan `--privileged`, yang memberi 41, yaitu semua yang dikenal kernel ini.\n\nDua bendera lagi menutup celah:\n\n- `--cap-drop ALL` mencabut semua capability. Root pun ditolak saat mencoba `chown`: `chown: changing ownership of '/tmp/a': Operation not permitted`.\n- `--read-only` membuat sistem berkas kontainer hanya-baca: `touch: cannot touch '/app/catatan.txt': Read-only file system`. Folder yang memang perlu ditulis diberi `--tmpfs /tmp`.\n\nSatu hal lagi: siapa pun yang bisa memerintah Docker daemon praktis setara root di komputer itu, karena ia bisa memasang folder `/` milik komputer ke dalam kontainer. Dokumentasi Docker meminta hanya pengguna tepercaya yang diberi akses. Bila itu terlalu longgar, ada *rootless mode*."
+    },
+    {
+      "title": "Tag, digest, dan registry",
+      "description": "Citra dibagikan lewat **registry**. Docker Hub adalah yang paling terkenal, tetapi kita bisa menjalankan registry sendiri, tanpa akun:\n\n```bash\ndocker run -d --name perpus-registry -p 127.0.0.1:5500:5000 registry:3\ndocker tag perpus/katalog:1 127.0.0.1:5500/katalog:1\ndocker push 127.0.0.1:5500/katalog:1\n```\n\nPush itu dilaporkan dengan **digest** `sha256:bb9246d853f7…`, sidik jari SHA-256 dari isi citranya. Sekarang seseorang mendorong build lain dengan tag yang sama:\n\n```bash\ndocker tag perpus/katalog:slim-alat 127.0.0.1:5500/katalog:1\ndocker push 127.0.0.1:5500/katalog:1\ncurl http://127.0.0.1:5500/v2/katalog/tags/list\n```\n\n```text\n{\"name\":\"katalog\",\"tags\":[\"1\"]}\n```\n\nRegistry hanya tahu satu tag, `1`, tapi kini ia menunjuk digest lain, `sha256:235657fa8d81…`. Siapa pun yang menarik `katalog:1` besok mendapat citra yang berbeda dari kemarin. Sebaliknya, menarik `katalog@sha256:bb9246d853f7…` tetap memberi citra pertama, sampai byte terakhir.\n\nItulah bedanya: **tag** adalah label yang bisa dipindah, sedangkan **digest** adalah identitas isi. Dokumentasi Docker menyarankan mengunci citra dasar dengan digest, misalnya `FROM alpine:3.21@sha256:…`, bila kamu butuh build yang bisa diulang persis. Harganya, kamu tak lagi otomatis mendapat tambalan keamanan; dokumentasi yang sama menyarankan Dependabot untuk mengusulkan pembaruan digest secara terjadwal.\n\nDengan ini katalog kita sudah lengkap: dibangun cepat, ramping, tanpa rahasia, berjalan bukan sebagai root, datanya aman di volume, dan siap dikirim lewat registry. Langkah berikutnya adalah menjalankan banyak kontainer seperti ini di banyak mesin sekaligus. Itulah pekerjaan **Kubernetes**."
+    }
+  ],
+  "tools": [
+    {
+      "slug": "docker-engine",
+      "name": "Docker Engine",
+      "summary": "Mesin kontainer sumber terbuka (Apache 2.0) beserta CLI docker: membangun citra dengan BuildKit, menjalankan kontainer, serta mengatur jaringan dan volume.",
+      "homepage": "https://docs.docker.com/engine/",
+      "note": "Dipakai di seluruh halaman. Contoh diuji dengan Docker Engine 29.1.5."
+    },
+    {
+      "slug": "docker-compose",
+      "name": "Docker Compose",
+      "summary": "Alat untuk mendefinisikan dan menjalankan aplikasi multi-kontainer dari satu berkas YAML, lengkap dengan jaringan, volume, dan urutan mulai.",
+      "homepage": "https://github.com/docker/compose",
+      "note": "Dipakai di langkah 10 dan 11 untuk katalog dan PostgreSQL. Contoh diuji dengan Docker Compose 5.0.1."
+    },
+    {
+      "slug": "docker-desktop",
+      "name": "Docker Desktop",
+      "summary": "Aplikasi untuk Windows, macOS, dan Linux yang menjalankan Docker Engine di dalam mesin virtual Linux kecil, beserta antarmuka grafis. Gratis untuk pemakaian pribadi, pendidikan, dan usaha kecil; organisasi besar butuh langganan.",
+      "homepage": "https://docs.docker.com/desktop/",
+      "note": "Contoh di halaman ini dijalankan di Docker Desktop pada Windows 11 dengan backend WSL 2."
+    }
+  ],
+  "projects": [
+    {
+      "title": "Bungkus aplikasimu sendiri",
+      "brief": "Pilih satu aplikasi yang pernah kamu tulis, dalam bahasa apa pun, lalu bungkus dengan semua kebiasaan baik dari halaman ini.\n\n- Tulis Dockerfile multi-stage: tahap pertama membangun, tahap kedua hanya membawa yang dibutuhkan untuk berjalan.\n- Urutkan instruksinya supaya dependensi diambil dari cache saat hanya kode yang berubah.\n- Tambahkan `.dockerignore` dan `USER` dengan UID dan GID yang jelas.\n\n**Kamu selesai bila:**\n\n1. mengubah satu baris kode lalu membangun ulang selesai dalam hitungan detik, dan log build menunjukkan langkah pemasangan dependensi `CACHED`;\n2. `docker run --rm <citramu> id` tidak menunjukkan `uid=0`;\n3. `docker history --no-trunc` tidak memuat rahasia apa pun, dan berkas `.env` tidak ada di dalam citra;\n4. kamu mencatat ukuran citra sebelum dan sesudah multi-stage, di disk dan terkompresi, lalu menjelaskan dari mana selisihnya."
+    },
+    {
+      "title": "Tumpukan Compose yang tahan banting",
+      "brief": "Susun aplikasi dan basis data dengan Docker Compose, lalu coba patahkan sendiri.\n\n- Pakai volume bernama untuk data, dan bind mount hanya untuk berkas yang kamu sunting.\n- Beri basis data `healthcheck` yang memeriksa lewat TCP, dan buat aplikasi menunggu `service_healthy`.\n- Beri setiap layanan batas memori.\n\n**Kamu selesai bila:**\n\n1. `docker compose down` lalu `up -d` tidak menghilangkan data, sedangkan `down -v` menghilangkannya, dan kamu bisa menjelaskan kenapa;\n2. aplikasi tetap menyala dengan benar walau skrip awal basis data sengaja diperlambat dengan `pg_sleep`;\n3. port hanya dibuka di `127.0.0.1`, kecuali yang memang harus dicapai dari luar laptop;\n4. kamu tahu batas memori yang membuat layananmu dibunuh dengan kode 137, karena sudah mencobanya;\n5. sandi tidak tertulis langsung di berkas yang kamu commit."
+    }
+  ],
+  "resources": [
+    {
+      "type": "OfficialDocs",
+      "title": "What is a container? — konsep Docker",
+      "url": "https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Understanding the image layers — konsep Docker",
+      "url": "https://docs.docker.com/get-started/docker-concepts/building-images/understanding-image-layers/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Building best practices — dokumentasi Docker",
+      "url": "https://docs.docker.com/build/building/best-practices/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Optimize cache usage in builds — dokumentasi Docker",
+      "url": "https://docs.docker.com/build/cache/optimize/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Build context dan .dockerignore — dokumentasi Docker",
+      "url": "https://docs.docker.com/build/concepts/context/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Multi-stage builds — dokumentasi Docker",
+      "url": "https://docs.docker.com/build/building/multi-stage/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Build secrets — dokumentasi Docker",
+      "url": "https://docs.docker.com/build/building/secrets/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Volumes — dokumentasi Docker",
+      "url": "https://docs.docker.com/engine/storage/volumes/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Bridge network driver — dokumentasi Docker",
+      "url": "https://docs.docker.com/engine/network/drivers/bridge/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Port publishing and mapping — dokumentasi Docker",
+      "url": "https://docs.docker.com/engine/network/port-publishing/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Packet filtering and firewalls — dokumentasi Docker",
+      "url": "https://docs.docker.com/engine/network/packet-filtering-firewalls/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Control startup and shutdown order in Compose — dokumentasi Docker",
+      "url": "https://docs.docker.com/compose/how-tos/startup-order/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Resource constraints — dokumentasi Docker",
+      "url": "https://docs.docker.com/engine/containers/resource_constraints/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Docker Engine security — dokumentasi Docker",
+      "url": "https://docs.docker.com/engine/security/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Docker Desktop license agreement — dokumentasi Docker",
+      "url": "https://docs.docker.com/subscription/desktop-license/"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "namespaces(7) — halaman manual Linux",
+      "url": "https://man7.org/linux/man-pages/man7/namespaces.7.html"
+    },
+    {
+      "type": "OfficialDocs",
+      "title": "Installing Psycopg 3 — dokumentasi psycopg",
+      "url": "https://www.psycopg.org/psycopg3/docs/basic/install.html"
+    },
+    {
+      "type": "Repository",
+      "title": "Dokumentasi citra resmi postgres, termasuk perubahan PGDATA di PostgreSQL 18",
+      "url": "https://github.com/docker-library/docs/blob/master/postgres/README.md"
+    },
+    {
+      "type": "Repository",
+      "title": "OCI Image Format Specification",
+      "url": "https://github.com/opencontainers/image-spec"
+    },
+    {
+      "type": "Paper",
+      "title": "Felter dkk. (2014), An Updated Performance Comparison of Virtual Machines and Linux Containers",
+      "url": "https://research.ibm.com/publications/an-updated-performance-comparison-of-virtual-machines-and-linux-containers"
+    }
+  ],
+  "requires": []
+}
